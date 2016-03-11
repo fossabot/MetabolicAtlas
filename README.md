@@ -13,6 +13,7 @@ Structure and inspiration taken from [0].
 
 ## Prerequisites
 
+* [VirtualBox](https://www.virtualbox.org/)
 * [Docker](https://docs.docker.com/engine/) (v1.9.0)
 * [Docker Compose](https://docs.docker.com/compose/) (v1.5.0)
 * [Docker Machine](https://docs.docker.com/machine/) (v0.5.0)
