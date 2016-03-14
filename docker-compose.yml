@@ -22,7 +22,7 @@ nginx:
   links:
     - backend:backend
 
-data:
+postgresData:
   image: postgres:latest
   volumes:
     - /var/lib/postgresql
@@ -33,7 +33,6 @@ postgres:
   image: postgres:latest
   env_file: postgres.env
   volumes_from:
-    - data
+    - postgresData
   ports:
     - "5432:5432"
-
