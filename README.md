@@ -29,8 +29,8 @@ $ docker-machine create -d virtualbox dev
 $ eval "$(docker-machine env dev)"
 $ docker-compose build
 $ docker-compose up -d
-$ docker-compose run web /usr/local/bin/python create_db.py
-$ docker-compose run web /usr/local/bin/python populate_db.py
+$ docker-compose run backend /usr/local/bin/python create_db.py
+$ docker-compose run backend /usr/local/bin/python populate_db.py
 ```
 
 Once everything is up, the application is available on port 80 on the

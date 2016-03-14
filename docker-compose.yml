@@ -1,39 +1,39 @@
-web:
-        restart: always
-        build: ./hma_backend
-        expose:
-                - "8000"
-        links:
-                - postgres:postgres
-        volumes:
-                - /usr/src/app/static
-        env_file: backend.env
-        command: /usr/local/bin/gunicorn -w 2 -b :8000 runserver:app
+backend:
+  restart: always
+  build: ./hma_backend
+  expose:
+    - "8000"
+  links:
+    - postgres:postgres
+  volumes:
+    - /usr/src/app/static
+  env_file: backend.env
+  command: /usr/local/bin/gunicorn -w 2 -b :8000 runserver:app
 
 nginx:
-        restart: always
-        build: ./nginx
-        ports:
-                - "80:80"
-        volumes:
-                - /www/static
-        volumes_from:
-                - web
-        links:
-                - web:web
+  restart: always
+  build: ./nginx
+  ports:
+    - "80:80"
+  volumes:
+    - /www/static
+  volumes_from:
+    - backend
+  links:
+    - backend:backend
 
 data:
-        image: postgres:latest
-        volumes:
-                - /var/lib/postgresql
-        command: "true"
+  image: postgres:latest
+  volumes:
+    - /var/lib/postgresql
+  command: "true"
 
 postgres:
-        restart: always
-        image: postgres:latest
-        env_file: postgres.env
-        volumes_from:
-                - data
-        ports:
-                - "5432:5432"
+  restart: always
+  image: postgres:latest
+  env_file: postgres.env
+  volumes_from:
+    - data
+  ports:
+    - "5432:5432"
 
