@@ -199,6 +199,16 @@ class APITestCase(unittest.TestCase):
         assert data['offset'] == 3
         assert len(data['reaction_components']) == 3
 
+    def test_get_reaction_components_search(self):
+        query = '/api/v1/reaction_components?name={0}'
+        response = self.client.get(query.format("Reactant"))
+        data = dict(self.get_json(response))
+        assert len(data['reaction_components']) == 1
+
+        response = self.client.get(query.format("1"))
+        data = dict(self.get_json(response))
+        assert len(data['reaction_components']) == 3
+
     def test_get_reaction_component(self):
         response = self.client.get('/api/v1/reaction_components/product1')
         data = dict(self.get_json(response))

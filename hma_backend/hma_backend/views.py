@@ -1,6 +1,7 @@
 from flask import jsonify, abort
 from flask import make_response, request
 from flask_swagger import swagger
+from sqlalchemy import or_
 
 from hma_backend import app
 from hma_backend.models import *
@@ -548,6 +549,10 @@ def list_components():
         name: offset
         type: integer
         description: Offset for database query
+      - in: query
+        name: name
+        type: string
+        description: Filter on component_id, short_name, or long_name
     responses:
       200:
         description: Returns a list of ReactionComponentss
@@ -569,7 +574,16 @@ def list_components():
     """
     limit = int(request.args.get('limit', 20))
     offset = int(request.args.get('offset', 0))
-    components = ReactionComponent.query.limit(limit).offset(offset).all()
+    maybe_name = request.args.get('name')
+    if maybe_name:
+        search = "%{0}%".format(maybe_name)
+        components = ReactionComponent.query.filter(
+            or_(ReactionComponent.id.like(search),
+                or_(ReactionComponent.long_name.like(search),
+                    ReactionComponent.short_name.like(search)))).\
+                    limit(limit).offset(offset).all()
+    else:
+        components = ReactionComponent.query.limit(limit).offset(offset).all()
     json = {}
     json['limit'] = limit
     json['offset'] = offset + len(components)
