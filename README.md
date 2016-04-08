@@ -29,6 +29,7 @@ $ docker-machine create -d virtualbox dev
 $ eval "$(docker-machine env dev)"
 $ docker-compose build
 $ docker-compose up -d
+$ psql -h `docker-machine ip dev` -p 5432 -U postgres --password -d hma -c "create extension pg_trgm;"
 $ docker-compose run backend /usr/local/bin/python create_db.py
 $ docker-compose run backend /usr/local/bin/python populate_db.py
 ```

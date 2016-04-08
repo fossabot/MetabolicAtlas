@@ -1,4 +1,4 @@
-from sqlalchemy import ForeignKey
+from sqlalchemy import ForeignKey, Index
 from sqlalchemy.orm import relationship
 
 from hma_backend import db
@@ -83,12 +83,23 @@ class Reaction(db.Model):
 class ReactionComponent(db.Model):
     __tablename__ = "reaction_component"
 
+    __table_args__ = (
+        Index('reaction_component_search_idx', 'id', 'short_name', 'long_name',
+              postgresql_ops={
+                  'id': 'gin_trgm_ops',
+                  'short_name': 'gin_trgm_ops',
+                  'long_name': 'gin_trgm_ops'
+              },
+              postgresql_using='gin'),
+    )
+
     id = db.Column(db.String(50), primary_key=True)
     short_name = db.Column(db.String(255))
     long_name = db.Column(db.String(255))
     type_code = db.Column(db.Integer)
     organism = db.Column(db.String(255))
     formula = db.Column(db.String(255))
+
     reactions_as_reactant = relationship("Reaction",
                                          secondary=reaction_reactants,
                                          back_populates="reactants")
