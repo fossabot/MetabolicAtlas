@@ -196,7 +196,6 @@ def list_author(author_id):
       200:
         description: Returns the specified Author
         schema:
-          type: object
           $ref: "#/definitions/Author"
       404:
         description: Author not found
@@ -290,15 +289,18 @@ def list_reaction(reaction_id):
               description: Equation
               default: "reactant_1 + ... + reactant_n => product_1 + ... + product_m"
             lower_bound:
-              type: float
+              type: number
+              format: float
               description: Lower bound
               default: 0.0
             upper_bound:
-              type: float
+              type: number
+              format: float
               description: Upper bound
               default: 1.0
             objective_coefficient:
-              type: float
+              type: number
+              format: float
               description: Objective coefficient
               default: 1.0
             reactants:
@@ -326,7 +328,6 @@ def list_reaction(reaction_id):
       200:
         description: Returns the specified Reaction
         schema:
-          type: object
           $ref: "#/definitions/Reaction"
       404:
         description: Reaction not found
@@ -365,6 +366,7 @@ def list_reaction_reactants(reaction_id):
         name: reaction_id
         type: string
         description: Reaction ID
+        required: true
     responses:
       200:
         description: Returns a list of reactants for the specified reaction
@@ -391,15 +393,16 @@ def list_reaction_reactant(reaction_id, reactant_id):
         name: reaction_id
         type: string
         description: Reaction ID
+        required: true
       - in: path
         name: reactant_id
         type: string
         description: Reactant ID
+        required: true
     responses:
       200:
         description: Returns the specified reactant
         schema:
-          type: object
           $ref: "#/definitions/ReactionComponent"
       404:
         description: Reactant not found
@@ -425,6 +428,7 @@ def list_reaction_products(reaction_id):
         name: reaction_id
         type: string
         description: Reaction ID
+        required: true
     responses:
       200:
         description: Returns a list of products for the specified reaction
@@ -451,15 +455,16 @@ def list_reaction_product(reaction_id, product_id):
         name: reaction_id
         type: string
         description: Reaction ID
+        required: true
       - in: path
         name: product_id
         type: string
         description: Product ID
+        required: true
     responses:
       200:
         description: Returns the specified product
         schema:
-          type: object
           $ref: "#/definitions/ReactionComponent"
       404:
         description: Product not found
@@ -485,6 +490,7 @@ def list_reaction_modifiers(reaction_id):
         name: reaction_id
         type: string
         description: Reaction ID
+        required: true
     responses:
       200:
         description: Returns a list of modifiers for the specified reaction
@@ -511,15 +517,16 @@ def list_reaction_modifier(reaction_id, modifier_id):
         name: reaction_id
         type: string
         description: Reaction ID
+        required: true
       - in: path
         name: modifier_id
         type: string
         description: Modifier ID
+        required: true
     responses:
       200:
         description: Returns the specified modifier
         schema:
-          type: object
           $ref: "#/definitions/ReactionComponent"
       404:
         description: Modifier not found
@@ -638,7 +645,6 @@ def list_component(component_id):
       200:
         description: Returns the specified ReactionComponent
         schema:
-          type: object
           $ref: "#/definitions/ReactionComponent"
       404:
         description: ReactionComponent not found
