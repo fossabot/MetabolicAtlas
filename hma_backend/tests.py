@@ -13,13 +13,15 @@ from hma_backend.models import *
 
 
 class APITestCase(unittest.TestCase):
-    def setUp(self):
-        self.app = app
-        self.client = self.app.test_client()
+    @classmethod
+    def setUpClass(cls):
+        cls.app = app
+        cls.client = cls.app.test_client()
         db.create_all()
-        self.populate_db()
+        cls.populate_db()
 
-    def tearDown(self):
+    @classmethod
+    def tearDownClass(cls):
         db.session.remove()
         db.drop_all()
 
@@ -228,7 +230,8 @@ class APITestCase(unittest.TestCase):
     def get_json(self, response):
         return json.loads(response.data.decode('utf-8'))
 
-    def populate_db(self):
+    @classmethod
+    def populate_db(cls):
         model = MetabolicModel()
         model.short_name = "TestModel"
         model.name = "Metabolic test model"
