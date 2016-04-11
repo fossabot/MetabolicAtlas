@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link href="../static/css/style.css" rel="stylesheet" />
+<meta charset=utf-8 />
+<title>View 4</title>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+<script src="http://cytoscape.github.io/cytoscape.js/api/cytoscape.js-latest/cytoscape.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.16/angular.min.js"></script>
+<script src="../static/js/view4model.js"></script>
+<script src="../static/js/view4ctrl.js"></script>
+</head>
+<body ng-app="app">
+  <div id="logo"></div>
+  <div id="cy"></div>
+  <table id="view4-table" ng-controller="v4ElemsCtrl">
+    <tbody>
+      <tr>
+        <th>Select</th>
+        <th>Type</th>
+        <th>Short Name</th>
+        <th>Long Name</th>
+        <th>Description</th>
+        <th>Formula</th>
+      </tr>
+      <tr ng-repeat="elem in elms">
+        <td><input type="checkbox" ng-model="elem.id" ng-change="onSelected(elem)"></td>
+        <td>{{elem.type}}</td>
+        <td>{{elem.short}}</td>
+        <td>{{elem.long}}</td>
+        <td>{{elem.description}}</td>
+        <td>{{elem.formula}}</td>
+      </tr>
+    </tbody>
+  </table>
+  <div id="footer"></div>
+</body>
+</html>
