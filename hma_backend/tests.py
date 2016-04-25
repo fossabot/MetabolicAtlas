@@ -38,6 +38,12 @@ class APITestCase(unittest.TestCase):
         data = dict(self.get_json(response))
         assert data['message'] == expected
 
+    def test_get_spec(self):
+        expected = "This is an API for accessing metabolic models"
+        response = self.client.get('/api/v1/spec')
+        data = dict(self.get_json(response))
+        assert data['info']['description'] == expected
+
     def test_get_models(self):
         response = self.client.get('/api/v1/models')
         data = dict(self.get_json(response))
@@ -127,7 +133,8 @@ class APITestCase(unittest.TestCase):
         assert data['component_id'] == "reactant1"
         assert data['short_name'] == "reactant1"
         assert data['long_name'] == "Reactant 1"
-        assert data['type_code'] == 1
+        assert data['type'] == "metabolite"
+        assert data['compartment'] == "Mitochondria"
         assert data['organism'] == "Human"
         assert data['formula'] == "FO2"
 
@@ -153,9 +160,9 @@ class APITestCase(unittest.TestCase):
         response = self.client.get(uri)
         data = dict(self.get_json(response))
         assert data['component_id'] == "product1"
-        assert data['short_name'] == "product1"
+        assert data['short_name'] == "Product 1"
         assert data['long_name'] == "Product 1"
-        assert data['type_code'] == 1
+        assert data['type'] == "metabolite"
         assert data['organism'] == "Human"
         assert data['formula'] == "BAr"
 
@@ -183,7 +190,7 @@ class APITestCase(unittest.TestCase):
         assert data['component_id'] == "modifier1"
         assert data['short_name'] == "modifier1"
         assert data['long_name'] == "Modifier 1"
-        assert data['type_code'] == 1
+        assert data['type'] == "enzyme"
         assert data['organism'] == "Human"
         assert data['formula'] == "BaZ"
 
@@ -198,8 +205,8 @@ class APITestCase(unittest.TestCase):
         response = self.client.get('/api/v1/reaction_components')
         data = dict(self.get_json(response))
         assert data['limit'] == 20
-        assert data['offset'] == 3
-        assert len(data['reaction_components']) == 3
+        assert data['offset'] == 5
+        assert len(data['reaction_components']) == 5
 
     def test_get_reaction_components_search(self):
         query = '/api/v1/reaction_components?name={0}'
@@ -209,15 +216,15 @@ class APITestCase(unittest.TestCase):
 
         response = self.client.get(query.format("1"))
         data = dict(self.get_json(response))
-        assert len(data['reaction_components']) == 3
+        assert len(data['reaction_components']) == 5
 
     def test_get_reaction_component(self):
         response = self.client.get('/api/v1/reaction_components/product1')
         data = dict(self.get_json(response))
         assert data['component_id'] == "product1"
-        assert data['short_name'] == "product1"
+        assert data['short_name'] == "Product 1"
         assert data['long_name'] == "Product 1"
-        assert data['type_code'] == 1
+        assert data['type'] == "metabolite"
         assert data['organism'] == "Human"
         assert data['formula'] == "BAr"
 
@@ -226,6 +233,131 @@ class APITestCase(unittest.TestCase):
         data = dict(self.get_json(response))
         assert response.status_code == 404
         assert data['error'] == "Not found"
+
+    def test_get_reaction_component_expressions(self):
+        response = self.client.get(
+            '/api/v1/reaction_components/modifier1/expressions')
+        data = dict(self.get_json(response))
+        assert len(data['expressions']) == 1
+
+    def test_get_connected_metabolites(self):
+        response = self.client.get(
+            '/api/v1/enzymes/Modifier 1/connected_metabolites'
+        )
+        data = dict(self.get_json(response))
+        assert data['id'] == 'modifier1'
+        assert data['short_name'] == 'modifier1'
+        assert data['long_name'] == 'Modifier 1'
+        assert len(data['reactions']) == 1
+        expected_reaction = {
+            'reaction_id': 'reaction1',
+            'modifiers': [],
+            'products': [
+                {'long_name': 'Product 1',
+                 'short_name': 'Product 1',
+                 'component_id': 'product1',
+                 'type': 'metabolite',
+                 'formula': 'BAr',
+                 'organism': 'Human'}
+            ],
+            'reactants': [
+                {'long_name': 'Reactant 1',
+                 'compartment': 'Mitochondria',
+                 'short_name': 'reactant1',
+                 'component_id': 'reactant1',
+                 'type': 'metabolite',
+                 'formula': 'FO2',
+                 'organism': 'Human'}
+            ],
+            'enzyme_role': 'modifier'
+        }
+        assert data['reactions'] == [expected_reaction]
+        assert data['expressions'] == '/api/v1/expressions/Modifier%201'
+
+    def test_get_connected_metabolites_include_expressions(self):
+        response = self.client.get(
+            ('/api/v1/enzymes/Modifier 1/connected_metabolites?'
+             'include_expressions=true')
+        )
+        data = dict(self.get_json(response))
+        assert data['id'] == 'modifier1'
+        assert data['short_name'] == 'modifier1'
+        assert data['long_name'] == 'Modifier 1'
+        assert len(data['reactions']) == 1
+        expected_reaction = {
+            'reaction_id': 'reaction1',
+            'modifiers': [],
+            'products': [
+                {'long_name': 'Product 1',
+                 'short_name': 'Product 1',
+                 'component_id': 'product1',
+                 'type': 'metabolite',
+                 'formula': 'BAr',
+                 'organism': 'Human'}
+            ],
+            'reactants': [
+                {'long_name': 'Reactant 1',
+                 'compartment': 'Mitochondria',
+                 'short_name': 'reactant1',
+                 'component_id': 'reactant1',
+                 'type': 'metabolite',
+                 'formula': 'FO2',
+                 'organism': 'Human'}
+            ],
+            'enzyme_role': 'modifier'
+        }
+        assert data['reactions'] == [expected_reaction]
+        assert len(data['expressions']) == 1
+        expected_expression = {
+            'gene_id': 'Modifier 1',
+            'gene_name': 'CTSV',
+            'transcript_id': 'N/A',
+            'tissue': 'pancreas',
+            'cell_type': 'islets of Langerhans',
+            'expression_type': 'APE',
+            'level': 'Medium',
+            'reliability': 'Uncertain',
+            'source': 'HMA V14'
+        }
+        assert data['expressions'] == [expected_expression]
+
+    def test_get_connected_metabolites_404(self):
+        response = self.client.get(
+            '/api/v1/enzymes/NO_SUCH_ENZYME/connected_metabolites'
+        )
+        data = self.get_json(response)
+        assert response.status_code == 404
+        assert data['error'] == "Not found"
+
+    def test_get_connected_metabolites_500(self):
+        response = self.client.get(
+            '/api/v1/enzymes/Dupe 1/connected_metabolites'
+        )
+        data = self.get_json(response)
+        assert response.status_code == 500
+        assert data['error'] == "Internal server error"
+
+    def test_list_expressions(self):
+        response = self.client.get('/api/v1/expressions/Modifier 1')
+        data = dict(self.get_json(response))
+        assert len(data['expressions']) == 1
+        expected_expression = {
+            'gene_id': 'Modifier 1',
+            'gene_name': 'CTSV',
+            'transcript_id': 'N/A',
+            'tissue': 'pancreas',
+            'cell_type': 'islets of Langerhans',
+            'expression_type': 'APE',
+            'level': 'Medium',
+            'reliability': 'Uncertain',
+            'source': 'HMA V14'
+        }
+        assert data['expressions'] == [expected_expression]
+
+    def test_list_expressions_no_expressions(self):
+        response = self.client.get('/api/v1/expressions/Product 1')
+        data = dict(self.get_json(response))
+        assert len(data['expressions']) == 0
 
     def get_json(self, response):
         return json.loads(response.data.decode('utf-8'))
@@ -250,26 +382,60 @@ class APITestCase(unittest.TestCase):
 
         db.session.add(model)
 
+        compartment1 = Compartment(id=1, name="Mitochondria")
+
+        db.session.add(compartment1)
+
         reactant1 = ReactionComponent(id="reactant1")
         reactant1.short_name = "reactant1"
         reactant1.long_name = "Reactant 1"
-        reactant1.type_code = 1
+        reactant1.component_type = "metabolite"
+        reactant1.compartment = compartment1.id
         reactant1.organism = "Human"
         reactant1.formula = "FO2"
 
         product1 = ReactionComponent(id="product1")
-        product1.short_name = "product1"
         product1.long_name = "Product 1"
-        product1.type_code = 1
+        product1.component_type = "metabolite"
         product1.organism = "Human"
         product1.formula = "BAr"
 
         modifier1 = ReactionComponent(id="modifier1")
         modifier1.short_name = "modifier1"
         modifier1.long_name = "Modifier 1"
-        modifier1.type_code = 1
+        modifier1.component_type = "enzyme"
         modifier1.organism = "Human"
         modifier1.formula = "BaZ"
+
+        dupe_enzyme1 = ReactionComponent(id="dupe_enzyme1")
+        dupe_enzyme1.short_name = "dupe_enzyme1"
+        dupe_enzyme1.long_name = "Dupe 1"
+        dupe_enzyme1.component_type = "enzyme"
+        dupe_enzyme1.organism = "Human"
+        dupe_enzyme1.formula = "BaZ"
+
+        dupe_enzyme2 = ReactionComponent(id="dupe_enzyme2")
+        dupe_enzyme2.short_name = "dupe_enzyme1"
+        dupe_enzyme2.long_name = "Dupe 1"
+        dupe_enzyme2.component_type = "enzyme"
+        dupe_enzyme2.organism = "Human"
+        dupe_enzyme2.formula = "BaZ"
+
+        db.session.add(dupe_enzyme1)
+        db.session.add(dupe_enzyme2)
+
+        expression_data1 = ExpressionData(id='modifier1')
+        expression_data1.gene_id = modifier1.long_name
+        expression_data1.gene_name = "CTSV"
+        expression_data1.transcript_id = "N/A"
+        expression_data1.tissue = "pancreas"
+        expression_data1.cell_type = "islets of Langerhans"
+        expression_data1.level = "Medium"
+        expression_data1.expression_type = "APE"
+        expression_data1.reliability = "Uncertain"
+        expression_data1.source = "HMA V14"
+
+        db.session.add(expression_data1)
 
         reaction1 = Reaction(id="reaction1")
         reaction1.name = "Reaction"

@@ -1,7 +1,8 @@
-from flask import jsonify, abort
+from flask import jsonify, abort, url_for
 from flask import make_response, request
 from flask_swagger import swagger
-from sqlalchemy import or_
+from sqlalchemy import or_, and_
+from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 
 from hma_backend import app
 from hma_backend.models import *
@@ -618,15 +619,15 @@ def list_component(component_id):
             short_name:
               type: string
               description: Short name
-              default: FIXME
+              default: H2O
             long_name:
               type: string
               description: Long name
               default: H2O
-            type_code:
+            type:
               type: string
-              description: Type
-              default: FIXME
+              description: Reaction component type
+              default: metabolite
             organism:
               type: string
               description: Organism
@@ -656,9 +657,251 @@ def list_component(component_id):
 def make_public_component(component):
     json = {}
     json['component_id'] = component.id
-    json['short_name'] = component.short_name
+    json['type'] = component.component_type
+    if component.short_name:
+        json['short_name'] = component.short_name
+    else:
+        json['short_name'] = component.long_name
     json['long_name'] = component.long_name
-    json['type_code'] = component.type_code
+    json['type'] = component.component_type
     json['organism'] = component.organism
     json['formula'] = component.formula
+    if component.compartment:
+        json['compartment'] = Compartment.query.get(component.compartment).name
+    return json
+
+
+@app.route("/api/v1/reaction_components/<string:component_id>/expressions")
+def list_component_expressions(component_id):
+    """
+    Find expressions for reaction component by ID
+    ---
+    tags:
+      - ReactionComponents
+      - Expressions
+    parameters:
+      - in: path
+        name: component_id
+        type: string
+        required: true
+        description: Reaction component ID
+    responses:
+      200:
+        description: Returns the expressions for the specified ReactionComponent
+        schema:
+          type: object
+          properties:
+            expressions:
+              type: array
+              items:
+                $ref: "#/definitions/Expression"
+      404:
+        description: ReactionComponent not found
+    """
+    # FIXME when to return 404?
+    expressions = ExpressionData.query.filter_by(id=component_id).all()
+    expressions = [make_public_expression(e) for e in expressions]
+    return jsonify({'expressions': expressions})
+
+
+@app.route("/api/v1/enzymes/<string:enzyme_id>/connected_metabolites")
+def connected_metabolites(enzyme_id):
+    """
+    Find connected metabolites
+    ---
+    tags:
+      - ReactionComponents
+      - Reactions
+    definitions:
+      - schema:
+          id: ConnectedMetabolites
+          type: object
+          properties:
+            enzyme_id:
+              type: string
+              description: Enzyme ID
+              default: E_1
+            short_name:
+              type: string
+              description: Enzyme short name
+              default: DPM1
+            long_name:
+              type: string
+              description: Enzyme long name
+              default: ENSG00000000419
+            reactions:
+              type: array
+              items:
+                $ref: "#/definitions/Reaction"
+              description: Reactions
+            expressions:
+              type: array
+              items:
+                $ref: "#/definitions/Expression"
+              description: Expressions
+    parameters:
+      - in: path
+        name: enzyme_id
+        type: string
+        required: true
+        description: Enzyme ID
+    responses:
+      200:
+        description: Returns the connected metabolites for the specified enzyme
+        schema:
+          $ref: "#/definitions/ConnectedMetabolites"
+      404:
+        description: Enzyme not found
+    """
+    try:
+        include_expressions = False
+        # include expressions iff parameter is set to 'true'
+        if request.args.get('include_expressions') == 'true':
+            include_expressions = True
+        enzyme = ReactionComponent.query.filter(
+            and_(ReactionComponent.component_type == "enzyme",
+                 ReactionComponent.long_name == enzyme_id)).one()
+        as_reactant = get_metabolites(enzyme.reactions_as_reactant, "reactant")
+        as_product = get_metabolites(enzyme.reactions_as_product, "product")
+        as_modifier = get_metabolites(enzyme.reactions_as_modifier, "modifier")
+        reactions = as_reactant + as_product + as_modifier
+        json = {}
+        json['id'] = enzyme.id
+        json['short_name'] = enzyme.short_name
+        json['long_name'] = enzyme.long_name
+        json['id'] = enzyme.id
+        json['reactions'] = [make_public_reaction_metabolites(reaction) for
+                             reaction in reactions]
+        if include_expressions:
+            expressions = get_expressions(enzyme_id)
+            json['expressions'] = [make_public_expression(expr) for
+                                       expr in expressions]
+        return jsonify(json)
+    except NoResultFound:
+        abort(404)
+    except MultipleResultsFound:
+        abort(500)
+
+
+def get_metabolites(reactions, role):
+    metabolites = []
+    for r in reactions:
+        reaction_id = r.id
+        reactants = [m for m in r.reactants
+                     if m.component_type == "metabolite"]
+        products = [m for m in r.products
+                    if m.component_type == "metabolite"]
+        modifiers = [m for m in r.modifiers
+                     if m.component_type == "metabolite"]
+        metabolites.append((reaction_id, role, reactants,
+                          products, modifiers))
+    return metabolites
+
+
+@app.route("/api/v1/expressions/<string:enzyme_id>")
+def list_expressions(enzyme_id):
+    """
+    List expressions
+    ---
+    tags:
+      - Expressions
+    definitions:
+      - schema:
+          id: Expression
+          type: object
+          properties:
+            id:
+              type: string
+              description: Component ID
+              default: M_m02040s
+            gene_id:
+              type: string
+              description: ENSEMBL Gene ID
+              default: ENSG00000000419
+            gene_name:
+              type: string
+              description: Gene name
+              default: DPM1
+            transcript_id:
+              type: string
+              description: Transcript ID
+              default: N/A
+            tissue:
+              type: string
+              description: Tissue
+              default: Colon
+            cell_type:
+              type: string
+              description: Cell type
+              default: glandular cells
+            level:
+              type: string
+              description: Level
+              default: High
+            expression_type:
+              type: string
+              description: Expression type
+              default: APE
+            reliability:
+              type: string
+              description: Reliability
+              default: Uncertain
+            source:
+              type: string
+              description: Data source
+              default: HPA V14
+    parameters:
+      - in: path
+        name: enzyme_id
+        type: string
+        required: true
+        description: ENSEMBL gene ID
+    responses:
+      200:
+        description: Returns a list of expression data
+        schema:
+          type: object
+          properties:
+            expressions:
+              type: array
+              items:
+                $ref: "#/definitions/Expression"
+    """
+    expressions = get_expressions(enzyme_id)
+    json_expressions = [make_public_expression(expr) for
+                           expr in expressions]
+    return jsonify({'expressions': json_expressions})
+
+
+def get_expressions(enzyme_id):
+    return ExpressionData.query.filter(
+        # this allows us to use the GIS index. \o/
+        ExpressionData.gene_id.like(enzyme_id)
+    ).all()
+
+
+def make_public_expression(expression):
+    json = {}
+    json['gene_id'] = expression.gene_id
+    json['gene_name'] = expression.gene_name
+    json['transcript_id'] = expression.transcript_id
+    json['tissue'] = expression.tissue
+    json['expression_type'] = expression.expression_type
+    json['level'] = expression.level
+    json['cell_type'] = expression.cell_type
+    json['reliability'] = expression.reliability
+    json['source'] = expression.source
+
+    return json
+
+
+def make_public_reaction_metabolites(reaction):
+    (reaction_id, role, reactants, products, modifiers) = reaction
+    json = {}
+    json['reaction_id'] = reaction_id
+    json['enzyme_role'] = role
+    json['reactants'] = [make_public_component(c) for c in reactants]
+    json['products'] = [make_public_component(c) for c in products]
+    json['modifiers'] = [make_public_component(c) for c in modifiers]
+
     return json

@@ -10,6 +10,12 @@ model_authors = db.Table('model_authors',
                       db.Column('author_id', ForeignKey('author.id'),
                              primary_key=True))
 
+model_reactions = db.Table('model_reactions',
+                           db.Column('model_id', ForeignKey('metabolic_model.id'),
+                                     primary_key=True),
+                           db.Column('reaction_id', ForeignKey('reaction.id'),
+                                     primary_key=True))
+
 class MetabolicModel(db.Model):
     __tablename__ = "metabolic_model"
 
@@ -18,6 +24,8 @@ class MetabolicModel(db.Model):
     name = db.Column(db.String(255), nullable=False)
     authors = relationship("Author", secondary=model_authors,
                            back_populates="models")
+    reactions = relationship("Reaction", secondary=model_reactions,
+                             back_populates="models")
 
     def __repr__(self):
         return "<MetabolicModel: {0}>".format(self.short_name)
@@ -75,6 +83,8 @@ class Reaction(db.Model):
     reactants = relationship("ReactionComponent", secondary=reaction_reactants)
     products = relationship("ReactionComponent", secondary=reaction_products)
     modifiers = relationship("ReactionComponent", secondary=reaction_modifiers)
+    models = relationship("MetabolicModel", secondary=model_reactions,
+                          back_populates="reactions")
 
     def __repr__(self):
         return "<Reaction: {0}>".format(self.id)
@@ -96,7 +106,7 @@ class ReactionComponent(db.Model):
     id = db.Column(db.String(50), primary_key=True)
     short_name = db.Column(db.String(255))
     long_name = db.Column(db.String(255))
-    type_code = db.Column(db.Integer)
+    component_type = db.Column(db.String(50), index=True)
     organism = db.Column(db.String(255))
     formula = db.Column(db.String(255))
 
@@ -110,5 +120,44 @@ class ReactionComponent(db.Model):
                                          secondary=reaction_modifiers,
                                          back_populates="modifiers")
 
+    compartment = db.Column(db.Integer, ForeignKey("compartment.id"),
+                            nullable=True)
+
     def __repr__(self):
         return "<ReactionComponent: {0}>".format(self.id)
+
+
+class Compartment(db.Model):
+    __tablename__ = "compartment"
+
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(255))
+
+
+class ExpressionData(db.Model):
+    __tablename__ = "expression_data"
+
+    __table_args__ = (
+        Index('antibody_profile_search_idx', 'id', 'gene_id', 'gene_name',
+              postgresql_ops={
+                  'id': 'gin_trgm_ops',
+                  'gene_id': 'gin_trgm_ops',
+                  'gene_name': 'gin_trgm_ops'
+              },
+              postgresql_using='gin'),
+    )
+
+    # FIXME: ForeignKey must be unique, so we can't use long_name here :(
+    id = db.Column(db.String(50), ForeignKey(ReactionComponent.id),
+                   primary_key=True)
+    gene_id = db.Column(db.String(255), primary_key=True)
+    gene_name = db.Column(db.String(255))
+    transcript_id = db.Column(db.String(255), primary_key=True)
+    tissue = db.Column(db.String(255), primary_key=True)
+    cell_type = db.Column(db.String(255), primary_key=True)
+    level = db.Column(db.String(255))
+    expression_type = db.Column(db.String(255), index=True)
+    reliability = db.Column(db.String(255))
+    source = db.Column(db.String(255))
+
+
