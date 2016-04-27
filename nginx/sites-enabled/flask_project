@@ -3,6 +3,11 @@ server {
     server_name dev.metabolicatlas.org;
     charset utf-8;
 
+    gzip            on;
+    gzip_min_length 1000;
+    gzip_proxied    expired no-cache no-store private auth;
+    gzip_types      application/json;
+
     location /static {
 	alias /usr/src/app/static;
     }
