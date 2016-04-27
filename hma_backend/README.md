@@ -4,6 +4,7 @@
 2. [Prerequisites](#prerequisites)
 3. [Configuration](#configuration)
 4. [API](#api)
+5. [Examples](#examples)
 
 
 # About
@@ -70,3 +71,38 @@ $ python3 -m http.server
 
 Then open up [http://localhost:8000](http://localhost:8000) in your
 browser.
+
+
+# Examples
+
+To get an idea of what the backend can provide, here are some example
+queries to get you started:
+
+## List interaction partners
+
+Interaction partners are reaction components that are part of the same
+reaction. Here are three different examples to give you an idea of the
+size difference in the responses:
+
+```bash
+# 91 lines
+$ curl http://<server>/api/v1/reaction_components/E_2571/interaction_partners
+# 569 lines
+$ curl http://<server>/api/v1/reaction_components/E_3125/interaction_partners
+# 5966 lines
+$ curl http://<server>/api/v1/reaction_components/M_m02040s/interaction_partners
+```
+
+## Get connected metabolites
+
+Given an enzyme with an ENSEMBL gene identifier, we can get a list of
+the metabolites that occur in the reactions that the enzyme is a part
+of. The response can also include expression data, if the query
+parameter `include_expressions` is set to `true`. E.g.:
+
+```bash
+# expressions as a link to another resource, 96 lines
+$ curl http://<server>/api/v1/enzymes/ENSG00000164303/connected_metabolites
+# expressions as a list, 2320 lines
+$ curl http://<server>/api/v1/enzymes/ENSG00000164303/connected_metabolites?include_expressions=true
+```
