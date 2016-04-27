@@ -35,7 +35,7 @@ postgres:
   volumes_from:
     - postgresData
   ports:
-    - "5432:5432"
+    - "127.0.0.1:5432:5432"
 
 
 # monitoring & metrics
@@ -44,7 +44,7 @@ cadvisor:
   image: google/cadvisor:v0.22.0
   restart: always
   ports:
-    - "8080:8080"
+    - "127.0.0.1:8080:8080"
   volumes:
     - /:/rootfs:ro
     - /var/run:/var/run:rw
@@ -57,14 +57,14 @@ cadvisor:
 elasticsearch:
   image: elasticsearch:2.2
   ports:
-    - "9200:9200"
-    - "9300:9300"
+    - "127.0.0.1:9200:9200"
+    - "127.0.0.1:9300:9300"
 
 logstash:
   build: ./logstash
   ports:
-    - "5000:5000"
-    - "5000:5000/udp"
+    - "127.0.0.1:5000:5000"
+    - "127.0.0.1:5000:5000/udp"
   environment:
     - LOGSPOUT=ignore
   command: logstash -f /etc/logstash/conf.d/logstash.conf --debug --verbose
@@ -82,7 +82,7 @@ logspout:
 kibana:
   image: kibana:4.4
   ports:
-    - "5601:5601"
+    - "127.0.0.1:5601:5601"
   links:
     - elasticsearch
 
@@ -95,8 +95,8 @@ influxdb:
   image: tutum/influxdb:0.9
   restart: always
   ports:
-    - "8083:8083" # admin site
-    - "8086:8086" # API
+    - "127.0.0.1:8083:8083" # admin site
+    - "127.0.0.1:8086:8086" # API
   environment:
     - PRE_CREATE_DB=cadvisor
     - LOGSPOUT=ignore
@@ -109,5 +109,5 @@ grafana:
   links:
     - influxdb
   ports:
-    - "3000:3000"
+    - "127.0.0.1:3000:3000"
   env_file: grafana.env
