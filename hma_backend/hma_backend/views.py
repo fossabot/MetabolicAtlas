@@ -703,6 +703,77 @@ def list_component_expressions(component_id):
     expressions = [make_public_expression(e) for e in expressions]
     return jsonify({'expressions': expressions})
 
+@app.route("/api/v1/reaction_components/<string:component_id>/interaction_partners")
+def list_interaction_partners(component_id):
+    """
+    List interaction partners
+    ---
+    tags:
+      - ReactionComponents
+    parameters:
+      - in: path
+        name: component_id
+        type: string
+        required: true
+        description: Reaction component ID
+    definitions:
+      - schema:
+          id: InteractionPartners
+          type: object
+          properties:
+            reaction_id:
+              type: string
+              description: Reaction ID
+              default: R_HMR_3905
+            modifiers:
+              type: array
+              description: Reaction modifiers
+              items:
+                $ref: "#/definitions/ReactionComponent"
+            reactants:
+              type: array
+              description: Reaction reactants
+              items:
+                $ref: "#/definitions/ReactionComponent"
+            products:
+              type: array
+              description: Reaction products
+              items:
+                $ref: "#/definitions/ReactionComponent"
+    responses:
+      200:
+        description: Returns a list of interaction partners
+        schema:
+          type: object
+          properties:
+            reactions:
+              type: array
+              items:
+                $ref: "#/definitions/InteractionPartners"
+    """
+    # FIXME component_id or long_name here?
+    component = ReactionComponent.query.get_or_404(component_id)
+    reactions = (component.reactions_as_reactant +
+                 component.reactions_as_product +
+                 component.reactions_as_modifier)
+    interaction_partners = {}
+    interaction_partners['reactions'] = []
+    for reaction in reactions:
+        partners = {}
+        partners['reaction_id'] = reaction.id
+        partners['modifiers'] = [make_public_component(modifier) for
+                                 modifier in reaction.modifiers if
+                                 modifier.id != component_id]
+        partners['products'] = [make_public_component(modifier) for
+                                 modifier in reaction.products if
+                                 modifier.id != component_id]
+        partners['reactants'] = [make_public_component(modifier) for
+                                 modifier in reaction.reactants if
+                                 modifier.id != component_id]
+        interaction_partners['reactions'].append(partners)
+
+    return jsonify(interaction_partners)
+
 
 @app.route("/api/v1/enzymes/<string:enzyme_id>/connected_metabolites")
 def connected_metabolites(enzyme_id):
