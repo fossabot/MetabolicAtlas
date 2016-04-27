@@ -40,6 +40,8 @@ app.factory('view4Graph', [ '$q', function( $q ){
       });
     }
 
+    console.log('cy json:'+JSON.stringify(elmsjson));
+
     $(function(){ // on dom ready
 
       cy = cytoscape({
