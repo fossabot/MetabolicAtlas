@@ -23,6 +23,10 @@ def protoview():
 def view4():
     return make_response(open('templates/view4.html').read())
 
+@app.route('/view3')
+def view3():
+    return make_response(open('templates/view3.html').read())
+
 @app.route('/<path:path>')
 def static_proxy(path):
   # send_static_file will guess the correct MIME type

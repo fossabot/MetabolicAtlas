@@ -48,35 +48,47 @@ app.factory('view4Graph', [ '$q', function( $q ){
         container: $('#cy')[0],
 
         style: cytoscape.stylesheet()
-          .selector('node')
-            .css({
-              'content': 'data(name)',
-              'height': 80,
-              'width': 'mapData(weight, 1, 200, 1, 200)',
-               'text-valign': 'center',
-                'color': 'white',
-                'text-outline-width': 2,
-                'text-outline-color': '#888'
-             })
-          .selector('edge')
-            .css({
-              'width': 3,
-              'line-color': '#ccc',
-              'target-arrow-color': '#ccc',
-              'target-arrow-shape': 'triangle'
-            })
-          .selector(':selected')
-            .css({
-              'background-color': 'black',
-              'line-color': 'black',
-              'target-arrow-color': 'black',
-              'source-arrow-color': 'black',
-              'text-outline-color': 'black'
-          }),
+        .selector('node')
+        .css({
+            'content': 'data(name)',
+            'font-size': "42px",
+            //'height': 80,
+            //'width': 'mapData(weight, 1, 200, 1, 200)',
+            'text-valign': 'center',
+            'text-halign': 'center'
+            //'color': 'white',
+            //'text-outline-width': 2,
+            //'text-outline-color': '#888'
+        })
+        .selector('$node > node')
+        .css({
+            'font-size': "82px",
+            'padding-top': '1px',
+            'padding-left': '1px',
+            'padding-bottom': '1px',
+            'padding-right': '1px',
+            'text-valign': 'top',
+            'text-halign': 'center',
+            'background-color': '#bbb'
+        })
+        .selector('edge')
+        .css({
+            'width': 3,
+            'line-color': '#ccc',
+            'target-arrow-color': '#ccc',
+            'target-arrow-shape': 'triangle'
+        })
+        .selector(':selected')
+        .css({
+            'background-color': 'black',
+            'line-color': 'black',
+            'target-arrow-color': 'black',
+            'source-arrow-color': 'black',
+            'text-outline-color': 'black'
+        }),
 
         layout: {
-          name: 'cose',
-          padding: 10
+          name: 'random'
         },
 
         elements: elmsjson,
@@ -85,6 +97,7 @@ app.factory('view4Graph', [ '$q', function( $q ){
           deferred.resolve( this );
 
           cy.on('cxtdrag', 'node', function(e){
+            /*
             var node = this;
             var dy = Math.abs( e.cyPosition.x - node.position().x );
             var weight = Math.round( dy*2 );
@@ -92,6 +105,7 @@ app.factory('view4Graph', [ '$q', function( $q ){
             node.data('weight', weight);
 
             fire('onWeightChange', [ node.id(), node.data('weight') ]);
+            */
           });
         }
       });

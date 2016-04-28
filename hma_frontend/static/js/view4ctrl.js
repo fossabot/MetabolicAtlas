@@ -3,7 +3,7 @@ app.controller('v4ElemsCtrl', [ '$scope', '$http', 'view4Graph', function( $scop
     // (usually better to have the srv as intermediary)
     $scope.elms = [];
     $scope.rels = [];
-
+    $http.defaults.headers.common['Authorization'] = 'Basic ' + window.btoa('hma' + ':' + 'K5U5Hxl8KG');
     $http.get('http://130.238.29.191/api/v1/enzymes/ENSG00000180011/connected_metabolites?include_expressions=true')
     .success(function(data, status, headers, config) {
         $scope.backend = data;
@@ -82,7 +82,7 @@ app.controller('v4ElemsCtrl', [ '$scope', '$http', 'view4Graph', function( $scop
           // hide ui until cy loaded
           $scope.cyLoaded = true;
         });
-        
+
     }).error(function(error, status, headers, config) {
         console.log(status);
         console.log("Error occured");
