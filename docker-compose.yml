@@ -10,17 +10,31 @@ backend:
   env_file: backend.env
   command: /usr/local/bin/gunicorn -c gunicorn.conf runserver:app
 
+frontend:
+  restart: always
+  build: ./hma_frontend
+  expose:
+    - "8010"
+  links:
+    - backend:backendb
+  volumes:
+    - /usr/src/app/static
+  env_file: frontend.env
+  command: /usr/local/bin/gunicorn -c gunicorn.conf backend:app
+
 nginx:
   restart: always
   build: ./nginx
   ports:
     - "80:80"
+    - "8010:8010"
   volumes:
     - /www/static
   volumes_from:
     - backend
   links:
     - backend:backend
+    - frontend:frontend
 
 postgresData:
   image: postgres:latest
