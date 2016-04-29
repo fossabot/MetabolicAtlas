@@ -30,7 +30,10 @@ $ wget http://v14.proteinatlas.org/download/normal_tissue.csv.zip
 $ wget http://v14.proteinatlas.org/download/transcript_rna_tissue.tsv.zip
 ```
 
-Unzip the files and place them in the `hma_backend/import/` folder.
+Unzip the files and place them in the `hma_backend/import/`
+folder. You will also need a file that maps ENSGIDs to HGNC symbols
+(which will be used as short_name for the ReactionComponents). Place
+it in the same folder.
 
 Next step is to spin up the containers. In the root directory, execute
 the following:
@@ -88,6 +91,8 @@ and `component_type`). We run this to make the updates:
 ```bash
 $ docker-compose run --rm backend /usr/local/bin/python \
     update_component_info.py import/HMRdatabase2_00.xml
+$ docker-compose run --rm backend /usr/local/bin/python \
+	add_short_names.py import/ensembl78_hgnc_symbol.hsapiens.tab
 ```
 
 
