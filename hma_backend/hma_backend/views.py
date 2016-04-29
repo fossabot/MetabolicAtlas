@@ -586,9 +586,9 @@ def list_components():
     if maybe_name:
         search = "%{0}%".format(maybe_name)
         components = ReactionComponent.query.filter(
-            or_(ReactionComponent.id.like(search),
-                or_(ReactionComponent.long_name.like(search),
-                    ReactionComponent.short_name.like(search)))).\
+            or_(ReactionComponent.id.ilike(search),
+                or_(ReactionComponent.long_name.ilike(search),
+                    ReactionComponent.short_name.ilike(search)))).\
                     limit(limit).offset(offset).all()
     else:
         components = ReactionComponent.query.limit(limit).offset(offset).all()
@@ -711,8 +711,8 @@ def list_component_expressions(component_id):
     expression_type = request.args.get('expression_type', '')
     expressions = ExpressionData.query.filter(
         and_(ExpressionData.id == component_id,
-             and_(ExpressionData.tissue.like(tissue + '%'),
-                  ExpressionData.expression_type.like(expression_type + '%'))
+             and_(ExpressionData.tissue.ilike(tissue + '%'),
+                  ExpressionData.expression_type.ilike(expression_type + '%'))
         )
     ).all()
     expressions = [make_public_expression(e) for e in expressions]
@@ -973,8 +973,8 @@ def get_expressions(enzyme_id, tissue='', expression_type=''):
     return ExpressionData.query.filter(
         # this allows us to use the GIS index. \o/
         and_(ExpressionData.gene_id.like(enzyme_id),
-             and_(ExpressionData.tissue.like(tissue + '%'),
-                  ExpressionData.expression_type.like(expression_type + '%'))
+             and_(ExpressionData.tissue.ilike(tissue + '%'),
+                  ExpressionData.expression_type.ilike(expression_type + '%'))
         )
     ).all()
 
