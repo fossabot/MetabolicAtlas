@@ -272,7 +272,6 @@ class APITestCase(unittest.TestCase):
             'enzyme_role': 'modifier'
         }
         assert data['reactions'] == [expected_reaction]
-        assert data['expressions'] == '/api/v1/expressions/Modifier%201'
 
     def test_get_connected_metabolites_include_expressions(self):
         response = self.client.get(
