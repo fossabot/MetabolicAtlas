@@ -831,6 +831,14 @@ def connected_metabolites(enzyme_id):
         type: string
         required: true
         description: Enzyme ID
+      - in: query
+        name: tissue
+        type: string
+        description: Tissue to filter on for expression data
+      - in: query
+        name: expression_type
+        type: string
+        description: Expression type to filter on for expression data
     responses:
       200:
         description: Returns the connected metabolites for the specified enzyme
@@ -840,6 +848,8 @@ def connected_metabolites(enzyme_id):
         description: Enzyme not found
     """
     try:
+        tissue = request.args.get('tissue', '')
+        expression_type = request.args.get('expression_type', '')
         include_expressions = False
         # include expressions iff parameter is set to 'true'
         if request.args.get('include_expressions') == 'true':
@@ -859,7 +869,7 @@ def connected_metabolites(enzyme_id):
         json['reactions'] = [make_public_reaction_metabolites(reaction) for
                              reaction in reactions]
         if include_expressions:
-            expressions = get_expressions(enzyme_id)
+            expressions = get_expressions(enzyme_id, tissue, expression_type)
             json['expressions'] = [make_public_expression(expr) for
                                        expr in expressions]
         return jsonify(json)

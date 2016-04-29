@@ -321,6 +321,88 @@ class APITestCase(unittest.TestCase):
         }
         assert data['expressions'] == [expected_expression]
 
+    def test_get_connected_metabolites_include_expressions_filter(self):
+        response = self.client.get(
+            ('/api/v1/enzymes/Modifier 1/connected_metabolites?'
+             'include_expressions=true&tissue=pancreas')
+        )
+        data = dict(self.get_json(response))
+        assert data['id'] == 'modifier1'
+        assert data['short_name'] == 'modifier1'
+        assert data['long_name'] == 'Modifier 1'
+        assert len(data['reactions']) == 1
+        expected_reaction = {
+            'reaction_id': 'reaction1',
+            'modifiers': [],
+            'products': [
+                {'long_name': 'Product 1',
+                 'short_name': 'Product 1',
+                 'component_id': 'product1',
+                 'type': 'metabolite',
+                 'formula': 'BAr',
+                 'organism': 'Human'}
+            ],
+            'reactants': [
+                {'long_name': 'Reactant 1',
+                 'compartment': 'Mitochondria',
+                 'short_name': 'reactant1',
+                 'component_id': 'reactant1',
+                 'type': 'metabolite',
+                 'formula': 'FO2',
+                 'organism': 'Human'}
+            ],
+            'enzyme_role': 'modifier'
+        }
+        assert data['reactions'] == [expected_reaction]
+        assert len(data['expressions']) == 1
+        expected_expression = {
+            'gene_id': 'Modifier 1',
+            'gene_name': 'CTSV',
+            'transcript_id': 'N/A',
+            'tissue': 'pancreas',
+            'cell_type': 'islets of Langerhans',
+            'expression_type': 'APE',
+            'level': 'Medium',
+            'reliability': 'Uncertain',
+            'source': 'HMA V14'
+        }
+        assert data['expressions'] == [expected_expression]
+
+    def test_get_connected_metabolites_include_expressions_bad_filter(self):
+        response = self.client.get(
+            ('/api/v1/enzymes/Modifier 1/connected_metabolites?'
+             'include_expressions=true&tissue=adipose')
+        )
+        data = dict(self.get_json(response))
+        assert data['id'] == 'modifier1'
+        assert data['short_name'] == 'modifier1'
+        assert data['long_name'] == 'Modifier 1'
+        assert len(data['reactions']) == 1
+        expected_reaction = {
+            'reaction_id': 'reaction1',
+            'modifiers': [],
+            'products': [
+                {'long_name': 'Product 1',
+                 'short_name': 'Product 1',
+                 'component_id': 'product1',
+                 'type': 'metabolite',
+                 'formula': 'BAr',
+                 'organism': 'Human'}
+            ],
+            'reactants': [
+                {'long_name': 'Reactant 1',
+                 'compartment': 'Mitochondria',
+                 'short_name': 'reactant1',
+                 'component_id': 'reactant1',
+                 'type': 'metabolite',
+                 'formula': 'FO2',
+                 'organism': 'Human'}
+            ],
+            'enzyme_role': 'modifier'
+        }
+        assert data['reactions'] == [expected_reaction]
+        assert len(data['expressions']) == 0
+
     def test_get_connected_metabolites_404(self):
         response = self.client.get(
             '/api/v1/enzymes/NO_SUCH_ENZYME/connected_metabolites'
