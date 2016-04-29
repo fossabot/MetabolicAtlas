@@ -106,3 +106,27 @@ $ curl http://<server>/api/v1/enzymes/ENSG00000164303/connected_metabolites
 # expressions as a list, 2320 lines
 $ curl http://<server>/api/v1/enzymes/ENSG00000164303/connected_metabolites?include_expressions=true
 ```
+
+## Get expression data
+
+There are a few different ways of getting expression data. So far, we
+have seen one of them (as part of the `connected_metabolites`
+resource). Here are two other ways:
+
+```bash
+# By reaction component ID
+$ curl  http://<server>/api/v1/reaction_components/E_3125/expressions
+# We can filter on tissue
+$ curl  http://<server>/api/v1/reaction_components/E_3125/expressions?tissue=adrenal
+# And on expression type (`rnaseq`, `ABP`, and `Staining`)
+$ curl  http://<server>/api/v1/reaction_components/E_3125/expressions?tissue=adrenal&expression_type=staining
+# By ENSGID
+$ curl http://<server>/api/v1/expressions/ENSG00000180011
+# We can filter on tissue
+$ curl http://<server>/api/v1/expressions/ENSG00000180011?tissue=adrenal
+# And on expression type (`rnaseq`, `ABP`, and `Staining`)
+$ curl http://<server>/api/v1/expressions/ENSG00000180011?tissue=adrenal%20gland&expression_type=staining
+```
+
+The `tissue` and `expression_type` query parameters can be used when
+querying the `connected_metabolite` resource too.
