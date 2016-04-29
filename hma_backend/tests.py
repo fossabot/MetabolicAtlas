@@ -240,6 +240,37 @@ class APITestCase(unittest.TestCase):
         data = dict(self.get_json(response))
         assert len(data['expressions']) == 1
 
+    def test_list_interaction_partners(self):
+        response = self.client.get(
+            '/api/v1/reaction_components/modifier1/interaction_partners'
+        )
+        data = dict(self.get_json(response))
+        assert len(data['reactions']) == 1
+        reaction = data['reactions'][0]
+        expected_reaction = {
+            'reaction_id': 'reaction1',
+            'modifiers': [],
+            'products': [
+                {'long_name': 'Product 1',
+                 'short_name': 'Product 1',
+                 'component_id': 'product1',
+                 'type': 'metabolite',
+                 'formula': 'BAr',
+                 'organism': 'Human'}
+            ],
+            'reactants': [
+                {'long_name': 'Reactant 1',
+                 'compartment': 'Mitochondria',
+                 'short_name': 'reactant1',
+                 'component_id': 'reactant1',
+                 'type': 'metabolite',
+                 'formula': 'FO2',
+                 'organism': 'Human'}
+            ],
+        }
+
+        assert reaction == expected_reaction
+
     def test_get_connected_metabolites(self):
         response = self.client.get(
             '/api/v1/enzymes/Modifier 1/connected_metabolites'
