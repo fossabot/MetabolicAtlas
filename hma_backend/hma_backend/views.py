@@ -685,6 +685,14 @@ def list_component_expressions(component_id):
         type: string
         required: true
         description: Reaction component ID
+      - in: query
+        name: tissue
+        type: string
+        description: Tissue to filter on
+      - in: query
+        name: expression_type
+        type: string
+        description: Expression type to filter on
     responses:
       200:
         description: Returns the expressions for the specified ReactionComponent
@@ -699,7 +707,14 @@ def list_component_expressions(component_id):
         description: ReactionComponent not found
     """
     # FIXME when to return 404?
-    expressions = ExpressionData.query.filter_by(id=component_id).all()
+    tissue = request.args.get('tissue', '')
+    expression_type = request.args.get('expression_type', '')
+    expressions = ExpressionData.query.filter(
+        and_(ExpressionData.id == component_id,
+             and_(ExpressionData.tissue.like(tissue + '%'),
+                  ExpressionData.expression_type.like(expression_type + '%'))
+        )
+    ).all()
     expressions = [make_public_expression(e) for e in expressions]
     return jsonify({'expressions': expressions})
 
@@ -927,6 +942,14 @@ def list_expressions(enzyme_id):
         type: string
         required: true
         description: ENSEMBL gene ID
+      - in: query
+        name: tissue
+        type: string
+        description: Tissue to filter on
+      - in: query
+        name: expression_type
+        type: string
+        description: Expression type to filter on
     responses:
       200:
         description: Returns a list of expression data
@@ -938,16 +961,21 @@ def list_expressions(enzyme_id):
               items:
                 $ref: "#/definitions/Expression"
     """
-    expressions = get_expressions(enzyme_id)
+    tissue = request.args.get('tissue', '')
+    expression_type = request.args.get('expression_type', '')
+    expressions = get_expressions(enzyme_id, tissue, expression_type)
     json_expressions = [make_public_expression(expr) for
                            expr in expressions]
     return jsonify({'expressions': json_expressions})
 
 
-def get_expressions(enzyme_id):
+def get_expressions(enzyme_id, tissue='', expression_type=''):
     return ExpressionData.query.filter(
         # this allows us to use the GIS index. \o/
-        ExpressionData.gene_id.like(enzyme_id)
+        and_(ExpressionData.gene_id.like(enzyme_id),
+             and_(ExpressionData.tissue.like(tissue + '%'),
+                  ExpressionData.expression_type.like(expression_type + '%'))
+        )
     ).all()
 
 

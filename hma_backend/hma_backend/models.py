@@ -145,6 +145,12 @@ class ExpressionData(db.Model):
                   'gene_name': 'gin_trgm_ops'
               },
               postgresql_using='gin'),
+        Index('tissue_filter_idx', 'tissue', 'expression_type',
+              postgresql_ops={
+                  'tissue': 'gin_trgm_ops',
+                  'expression_type': 'gin_trgm_ops'
+              },
+              postgresql_using='gin'),
     )
 
     # FIXME: ForeignKey must be unique, so we can't use long_name here :(
