@@ -1,129 +1,130 @@
-import sys, os, importlib ,logging, re, csv, collections
+import sys, os
 
+# add db generation files to path
+sys.path.insert(0, "/project/database_generation/")
+import addYAMLData
 from django.db import models
 from api.models import *
 
 from django.core.management.base import BaseCommand
-import xml.etree.ElementTree as etree
-import libsbml
 
-logger = logging.getLogger(__name__)
-sh = logging.StreamHandler(stream=sys.stderr)
-logger.addHandler(sh)
-formatter = logging.Formatter(("%(asctime)s - %(name)s - %(levelname)s - "
-                               "%(message)s"))
-sh.setFormatter(formatter)
-logger.setLevel(logging.INFO)
+def insert_model_metadata(database, yaml_file, model_label, model_pmid):
 
-verbose=False;  # dont print the error messages from the addReactionComponentAnnotation
-annotationsToAdd = {}
+    """
+        design for yml metadata
+        "metadata": {
+            "id": {"type": "string"}, e.g. HMR3
+            "label": {"type": "string"}, e.g. HMR 3.0
+            "full_name": {"type": "string"}, e.g. Human Metabolic Reaction
+            "description": {"type": "string"}, 
+            "version": {
+                "type": "integer",
+                "default": 1,
+            },
+            "authors": [
+                {
+                    first_name: {"type": "string"},
+                    last_name: {"type": "string"},
+                    email: {"type": "string"},
+                    organization: {"type": "string"},
+                },
+            ]
+        }
+    """
 
-exec(open(os.path.join(sys.path[0], "../", "database_generation", "addSBMLData.py")).read())
-exec(open(os.path.join(sys.path[0], "../", "database_generation", "addCurrencyMetabolites.py")).read())
-exec(open(os.path.join(sys.path[0], "../", "database_generation", "addMetabolites.py")).read())
-exec(open(os.path.join(sys.path[0], "../", "database_generation", "addReactionComponentAnnotation.py")).read())
-exec(open(os.path.join(sys.path[0], "../", "database_generation", "addEnzymes.py")).read())
+    # get the id, name, label, authors from the yaml here
 
-# this is a "wrapper" file that will simply call each and every one of the add files, in the RIGHT order...
-# 1) addSBMLData ../database_generation/data/HMRdatabase2_00.xml 67
-# 2) addCurrencyMetabolites
-# 3) addMetabolites
-# 4) addReactionComponentAnnotation ../database_generation/data/ensembl82_uniprot_swissprot.tab ensg 0 uniprot  1
-#    addReactionComponentAnnotation ../database_generation/data/uniprot.human.keywords.tab uniprot 1 up_keywords  2
-# 5) addEnzymes
+    try:
+        gem = GEModel.objects.using('gems').get(label=model_label)
+    except GEModel.DoesNotExist:
+        print ("Error: cannot find model in gems database, using label '%s'" % model_label)
+        exit(1)
 
-# where are the data located?
-baseFolder=os.path.join(sys.path[0], "../", "database_generation", "data/")
+    model = GEM.objects.using('gems').filter(name=gem.gemodelset.name, short_name=gem.label, database_name=database)
+    if not model:
+        if model_pmid:
+            try:
+                publication = GEModelReference.objects.using('gems').get(pubmed=model_pmid) # 24419221 for hmr2
+                model = GEM(name=gem.gemodelset.name, short_name=gem.label, database_name=database, model=gem, publication=publication)
+            except GEModelReference.DoesNotExist:
+                print ("Error: cannot find publication '%s' in gems database" % model_pmid)
+                exit(1)
+        else:
+            model = GEM(name=gem.gemodelset.name, short_name=gem.label, database_name=database, model=gem)
+        model.save(using='gems')
+    else:
+        model= model[0]
 
-# the human files and the yeast files are obviously different :)
-# so wrap up all the files for the given species
-def populate_human_db():
-    # first check that ALL files exists
-    missingFiles = 0
-    missingFiles+=_checkIfFileExists("HMRdatabase2_00.xml")
-    missingFiles+=_checkIfFileExists("human_currencyMets.csv")
-    missingFiles+=_checkIfFileExists("human_massCalc.txt")
-    missingFiles+=_checkIfFileExists("human_metaboliteListFromExcel.txt")
-    missingFiles+=_checkIfFileExists("hmdb.tab")
-    missingFiles+=_checkIfFileExists("ensembl82_uniprot_swissprot.tab")
-    missingFiles+=_checkIfFileExists("uniprot.human.keywords.tab")
-    missingFiles+=_checkIfFileExists("uniprot.human.EC.tab")
-    missingFiles+=_checkIfFileExists("uniprot.human.function.tab")
-    missingFiles+=_checkIfFileExists("uniprot.human.CatalyticActivity.tab")
-    missingFiles+=_checkIfFileExists("human.kegg.tab")
-    missingFiles+=_checkIfFileExists("uniprot.human.names.tab")
-    if missingFiles>0:
-        sys.exit("At least one missing annotation file, see above for specifications, will not attempt to add any data to the database...")
+    # todo manager multiple authors
+    # temp_author = {
+    #     'first_name': 'Adil',
+    #     'last_name': 'Mardinoglu',
+    #     'email': 'adilm@chalmers.se',
+    #     'organization': 'Chalmers University of Technology, Gothenburg',
+    # }
 
-    # then add the data to the database in the RIGHT order
-    addSBMLData(baseFolder+"HMRdatabase2_00.xml", 67, None)                 # addSBMLData
-    logger.info("Currency Metabolites")
-    addCurrencyMetabolites(baseFolder+"human_currencyMets.csv")         # addCurrencyMetabolites
-    # addMetabolites
-    logger.info("Add annotations for the metabolites")
-    masses = readMassCalcFile(baseFolder+"human_massCalc.txt")
-    hmdb = readHMDBFile(baseFolder+"hmdb.tab")
-    metaboliteDefinitions(baseFolder+"human_metaboliteListFromExcel.txt", masses, hmdb)
-    # addReactionComponentAnnotation
-    logger.info("Add 'mappings' between identifiers")
-    addReactionComponentAnnotation("ensg", 0, "uniprot",
-        baseFolder+"ensembl82_uniprot_swissprot.tab", 1)
-    addReactionComponentAnnotation("uniprot", 1, "up_keywords",
-        baseFolder+"uniprot.human.keywords.tab", 2)
-    # addEnzymes
-    logger.info("Add annotations for the proteins")
-    ec = readAnnotationFile(baseFolder+"uniprot.human.EC.tab")
-    function = readAnnotationFile(baseFolder+"uniprot.human.function.tab")
-    activity = readAnnotationFile(baseFolder+"uniprot.human.CatalyticActivity.tab")
-    kegg = readAnnotationFile(baseFolder+"human.kegg.tab")
-    addEnzymes(baseFolder+"uniprot.human.names.tab", ec, function, activity, kegg)
+    # a = Author.objects.using('gems').filter(given_name=temp_author['first_name'],
+    #                 family_name=temp_author['last_name'],
+    #                 email=temp_author['email'],
+    #                 organization=temp_author['organization'])
+    # if not a:
+    #     author = Author(given_name=temp_author['first_name'],
+    #                 family_name=temp_author['last_name'],
+    #                 email=temp_author['email'],
+    #                 organization=temp_author['organization'])
+    #     author.save(using='gems')
+
+    #     ma = GEMAuthor(model=model, author=author)
+    #     ma.save(using='gems')
 
 
-def populate_yeast_db():
-    # first check that ALL files exists
-    missingFiles = 0
-    missingFiles+=_checkIfFileExists("yeast76.xml")
-    if missingFiles>0:
-        sys.exit("At least one missing annotation file, see above for specifications, will not attempt to add any data to the database...")
-    addSBMLData(baseFolder+"yeast76.xml", 2017, "http://yeastgenome.org/")
+def populate_database(database, yaml_file, model_label, model_pmid=None, delete=False, metadata_only=False, yaml_only=False):
 
+    # Instert the model in the 
+    if not yaml_only:
+        insert_model_metadata(database, yaml_file, model_label, model_pmid)
+    if metadata_only:
+        return
+    addYAMLData.load_YAML(database, yaml_file, delete=delete)
 
-def _checkIfFileExists(fName):
-    if not os.path.isfile(baseFolder+fName):
-        print("Missing the file "+baseFolder+fName)
-        return(1)
-    return(0)
+    print("""
+        Then add annoations with:
 
+            python manage.py addAnnotations %s [type|'test'|'all'] [annotation_file]
+
+        Add svg data with:
+
+            python manage.py addMapsInformation %s ['compartment'|'subsystem'] [SVG file directory] database_generation/%s/[metadatafile].tsv
+
+        Add currency met with:
+
+            python manage.py addCurrencyMetabolites %s
+
+        Add interaction partners info with:
+
+            python manage.py addNumberOfInteractionPartners %s
+
+        if applicable, Add HPA tissue/enzyme RNA levels with:
+
+            python manage.py addHPAexpression %s
+
+        """ % (database, database, database, database, database, database))
 
 
 class Command(BaseCommand):
 
+    def add_arguments(self, parser):
+        #  python manage.py populateDB hmr2 database_generation/hmr2/model.yml "HMR 2.0" --model-pmid 24419221
+        parser.add_argument('database', type=str)
+        parser.add_argument('yaml file', type=str)
+        parser.add_argument('model label', type=str)
+        parser.add_argument('--model-pmid', action='store', default=None, dest='model_pmid')
+        parser.add_argument('--delete', action='store_true', dest='delete', default=False)
+        parser.add_argument('--metadata-only', action='store_true', dest='metadata_only')
+        parser.add_argument('--yaml-only', action='store_true', dest='yaml_only')
+
     def handle(self, *args, **options):
-        populate_human_db()
-        #populate_yeast_db()
-        # until Dimitra have added the annotations to the SBML file...
-        pmids_to_add = {}
-        with open(baseFolder+"human_reactionsFromExcel.txt", 'r') as f:
-            next(f) # skip the header
-            for line in f:
-                tokens = line.strip().split("\t")
-                reaction_id = tokens[0]
-                if(len(tokens)>16):
-                    refs = tokens[16]
-                    refs = refs.replace('"', '')
-                    r = refs.split(";")
-                    reaction = Reaction.objects.filter(id="R_"+reaction_id)
-                    if(len(reaction)<1):
-                        print("No reaction found with id "+"R_"+reaction_id)
-                        next;
-                    for pmid in r:
-                        if(re.match(r'PMID', pmid)): # skip the uniprot entry records???
-                            rr = ReactionReference(reaction=reaction[0], pmid=pmid)
-                            if len(pmid)>25:
-                                print("PMID is "+pmid)
-                            pmids_to_add[str(rr)] = rr
-                else:
-                    #print("No references found for reaction "+reaction_id)
-                    #do nothing atm
-                    a = 1
-        ReactionReference.objects.bulk_create(pmids_to_add.values())
+        populate_database(options['database'], options['yaml file'],  options['model label'], 
+            model_pmid=options['model_pmid'], delete=options['delete'], metadata_only=options['metadata_only'], yaml_only=options['yaml_only'])
+
+

@@ -5,6 +5,7 @@ import csv
 import glob
 import fnmatch
 import re
+import shutil
 
 from django.core.management.base import BaseCommand
 from django.db.models import Q
@@ -19,10 +20,21 @@ import xml.etree.ElementTree as ET
 import urllib
 import urllib.request
 
-def build_ftp_path_and_dl(liste_dico_data, FTP_root, model_set):
 
-    path_key = ['organism', 'name', 'organ_system', ['tissue', 'cell_type', 'cell_line']]
+#####################################################################################################
+# running this script might give the following error on a zip file:
+# xml.etree.ElementTree.ParseError: not well-formed (invalid token): line 1, column 2
+# on  /project/model_files/FTP/human/curated_models/myocyte/iMyocyte2419-etc...
+# the zip file contains multiple files, remove all but the .xml to fix the parsing
+
+def build_ftp_path_and_dl(liste_dico_data, FTP_root, model_set, root_path, model_set_data, global_dict):
+
+    if (model_set_data['name'] in ['Fungi models', 'Bacteria models', 'S.cerevisiae models']):
+        path_key = ['name', 'organism', 'organ_system', ['tissue', 'cell_type', 'cell_line']]
+    else:
+        path_key = ['organism', 'name', 'organ_system', ['tissue', 'cell_type', 'cell_line']]
     model_data_list = []
+
     for i in range(len(liste_dico_data)):
         GEM_sample = {}
         GEM = {}
@@ -42,7 +54,8 @@ def build_ftp_path_and_dl(liste_dico_data, FTP_root, model_set):
             else:
                 if k in dic or k in model_set:
                     v = dic[k] if k in dic else model_set[k]
-                    path = os.path.join(path, v.lower().replace(',', '').replace(' ', '_'))
+                    if v:
+                        path = os.path.join(path, v.lower().replace(',', '').replace(' ', '_'))
         path = os.path.join(FTP_root, path)
         if not os.path.isdir(path):
             os.makedirs(path)
@@ -72,20 +85,44 @@ def build_ftp_path_and_dl(liste_dico_data, FTP_root, model_set):
                 formats.append(dic.pop(format_key))
 
         if not xml_file:
-            print ("Error: cannot found xml file")
+            print ("Error: cannot find xml file")
             print (dic)
             exit()
 
         output_paths = []
-        for input_file in input_files:
+        for i, input_file in enumerate(input_files):
+            # print(input_file)
+            # print(xml_file)
             output_file_path = os.path.join(path, input_file.split('/')[-1])
-            output_paths.append(output_file_path)
             if not os.path.isfile(output_file_path):
-                print ("Downloading %s" % output_file_path)
-                urllib.request.urlretrieve(xml_file, output_file_path)
-            if xml_file == input_file:
+                if xml_file.startswith("http"):
+                    print ("Downloading %s" % output_file_path)
+                    try:
+                        urllib.request.urlretrieve(xml_file, output_file_path)
+                    except urllib.error.HTTPError as e:
+                        print (e)
+                        print ("error with file", xml_file)
+                else:
+                    shutil.copyfile(xml_file, output_file_path)
+                    if not output_file_path.endswith('.zip'):
+
+                        output_zip = os.path.splitext(output_file_path)[0] + '.zip'
+                        print (output_zip)
+                        if not os.path.isfile(output_zip):
+                            import zipfile
+                            try:
+                                import zlib
+                                compression = zipfile.ZIP_DEFLATED
+                            except:
+                                compression = zipfile.ZIP_STORED
+                            zf = zipfile.ZipFile(output_zip, mode='w')
+                            try:
+                                zf.write(output_file_path, compress_type=compression)
+                            finally:
+                                zf.close()
+            if xml_file == input_file and formats[i] == "SBML":
                 # parse the file
-                count_file = "%s.cnt" % output_file_path[:-4]
+                count_file = "%s.cnt" % os.path.splitext(output_file_path)[0]
                 if os.path.isfile(count_file):
                     (GEM['reaction_count'], GEM['metabolite_count'], GEM['enzyme_count']) = read_count_file(count_file)
                 elif os.path.isfile(output_file_path):
@@ -95,18 +132,38 @@ def build_ftp_path_and_dl(liste_dico_data, FTP_root, model_set):
                 else:
                     print ("Error: cannot find file %s" % output_file_path)
                     exit()
+            elif 'reaction_count' not in GEM:
+                # FIXME not able to read non-SBML file
+                if 'reaction_count' in dic:
+                    GEM['reaction_count'] = dic['reaction_count']
+                else:
+                    GEM['reaction_count'] = 0
+                if 'metabolite_count' in dic:
+                    GEM['metabolite_count'] = dic['metabolite_count']
+                else:
+                    GEM['metabolite_count'] = 0
+                if 'enzyme_count' in dic:
+                    GEM['enzyme_count'] = dic['enzyme_count']
+                else:
+                    GEM['enzyme_count'] = 0
+
+            if output_file_path.endswith('.xml'):
+                output_paths.append(os.path.splitext(output_file_path)[0] + '.zip')
+            else:
+                output_paths.append(output_file_path)
         if len(output_paths) != len(formats):
             print ("Error: format / path do not match")
             exit()
 
-
         for k in ['organism', 'organ_system', 'tissue', 'cell_type', 'cell_line']:
             if k not in dic:
                 GEM_sample[k] = None
-            else:
+            elif k == 'cell_line':
                 GEM_sample[k] = dic[k]
+            else:
+                GEM_sample[k] = dic[k].capitalize()
         
-        for k in ['description', 'label', 'maintained']:
+        for k in ['description', 'label', 'maintained', 'condition']:
             if k not in dic:
                 GEM[k] = None
             else:
@@ -123,23 +180,39 @@ def build_ftp_path_and_dl(liste_dico_data, FTP_root, model_set):
             exit()
 
         if next(iter(set([a,b,c,d]))):
-            GEM['reference'] = {
+            GEM['reference'] = [{
                                 'title': dic['reference_title'], 
                                 'link': dic['reference_link'],
                                 'pubmed': dic['reference_pubmed'],
                                 'year': dic['reference_year'],
-                                }
+                                }]
         elif 'reference' in dic:
             GEM['reference'] = dic['reference']
         else:
-            GEM['reference'] = None
+            GEM['reference'] = []
+            for key_link, key_title, key_pubmed, key_year in [["reference_link%s" % k,
+                                                     "reference_title%s" % k,
+                                                     "reference_pubmed%s" % k,
+                                                     "reference_year%s" % k
+                                                      ] for k in range(1,10)]:
+                if key_link in global_dict:
+                    GEM['reference'].append({
+                        'link': global_dict.pop(key_link),
+                        'title': global_dict.pop(key_title),
+                        'pubmed': global_dict.pop(key_pubmed),
+                        'year': global_dict.pop(key_year)})
+                elif key_link in dic:
+                    GEM['reference'].append({
+                        'link': dic[key_link],
+                        'title': dic[key_title],
+                        'pubmed': dic[key_pubmed],
+                        'year': dic[key_year]})
 
         GEM['files'] = []
         for path, formatt in zip(output_paths, formats):
             GEM['files'].append({'path': path, 'format': formatt})
 
         GEM['sample'] = GEM_sample
-        # print (GEM)
         model_data_list.append(GEM)
 
     return model_data_list
@@ -170,13 +243,20 @@ def parse_info_file(info_file):
     with open(info_file, "r") as f:
         reader = csv.reader(f, delimiter='\t')
         for row in reader:
-            if len(row) == 0 or row[0] == "#":
+            if len(row) == 0 or row[0][0] == "#":
                 continue
+            if len(row) != 2:
+                print ("Error: invalid column number in line %s" % row)
+                exit()
             global_dict[row[0]] = row[1]
 
-        model_set_data['name'] = global_dict.pop('name')
+        if 'name' in global_dict:
+            model_set_data['name'] = global_dict.pop('name').capitalize()
+        else:
+            model_set_data['name'] = None
+
         if 'description' in global_dict:
-            model_set_data['description'] = global_dict.pop('description')
+            model_set_data['description'] = global_dict.pop('description').capitalize()
         else:
             model_set_data['description'] = None
 
@@ -218,27 +298,27 @@ def parse_xml(xml_file):
     d = {}
     #ET.register_namespace('', "http://www.sbml.org/sbml/level3/version1/groups/version1")
     data = ET.fromstring(xml_file)
-    #print data
-    #for child in data.iter():
-    #    print child.tag
-    m = 0
-    e = 0
-    r = 0
-    for s in data.iter('{http://www.sbml.org/sbml/level2/version3}species'):
-        if s.get('id'):
-            if s.get('id')[0] == "M":
-                m += 1
-            elif s.get('id')[0] == "E":
-                e += 1
+    versions = ['{http://www.sbml.org/sbml/level2/version3}', '{http://www.sbml.org/sbml/level2}']
+    for version in versions:
+        m = 0
+        e = 0
+        r = 0
+        for s in data.iter('%sspecies' % version):
+            if s.get('id'):
+                if s.get('id')[0] == "M":
+                    m += 1
+                elif s.get('id')[0] == "E":
+                    e += 1
 
-    for rea in data.iter('{http://www.sbml.org/sbml/level2/version3}reaction'):
-        r += 1
+        for rea in data.iter('%sreaction' % version):
+            r += 1
 
-    if 0 in [r,m,e]:
-        print ("Error: parsing xml problem")
-        exit()
+        if 0 in [r,m+e]:
+            print (r, m, e)
+            print ("Error: parsing xml problem with version %s" % version)
+            continue
 
-    return r, m, e
+        return r, m, e
 
 
 def read_gems_data_file(parse_data_file, global_dict=None):
@@ -251,8 +331,7 @@ def read_gems_data_file(parse_data_file, global_dict=None):
         types = next(reader)
         glob_value = {}
         for row in reader:
-            # print "Row %s " % row
-            if len(row) == 0 or row[0][0] == "#":
+            if len([e for e in row if e]) == 0 or len(row) == 0 or row[0][0] == "#":
                 continue
             if row[0][0] == "@":
                 if not row[1] or row[1] == "none":
@@ -262,6 +341,10 @@ def read_gems_data_file(parse_data_file, global_dict=None):
                     # note: glob value are always included as string
                     glob_value[row[0][1:]] = row[1]
                 continue
+            else:
+                if len(row) != len(headers):
+                    print ("Error: invalid column number in line %s" % row)
+                    exit()
             d = {}
             list_key_ignore = []
             for i, col in enumerate(headers):
@@ -300,49 +383,6 @@ def read_gems_data_file(parse_data_file, global_dict=None):
 
     return res
 
-'''
-    GEModelReference
-    title = models.CharField(max_length=255, null=True)
-    link = models.CharField(max_length=255, unique=True)
-    pubmed = models.CharField(max_length=50, unique=True)
-    year = models.CharField(max_length=4, null=True)
-'''
-
-'''
-    GEModelSet
-    name = models.CharField(max_length=200, primary_key=True)
-    description = models.TextField(null=True)
-    reference = models.ManyToManyField(GEModelReference, related_name='gem_references')
-'''
-
-'''
-    GEModelSample
-    organism = models.CharField(max_length=200)
-    organ_system = models.CharField(max_length=200, null=True)
-    tissue = models.CharField(max_length=200, null=True)
-    cell_type = models.CharField(max_length=200, null=True)
-    cell_line = models.CharField(max_length=200, null=True)
-'''
-
-'''
-    GEModelFile
-    path = models.CharField(max_length=200, unique=True)
-    format = models.CharField(max_length=50)
-'''
-
-'''
-    GEModel
-    set = models.ForeignKey(GEModelSet)
-    sample = models.ForeignKey(GEModelSample)
-    description = models.TextField(null=True)
-    label = models.CharField(max_length=200)
-    reaction_count = models.IntegerField()
-    metabolite_count = models.IntegerField()
-    enzyme_count = models.IntegerField()
-    files = models.ManyToManyField(GEModelFile, related_name='gem_files')
-    maintained = models.CharField(max_length=200)
-    reference = models.ForeignKey(GEModelReference, null=True)
-'''
 
 def delete_gems():
         # delete all object
@@ -355,11 +395,12 @@ def delete_gems():
 
 def insert_gems(model_set_data, model_data_list):
 
-
     # insert set references
     set_references = []
     set_references_ids = []
     for reference in model_set_data['reference']:
+        if not reference:
+            continue
         try:
             gr = GEModelReference.objects.get(Q(link=reference['link']) &
                                           Q(pubmed=reference['pubmed']))
@@ -400,26 +441,27 @@ def insert_gems(model_set_data, model_data_list):
             gs.save()
 
         gem_reference = model_dict.pop('reference')
-        if isinstance(gem_reference, dict):
-            print ("gem_reference %s" % gem_reference)
-            try:
-                gr = GEModelReference.objects.get(Q(link=gem_reference['link']) &
-                                              Q(pubmed=gem_reference['pubmed']))
-                print ("current Gem ref year %s " % gr.year)
-                # print ("gr1 %s" % gr)
-            except GEModelReference.DoesNotExist:
-                gr = GEModelReference(**gem_reference)
-                print ("current Gem ref year %s " % gem_reference['year'])
-                gr.save()
-                # print ("gr2 %s" % gr)
-            gem_reference = gr
+        list_gem_reference = []
+        if isinstance(gem_reference, list):
+            # print ("gem_reference %s" % gem_reference)
+            for gem_reference in gem_reference:
+                try:
+                    gr = GEModelReference.objects.get(Q(link=gem_reference['link']) &
+                                                  Q(pubmed=gem_reference['pubmed']))
+                    # print ("current Gem ref year %s " % gr.year)
+                    # print ("gr1 %s" % gr)
+                except GEModelReference.DoesNotExist:
+                    gr = GEModelReference(**gem_reference)
+                    print ("current Gem ref year %s " % gem_reference['year'])
+                    gr.save()
+                    # print ("gr2 %s" % gr)
+                list_gem_reference.append(gr)
         elif gem_reference:
-            gem_reference = set_references[int(gem_reference[-1]) -1] # ":reference1" -> index 0 de set_reference
-            print ("current Gem ref year %s " % gem_reference.year)
+            list_gem_reference.append(set_references[int(gem_reference[-1]) -1]) # ":reference1" -> index 0 de set_reference
         elif len(set_references) == 1:
-            gem_reference = set_references[0]
-            print ("current Gem ref year %s " % gem_reference.year)
+            list_gem_reference.append(set_references[0])
         else:
+            # if no reference for model and no (or multiple reference for set)
             gem_reference = None
             print ("current Gem ref year None")
 
@@ -447,10 +489,10 @@ def insert_gems(model_set_data, model_data_list):
                                 Q(metabolite_count=model_dict['metabolite_count']))
             # print ("g1 %s" % g)
         except GEModel.DoesNotExist:
-            g = GEModel(gemodelset=gg, reference=gem_reference, sample=gs, **model_dict)
-            print (model_dict)
-            # print (gem_reference.year)
+            g = GEModel(gemodelset=gg, sample=gs, **model_dict)
+            # print (model_dict)
             g.save()
+            g.ref.add(*list_gem_reference)
             # print ("g2 %s" % g)
         #exit()
 
@@ -459,34 +501,48 @@ def insert_gems(model_set_data, model_data_list):
 
     print ("%s models added" % i)
 
+def start_parsing():
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    dir_path = os.path.dirname(os.path.join(dir_path, "HMR/"))
+    # dir_path = os.path.dirname(os.path.join(dir_path, "INIT_cancer/"))
+    # dir_path = os.path.dirname(os.path.join(dir_path, "INIT_normal/"))
+    # dir_path = os.path.dirname(os.path.join(dir_path, "curated_model/"))
+    # dir_path = os.path.dirname(os.path.join(dir_path, "tissue-specific/"))
+    # dir_path = os.path.dirname(os.path.join(dir_path, "personalized/"))
 
-dir_path = os.path.dirname(os.path.realpath(__file__))
-# dir_path = os.path.dirname(os.path.join(dir_path, "HMR/"))
-# dir_path = os.path.dirname(os.path.join(dir_path, "INIT_cancer/"))
-# dir_path = os.path.dirname(os.path.join(dir_path, "INIT_normal/"))
-# dir_path = os.path.dirname(os.path.join(dir_path, "curated_model/"))
-# dir_path = os.path.dirname(os.path.join(dir_path, "tissue-specific/"))
-dir_path = "/project/model_files"
-print ("Root dir: %s" % dir_path)
+    # dir_path = "/project/model_files/biomet-toolbox-fungi/"
+    # dir_path = "/project/model_files/biomet-toolbox-cere/"
+    # dir_path = "/project/model_files/biomet-toolbox-bacteria/"
 
-matches = []
-for root, dirnames, filenames in os.walk(dir_path):
-    for filename in fnmatch.filter(filenames, 'parsed_data.txt'):
-        matches.append([os.path.join(root, filename), os.path.join(root, 'info.txt')])
+    dir_path = "/project/model_files"
 
-delete_gems()
-for parse_data_file, info_file in matches:
-    print ("Parsing: %s" % parse_data_file)
-    global_dict = None
-    if os.path.isfile(info_file):
+    if not os.path.exists(dir_path):
+        print ("Error: path %s not found" % dir_path)
+
+    matches = []
+    for root, dirnames, filenames in os.walk(dir_path):
+        for filename in fnmatch.filter(filenames, 'parsed_data.txt'):
+            matches.append([os.path.join(root, filename), os.path.join(root, 'info.txt'), root])
+
+
+    for parse_data_file, info_file, root_path in matches:
+        print ("Parsing: %s" % parse_data_file)
+        global_dict = None
+        if not os.path.isfile(info_file):
+            print("Error: %s file" % info_file)
+            exit()
         global_dict, model_set_data = parse_info_file(info_file)
 
-    print ("global_dict %s" % global_dict)
-    print ("model_set_data %s" % model_set_data)
+        # print ("global_dict %s" % global_dict)
+        # print ("model_set_data %s" % model_set_data)
 
-    results = read_gems_data_file(parse_data_file, global_dict=global_dict)
-    model_data_list = build_ftp_path_and_dl(results, '/project/model_files/FTP', model_set_data)
-    insert_gems(model_set_data, model_data_list)
+        results = read_gems_data_file(parse_data_file, global_dict=global_dict)
+        # print (results)
+        model_data_list = build_ftp_path_and_dl(results, '/project/model_files/FTP', model_set_data, root_path, model_set_data, global_dict)
+
+        # for el in model_data_list:
+        #    print (el)
+        insert_gems(model_set_data, model_data_list)
 
 
 class Command(BaseCommand):
@@ -494,4 +550,12 @@ class Command(BaseCommand):
     help = 'our help string comes here'
 
     def handle(self, *args, **options):
-        pass
+        delete_gems()
+        start_parsing()
+        print ("""
+Models file are located in backend/model_files/FTP and
+must be move to the ftp.icsb.chalmers.se VM into /home/cholley/models/
+with the following command:
+rsync -avup backend/model_files/FTP/ cholley@ftp.icsb.chalmers.se:/home/cholley/models/  --include='*/' --include='*.zip' --exclude='*'
+then move the /home/cholley/models dir to /ftp (on the VM)
+""")

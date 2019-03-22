@@ -1,63 +1,37 @@
 class GemodelRouter(object):
     def db_for_read(self, model, **hints):
-        # print("model.__name__1 %s" % model.__name__)
-        if model.__name__ in ['GEModelSet', 'GEModelSample', 'GEModelReference', 'GEModelFile', 'GEModel', 'GEModelSet_reference', 'GEModel_files']:
+        if model.__name__ in ['GEModelSet', 'GEModelSample', 'GEModelReference', 'GEModelFile',
+         'GEModel', 'GEM', 'GEMAuthor', 'Author']:
             return 'gems'
         return None
 
     def db_for_write(self, model, **hints):
-        # print("model.__name__2 %s" % model.__name__)
-        if model.__name__ in ['GEModelSet', 'GEModelSample', 'GEModelReference', 'GEModelFile', 'GEModel', 'GEModelSet_reference', 'GEModel_files']:
+        if model.__name__ in ['GEModelSet', 'GEModelSample', 'GEModelReference', 'GEModelFile', 'GEModel',
+         'GEM', 'GEMAuthor', 'Author']:
             return 'gems'
         return None
 
     def allow_relation(self, obj1, obj2, **hints):
-        # print("object1 %s" % obj1)
-        if obj1.__class__.__name__ in ['GEModelSet', 'GEModelSample', 'GEModelReference', 'GEModelFile', 'GEModel']:
+        if obj1.__class__.__name__ in ['GEModelSet', 'GEModelSample', 'GEModelReference',
+         'GEModelFile', 'GEModel', 'GEM', 'GEMAuthor', 'Author']:
             return True
         return None
 
-    def allow_migrate(self, db, app_label, model_name, **hints):
-        # print("model_name %s" % model_name)
-        if model_name in ['gemodelset', 'gemodelsample', 'gemodelreference', 'gemodelfile', 'gemodel']:
+    def allow_migrate(self, db, app_label, model_name=None, **hints):
+        if model_name in ['gemodelset', 'gemodelsample', 'gemodelreference', 'gemodelfile',
+         'gemodel', 'gem', 'gemauthor', 'author']:
             return db == 'gems'
         return None
 
-
-class TileRouter(object):
-    def db_for_read(self, model, **hints):
-        if hasattr(model, 'name') and model.__name__ in ['TileReactionComponent', 'TileSubsystem']:
-            return 'default'
-            #return 'tiles'
-        return None
-
-    def db_for_write(self, model, **hints):
-        if hasattr(model, 'name') and model.__name__ in ['TileReactionComponent', 'TileSubsystem']:
-            return 'default'
-            #return 'tiles'
-        return None
-
-    def allow_relation(self, obj1, obj2, **hints):
-        if obj1.__class__.__name__ in ['TileReactionComponent', 'TileSubsystem']:
-            return True
-        return None
-
-    def allow_migrate(self, db, app_label, model_name, **hints):
-        if model_name in ['tilereactioncomponent', 'tilesubsystem']:
-            #return db == 'tiles'
-            return db == 'default'
-        return None
-
-
 class ApiRouter(object):
     def db_for_read(self, model, **hints):
-        return 'default'
+        return None
 
     def db_for_write(self, model, **hints):
-        return 'default'
+        return None
 
     def allow_relation(self, obj1, obj2, **hints):
         return True
 
-    def allow_migrate(self, db, app_label, model_name, **hints):
-        return db != 'gems' and db != 'tiles'
+    def allow_migrate(self, db, app_label, model_name=None, **hints):
+        return db != 'gems'

@@ -3,60 +3,26 @@ version: '3'
 services:
   db:
     restart: always
-    image: postgres
-    env_file: postgres.env
-    volumes:
-      - ./postgres_data:/var/lib/postgresql/data
-    networks:
-      - net-tier
 
-  db2:
+  backend:
     restart: always
-    image: postgres
-    env_file: db2_postgres.env
-    ports:
-      - "5433:5432"
-    networks:
-      - net-tier
+    volumes:
+      - backend:/project
+
+  frontend:
+    command: npm run build
+    volumes:
+      - frontend:/project
 
   nginx:
     restart: always
     build:
-      context: ./nginx
       dockerfile: Dockerfile-prod
-    depends_on:
-      - backend
-    links:
-      - backend:backend
     volumes:
-      - ./nginx/static:/static
-      - ./nginx/svgs:/svgs
-      - ./nginx/static:/usr/share/nginx/html:ro
-      - ./backend/media:/media
-    ports:
-      - "80:80"
-    networks:
-      - net-tier
+      - backend:/backend:ro
+      - frontend:/frontend:ro
+      - /home/jenkins/ssl:/ssl:ro
 
+volumes:
+  frontend:
   backend:
-    restart: always
-    depends_on:
-      - db
-      - db2
-    env_file:
-      - postgres.env
-      - db2_postgres.env
-    build: ./backend
-    command: bash -c "python manage.py collectstatic --noinput && python manage.py runserver 0.0.0.0:8000"
-    volumes:
-      - ./backend:/project
-      - ./backend/static:/static
-      - ./backend/media:/media
-    ports:
-      - "8000:8000"
-    networks:
-      - net-tier
-
-networks:
-  net-tier:
-    driver: bridge

@@ -1,47 +1,35 @@
 function build-stack {
-    docker-compose -p metabolicatlas build $@
+    docker-compose -f docker-compose.yml -f docker-compose-dev.yml build $@
 }
 
 function start-stack {
-    docker-compose -p metabolicatlas up -d
+    docker-compose -f docker-compose.yml -f docker-compose-dev.yml up -d
 }
 
 function stop-stack {
-    docker-compose -p metabolicatlas kill
+    docker-compose -f docker-compose.yml -f docker-compose-dev.yml kill
 }
-
 
 function restart-stack {
     stop-stack && start-stack
 }
 
 function logs {
-    docker-compose -p metabolicatlas logs -f $@
+    docker-compose -f docker-compose.yml -f docker-compose-dev.yml logs -f $@
 }
 
 function db-make-migrations {
-    docker exec metabolicatlas_backend_1 python manage.py makemigrations api
+    docker exec backend python manage.py makemigrations api
 }
 
 function db-migrate {
-    docker exec metabolicatlas_backend_1 python manage.py migrate
-    docker exec metabolicatlas_backend_1 python manage.py migrate --database=gems
-    docker exec metabolicatlas_backend_1 python manage.py migrate --database=tiles
+    docker exec backend python manage.py migrate --database=$@
 }
 
 function create-su {
-    docker exec -it metabolicatlas_backend_1 python manage.py createsuperuser
+    docker exec -it backend python manage.py createsuperuser
 }
 
-function build-production {
-    docker exec metabolicatlas_frontend_1 npm run build
-    sudo rm -rf nginx/static
-    sudo mkdir nginx/static
-    sudo cp -r frontend/dist/* nginx/
-    sudo mv nginx/index.html nginx/static/
-    sudo cp -r backend/static/ nginx/static/
-    sudo rm -rf frontend/dist
-}
 
 echo -e "
 
@@ -51,10 +39,8 @@ Available commands:
 \tstart-stack
 \tstop-stack
 \trestart-stack
-\tlogs
+\tlogs [container]
 \tdb-make-migrations
-\tdb-migrate
+\tdb-migrate [database]
 \tcreate-su
-\tbuild-production
-
 "

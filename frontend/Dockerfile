@@ -1,11 +1,12 @@
-FROM node
+FROM node:lts
 
 RUN apt-key adv --fetch-keys http://dl.yarnpkg.com/debian/pubkey.gpg
 RUN echo "deb http://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
-RUN apt-get update && apt-get install -y yarn
+RUN apt-get update && apt-get install -y yarn --allow-unauthenticated
 RUN yarn global add webpack
-ADD . /project
-WORKDIR /project
+
+WORKDIR /project/
+ADD . .
 
 EXPOSE 8080
 

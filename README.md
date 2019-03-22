@@ -1,134 +1,204 @@
 # Metabolic Atlas
-
-## Introduction
-
 Welcome to the codebase for the Metabolic Atlas project.
 
-The front-end uses [Vue.js](https://vuejs.org), with help of [webpack](https://webpack.js.org) and [yarn](https://yarnpkg.com/en/).
-
-The back-end uses [Django REST framework](http://www.django-rest-framework.org) with [PostgreSQL](https://www.postgresql.org) as the database.
-
-To learn more about the project, please visit the [wiki](https://github.com/SysBioChalmers/hma-prototype/wiki).
+The front-end uses [Vue.js](https://vuejs.org), with help of [webpack](https://webpack.js.org) and [yarn](https://yarnpkg.com/en/). The back-end uses [Django REST framework](http://www.django-rest-framework.org) with [PostgreSQL](https://www.postgresql.org) as the database.  
+To learn more about the project, please visit the [wiki](https://github.com/SysBioChalmers/MetabolicAtlas/wiki).
 
 ## Prerequisites
-Docker, along with docker-compose, is used to manage the dependencies of this project.
-
-To install docker, download it from [here](https://www.docker.com/products/docker) (docker-compose should be installed along with the process).
-
+Docker, along with docker-compose, is used to manage the dependencies of this project. To install docker, download it from [here](https://www.docker.com/products/docker) (docker-compose should be installed along with the process).
 
 ## Get started
 
 Add a `postgres.env` file based on the `postgres.env.sample` file:
+```bash
+cp postgres.env.sample postgres.env
+```
+and modify the `postgres.env`.
+
+To get a list of helper commands:
+```bash
+source proj.sh
+```
+
+Build and run the project:
+```bash
+build-stack
+start-stack
+```
+
+The frontend should be available at: `http://localhost/`.
+The backend should be available at: `http://localhost/api/`. There is also a swagger UI for browsing the API at: `http://localhost/swagger`.
+
+If you encounter any problems try running `restart-stack`, or look at the logs `logs backend` / `logs frontend`
+
+### Create the databases
+
+The integrated models databases are mapping public models (supposedly) inserted into the GEMs database, thus GEMs database should be built prior the Full models databases.
+
+#### GEMs database
+
+Connect to the corresponding DB docker container (db):
+```bash
+docker exec -it db  bash
+```
+
+To disconnect all sessions open on a database use:
+```bash
+SELECT pid, pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = 'gems' AND pid <> pg_backend_pid();
+```
+
+Create the db in psql (-U postgres):
+```sql
+CREATE DATABASE "gems" WITH OWNER 'postgres' ENCODING 'UTF8' LC_COLLATE = 'en_US.UTF-8' LC_CTYPE = 'en_US.UTF-8' TEMPLATE template0;
+```
+
+To import models from metabolicAtlas.org (old website) and biomet-toolbox:
+
+Extract model_files_full.tar.gz (available in the MetabolicAtlas folder on Box) into backend/model_files/ (might not exist) and run in the **backend container**:
 
 ```bash
-$ cp postgres.env.sample postgres.env
+python manage.py makemigrations
+python manage.py migrate --database gems
+python manage.py getMAModels
 ```
 
-Modify the `postgres.env`
+Follow the instructions displayed at the end to serve the models file from ftp.icsb.chalmers.se.
+Note: model files are stored in backend/model_files/FTP, removing this folder will re-download models files from remote locations (http://www.metabolicatlas.org/ and http://biomet-toolbox.chalmers.se/).
 
-### To get a list of helper commands
+
+To import **public** models from SysbioChalmers Github organization, run:
+```bash
+python manage.py getGithubModels
+```
+Watch out the API rate limit (https://developer.github.com/v3/rate_limit/).
+
+#### Full model databases
+
+Connect to the db container and once inside run psql
 
 ```bash
-$ source proj.sh
+psql -U postgres
 ```
 
-### Build and run the project
+Create databases using psql (in the docker container), example for hmr2:
 
 ```bash
-$ build-stack
+CREATE DATABASE "hmr2" WITH OWNER 'postgres' ENCODING 'UTF8' LC_COLLATE = 'en_US.UTF-8' LC_CTYPE = 'en_US.UTF-8' TEMPLATE template0;
 ```
 
+To disconnect all sessions open on a database use:
 ```bash
-$ start-stack
+SELECT pid, pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname = 'hmr2' AND pid <> pg_backend_pid();
 ```
 
-### Import the database
-
-connect to the container:
-
-```
-docker exec -it $(docker ps -qf "name=metabolicatlas_db_1")  bash
-```
-
-create the database:
-```
-drop database hma;
-CREATE DATABASE "hma"
-    WITH OWNER "postgres"
-    ENCODING 'UTF8'
-    LC_COLLATE = 'en_US.UTF-8'
-    LC_CTYPE = 'en_US.UTF-8'
-    TEMPLATE template0;
-```
-Then exit the container and run:
-
+Then connect to the **backend container** and run:
 ```bash
-$ docker exec -i $(docker ps -qf "name=metabolicatlas_db_1") psql -U postgres hma < PATH_TO_DB_FILE
-```
-
-The frontend should be available at: `http://localhost/`, for example: `http://localhost/?tab=3&reaction_component_id=E_3396&enzyme_id=ENSG00000180011&metabolite_rcid=M_m00001c`.
-
- The backend should be available at: `http://localhost/api/`, for example: `http://localhost/api/reaction_components/E_3379/with_interaction_partners`.
-
-There is also a swagger UI for browsing the API at: `http://localhost/swagger`.
-
-If you encounter any problems try running `restart-stack`.
-
-#### To create the database (done by Lena)
-
-The rest could simply load the database as explained in the above section...
-
-```bash
-$ source postgres.env                               # to load the environment variables
+source postgres.env                               # to load the environment variables
 
 python manage.py makemigrations
-python manage.py migrate
-python manage.py graph_models -a -o ER.png        # will generate a PNG overview of your tables
-python manage.py populateDB      # read in the HMR database, and all associated annotations
-python manage.py addTissueOntology                # add the BrendaTissueOntology, this is model independent and should only be added once...
-python manage.py addNumberOfInteractionPartners   # for each reaction_component calculate the number of interaction partners...
-python manage.py expressionDataFromHPA
+python manage.py migrate --database [database] e.g. 'hmr2' (see settings.py)
+python manage.py graph_models -a -o ER.png        # will generate a PNG overview of your tables (optional)
+python manage.py populateDB [database] [YAML file] [model label] [model PMID]
+# model label and model PMID are used to get information about the input model from the 'gems' database,
+# consequently the model must have been previously added by getMAModels.py or getGithubModels.py in the 'gems' database
+# in case of getGithubModels.py, the model repo should be available and public on the Chalmers Sysbio Github organization repos
+# note: [model label] [model PMID] might be extracted from the YAML in the future, this is a temporary solution
+
+python manage.py addAnnotations [database] 'all' # add content of annotations files found in annotation/hmr2/ in the database
+# this commande populate annotations data in tables: metabolite, enzyme, reaction and subsystem
+
+# no available yet
+# python manage.py addCurrencyMetabolites [database]   # define currency metabolites
+# python manage.py addNumberOfInteractionPartners [database]   # for each reaction_component calculate and store the number of interaction partners...
 ```
+
 (as adapted from `http://eli.thegreenplace.net/2014/02/15/programmatically-populating-a-django-database`)
 
-Log into the database and run the following 3 commands to load the expression data...
+Insert all information related to the svg maps, compare the DB and svg maps, and shows maps statistics
+
 ```bash
-psql -h localhost -p 5432 -U postgres -d hma
+python manage.py addMapsInformation [database] [map type] [map directory] [map metadata file]
+# with [map type] 'compartment' or 'subsystem', [map directory] the folder where to with the svg files
+# and [map metadata file] a TSV file that describes svg file and link each file to a compartment/subsystem of the model
 ```
-```sql
-\copy expression_data(reaction_component, gene_id, gene_name, transcript_id, tissue, cell_type, bto_id, level, expression_type, reliability, source) from '/Users/halena/Documents/Sys2Bio/hma-prototype/database_generation/data/load_antibody_from_HPA_0.csv' csv delimiter ',' quote '"';
-\copy expression_data(reaction_component, gene_id, gene_name, transcript_id, tissue, cell_type, bto_id, level, expression_type, reliability, source) from '/Users/halena/Documents/Sys2Bio/hma-prototype/database_generation/data/load_rnaseq_from_HPA_0.csv' delimiter ',';
-update reaction_component set short_name=exp.gene_name FROM (SELECT gene_id, gene_name FROM expression_data) AS exp WHERE exp.gene_id = long_name AND short_name is null;  # see if we can add any more protein symbols using the HPA data...
+see the example file [hmr2_compartmentSVG.tsv](/backend/database_generation/example/hmr2_compartmentSVG.tsv)
+
+
+### Dump databases
+
+Integrated model databases:
+```bash
+docker exec -it db  pg_dump -U postgres -d hmr2 --create -T 'auth_*' -T 'django_*' > hmr2.db
+```
+Once imported the database cannot be migrated anymore with django, thus should only be used for production. To create a woking version of the db remove "--create -T 'auth_*' -T 'django_*'"
+
+GEMs database:
+```bash
+docker exec -it db pg_dump -U postgres -d gems --create -T 'auth_*' -T 'django_*' > gems.db
 ```
 
-Make a database dump of the content of the database
+### Import databases
+
 ```bash
-pg_dump -h localhost -p 5432 -U postgres -d hma > ../database_generation/hma_v5.db
+docker exec -it db psql -U postgres hmr2 < PATH_TO_DB_FILE
+docker exec -it db psql -U postgres gems < PATH_TO_DB_FILE
 ```
 
-(takes about 15 minutes + 15 to prepare the expression data)
+### Adding a new model in the website (to be done locally only)
 
-### The GEMs database
+1) The model must be publicly available online, and must have a valid README file to parse with:
+
 ```bash
-$ docker exec -i $(docker ps -qf "name=metabolicatlas_db2_1") psql -U postgres gems < PATH_TO_DB_FILE
+python manage.py getGithubModels
 ```
+Make sure the YAML format of the model is available.
+
+Each model is stored in separated database.
+
+2) Create the database as decribes in [Integrated model databases](#Integrated_model_databases) section.
+
+3) Add the database in the setting.py file with the name used to create the database. e.g.
+
+```bash
+...
+'yeast': {
+    'ENGINE': 'django.db.backends.postgresql',
+    'NAME': 'yeast',
+    'USER': os.getenv('POSTGRES_USER'),
+    'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
+    'HOST': 'db',
+    'PORT': 5432,
+},
+...
+```
+
+4) run makemigrations and migrate the new database as decribes in [Full model databases](#Integrated_model_databases) section.
+
+5) run populateDB. The 'model label' is extracted/generate when reading the model README file step 1) and is written in the 'gem' table.
+  - if you got an error when parsing the YAML file, run python fixYAML.py [model yml file] located in backend/database_generation
+
+6) add the model in the function componentDBserializerSelector() (views.py) and create custom serializers (serializers.py and serializers_rc.py) if needed
+
+7) add Data about the model in the frontend page: (TO BE SIMPLIFIED)
+  - add the model in the dictionnary of localization.js
+  - add the model in the dictionnary 'itemKeys' of GlobalSearch.vue
+  - add the model in the dictionnary 'starredComponent' of GEMBrowser.vue
+  - add the model in the dictionnaries 'mainTableKey' and 'externalIDTableKey' of Metabolite.vue, Enzyme.vue, Reaction.vue
+  - add the model in the dictionnary 'tableStructure' of CloseInteractionPartners.vue
+  - add the model in the dictionnaries 'compartmentOrder', (optional)'systemOrder', and 'selectedElementDataKeys' of MapViewer.vue
+
 
 ### All helper commands
 
 ```bash
-$ source proj.sh
+source proj.sh
 ```
 
 Then you will get access to the following commands:
-
-* To bootstrap the project: `$ build-stack`
-* To run the project: `$ start-stack`
-* To display real-time logs: `$ logs`
+* To bootstrap the project: `build-stack`
+* To run the project: `start-stack`
+* To display real-time logs: `logs`
 * To stop the project: `stop-stack`
-* To create new migrationfiles: `db-make-migrations`
+* To create new migration files: `db-make-migrations`
 * To run a database migration: `db-migrate`
-* To create a django superuser: `create-su`
-
-
-## Collaboration
-For details on using github, please visit the [web development guide](https://github.com/SysBioChalmers/web-development-guide#collaboration).
+* To create a Django superuser: `create-su`
