@@ -145,7 +145,7 @@ class GEMAuthor(models.Model):
 
 class Reaction(models.Model):
     id = models.CharField(max_length=50, primary_key=True) # ID in the SBML/YAML model
-    name = models.CharField(max_length=50)
+    name = models.CharField(max_length=255)
     sbo_id = models.CharField(max_length=50)
     equation = models.TextField(blank=False) # string or/and with metabolite ID (should be meta model ID, e.g M_m0125c)
     equation_wname = models.TextField(blank=False)
@@ -156,7 +156,7 @@ class Reaction(models.Model):
     gene_rule = models.TextField(null=True) # string or/and with gene ID (can be any unique gene ID)
     gene_rule_wname = models.TextField(null=True) # string or/and with gene name
     subsystem_str = models.CharField(max_length=1000, null=True)
-    subsystem = models.ManyToManyField('Subsystem', related_name='subsystems', through='SubsystemReaction')
+    subsystem = models.ManyToManyField('Subsystem', related_name='reactions', through='SubsystemReaction')
     compartment = models.CharField(max_length=255)
     is_transport = models.BooleanField(default=False)
     is_reversible = models.BooleanField(default=False)
@@ -215,7 +215,7 @@ class ReactionComponent(models.Model):
     subsystem_metabolite = models.ManyToManyField('Subsystem', related_name='metabolites', through='SubsystemMetabolite')
     subsystem_enzyme = models.ManyToManyField('Subsystem', related_name='enzymes', through='SubsystemEnzyme')
 
-    compartments = models.ManyToManyField('Compartment', related_name='reaction_components', through='ReactionComponentCompartment')
+    compartment_enzyme = models.ManyToManyField('Compartment', related_name='enzymes', through='CompartmentEnzyme')
 
     def __str__(self):
         return "<ReactionComponent: {0}>".format(self.id)
@@ -256,7 +256,7 @@ class Enzyme(models.Model):
         related_name='enzyme', db_column='rc', on_delete=models.CASCADE)
     function1 = models.CharField(max_length=3000, null=True)
     function2 = models.CharField(max_length=3000, null=True)
-    ec = models.CharField(max_length=100, null=True)
+    ec = models.CharField(max_length=255, null=True)
     catalytic_activity = models.CharField(max_length=2000, null=True)
     cofactor = models.CharField(max_length=255, null=True)
     name_link = models.CharField(max_length=255, null=True)
@@ -280,9 +280,9 @@ class Subsystem(models.Model):
     name = models.CharField(max_length=100, unique=True)
     name_id = models.CharField(max_length=100, unique=True) # use to request the subsystem by url
     system = models.CharField(max_length=100)
-    external_id = models.CharField(max_length=25, null=True)
+    external_id = models.CharField(max_length=50, null=True)
     external_link = models.CharField(max_length=255, null=True)
-    description = models.CharField(max_length=2000, null=True)
+    description = models.CharField(max_length=3000, null=True)
     compartment = models.ManyToManyField('Compartment', related_name='s_compartments', through='SubsystemCompartment')
     reaction_count = models.IntegerField(default=0)
     metabolite_count = models.IntegerField(default=0)
@@ -299,7 +299,7 @@ class SubsystemSvg(models.Model):
     name = models.CharField(max_length=100, unique=True)
     name_id = models.CharField(max_length=100, unique=True) # use to request the subsystem by url
     subsystem = models.OneToOneField(Subsystem,
-        related_name='subsystem', db_column='subsystem', on_delete=models.CASCADE)
+        related_name='subsystem_svg', db_column='subsystem', on_delete=models.CASCADE)
     filename = models.CharField(max_length=100, unique=True)
     reaction_count = models.IntegerField(default=0)
     metabolite_count = models.IntegerField(default=0)
@@ -443,6 +443,16 @@ class CurrencyMetaboliteCompartment(models.Model):
         db_table = "currency_metabolite_compartment"
         unique_together = (('rc', 'compartment'),)
 
+
+class CompartmentEnzyme(models.Model):
+    compartment = models.ForeignKey(Compartment, on_delete=models.CASCADE)
+    rc = models.ForeignKey(ReactionComponent, on_delete=models.CASCADE)
+
+    class Meta:
+        db_table = "compartment_enzyme"
+        unique_together = (('compartment', 'rc'),)
+
+
 class SubsystemReaction(models.Model):
     reaction = models.ForeignKey(Reaction, on_delete=models.CASCADE)
     subsystem = models.ForeignKey(Subsystem, on_delete=models.CASCADE)
@@ -498,6 +508,14 @@ class ReactionComponentCompartment(models.Model):
         db_table = "rc_compartment"
         unique_together = (('rc', 'compartment'),)
 
+class CompartmentSvgEnzyme(models.Model):
+    compartmentsvg = models.ForeignKey(CompartmentSvg, on_delete=models.CASCADE)
+    rc = models.ForeignKey(ReactionComponent, on_delete=models.CASCADE)
+
+    class Meta:
+        db_table = "compartmentsvg_enzyme"
+        unique_together = (('compartmentsvg', 'rc'),)
+
 class ReactionCompartmentSvg(models.Model):
     reaction = models.ForeignKey(Reaction, on_delete=models.CASCADE)
     compartmentsvg = models.ForeignKey(CompartmentSvg, on_delete=models.CASCADE)
@@ -522,7 +540,6 @@ class ReactionSubsystemSvg(models.Model):
         db_table = "reaction_subsystemsvg"
         unique_together = (('reaction', 'subsystemsvg'),)
 
-# corresponds to SubsystemEnzyme ans SubsystemMetabolite for subsystem in the model
 class ReactionComponentSubsystemSvg(models.Model):
     rc = models.ForeignKey(ReactionComponent, on_delete=models.CASCADE)
     subsystemsvg = models.ForeignKey(SubsystemSvg, on_delete=models.CASCADE)
@@ -530,6 +547,14 @@ class ReactionComponentSubsystemSvg(models.Model):
     class Meta:
         db_table = "rc_subsystemsvg"
         unique_together = (('rc', 'subsystemsvg'),)
+
+class SubsystemSvgEnzyme(models.Model):
+    subsystemsvg = models.ForeignKey(SubsystemSvg, on_delete=models.CASCADE)
+    rc = models.ForeignKey(ReactionComponent, on_delete=models.CASCADE)
+
+    class Meta:
+        db_table = "subsystemsvg_enzyme"
+        unique_together = (('subsystemsvg', 'rc'),)
 
 # relation subsystem / compartment in SVGs was previously found in TilesSubsystems
 class SubsystemCompartmentSvg(models.Model):
