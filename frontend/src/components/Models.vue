@@ -1,5 +1,5 @@
 <template>
-  <section class="extended-section">
+  <section class="section section-no-top extended-section">
     <div class="container">
       <div v-if="errorMessage">
         {{ errorMessage }}

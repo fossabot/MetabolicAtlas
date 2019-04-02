@@ -1,5 +1,5 @@
 <template>
-  <section class="extended-section">
+  <section class="section section-no-top extended-section">
     <div class="container is-size-5">
       <h2 class="title is-2">The Metabolic Atlas</h2>
       <div class="columns is-variable is-8">
@@ -40,7 +40,6 @@
             For any questions, comments or suggestions please contact <a href="mailto:">contact[at]metabolicatlas.org</a>
           </p>
         </div>
-      </div>
       </div>
     </div>
   </section>

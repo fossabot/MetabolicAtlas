@@ -251,6 +251,10 @@ m, .clickable {
   }
 }
 
+.section-no-top {
+  padding-top: 0;
+}
+
 #app {
   display: flex;
   min-height: 100vh;

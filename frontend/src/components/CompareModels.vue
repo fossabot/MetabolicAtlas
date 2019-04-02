@@ -1,5 +1,5 @@
 <template>
-  <section class="extended-section">
+  <section class="section section-no-top extended-section">
     <div>
       <div class="container">
           <h3 class="title is-size-3">Comparing two models</h3>
