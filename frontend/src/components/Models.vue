@@ -1,14 +1,14 @@
 <template>
-  <section class="section extended-section">
+  <section class="extended-section">
     <div class="container">
       <div v-if="errorMessage">
         {{ errorMessage }}
       </div>
       <div v-else>
-        <span class="title">Integrated Genome-Scale Metabolic Models</span><br><br>
-        <span class="is-size-5">
+        <h2 class="title is-2">Integrated GEMs</h2>
+        <p class="is-size-5">
           These models are integrated into the Metabolic Atlas database - the models can be explored via {{ messages.gemBrowserName }}, {{ messages.mapViewerName }} and {{ messages.interPartName }}.
-        </span><br><br>
+        </p><br><br>
         <div id="integrated" class="columns is-multiline is-variable is-6">
           <div class="column is-half" v-for="model in models">
             <div class="card is-size-5">
@@ -50,7 +50,7 @@
             </div>
           </div>
         </div>
-        <span class="title">Genome-Scale Metabolic Models</span><br><br>
+        <h2 class="title is-2">Repository</h2>
         <loader v-show="showLoader"></loader>
         <div v-if="GEMS.length != 0">
           <vue-good-table

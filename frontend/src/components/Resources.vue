@@ -1,5 +1,5 @@
 <template>
-  <section class="section extended-section">
+  <section class="extended-section">
     <div class="container">
       <template v-for="(elems, category) in resources">
         <h2 class="title is-2">{{ category}}</h2>

@@ -1,5 +1,5 @@
 <template>
-  <section class="section extended-section">
+  <section class="extended-section">
     <div class="container is-size-5">
       <h2 class="title is-2">The Metabolic Atlas</h2>
       <div class="columns is-variable is-8">
