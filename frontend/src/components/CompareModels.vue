@@ -8,7 +8,7 @@
             <th>Model</th>
             <th>Description</th>
             <th>Reactions</th>
-            <th>Shared reactions overlap</th>
+            <th>Shared reactions</th>
             <th>Exclusive reactions</th>
           </tr>
         </thead>
@@ -22,12 +22,12 @@
           </tr>
         </tbody>
       </table>
-      In addition, another 4619 reactions are the same, but different modifiers are 'indicated' in the two models.<br><br>
+      If reactions modifiers are overlooked, another 4619 reactions would be shared between the two models.<br><br>
 
       <h5 class="title is-size-5">Ranked affected parts</h5>
       <div class="columns is-variable is-8">
         <div class="column">
-          <h6 class="subtitle is-6">Subsystems by missing reactions</h6>
+          <h6 class="subtitle is-6">Subsystems by exclusive reactions</h6>
           <table class="table is-fullwidth is-striped is-hoverable">
             <thead>
               <tr>
@@ -48,7 +48,7 @@
           </table>
         </div>
         <div class="column">
-          <h6 class="subtitle is-6">Compartments by missing reactions</h6>
+          <h6 class="subtitle is-6">Compartments by exclusive reactions</h6>
           <table class="table is-fullwidth is-striped is-hoverable">
             <thead>
               <tr>
