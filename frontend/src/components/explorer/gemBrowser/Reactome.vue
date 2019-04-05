@@ -40,7 +40,6 @@ export default {
       errorMessage: '',
       reactions: [],
       reactionsAllcompartment: [],
-      reactome: null,
       showLoader: true,
       showTable: false,
       expandAllCompartment: false,
