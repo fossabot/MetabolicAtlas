@@ -74,9 +74,7 @@
             :loading="showSelectionLoader">
           </sidebar-data-panels>
         </div>
-        <div v-show="overviewScreen" class="column">
-          <p class="is-size-5">Load a map from the menu</p>
-        </div>
+        <overview v-show="overviewScreen"></overview>
         <div id="graphframe" v-show="!overviewScreen" class="column is-unselectable">
           <div class="is-fullheight">
             <svgmap v-show="!overviewScreen && show2D" :model="model" :mapsData="mapsData2D"
@@ -116,6 +114,7 @@
 import $ from 'jquery';
 import axios from 'axios';
 import SidebarDataPanels from 'components/explorer/mapViewer/SidebarDataPanels';
+import Overview from 'components/explorer/mapViewer/Overview';
 import Svgmap from 'components/explorer/mapViewer/Svgmap';
 import D3dforce from 'components/explorer/mapViewer/D3dforce';
 import { default as EventBus } from '../../event-bus';
@@ -128,6 +127,7 @@ export default {
     SidebarDataPanels,
     Svgmap,
     D3dforce,
+    Overview,
   },
   data() {
     return {
