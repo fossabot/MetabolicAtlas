@@ -13,7 +13,9 @@
 
             Metabolic Atlas is intended to be used for applications in metabolomics, clinical chemistry, biomarker discovery and general education. In short, the vision is to create a one-stop-shop for everything metabolism related, starting with <a href="https://www.sysbio.se/labs/nielsen/#publications">the publications of the Nielsen lab</a>.<br><br>
 
-            For versions and release notes of the software behind Metabolic Atlas, <a href="https://github.com/SysBioChalmers/MetabolicAtlas/releases" target="_blank">check the GitHub page</a>. The integrated models are also on GitHub, for links check our <router-link :to="{ name: 'gems' }">GEMs Repository</router-link>.
+            The current developers of Metabolic Atlas are Pierre Cholley and Mihail Anton. For detailed contributions of previous team members, old versions and release notes of the software <a href="https://github.com/SysBioChalmers/MetabolicAtlas/releases" target="_blank">check the GitHub page</a>.<br><br>
+
+            The integrated models are also on GitHub, for links check our <router-link :to="{ name: 'gems' }">GEMs Repository</router-link>.
           </p>
           <h4 class="subtitle is-size-4">External resources</h4>
           <p>Metabolic Atlas would not be possible without the following excellent sources of information: <a href="http://proteinatlas.org" target="_blank">The Human Protein Atlas</a>, <a href="http://www.genome.jp/kegg/" target="_blank">KEGG: Kyoto Encyclopedia of Genes and Genomes</a>, <a href="http://www.uniprot.org" target="_blank">UniProt</a>, <a href="http://www.hmdb.ca/" target="_blank">The Human Metabolome Database</a>.</p>
@@ -21,13 +23,12 @@
         <div class="column is-half has-text-justified">
           <div class="box">
             <p class="subtitle is-size-4 has-text-primary has-text-centered">Citing the Metabolic Atlas</p>
-            <p>Paper under consideration</p>
-            <!-- <p>
-              <a href="" target="_blank">APA style reference with DOI</a><br><br>
+            <p class="has-text-centered">Article under consideration</p><br>
+            <p>Please also include the URL <span class="has-text-primary">https://metabolicatlas.org</span></p>
+              <!-- <a href="" target="_blank">APA style reference with DOI</a><br><br>
               Abstract here
               <br><br>
-              Genome scale metabolic model in the publication <a @click="viewGem()">Human1</a>
-            </p> -->
+              Genome scale metabolic model in the publication <a @click="viewGem()">Human1</a> -->
           </div><br>
           <img width="100%" src="../assets/group_18a.jpg">
           <center>The SysBio group 2018</center>
@@ -37,7 +38,7 @@
         <div class="column has-text-justified">
           <h4 class="subtitle is-size-4">Contact</h4>
           <p>
-            For any questions, comments or suggestions please contact <a href="mailto:">contact[at]metabolicatlas.org</a>
+            For any questions, comments or suggestions please email us at <span class="has-text-primary">contact [at] metabolicatlas [dot] org</span>
           </p>
         </div>
       </div>
