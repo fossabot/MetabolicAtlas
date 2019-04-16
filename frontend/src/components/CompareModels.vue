@@ -1,8 +1,9 @@
 <template>
   <section class="section section-no-top extended-section">
     <div class="container">
-      <h3 class="title is-size-3">Comparison: {{ comparison.models.A.modelId }} vs {{ comparison.models.B.modelId }}</h3>
-      <table class="is-fullwidth table is-narrow is-bordered">
+      <h3 class="title is-size-3">GEM Comparison</h3>
+      <h4 class="title is-size-4">{{ comparison.models.A.modelId }} vs {{ comparison.models.B.modelId }}</h4>
+      <table class="is-fullwidth table is-narrow">
         <thead>
           <tr>
             <th>Model</th>
@@ -22,12 +23,11 @@
           </tr>
         </tbody>
       </table>
-      If reactions modifiers are overlooked, another 4619 reactions would be shared between the two models.<br><br>
+      If reactions modifiers are overlooked, 4619 additional reactions would be shared between the two models.<br><br>
 
-      <h5 class="title is-size-5">Ranked affected parts</h5>
       <div class="columns is-variable is-8">
         <div class="column">
-          <h6 class="subtitle is-6">Subsystems by exclusive reactions</h6>
+          <h5 class="title is-size-5">Subsystems by exclusive reactions</h5>
           <table class="table is-fullwidth is-striped is-hoverable">
             <thead>
               <tr>
@@ -48,11 +48,11 @@
           </table>
         </div>
         <div class="column">
-          <h6 class="subtitle is-6">Compartments by exclusive reactions</h6>
+          <h5 class="title is-size-5">Compartments by exclusive reactions</h5>
           <table class="table is-fullwidth is-striped is-hoverable">
             <thead>
               <tr>
-                <th>Compartments</th>
+                <th>Compartment</th>
                 <th>Reactions</th>
                 <th>{{ comparison.models.A.modelId }}</th>
                 <th>{{ comparison.models.B.modelId }}</th>
