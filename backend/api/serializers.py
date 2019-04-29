@@ -41,12 +41,6 @@ class ReactionBasicSerializer(serializers.ModelSerializer):
         return model.gene_rule_wname
 
 
-class HmrReactionBasicSerializer(ReactionBasicSerializer):
-    class Meta(ReactionBasicSerializer.Meta):
-        model = APImodels.Reaction
-        fields = ReactionBasicSerializer.Meta.fields + \
-            ('sbo_id',)
-
 # serializer use for reactome table
 class HmrReactionBasicRTSerializer(ReactionBasicSerializer):
     modifiers = APIrcSerializer.ReactionComponentLiteSerializer(many=True)
@@ -55,6 +49,7 @@ class HmrReactionBasicRTSerializer(ReactionBasicSerializer):
         model = APImodels.Reaction
         fields = ReactionBasicSerializer.Meta.fields + \
             ('modifiers',)
+
 
 # serializer use for searchTable table
 class ReactionSearchSerializer(serializers.ModelSerializer):
@@ -111,7 +106,8 @@ class ReactionSerializer(ReactionBasicSerializer):
         model = APImodels.Reaction
         fields = ReactionBasicSerializer.Meta.fields + \
             ('reactants', 'products', 'modifiers', 'external_id1', 'external_link1', 'external_id2', 'external_link2',
-                'external_id3', 'external_link3', 'external_id4', 'external_link4',)
+                'external_id3', 'external_link3', 'external_id4', 'external_link4', 'external_id5', 'external_link5',
+                'external_id6', 'external_link6',)
 
 
 class HmrReactionSerializer(ReactionBasicSerializer):
@@ -255,7 +251,8 @@ class SubsystemSerializer(serializers.ModelSerializer):
     class Meta:
         model = APImodels.Subsystem
         fields = SubsystemLiteSerializer.Meta.fields + \
-            ('system', 'external_id', 'external_link', 'metabolite_count', 'unique_metabolite_count', 'enzyme_count', 'reaction_count', 'compartment_count')
+            ('system', 'external_id1', 'external_link1', 'external_id2', 'external_link2', 'external_id3', 'external_link3', 'external_id4', 'external_link4',
+              'metabolite_count', 'unique_metabolite_count', 'enzyme_count', 'reaction_count', 'compartment_count')
 
 
 class GemBrowserTileSubsystemSerializer(serializers.ModelSerializer):

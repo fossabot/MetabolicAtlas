@@ -67,7 +67,7 @@ def componentDBserializerSelector(database, type, serializer_type=None, api_vers
             return APIrcSerializer.HmrEnzymeReactionComponentSerializer
         elif type == 'reaction':
             if serializer_type == 'basic':
-                return APIserializer.HmrReactionBasicSerializer
+                return APIserializer.ReactionBasicSerializer
             if serializer_type == 'lite':
                 return APIserializer.HmrReactionLiteSerializer
             if serializer_type == 'table':
