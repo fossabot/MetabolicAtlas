@@ -76,7 +76,7 @@ export default {
       this.reactomeID = ID;
       let url = `${this.model.database_name}/metabolite/${ID}/get_reactions/`;
       if (this.expandAllCompartment) {
-        url = `${this.model.database_name}/metabolite/${ID}/get_reactions/all_compartment/`;
+        url = `${this.model.database_name}/metabolite/${ID}/get_reactions/all_compartments/`;
       }
       axios.get(url)
         .then((response) => {

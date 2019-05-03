@@ -35,7 +35,7 @@ urlpatterns = [
     url(r'^(?P<model>[^/]+)/enzyme/(?P<id>[^/]+)/get_reactions/?$', views.get_enzyme_reactions, {'api': False}),
 
     url(r'^(?P<model>[^/]+)/metabolite/(?P<id>[^/]+)/get_reactions/?$', views.get_metabolite_reactions, {'all_compartment': False, 'api': False }),
-    url(r'^(?P<model>[^/]+)/metabolite/(?P<id>[^/]+)/get_reactions/all_compartment/?$', views.get_metabolite_reactions_all_compartment, {'api': False}),
+    url(r'^(?P<model>[^/]+)/metabolite/(?P<id>[^/]+)/get_reactions/all_compartments/?$', views.get_metabolite_reactions_all_compartment, {'api': False}),
 
     url(r'^(?P<model>[^/]+)/compartment/(?P<compartment_name_id>[^/]+)/summary/?$', views.get_compartment, {'api': False}),
     url(r'^(?P<model>[^/]+)/subsystem/(?P<subsystem_name_id>[^/]+)/summary/?$', views.get_subsystem, {'api': False}),

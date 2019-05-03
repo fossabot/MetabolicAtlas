@@ -231,16 +231,20 @@ def get_enzyme_interaction_partners(request, model, id):
 @api_view()
 @is_model_valid
 def get_interaction_partners(request, model, id, type=None):
-    # TODO should list the metabolite/enzyme, not list the reactions
-    try:
-        component = APImodels.ReactionComponent.objects.using(model).get(Q(id__iexact=id) & Q(component_type=type))
-    except APImodels.ReactionComponent.DoesNotExist:
-        return HttpResponse(status=404)
+
 
     reactions = []
     if type == 'm':
+        try:
+            component = APImodels.ReactionComponent.objects.using(model).get((Q(id__iexact=id) | Q(full_name__iexact=id)) & Q(component_type=type))
+        except APImodels.ReactionComponent.DoesNotExist:
+            return HttpResponse(status=404)
         reactions = component.reactions_as_metabolite.prefetch_related('reactants', 'products', 'modifiers').all()
     elif type == 'e':
+        try:
+            component = APImodels.ReactionComponent.objects.using(model).get((Q(id__iexact=id) | Q(name__iexact=id)) & Q(component_type=type))
+        except APImodels.ReactionComponent.DoesNotExist:
+            return HttpResponse(status=404)
         reactions = component.reactions_as_modifier.prefetch_related('reactants', 'products', 'modifiers').all()
 
     InteractionPartnerSerializerClass = componentDBserializerSelector(model, 'interaction partner', serializer_type="lite", api_version=request.version)
@@ -269,7 +273,7 @@ def get_enzymes(request, model):
 @is_model_valid
 def get_enzyme(request, model, id):
     """
-    List all information for a given enzyme (for example ENSG00000196502 or SULTA1).
+    List all information for a given enzyme (for example ENSG00000196502 or SULT1A1).
     """
     try:
         component = APImodels.ReactionComponent.objects.using(model).get(Q(id__iexact=id) |
