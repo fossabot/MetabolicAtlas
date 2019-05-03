@@ -129,7 +129,7 @@ def componentDBserializerSelector(database, type, serializer_type=None, api_vers
 @is_model_valid
 def get_reactions(request, model):
     """
-    Returns all reactions for the given model
+    List all reactions for the given model.
     """
     limit = int(request.query_params.get('limit', 10000))
     offset = int(request.query_params.get('offset', 0))
@@ -145,7 +145,7 @@ def get_reactions(request, model):
 @is_model_valid
 def get_reaction(request, model, id):
     """
-    Returns all the information we have about a reaction (for example HMR_3905).
+    List all the information we have on a reaction (for example HMR_3905).
     """
     try:
         reaction = APImodels.Reaction.objects.using(model).get(id__iexact=id)
@@ -166,7 +166,7 @@ def get_reaction(request, model, id):
 @is_model_valid
 def get_reaction_reactants(request, model, id):
     """
-    For a given reaction returns all the metabolites that are consumed.
+    For a given reaction, list all the metabolites that are consumed.
     """
     try:
         reaction = APImodels.Reaction.objects.using(model).prefetch_related('reactants__metabolite').get(id__iexact=id)
@@ -182,7 +182,7 @@ def get_reaction_reactants(request, model, id):
 @is_model_valid
 def get_reaction_products(request, model, id):
     """
-    For a given reaction show the metabolites that are produced.
+    For a given reaction, list all the metabolites that are produced.
     """
     try:
         reaction = APImodels.Reaction.objects.using(model).prefetch_related('products__metabolite').get(id__iexact=id)
@@ -198,7 +198,7 @@ def get_reaction_products(request, model, id):
 @is_model_valid
 def get_reaction_modifiers(request, model, id):
     """
-    For a given reaction returns the proteins that are modifying it.
+    For a given reaction, list the enzymes/genes that are modifying it.
     """
     try:
         reaction = APImodels.Reaction.objects.using(model).prefetch_related('modifiers__enzyme').get(id__iexact=id)
@@ -213,7 +213,7 @@ def get_reaction_modifiers(request, model, id):
 @api_view()
 def get_metabolite_interaction_partners(request, model, id):
     """
-        For a given metabolite, pull out all first order interaction partners.
+    For a given metabolite, list all the first order interaction partners.
     """
     response = get_interaction_partners(request=request._request, model=model, id=id, type='m')
     return response
@@ -222,7 +222,7 @@ def get_metabolite_interaction_partners(request, model, id):
 @api_view()
 def get_enzyme_interaction_partners(request, model, id):
     """
-        For a given enzyme, pull out all first order interaction partners.
+    For a given enzyme, list all the first order interaction partners.
     """
     response = get_interaction_partners(request=request._request, model=model, id=id, type='e')
     return response
@@ -231,8 +231,9 @@ def get_enzyme_interaction_partners(request, model, id):
 @api_view()
 @is_model_valid
 def get_interaction_partners(request, model, id, type=None):
+    # TODO should list the metabolite/enzyme, not list the reactions
     try:
-        component = APImodels.ReactionComponent.objects.using(model).get(id__iexact=id)
+        component = APImodels.ReactionComponent.objects.using(model).get(Q(id__iexact=id) & Q(component_type=type))
     except APImodels.ReactionComponent.DoesNotExist:
         return HttpResponse(status=404)
 
@@ -251,7 +252,7 @@ def get_interaction_partners(request, model, id, type=None):
 @is_model_valid
 def get_enzymes(request, model):
     """
-    List enzymes in the given model
+    List all the enzymes in the given model.
     """
     limit = int(request.query_params.get('limit', 10000))
     offset = int(request.query_params.get('offset', 0))
@@ -268,15 +269,13 @@ def get_enzymes(request, model):
 @is_model_valid
 def get_enzyme(request, model, id):
     """
-    Return all information for a given enzyme (for example ENSG00000196502 or SULTA1).
+    List all information for a given enzyme (for example ENSG00000196502 or SULTA1).
     """
     try:
         component = APImodels.ReactionComponent.objects.using(model).get(Q(id__iexact=id) |
-                                                                         Q(name__iexact=id))
+                                                                         Q(name__iexact=id) &
+                                                                         Q(component_type='e'))
     except APImodels.ReactionComponent.DoesNotExist:
-        return HttpResponse(status=404)
-
-    if component.component_type == 'm':
         return HttpResponse(status=404)
 
     serializerClass = componentDBserializerSelector(model, 'enzyme', api_version=request.version)
@@ -289,7 +288,7 @@ def get_enzyme(request, model, id):
 @is_model_valid
 def get_metabolites(request, model):
     """
-    List metabolites in the given model
+    List all the metabolites in the given model.
     """
     limit = int(request.query_params.get('limit', 10000))
     offset = int(request.query_params.get('offset', 0))
@@ -306,15 +305,13 @@ def get_metabolites(request, model):
 @is_model_valid
 def get_metabolite(request, model, id):
     """
-        Return all information for a given metabolite (for example m01587m or citrate[m]).
+    List all information for a given metabolite (for example m01587m or citrate[m]).
     """
     try:
-        component = APImodels.ReactionComponent.objects.using(model).get(Q(id__iexact=id) |
-                                                                         Q(full_name__iexact=id))
+        component = APImodels.ReactionComponent.objects.using(model).get((Q(id__iexact=id) |
+                                                                         Q(full_name__iexact=id)) &
+                                                                         Q(component_type='m'))
     except APImodels.ReactionComponent.DoesNotExist:
-        return HttpResponse(status=404)
-
-    if component.component_type == 'e':
         return HttpResponse(status=404)
 
     serializerClass = componentDBserializerSelector(model, 'metabolite', api_version=request.version)
@@ -323,23 +320,36 @@ def get_metabolite(request, model, id):
     return JSONResponse(serializer.data)
 
 
+@api_view()
+def get_metabolite_reactions_all_compartment(request, model, id, api=True):
+    """
+        List all the reactions involving the metabolite regarding its compartment localisation.
+        Supply a metabolite ID or a metabolite name (for example m02439c or malate[c] or malate).
+    """
+    return get_metabolite_reactions(request=request._request, model=model, id=id, all_compartment=True, api=api)
+
 
 @api_view()
 @is_model_valid
-def get_metabolite_reactions(request, model, id, all_compartment=False):
+def get_metabolite_reactions(request, model, id, all_compartment=False, api=True):
     """
-        list in which reactions does a given metabolite occur,
-        supply a metabolite ID or its name (for example m02439c or malate).
+        List all the reactions involving the metabolite.
+        Supply a metabolite ID or its name (for example m02439c or malate[c]).
     """
-    component = APImodels.ReactionComponent.objects.using(model).filter((Q(id__iexact=id) |
-                                                                         Q(full_name__iexact=id)) &
-                                                                         Q(component_type='m'))
+    if not all_compartment:
+        component = APImodels.ReactionComponent.objects.using(model).filter((Q(id__iexact=id) |
+                                                                             Q(full_name__iexact=id)) &
+                                                                             Q(component_type='m'))
+    else:
+        component = APImodels.ReactionComponent.objects.using(model).filter((Q(id__iexact=id) |
+                                                                      Q(name__iexact=id) |
+                                                                      Q(full_name__iexact=id)) &
+                                                                      Q(component_type='m'))
     if not component:
         return HttpResponse(status=404)
 
     if all_compartment:
-        component = APImodels.ReactionComponent.objects.using(model).filter(Q(name=component[0].name) &
-                                                                                Q(component_type='m'))
+        component = APImodels.ReactionComponent.objects.using(model).filter(Q(name=component[0].name))
 
     reactions = APImodels.Reaction.objects.none()
     for c in component:
@@ -350,18 +360,21 @@ def get_metabolite_reactions(request, model, id, all_compartment=False):
         reactions |= reactions_as_met
 
     reactions = reactions.distinct()
+    if not api:
+        reactions = reactions[:200]
+
     ReactionSerializerClass= componentDBserializerSelector(model, 'reaction', serializer_type='table', api_version=request.version)
-    serializer = ReactionSerializerClass(reactions[:200], many=True, context={'model': model})
+    serializer = ReactionSerializerClass(reactions, many=True, context={'model': model})
 
     return JSONResponse(serializer.data)
 
-
+ 
 @api_view()
 @is_model_valid
-def get_enzyme_reactions(request, model, id):
+def get_enzyme_reactions(request, model, id, api=True):
     """
-        list in which reactions does a given enzyme occur,
-        supply a enzyme/gene ID or its name (for example ENSG00000180011).
+        list all the reactions involving the enzyme/gene.
+        Supply a enzyme/gene ID or its name (for example ENSG00000180011).
     """
     component = APImodels.ReactionComponent.objects.using(model).filter((Q(id__iexact=id) |
                                                                          Q(name__iexact=id)) &
@@ -377,8 +390,10 @@ def get_enzyme_reactions(request, model, id):
         reactions |= reactions_as_modifier
 
     reactions = reactions.distinct()
+    if not api:
+        reactions = reactions[:200]
     ReactionSerializerClass= componentDBserializerSelector(model, 'reaction', serializer_type='table', api_version=request.version)
-    serializer = ReactionSerializerClass(reactions[:200], many=True, context={'model': model})
+    serializer = ReactionSerializerClass(reactions, many=True, context={'model': model})
 
     return JSONResponse(serializer.data)
 
@@ -387,7 +402,7 @@ def get_enzyme_reactions(request, model, id):
 @is_model_valid
 def get_subsystem(request, model, subsystem_name_id, api=True):
     """
-        For a given subsystem name, get all containing metabolites, enzymes.
+    For a given subsystem name, list all the containing metabolites and enzymes/genes.
     """
     try:
         subsystem = APImodels.Subsystem.objects.using(model).get(Q(name_id__iexact=subsystem_name_id) | Q(name__iexact=subsystem_name_id))
@@ -424,7 +439,7 @@ def get_subsystem(request, model, subsystem_name_id, api=True):
 @is_model_valid
 def get_subsystem_reactions(request, model, subsystem_name_id, api=True):
     """
-        For a given subsystem name, get all containing reactions.
+    For a given subsystem/pathway name, list all the containing reactions.
     """
     try:
         subsystem = APImodels.Subsystem.objects.using(model).get(Q(name_id__iexact=subsystem_name_id) | Q(name__iexact=subsystem_name_id))
@@ -454,7 +469,7 @@ def get_subsystem_reactions(request, model, subsystem_name_id, api=True):
 @is_model_valid
 def get_subsystems(request, model):
     """
-        List all subsystems/pathways/collection of reactions for the given model.
+    List all the subsystems/pathways/collection of reactions for the given model.
     """
     try:
         subsystems = APImodels.Subsystem.objects.using(model).all().prefetch_related('compartment')
@@ -471,7 +486,7 @@ def get_subsystems(request, model):
 @is_model_valid
 def get_compartments(request, model):
     '''
-        List all compartments for the given model.
+    List all the compartments for the given model.
     '''
     try:
         compartment = APImodels.Compartment.objects.using(model).all()
@@ -486,10 +501,10 @@ def get_compartments(request, model):
 @api_view()
 @is_model_valid
 def get_compartment(request, model, compartment_name_id, api=True):
-    # api is false when this function is called from the compartment page
-    # false when called using the swagger api
+    # api is False when this function is called from the compartment page
+    # True when called using the swagger api
     """
-        For a given compartment name, get all containing metabolites, enzymes, reactions and subsystems.
+    For a given compartment name (e.g., Golgi apparatus or golgi_apparatus), returns all containing metabolites, enzymes, reactions and subsystems.
     """
     try:
         compartment = APImodels.Compartment.objects.using(model).get(Q(name_id__iexact=compartment_name_id) | Q(name__iexact=compartment_name_id))
@@ -525,7 +540,7 @@ def get_compartment(request, model, compartment_name_id, api=True):
 @api_view()
 def get_models(request):
     """
-    List all Genome-scale metabolic models (GEMs) that are available on the GEM browser,
+    List all Genome-scale metabolic models (GEMs) that are available on the GEM browser.
     """
     models = APImodels.GEM.objects.all()
     serializer = APIserializer.GEMSerializer(models, many=True)
@@ -534,9 +549,9 @@ def get_models(request):
 
 
 @api_view()
-def get_model(request, model_id):
+def get_model(request, name):
     """
-    Return all known information for a given model available on the GEM browser, supply its ID (int) or database_name e.g. 'human1'
+    List all information for a given model available on the GEM browser, supply its name e.g., 'humanGEM'.
     """
 
     try:
@@ -545,13 +560,13 @@ def get_model(request, model_id):
     except ValueError:
         is_int = False
 
-    try:
-        if is_int:
-            model = APImodels.GEM.objects.filter(id=model_id).select_related('sample').prefetch_related('authors', 'ref')
-        else:
-            model = APImodels.GEM.objects.filter(database_name__iexact=model_id).select_related('sample').prefetch_related('authors', 'ref')
-    except APImodels.GEM.DoesNotExist:
+    if is_int:
+        model = APImodels.GEM.objects.filter(id=model_id).select_related('sample').prefetch_related('authors', 'ref')
+    else:
+        model = APImodels.GEM.objects.filter(short_name__iexact=model_id).select_related('sample').prefetch_related('authors', 'ref')
+    if not model:
         return HttpResponse(status=404)
 
+    print (model)
     serializer = APIserializer.GEMSerializer(model[0])
     return JSONResponse(serializer.data)

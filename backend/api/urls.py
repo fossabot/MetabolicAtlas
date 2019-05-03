@@ -4,7 +4,7 @@ from api import views
 app_name = 'public_apis'
 urlpatterns = [
     url(r'^models/?$', views.get_models),
-    url(r'^models/(?P<model_id>[^/]+)/?$', views.get_model),
+    url(r'^models/(?P<name>[^/]+)/?$', views.get_model),
 
     url(r'^(?P<model>[^/]+)/reaction/?$', views.get_reactions),
     url(r'^(?P<model>[^/]+)/reaction/(?P<id>[^/]+)/?$', views.get_reaction),
@@ -21,7 +21,7 @@ urlpatterns = [
     url(r'^(?P<model>[^/]+)/metabolite/(?P<id>[^/]+)/?$', views.get_metabolite),
     url(r'^(?P<model>[^/]+)/metabolite/(?P<id>[^/]+)/interaction_partners/?$', views.get_metabolite_interaction_partners),
     url(r'^(?P<model>[^/]+)/metabolite/(?P<id>[^/]+)/reactions/?$', views.get_metabolite_reactions, {'all_compartment': False }),
-    url(r'^(?P<model>[^/]+)/metabolite/(?P<id>[^/]+)/reactions/all_compartment/?$', views.get_metabolite_reactions, {'all_compartment': True}),
+    url(r'^(?P<model>[^/]+)/metabolite/(?P<id>[^/]+)/reactions/all_compartment/?$', views.get_metabolite_reactions_all_compartment),
 
     url(r'^(?P<model>[^/]+)/subsystem/?$', views.get_subsystems),
     url(r'^(?P<model>[^/]+)/subsystem/(?P<subsystem_name_id>[^/]+)/?$', views.get_subsystem),
