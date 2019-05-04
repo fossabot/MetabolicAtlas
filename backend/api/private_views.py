@@ -472,16 +472,14 @@ def get_db_json(request, model, component_name_id=None, ctype=None, dup_meta=Fal
 
 @api_view()
 def HPA_all_enzymes(request):
-    model = "hmr2"
+    model = "human1"
     result = APImodels.SubsystemEnzyme.objects.using(model).values_list('rc__id', 'subsystem__name','subsystem__name_id')
     return JSONResponse(result)
 
 @api_view()
 def HPA_enzyme_info(request, ensembl_id): # ENSG00000110921
-    model = "hmr2"
-    # TODO provide the model, remove 'hmr2'
-    # remove 'Collection of reactions' subsystems
-
+    model = "human1"
+    
     # l = logging.getLogger('django.db.backends')
     # l.setLevel(logging.DEBUG)
     # l.addHandler(logging.StreamHandler())
@@ -823,9 +821,18 @@ def search(request, model, term):
         models = [model]
         limit = 50
 
+    # iterate on GEMs (databases might be empty)
+    filtered_models = []
     for model_db_name in models:
-        m = APImodels.GEM.objects.get(database_name=model_db_name)
-        models_dict[model_db_name] = m.short_name
+        print (model_db_name)
+        try:
+            m = APImodels.GEM.objects.get(database_name=model_db_name)
+            models_dict[model_db_name] = m.short_name
+            filtered_models.append(model_db_name)
+        except APImodels.GEM.DoesNotExist:
+            pass
+    models = filtered_models
+
 
     match_found = False
     for model in models:
