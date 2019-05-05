@@ -79,6 +79,10 @@ def convert_to_reaction_component_ids(request, model, compartment_name_id=None):
         query |= Q(external_id2__iexact=term)
         query |= Q(external_id3__iexact=term)
         query |= Q(external_id4__iexact=term)
+        query |= Q(external_id5__iexact=term)
+        query |= Q(external_id6__iexact=term)
+        query |= Q(external_id7__iexact=term)
+        query |= Q(external_id8__iexact=term)
 
     # get the list of component id
     reaction_component_ids = APImodels.ReactionComponent.objects.using(model).filter(query).values_list('id');
@@ -151,6 +155,10 @@ def search_on_map(request, model, map_type, map_name_id, term):
     query |= Q(external_id2__iexact=term)
     query |= Q(external_id3__iexact=term)
     query |= Q(external_id4__iexact=term)
+    query |= Q(external_id5__iexact=term)
+    query |= Q(external_id6__iexact=term)
+    query |= Q(external_id7__iexact=term)
+    query |= Q(external_id8__iexact=term)
     query |= Q(formula__iexact=term)
 
     mapIDset = None
@@ -774,27 +782,25 @@ def search(request, model, term):
             ~name
         subsystem:
             ~name
-            =external_id
+            =external_idX
         reaction:
             =id
             ~name
             ~equation
             ~name_equation
             ~ec
-            =sbo
+            =external_idX
         metabolite:
             =id
             ~full_name
             ~alt_name1
             ~alt_name2
             ~aliases
-            =external_id1
-            =external_id2
-            =external_id3
-            =external_id4
+            =external_idX
             ~formula
         enzyme:
             same as metabolite, but name instead of full_name
+            (enzymes do not have formula)
     """
 
     # l = logging.getLogger('django.db.backends')
@@ -955,7 +961,10 @@ def search(request, model, term):
 
             subsystems = APImodels.Subsystem.objects.using(model).prefetch_related('compartment').filter(
                 Q(name__icontains=term) |
-                Q(external_id__iexact=term)
+                Q(external_id1__iexact=term) |
+                Q(external_id2__iexact=term) |
+                Q(external_id3__iexact=term) |
+                Q(external_id4__iexact=term)
             )[:limit]
 
             metabolites = APImodels.ReactionComponent.objects.using(model).select_related('metabolite').prefetch_related('subsystem_metabolite').filter(
@@ -969,6 +978,10 @@ def search(request, model, term):
                 Q(external_id2__iexact=term) |
                 Q(external_id3__iexact=term) |
                 Q(external_id4__iexact=term) |
+                Q(external_id5__iexact=term) |
+                Q(external_id6__iexact=term) |
+                Q(external_id7__iexact=term) |
+                Q(external_id8__iexact=term) |
                 Q(formula__icontains=term))
             )[:limit]
 
@@ -987,7 +1000,9 @@ def search(request, model, term):
                 Q(external_id1__iexact=term) |
                 Q(external_id2__iexact=term) |
                 Q(external_id3__iexact=term) |
-                Q(external_id4__iexact=term)
+                Q(external_id4__iexact=term) |
+                Q(external_id5__iexact=term) |
+                Q(external_id6__iexact=term)
             )[:limit]
             if reactions.count() < limit:
                 reactions_mets = APImodels.Reaction.objects.using(model).prefetch_related('subsystem').distinct().filter(
@@ -1005,7 +1020,11 @@ def search(request, model, term):
                 Q(external_id1__iexact=term) |
                 Q(external_id2__iexact=term) |
                 Q(external_id3__iexact=term) |
-                Q(external_id4__iexact=term))
+                Q(external_id4__iexact=term)
+                Q(external_id5__iexact=term) |
+                Q(external_id6__iexact=term) |
+                Q(external_id7__iexact=term) |
+                Q(external_id8__iexact=term))
             )[:limit]
 
         if (metabolites.count() + enzymes.count() + compartments.count() + subsystems.count() + len(reactions)) != 0:
