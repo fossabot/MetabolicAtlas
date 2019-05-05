@@ -1,0 +1,31 @@
+# TO BE USED TO INSERT MODEL ANNOTATIONS IN METABOLIC ATLAS DATABASE
+# for SUBSYSTEM ONLY
+# annotations will be visible in the GEM browser pages and some can be used by the search engine
+#
+# some rules:
+# this is a TAB separated file, thus TABs are not allowed in any field values
+# each line added must have exactly 10 columns to be parsed properly
+# do not modify the @ line
+# column 'ID' is mandatory, other columns are optional
+# external_id / external_link must be filled as pair to be valid
+# follow the max size limits
+#
+# columns description:
+# column name   | max size | description
+# ----------------------------------------
+# ID            | 100      | corresponds to the name of the subsystem in the model, e.g. "Peptide metabolism"
+# external_id1   | 50       | another identifier from an external database or another model
+# external_link1 | 255      | full URL to associate with the 'external_id1' column
+# external_id2   | 50       | another identifier from an external database or another model
+# external_link2 | 255      | full URL to associate with the 'external_id2' column
+# external_id3   | 50       | another identifier from an external database or another model
+# external_link3 | 255      | full URL to associate with the 'external_id3' column
+# external_id4   | 50       | another identifier from an external database or another model
+# external_link4 | 255      | full URL to associate with the 'external_id4' column
+# description   | 3000     | text description about the subsystem
+#
+# In this line specify the name of external databases used for each external_id column:	[external_id1]		[external_id2]		[external_id3]		[external_id4]		
+# e.g. replace [external_id] with "KEGG" if the 'external_id' column contains KEGG IDs and the 'external_link' column KEGG links.
+#
+@ID	external_id1	external_link1	external_id2	external_link2	external_id3	external_link3	external_id4	external_link4	description
+[start here]

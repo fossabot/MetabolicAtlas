@@ -78,7 +78,7 @@ export default {
       mId: this.$route.params.id,
       metaboliteID: '',
       mainTableKey: {
-        hmr2: [
+        human1: [
           { name: 'name' },
           { name: 'alt_name', display: 'Alternate name' },
           { name: 'aliases', display: 'Synonyms' },
@@ -102,7 +102,7 @@ export default {
         ],
       },
       externalIDTableKey: {
-        hmr2: [
+        human1: [
           { name: 'hmdb_id', display: 'HMDB', link: 'hmdb_link' },
           { name: 'chebi_id', display: 'Chebi', link: 'chebi_link' },
           { name: 'mnxref_id', display: 'Mnxref', link: 'mnxref_link' },

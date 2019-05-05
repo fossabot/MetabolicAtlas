@@ -55,10 +55,12 @@
           </div>
           <div class="columns">
             <div class="column">
-              <loader v-show="loading"></loader>
-              <template v-show="reactions.length > 0">
-                <h4 class="title is-4" v-show="!loading">Reactions</h4>
-                <reaction-table v-show="!loading" :reactions="reactions" :showSubsystem="true" :model="model"></reaction-table>
+              <template v-if="loading">
+                <loader></loader>
+              </template>
+              <template v-else>
+                <h4 class="title is-4" v-show="!loading && reactions.length > 0">Reactions</h4>
+                <reaction-table v-show="!loading && reactions.length > 0" :reactions="reactions" :showSubsystem="true" :model="model" :limit="200"></reaction-table>
               </template>
             </div>
           </div>
@@ -92,7 +94,7 @@ export default {
       enzyme: {},
       enzymeName: '',
       mainTableKey: {
-        hmr2: [
+        human1: [
           { name: 'enzymeName', display: 'Gene&nbsp;name' },
           { name: 'prot_name', display: 'Protein&nbsp;name' },
           { name: 'gene_synonyms', display: 'Synonyms' },
@@ -108,7 +110,7 @@ export default {
         ],
       },
       externalIDTableKey: {
-        hmr2: [
+        human1: [
           { name: 'id', display: 'Ensembl', link: 'name_link' },
           { name: 'hpa_id', display: 'Protein Atlas', link: 'hpa_link' },
           { name: 'uniprot_id', display: 'Uniprot', link: 'uniprot_link' },

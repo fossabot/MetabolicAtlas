@@ -7,7 +7,7 @@
           {{ !expandAllCompartment ? "Expand to all compartments" : "Restrict to current compartment" }}
         </button>
       </p>
-      <reaction-table v-show="!showLoader" :showSubsystem="true" :model="model"
+      <reaction-table v-show="!showLoader" :showSubsystem="true" :model="model" :limit="200"
         :reactions="!expandAllCompartment ? reactions : reactionsAllcompartment" :selectedElmId="ID">
       </reaction-table>
       <div v-if="errorMessage" class="columns">

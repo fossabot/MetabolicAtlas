@@ -115,7 +115,7 @@ export default {
     return {
       /* eslint-disable quote-props */
       menuElems: {
-        '<span class="icon is-large"><i class="fa fa-search fa-lg"></i></span>': '/explore/search',
+        '<span class="icon is-large"><i class="fa fa-search fa-lg"></i></span>': '/search?term=',
         'Explore': '/explore',
         'GEM': {
           '/gems/': [
@@ -216,7 +216,7 @@ $body-size: 14px !default
 $desktop: 1192px !default;
 $widescreen: 1384px !default;
 $fullhd: 1576px !default;
-
+$navbar-breakpoint: 1000px;
 
 @import '~bulma';
 

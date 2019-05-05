@@ -95,7 +95,7 @@ export default {
       messages,
       rId: this.$route.params.id,
       mainTableKey: {
-        hmr2: [
+        human1: [
           { name: 'id' },
           { name: 'equation', modifier: this.reformatEquation },
           { name: 'is_reversible', display: 'Reversible', isComposite: true, modifier: this.reformatReversible },
@@ -118,7 +118,7 @@ export default {
         ],
       },
       externalIDTableKey: {
-        hmr2: [
+        human1: [
           { name: 'mnxref_id', display: 'Mnxref', link: 'mnxref_link' },
         ],
         yeast: [],
@@ -165,7 +165,6 @@ export default {
     setup() {
       this.rId = this.$route.params.id;
       this.load();
-      this.getAvailableMaps();
     },
     load() {
       axios.get(`${this.model.database_name}/reaction/${this.rId}/`)
