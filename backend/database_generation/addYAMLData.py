@@ -31,10 +31,14 @@ def insert_model_metadata(database, metadata, overwrite=False, content_only=Fals
     #         last_name   : "ln2"
     #         email       : "email2"
     #         organization: "org2"
-    #     date       : "YYYY-MM-DD"
-    #     sample     : "tissue, cell line, cell type, organ etc.."
-    #     condition  : "Generic metabolism"
-    #     pmid       : (optional)
+    #     date         : "YYYY-MM-DD"
+    #     organism     : ""
+    #     organ_system : ""
+    #     tissue       : ""
+    #     cell_type    : ""
+    #     cell_line    : ""
+    #     condition    : "Generic metabolism"
+    #     pmid         : (optional)
     #       - "PMID1"
     #       - "PMID2"
     #     link     : "https://github.com/SysBioChalmers/human-GEM"
@@ -53,6 +57,21 @@ def insert_model_metadata(database, metadata, overwrite=False, content_only=Fals
         # description : "Human genome-scale metabolic models are important tools for the study of human health and diseases, by providing a scaffold upon which different types of data can be analyzed. This is the latest version of human-GEM, which is a genome-scale model of the generic human cell. The objective of human-GEM is to serve as a community model for enabling integrative and mechanistic studies of human metabolism."
 
     metadata_dict = metadata[1]
+    # fix missing keys
+    if "condition" not in metadata_dict:
+        metadata_dict["condition"] = "Generic metabolism"
+    if "organ_system" not in metadata_dict:
+        metadata_dict["organ_system"] = ""
+    if "tissue" not in metadata_dict:
+        metadata_dict["tissue"] = ""
+    if "cell_type" not in metadata_dict:
+        metadata_dict["cell_type"] = ""
+    if "cell_line" not in metadata_dict:
+        metadata_dict["cell_line"] = ""
+    if "pmid" not in metadata_dict:
+        metadata_dict["pmid"] = []
+    if "author" not in metadata_dict:
+        metadata_dict["author"] = []
 
     # check if the model already exists
     try:
@@ -75,12 +94,11 @@ def insert_model_metadata(database, metadata, overwrite=False, content_only=Fals
         metadata_dict["organism"] = "Human"
         metadata_dict["organ_system"] = None
         metadata_dict["tissue"] = None
-        metadata_dict["cell_line"] = None
         metadata_dict["cell_type"] = "Generic cell"
-        metadata_dict["condition"] = "Generic metabolism"
+        metadata_dict["cell_line"] = None
         metadata_dict["link"] = "https://github.com/SysBioChalmers/human-GEM"
         metadata_dict["pmid"] = []
-        metadata_dict["authors"] = []
+        metadata_dict["author"] = []
 
     # get the sample from the database or create a new one
     try:
@@ -129,7 +147,7 @@ def insert_model_metadata(database, metadata, overwrite=False, content_only=Fals
 
     #insert authors
     authors_list = []
-    for author in metadata_dict["authors"]:
+    for author in metadata_dict["author"]:
         try:
             a = Author.objects.get(given_name=author["first_name"],
                                    family_name=author["last_name"],
@@ -143,9 +161,9 @@ def insert_model_metadata(database, metadata, overwrite=False, content_only=Fals
             a.save(using="gems")
 
         try:
-            ga = GEMAuthor.objects.get(gem=gem, author=a)
+            ga = GEMAuthor.objects.get(model=gem, author=a)
         except GEMAuthor.DoesNotExist:
-            ga = GEMAuthor(gem=gem, author=a)
+            ga = GEMAuthor(model=gem, author=a)
             ga.save(using="gems")
 
     return gem

@@ -7,10 +7,10 @@
       <div v-else>
         <span class="title">Integrated GEMs</span><br><br>
         <span class="is-size-5">
-          These models are integrated into the Metabolic Atlas database - the models can be explored via {{ messages.gemBrowserName }}, {{ messages.mapViewerName }} and {{ messages.interPartName }}.
+          These models are integrated into the Metabolic Atlas database - They can be explored via {{ messages.gemBrowserName }}, {{ messages.mapViewerName }} and {{ messages.interPartName }}.
         </span><br><br>
         <div id="integrated" class="columns is-multiline is-variable is-6">
-          <div class="column is-half" v-for="model in models">
+          <div class="column is-half" v-for="model in integratedModels">
             <div class="card is-size-5">
               <header class="card-header clickable has-background-primary-lighter" @click="showIntegratedModelData(model)">
                 <p class="card-header-title card-content has-text-weight-bold has-text-primary">
@@ -92,6 +92,27 @@
                     </td>
                     <td v-else>
                       {{ selectedModel[field.name] }}
+                    </td>
+                  </tr>
+                  <template v-if="selectedModel.authors && selectedModel.authors.length !== 0">
+                    <tr v-for="a in selectedModel.authors">
+                      <td class="td-key has-background-primary has-text-white-bis" :rowspan="selectedModel.authors.length">Author(s)
+                      </td>
+                      <td>
+                        {{ a.given_name }} {{ a.family_name }}
+                      </td>
+                    </tr>
+                  </template>
+                  <tr v-if="selectedModel.date">
+                    <td  class="td-key has-background-primary has-text-white-bis">Date</td>
+                    <td>
+                      {{ selectedModel.date }}
+                    </td>
+                  </tr>
+                  <tr v-if="selectedModel.link">
+                    <td class="td-key has-background-primary has-text-white-bis">URL</td>
+                    <td>
+                      {{ selectedModel.link }}
                     </td>
                   </tr>
                   <tr v-if="selectedModel.ref && selectedModel.ref.length !== 0">
@@ -254,7 +275,7 @@ export default {
         ofLabel: 'of',
       },
       messages,
-      models: [],
+      integratedModels: [],
     };
   },
   created() {
@@ -263,21 +284,22 @@ export default {
     });
   },
   beforeMount() {
-    this.getModelList();
+    this.getIntegratedModels();
     this.getModels();
   },
   methods: {
-    getModelList() {
+    getIntegratedModels() {
       // get models list
       axios.get('models/')
       .then((response) => {
-        const models = {};
+        const models = [];
         for (const model of response.data) {
           $.extend(model, model.sample);
           model.sample = [model.sample.tissue, model.sample.cell_type, model.sample.cell_line].filter(e => e).join(' ‒ ') || '-';
-          models[model.database_name] = model;
+          models.push(model);
         }
-        this.models = models;
+        models.sort((a, b) => (a.short_name < b.short_name ? 1 : -1));
+        this.integratedModels = models;
       })
       .catch(() => {
         this.errorMessage = messages.unknownError;

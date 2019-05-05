@@ -125,7 +125,7 @@ class GEM(models.Model):
     sample = models.ForeignKey(GEModelSample, on_delete=models.CASCADE)
 
     def __str__(self):
-        return "<GEM: {0} {1} {2}>".format(self.name, self.short_name, self.database_name)
+        return "<GEM: {0} {1} {2}>".format(self.full_name, self.short_name, self.database_name)
 
     class Meta:
         db_table = "gem"
