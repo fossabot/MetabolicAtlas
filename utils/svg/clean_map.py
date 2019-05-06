@@ -7,10 +7,10 @@ import argparse
 import shutil
 
 # example cmd:
-# python clean_map.py input/compartments/ output/ --model-version 1.0.2
-# python clean_map.py input/subsystems/ output/ --model-version 1.0.2 --skip-rm-compartment
+# python clean_map.py input/compartments/ output/ humanGEM 1.0.2
+# python clean_map.py input/subsystems/ output/ humanGEM 1.0.2 --skip-rm-compartment
 
-parser = argparse.ArgumentParser(description='Short sample app')
+parser = argparse.ArgumentParser(description='Modify svg before production')
 
 parser.add_argument('input_dir', action="store")
 parser.add_argument('output_dir', action="store")
@@ -157,7 +157,7 @@ def run_svgo(input_dir, output_dir):
     f = "'" + f + "'"
     output_file = "'" + output_file + "'"
     # os.system('svgo --disable=cleanupIDs --disable=convertTransform --disable=convertPathData --indent=2 --pretty -i %s -o %s' % (f, output_file))
-    os.system('svgo --disable=cleanupIDs --disable=convertTransform --indent=2 --pretty -i %s -o %s' % (f, output_file))
+    os.system('svgo --disable=cleanupIDs --disable=convertTransform --disable=removeMetadata --indent=2 --pretty -i %s -o %s' % (f, output_file))
 
 
 if __name__ == "__main__":
