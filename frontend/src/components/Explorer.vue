@@ -167,7 +167,7 @@ export default {
       }
     },
     loadCompartmentData(model) {
-      axios.get(`${model.database_name}/compartment/`)
+      axios.get(`${model.database_name}/compartments/`)
       .then((response) => {
         this.compartmentStats = {};
         this.compartmentLetters = {};
