@@ -1021,7 +1021,7 @@ def search(request, model, term):
                 Q(external_id1__iexact=term) |
                 Q(external_id2__iexact=term) |
                 Q(external_id3__iexact=term) |
-                Q(external_id4__iexact=term)
+                Q(external_id4__iexact=term) |
                 Q(external_id5__iexact=term) |
                 Q(external_id6__iexact=term) |
                 Q(external_id7__iexact=term) |
