@@ -109,7 +109,7 @@ export default {
         ],
         API: [
           { name: 'Metabolic Atlas API',
-            link: 'swagger',
+            link: 'api/interface/',
             img: require('../assets/logo.png'),
             title: 'Access the integrated GEMs programatically',
             description: 'The  API is a set of URL requests for the Metabolic Atlas that will return different .json files depending on the current request. This gives you the possibility of trying it out to see what the results would look like.' },

@@ -672,6 +672,7 @@ def get_component_with_interaction_partners(request, model, id):
 @api_view()
 @is_model_valid
 def connected_metabolites(request, model, id):
+    # TODO remove, use views api, split enzyme info and reactions into 2 requests
     try:
         enzyme = APImodels.ReactionComponent.objects.using(model).get(
                 Q(component_type='e') &

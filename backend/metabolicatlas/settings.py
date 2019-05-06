@@ -139,9 +139,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # SWAGGER
 SWAGGER_SETTINGS = {
-    # 'LOGIN_URL': 'admin:login',
-    # 'LOGOUT_URL': 'admin:logout',
-    "exclude_namespaces": ["internal_apis"],
+    'USE_SESSION_AUTH': False,
 }
 
 REST_FRAMEWORK = {
