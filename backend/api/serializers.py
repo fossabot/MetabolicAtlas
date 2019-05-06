@@ -83,7 +83,7 @@ class HmrReactionLiteSerializer(ReactionLiteSerializer):
     class Meta(ReactionLiteSerializer.Meta):
         model = APImodels.Reaction
         fields = ReactionLiteSerializer.Meta.fields + \
-            ('sbo_id', 'mnxref_id', 'mnxref_link',)
+            ('mnxref_id', 'mnxref_link',)
 
     def read_mnxref(self, model):
         return model.external_id1
@@ -125,7 +125,7 @@ class HmrReactionSerializer(ReactionBasicSerializer):
     class Meta(ReactionBasicSerializer.Meta):
         model = APImodels.Reaction
         fields = ReactionBasicSerializer.Meta.fields + \
-            ('sbo_id', 'reactants', 'products', 'modifiers', 'mnxref_id', 'mnxref_link')
+            ('reactants', 'products', 'modifiers', 'mnxref_id', 'mnxref_link')
 
     def read_mnxref(self, model):
         return model.external_id1
