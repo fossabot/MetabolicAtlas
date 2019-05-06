@@ -804,7 +804,7 @@ def insert_subsystem_svg_connectivity_and_stats(database, subsystem, map_directo
         add.save(using=database)
     enzyme_count  = rcs.count()
 
-    if reaction_count == 0 or metabolite_count == 0 or unique_meta_count == 0 or enzyme_count == 0:
+    if reaction_count == 0 or metabolite_count == 0 or unique_meta_count == 0:
         print ("Error: subsystem '%s'" % subsystem.filename)
         print("reaction_count", reaction_count)
         print("metabolite_count", metabolite_count)
