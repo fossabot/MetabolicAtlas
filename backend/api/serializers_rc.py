@@ -52,7 +52,8 @@ class ReactionComponentSerializer(ReactionComponentBasicSerializer):
     class Meta(ReactionComponentBasicSerializer.Meta): 
         model = APImodels.ReactionComponent
         fields = ReactionComponentBasicSerializer.Meta.fields + \
-            ('is_currency', 'alt_name1', 'alt_name2', 'external_id1', 'external_id2', 'external_id3', 'external_id4',)
+            ('is_currency', 'alt_name1', 'alt_name2', 'external_id1', 'external_id2', 'external_id3', 'external_id4',
+                'external_id5', 'external_id6', 'external_id7', 'external_id8')
 
 
 class EnzymeReactionComponentSearchSerializer(serializers.ModelSerializer):
@@ -102,15 +103,26 @@ class EnzymeReactionComponentSerializer(ReactionComponentSerializer):
     catalytic_activity = serializers.SerializerMethodField('read_catalytic_activity')
     cofactor = serializers.SerializerMethodField('read_cofactor')
     name_link = serializers.SerializerMethodField('read_name_link')
-    external_link1 = serializers.SerializerMethodField('read_external_link1')
+
+    external_link1 = serializers.SlugRelatedField(
+        read_only=True,
+        slug_field='model.enzyme.external_link1',
+    )
+
+    # external_link1 = serializers.SerializerMethodField('read_external_link1')
     external_link2 = serializers.SerializerMethodField('read_external_link2')
     external_link3 = serializers.SerializerMethodField('read_external_link3')
     external_link4 = serializers.SerializerMethodField('read_external_link4')
+    external_link5 = serializers.SerializerMethodField('read_external_link5')
+    external_link6 = serializers.SerializerMethodField('read_external_link6')
+    external_link7 = serializers.SerializerMethodField('read_external_link7')
+    external_link8 = serializers.SerializerMethodField('read_external_link8')
 
     class Meta(ReactionComponentSerializer.Meta): 
         model = APImodels.ReactionComponent
         fields = ReactionComponentSerializer.Meta.fields + \
-            ('function1', 'function2', 'ec', 'catalytic_activity', 'cofactor', 'name_link', 'external_link1', 'external_link2', 'external_link3', 'external_link4',)
+            ('function1', 'function2', 'ec', 'catalytic_activity', 'cofactor', 'name_link', 'external_link1', 'external_link2', 'external_link3', 'external_link4',
+                'external_link5', 'external_link6', 'external_link7', 'external_link8',)
 
     def read_function1(self, model):
         return model.enzyme.function1 if hasattr(model, 'enzyme') else None
@@ -142,6 +154,18 @@ class EnzymeReactionComponentSerializer(ReactionComponentSerializer):
     def read_external_link4(self, model):
         return model.enzyme.external_link4 if hasattr(model, 'enzyme') else None
 
+    def read_external_link5(self, model):
+        return model.enzyme.external_link5 if hasattr(model, 'enzyme') else None
+
+    def read_external_link6(self, model):
+        return model.enzyme.external_link6 if hasattr(model, 'enzyme') else None
+
+    def read_external_link7(self, model):
+        return model.enzyme.external_link7 if hasattr(model, 'enzyme') else None
+
+    def read_external_link8(self, model):
+        return model.enzyme.external_link8 if hasattr(model, 'enzyme') else None
+
 
 class MetaboliteReactionComponentSerializer(ReactionComponentSerializer):
     description = serializers.SerializerMethodField('read_description')
@@ -156,11 +180,16 @@ class MetaboliteReactionComponentSerializer(ReactionComponentSerializer):
     external_link2 = serializers.SerializerMethodField('read_external_link2')
     external_link3 = serializers.SerializerMethodField('read_external_link3')
     external_link4 = serializers.SerializerMethodField('read_external_link4')
+    external_link5 = serializers.SerializerMethodField('read_external_link5')
+    external_link6 = serializers.SerializerMethodField('read_external_link6')
+    external_link7 = serializers.SerializerMethodField('read_external_link7')
+    external_link8 = serializers.SerializerMethodField('read_external_link8')
 
     class Meta(ReactionComponentSerializer.Meta):
         model = APImodels.ReactionComponent
         fields = ReactionComponentSerializer.Meta.fields + \
-            ('description', 'function1', 'function2',  'charge', 'mass', 'mass_avg', 'inchi', 'name_link', 'external_link1', 'external_link2', 'external_link3', 'external_link4',)
+            ('description', 'function1', 'function2',  'charge', 'mass', 'mass_avg', 'inchi', 'name_link', 'external_link1', 'external_link2', 'external_link3', 'external_link4',
+                'external_link5', 'external_link6', 'external_link7', 'external_link8',)
 
     def read_description(self, model):
         return model.metabolite.description if hasattr(model, 'metabolite') else None
@@ -197,6 +226,18 @@ class MetaboliteReactionComponentSerializer(ReactionComponentSerializer):
 
     def read_external_link4(self, model):
         return model.metabolite.external_link4 if hasattr(model, 'metabolite') else None
+
+    def read_external_link5(self, model):
+        return model.metabolite.external_link5 if hasattr(model, 'metabolite') else None
+
+    def read_external_link6(self, model):
+        return model.metabolite.external_link6 if hasattr(model, 'metabolite') else None
+
+    def read_external_link7(self, model):
+        return model.metabolite.external_link7 if hasattr(model, 'metabolite') else None
+
+    def read_external_link8(self, model):
+        return model.metabolite.external_link8 if hasattr(model, 'metabolite') else None
 
 # =====================================================================================
 

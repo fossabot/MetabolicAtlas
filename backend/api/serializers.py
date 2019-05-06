@@ -41,12 +41,6 @@ class ReactionBasicSerializer(serializers.ModelSerializer):
         return model.gene_rule_wname
 
 
-class HmrReactionBasicSerializer(ReactionBasicSerializer):
-    class Meta(ReactionBasicSerializer.Meta):
-        model = APImodels.Reaction
-        fields = ReactionBasicSerializer.Meta.fields + \
-            ('sbo_id',)
-
 # serializer use for reactome table
 class HmrReactionBasicRTSerializer(ReactionBasicSerializer):
     modifiers = APIrcSerializer.ReactionComponentLiteSerializer(many=True)
@@ -55,6 +49,7 @@ class HmrReactionBasicRTSerializer(ReactionBasicSerializer):
         model = APImodels.Reaction
         fields = ReactionBasicSerializer.Meta.fields + \
             ('modifiers',)
+
 
 # serializer use for searchTable table
 class ReactionSearchSerializer(serializers.ModelSerializer):
@@ -88,7 +83,7 @@ class HmrReactionLiteSerializer(ReactionLiteSerializer):
     class Meta(ReactionLiteSerializer.Meta):
         model = APImodels.Reaction
         fields = ReactionLiteSerializer.Meta.fields + \
-            ('sbo_id', 'mnxref_id', 'mnxref_link',)
+            ('mnxref_id', 'mnxref_link',)
 
     def read_mnxref(self, model):
         return model.external_id1
@@ -111,7 +106,8 @@ class ReactionSerializer(ReactionBasicSerializer):
         model = APImodels.Reaction
         fields = ReactionBasicSerializer.Meta.fields + \
             ('reactants', 'products', 'modifiers', 'external_id1', 'external_link1', 'external_id2', 'external_link2',
-                'external_id3', 'external_link3', 'external_id4', 'external_link4',)
+                'external_id3', 'external_link3', 'external_id4', 'external_link4', 'external_id5', 'external_link5',
+                'external_id6', 'external_link6',)
 
 
 class HmrReactionSerializer(ReactionBasicSerializer):
@@ -129,7 +125,7 @@ class HmrReactionSerializer(ReactionBasicSerializer):
     class Meta(ReactionBasicSerializer.Meta):
         model = APImodels.Reaction
         fields = ReactionBasicSerializer.Meta.fields + \
-            ('sbo_id', 'reactants', 'products', 'modifiers', 'mnxref_id', 'mnxref_link')
+            ('reactants', 'products', 'modifiers', 'mnxref_id', 'mnxref_link')
 
     def read_mnxref(self, model):
         return model.external_id1
@@ -255,7 +251,8 @@ class SubsystemSerializer(serializers.ModelSerializer):
     class Meta:
         model = APImodels.Subsystem
         fields = SubsystemLiteSerializer.Meta.fields + \
-            ('system', 'external_id', 'external_link', 'metabolite_count', 'unique_metabolite_count', 'enzyme_count', 'reaction_count', 'compartment_count')
+            ('system', 'external_id1', 'external_link1', 'external_id2', 'external_link2', 'external_id3', 'external_link3', 'external_id4', 'external_link4',
+              'metabolite_count', 'unique_metabolite_count', 'enzyme_count', 'reaction_count', 'compartment_count')
 
 
 class GemBrowserTileSubsystemSerializer(serializers.ModelSerializer):
@@ -310,7 +307,7 @@ class GEModelFileSerializer(serializers.ModelSerializer):
 class GEModelReferenceSerializer(serializers.ModelSerializer):
     class Meta:
         model = APImodels.GEModelReference
-        fields = ('title', 'link', 'pubmed', 'year')
+        fields = ('title', 'link', 'pmid', 'year')
 
 class GEModelSetSerializer(serializers.ModelSerializer):
     reference = GEModelReferenceSerializer(many=True, read_only=True)
@@ -366,34 +363,23 @@ class AuthorSerializer(serializers.ModelSerializer):
 ############################################################################################################
 
 
-class GEMListSerializer(serializers.ModelSerializer):
+class GEMSerializer(serializers.ModelSerializer):
     authors = AuthorSerializer(many=True)
-    metabolite_count = serializers.SerializerMethodField('get_meta_count')
-    enzyme_count = serializers.SerializerMethodField('get_enz_count')
-    reaction_count = serializers.SerializerMethodField('get_react_count')
-    details = serializers.SerializerMethodField('get_model_details')
+    sample = GEModelSampleSerializer(read_only=True)
+    ref = GEModelReferenceSerializer(many=True, read_only=True)
 
     def get_model_details(self, model):
         return GEModelListSerializer(model.model).data
 
     class Meta:
         model = APImodels.GEM
-        fields = ('short_name', 'name', 'database_name', 'authors', 'metabolite_count', 'enzyme_count', 'reaction_count', 'details')
-
-    def get_meta_count(self, model):
-        return model.model.metabolite_count
-
-    def get_enz_count(self, model):
-        return model.model.enzyme_count
-
-    def get_react_count(self, model):
-        return model.model.reaction_count
+        fields = ('short_name', 'full_name', 'database_name', 'description', 'version', 'link', 'authors', 'condition', 'date', 'sample', 'ref', 'metabolite_count', 'enzyme_count', 'reaction_count',)
 
 
-class GEMSerializer(serializers.ModelSerializer):
-    authors = AuthorSerializer(many=True)
-    model = GEModelSerializer(read_only=True)
+# class GEMSerializer(serializers.ModelSerializer):
+#     authors = AuthorSerializer(many=True)
+#     model = GEModelSerializer(read_only=True)
 
-    class Meta:
-        model = APImodels.GEM
-        fields = ('id', 'short_name', 'name', 'database_name', 'authors', 'model')
+#     class Meta:
+#         model = APImodels.GEM
+#         fields = ('id', 'short_name', 'name', 'database_name', 'authors', 'model')

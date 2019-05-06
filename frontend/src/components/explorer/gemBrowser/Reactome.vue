@@ -11,9 +11,9 @@
           </button>
       </p>
       <reaction-table v-show="!showLoader && !expandAllCompartment"
-      :reactions="reactions" :selectedElmId="ID" :showSubsystem="true" :model="model"></reaction-table>
+      :reactions="reactions" :selectedElmId="ID" :showSubsystem="true" :model="model" :limit="200"></reaction-table>
       <reaction-table v-show="!showLoader && expandAllCompartment"
-      :reactions="reactionsAllcompartment" :selectedElmId="ID" :showSubsystem="true" :model="model"></reaction-table>
+      :reactions="reactionsAllcompartment" :selectedElmId="ID" :showSubsystem="true" :model="model" :limit="200"></reaction-table>
       <div v-if="errorMessage" class="columns">
         <div class="column notification is-danger is-half is-offset-one-quarter has-text-centered">
           {{ errorMessage }}
@@ -74,9 +74,9 @@ export default {
       }
       this.showLoader = true;
       this.reactomeID = ID;
-      let url = `${this.model.database_name}/metabolite/${ID}/reactions/`;
+      let url = `${this.model.database_name}/metabolite/${ID}/get_reactions/`;
       if (this.expandAllCompartment) {
-        url = `${this.model.database_name}/metabolite/${ID}/reactions/all_compartment/`;
+        url = `${this.model.database_name}/metabolite/${ID}/get_reactions/all_compartments/`;
       }
       axios.get(url)
         .then((response) => {

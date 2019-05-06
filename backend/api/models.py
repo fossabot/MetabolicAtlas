@@ -18,7 +18,7 @@ class ILike(Lookup):
 class GEModelReference(models.Model):
     title = models.TextField()
     link = models.TextField()
-    pubmed = models.CharField(max_length=20, unique=True, null=True)
+    pmid = models.CharField(max_length=20, unique=True, null=True)
     year = models.CharField(max_length=4)
 
     class Meta:
@@ -48,6 +48,9 @@ class GEModelSample(models.Model):
 
     unique_together = (('organism', 'organ_system', 'tissue', 'cell_type', 'cell_line'),)
 
+    def __str__(self):
+        return "<Sample: {0} {1} {2} {3} {4}>".format(self.organism, self.organ_system, self.tissue, self.cell_type, self.cell_line)
+
     class Meta:
         db_table = "gemodel_sample"
 
@@ -69,9 +72,9 @@ class GEModel(models.Model):
     reaction_count = models.IntegerField(default=0)
     metabolite_count = models.IntegerField(default=0)
     enzyme_count = models.IntegerField(default=0)
-    files = models.ManyToManyField(GEModelFile, related_name='gemodel_files')
+    files = models.ManyToManyField(GEModelFile, related_name='gemodel')
     maintained = models.BooleanField(default=False)
-    ref = models.ManyToManyField(GEModelReference, related_name='gemodels_refs', blank=True)
+    ref = models.ManyToManyField(GEModelReference, related_name='gemodel', blank=True)
     last_update = models.DateField(null=True)
     repo_name = models.CharField(max_length=200, null=True)
 
@@ -104,26 +107,25 @@ class Author(models.Model):
     class Meta:
         db_table = "author"
 
+# integrate models!
 class GEM(models.Model):
-    name = models.CharField(max_length=255, blank=False)
-    short_name = models.CharField(max_length=255, blank=False)
+    short_name = models.CharField(max_length=255, blank=False, unique=True)
+    full_name = models.CharField(max_length=255, null=True, unique=True)
+    description = models.TextField()
+    version = models.CharField(max_length=20)
     database_name = models.CharField(max_length=255, blank=False, unique=True)
-    publication =  models.OneToOneField( # only one main paper per model
-            'GEModelReference',
-            related_name='publication',
-            db_column='publication',
-            on_delete=models.SET_NULL, null=True)
-    ensembl_version = models.CharField(max_length=50, null=True)
-    ensembl_archive_url = models.CharField(max_length=50, null=True)
-    authors = models.ManyToManyField(Author, related_name='authors', through='GEMAuthor')
-    model = models.OneToOneField(
-            'GEModel',
-            related_name='model',
-            db_column='model',
-            on_delete=models.SET_NULL, null=True)
+    condition = models.CharField(max_length=200, null=True)
+    reaction_count = models.IntegerField(default=0)
+    metabolite_count = models.IntegerField(default=0)
+    enzyme_count = models.IntegerField(default=0)
+    date = models.DateField()
+    link = models.CharField(max_length=255, null=True)
+    ref = models.ManyToManyField(GEModelReference, related_name='gem', blank=True)
+    authors = models.ManyToManyField(Author, related_name='gem', through='GEMAuthor', blank=True)
+    sample = models.ForeignKey(GEModelSample, on_delete=models.CASCADE)
 
     def __str__(self):
-        return "<GEM: {0} {1} {2}>".format(self.name, self.short_name, self.database_name)
+        return "<GEM: {0} {1} {2}>".format(self.full_name, self.short_name, self.database_name)
 
     class Meta:
         db_table = "gem"
@@ -146,7 +148,6 @@ class GEMAuthor(models.Model):
 class Reaction(models.Model):
     id = models.CharField(max_length=50, primary_key=True) # ID in the SBML/YAML model
     name = models.CharField(max_length=255)
-    sbo_id = models.CharField(max_length=50)
     equation = models.TextField(blank=False) # string or/and with metabolite ID (should be meta model ID, e.g M_m0125c)
     equation_wname = models.TextField(blank=False)
     ec = models.CharField(max_length=255, null=True)
@@ -164,10 +165,14 @@ class Reaction(models.Model):
     external_id2 = models.CharField(max_length=50, null=True)
     external_id3 = models.CharField(max_length=50, null=True)
     external_id4 = models.CharField(max_length=50, null=True)
-    external_link1 = models.CharField(max_length=50, null=True)
-    external_link2 = models.CharField(max_length=50, null=True)
-    external_link3 = models.CharField(max_length=50, null=True)
-    external_link4 = models.CharField(max_length=50, null=True)
+    external_id5 = models.CharField(max_length=50, null=True)
+    external_id6 = models.CharField(max_length=50, null=True)
+    external_link1 = models.CharField(max_length=255, null=True)
+    external_link2 = models.CharField(max_length=255, null=True)
+    external_link3 = models.CharField(max_length=255, null=True)
+    external_link4 = models.CharField(max_length=255, null=True)
+    external_link5 = models.CharField(max_length=255, null=True)
+    external_link6 = models.CharField(max_length=255, null=True)
 
     metabolites = models.ManyToManyField('ReactionComponent', related_name='reactions_as_metabolite', through='ReactionMetabolite')
 
@@ -198,12 +203,16 @@ class ReactionComponent(models.Model):
     alt_name1 = models.CharField(max_length=255, null=True)  # can be ORF ID in case of yeast, proteine name, metabolite short_name etc
     alt_name2 = models.CharField(max_length=255, null=True)  # can be ORF ID in case of yeast, proteine name, metabolite short_name etc
     aliases = models.CharField(max_length=2000, null=True)  # alias of gene name (including gene short name) or alias of metabolite name, semi-colon separated values
-    external_id1 = models.CharField(max_length=50, null=True) # e.g. MNXref, HMDB, chebi or kegg or uniprot or ensembl, etc need to be specify in the serializer
-    external_id2 = models.CharField(max_length=50, null=True)  # e.g. MNXref, HMDB, chebi or kegg or uniprot or ensembl, etc need to be specify in the serializer
-    external_id3 = models.CharField(max_length=50, null=True)  # e.g. MNXref, HMDB, chebi or kegg or uniprot or ensembl, etc need to be specify in the serializer
-    external_id4 = models.CharField(max_length=50, null=True)  # e.g. MNXref, HMDB, chebi or kegg or uniprot or ensembl, etc need to be specify in the serializer
+    external_id1 = models.CharField(max_length=50, null=True)  # e.g. MNXref, HMDB, chebi or kegg or uniprot or ensembl, etc need to be specify in the serializer
+    external_id2 = models.CharField(max_length=50, null=True)
+    external_id3 = models.CharField(max_length=50, null=True)
+    external_id4 = models.CharField(max_length=50, null=True)
+    external_id5 = models.CharField(max_length=50, null=True)
+    external_id6 = models.CharField(max_length=50, null=True)
+    external_id7 = models.CharField(max_length=50, null=True)
+    external_id8 = models.CharField(max_length=50, null=True)
     component_type = models.CharField(max_length=1, db_index=True)  # 'm' or 'e' for metabolite or enzyme
-    formula = models.CharField(max_length=255, null=True)        # only metabolites have this! should be in metabolite table but will simplify the queries if here
+    formula = models.CharField(max_length=255, null=True)  # only metabolites have this! should be in metabolite table but will simplify the queries if here
     compartment_str = models.CharField(max_length=255, null=True)
     compartment = models.ForeignKey('Compartment', db_column='compartment', null=True, on_delete=models.CASCADE)
     is_currency = models.BooleanField(default=False) # only for metabolite, should be in metabolite table but will simplify the queries if here
@@ -246,7 +255,10 @@ class Metabolite(models.Model):
     external_link2 = models.CharField(max_length=255, null=True)
     external_link3 = models.CharField(max_length=255, null=True)
     external_link4 = models.CharField(max_length=255, null=True)
-
+    external_link5 = models.CharField(max_length=255, null=True)
+    external_link6 = models.CharField(max_length=255, null=True)
+    external_link7 = models.CharField(max_length=255, null=True)
+    external_link8 = models.CharField(max_length=255, null=True)
 
     class Meta:
         db_table = "metabolite"
@@ -264,6 +276,10 @@ class Enzyme(models.Model):
     external_link2 = models.CharField(max_length=255, null=True)
     external_link3 = models.CharField(max_length=255, null=True)
     external_link4 = models.CharField(max_length=255, null=True)
+    external_link5 = models.CharField(max_length=255, null=True)
+    external_link6 = models.CharField(max_length=255, null=True)
+    external_link7 = models.CharField(max_length=255, null=True)
+    external_link8 = models.CharField(max_length=255, null=True)
 
     class Meta:
         db_table = "enzyme"
@@ -280,8 +296,14 @@ class Subsystem(models.Model):
     name = models.CharField(max_length=100, unique=True)
     name_id = models.CharField(max_length=100, unique=True) # use to request the subsystem by url
     system = models.CharField(max_length=100)
-    external_id = models.CharField(max_length=50, null=True)
-    external_link = models.CharField(max_length=255, null=True)
+    external_id1 = models.CharField(max_length=50, null=True)
+    external_id2 = models.CharField(max_length=50, null=True)
+    external_id3 = models.CharField(max_length=50, null=True)
+    external_id4 = models.CharField(max_length=50, null=True)
+    external_link1 = models.CharField(max_length=255, null=True)
+    external_link2 = models.CharField(max_length=255, null=True)
+    external_link3 = models.CharField(max_length=255, null=True)
+    external_link4 = models.CharField(max_length=255, null=True)
     description = models.CharField(max_length=3000, null=True)
     compartment = models.ManyToManyField('Compartment', related_name='s_compartments', through='SubsystemCompartment')
     reaction_count = models.IntegerField(default=0)

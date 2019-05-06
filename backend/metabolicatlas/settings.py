@@ -82,6 +82,14 @@ DATABASES = {
         # 'HOST': 'db',
         # 'PORT': 5432,
     },
+    'human1': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'human1',
+        'USER': os.getenv('POSTGRES_USER'),
+        'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
+        'HOST': 'db',
+        'PORT': 5432,
+    },
     'hmr2': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'hmr2',
@@ -131,9 +139,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # SWAGGER
 SWAGGER_SETTINGS = {
-    # 'LOGIN_URL': 'admin:login',
-    # 'LOGOUT_URL': 'admin:logout',
-    "exclude_namespaces": ["internal_apis"],
+    'USE_SESSION_AUTH': False,
 }
 
 REST_FRAMEWORK = {
