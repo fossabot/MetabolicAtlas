@@ -997,7 +997,6 @@ def search(request, model, term):
                 Q(id__iexact=term) |
                 Q(name__icontains=term) |
                 Q(ec__icontains=term) |
-                Q(sbo_id__iexact=term) |
                 Q(external_id1__iexact=term) |
                 Q(external_id2__iexact=term) |
                 Q(external_id3__iexact=term) |
