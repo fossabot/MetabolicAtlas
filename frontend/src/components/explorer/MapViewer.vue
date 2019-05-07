@@ -17,16 +17,18 @@
             <ul class="l0">
               <li>Compartments<span>&nbsp;&#9656;</span>
                 <ul class="vhs l1">
-                    <li @click="showMap()" class="has-background-grey-dark clickable"><i>Clear selection</i></li>
+                  <li @click="showMap()" class="has-background-grey-dark clickable"><i>Clear selection</i></li>
                   <div v-show="!has2DCompartmentMaps || show3D">
                     <li v-for="cKey in Object.keys(mapsData3D.compartments).sort()" class="clickable"
+                      :class="{'has-text-warning': cKey === currentDisplayedName }"
                       @click="showMap(mapsData3D.compartments[cKey].name_id)">
                       {{ mapsData3D.compartments[cKey].name }} {{ mapsData3D.compartments[cKey].reaction_count != 0 ? `(${mapsData3D.compartments[cKey].reaction_count})` : '' }}
                     </li>
                   </div>
                   <div v-show="has2DCompartmentMaps && show2D">
                     <li v-for="cKey in Object.keys(mapsData2D.compartments).sort()" class="clickable"
-                      :class="{ 'disable' : !mapsData2D.compartments[cKey].sha }" @click="showMap(mapsData2D.compartments[cKey].name_id)">
+                      :class="{ 'disable' : !mapsData2D.compartments[cKey].sha, 'has-text-warning': cKey === currentDisplayedName }"
+                      @click="showMap(mapsData2D.compartments[cKey].name_id)">
                       {{ mapsData2D.compartments[cKey].name }} {{ mapsData2D.compartments[cKey].reaction_count != 0 ? `(${mapsData2D.compartments[cKey].reaction_count})` : '' }}
                     </li>
                   </div>
@@ -37,12 +39,14 @@
                   <li @click="showMap()" class="has-background-grey-dark clickable"><i>Clear selection</i></li>
                   <div v-show="!has2DSubsystemMaps || show3D">
                     <li v-for="sKey in Object.keys(mapsData3D.subsystems).sort()" class="clickable"
+                      :class="{'has-text-warning': sKey === currentDisplayedName }"
                       @click="showMap(mapsData3D.subsystems[sKey].name_id, 'subsystem')">
                         {{ mapsData3D.subsystems[sKey].name }} {{ mapsData3D.subsystems[sKey].reaction_count != 0 ? `(${mapsData3D.subsystems[sKey].reaction_count})` : '' }}
                     </li>
                   </div>
                   <div v-show="has2DSubsystemMaps && mapsData2D.subsystems">
                     <li v-for="sKey in Object.keys(mapsData2D.subsystems).sort()" class="clickable"
+                      :class="{'has-text-warning': sKey === currentDisplayedName }"
                       v-if="mapsData2D.subsystems[sKey].name_id && mapsData2D.subsystems[sKey].sha" @click="showMap(mapsData2D.subsystems[sKey].name_id, 'subsystem')">
                         {{ mapsData2D.subsystems[sKey].name }} {{ mapsData2D.subsystems[sKey].reaction_count != 0 ? `(${mapsData2D.subsystems[sKey].reaction_count})` : '' }}
                     </li>
@@ -56,7 +60,8 @@
                 <span v-show="HPATissue.length !== 0">&nbsp;&#9656;</span>
                 <ul class="vhs l1">
                   <li v-show="HPATissue.length !== 0" @click="loadHPARNAlevels('None')"  class="has-background-grey-dark clickable"><i>Clear selection</i></li>
-                  <li v-for="tissue in HPATissue" class="clickable is-capitalized" @click="loadHPARNAlevels(tissue)">
+                  <li v-for="tissue in HPATissue" class="clickable is-capitalized" @click="loadHPARNAlevels(tissue)"
+                    :class="{'has-text-warning': tissue === loadedTissue }">
                     {{ tissue }}
                   </li>
                 </ul>
