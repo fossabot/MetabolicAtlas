@@ -38,7 +38,7 @@ pipeline {
     stage('Import databases') {
       steps {
         sh '''
-          wget https://chalmersuniversity.box.com/shared/static/q41d7lvcqe18g0gwr9yaar8zoedqvhfl.db -O human1.db
+          wget https://chalmersuniversity.box.com/shared/static/ux9bnfyycig8qgxtayjnjnczqt7b92b7.db -O human1.db
           wget https://chalmersuniversity.box.com/shared/static/om86nb6y8ji044wzoiljm8aghmbdvs41.db -O gems.db
           wget https://chalmersuniversity.box.com/shared/static/yqov4k0r4mript3ybl6x2xq42ud9s535.db -O yeast.db
 
