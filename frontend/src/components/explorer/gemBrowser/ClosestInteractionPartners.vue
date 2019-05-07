@@ -310,13 +310,11 @@ export default {
         human1: [
           { field: 'type', colName: 'Type' },
           { field: 'name', colName: 'Name' },
-          { field: 'formula', colName: 'Formula', modifier: chemicalFormula },
           { field: 'compartment', colName: 'Compartment' },
         ],
         yeast: [
           { field: 'type', colName: 'Type' },
           { field: 'name', colName: 'Name' },
-          { field: 'formula', colName: 'Formula', modifier: chemicalFormula },
           { field: 'compartment', colName: 'Compartment' },
         ],
       },
