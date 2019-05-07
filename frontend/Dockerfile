@@ -1,4 +1,4 @@
-FROM node:lts
+FROM node:lts-slim
 
 RUN apt-key adv --fetch-keys http://dl.yarnpkg.com/debian/pubkey.gpg
 RUN echo "deb http://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
@@ -10,5 +10,4 @@ ADD . .
 
 EXPOSE 8080
 
-RUN rm -rf node_modules
-RUN yarn
+RUN rm -rf node_modules && yarn
