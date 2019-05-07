@@ -90,14 +90,6 @@ DATABASES = {
         'HOST': 'db',
         'PORT': 5432,
     },
-    'hmr2': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'hmr2',
-        'USER': os.getenv('POSTGRES_USER'),
-        'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
-        'HOST': 'db',
-        'PORT': 5432,
-    },
     'yeast': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'yeast',
