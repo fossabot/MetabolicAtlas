@@ -232,13 +232,13 @@ export default {
         mapInfo = this.mapsData.subsystems[id];
         if (!mapInfo) {
           this.loadedMapType = null;
-          this.$emit('loadComplete', false, '');
+          this.$emit('loadComplete', false, 'Invalid map ID', 'danger');
           return;
         }
       }
       const newSvgName = mapInfo.filename;
       if (!newSvgName) {
-        this.$emit('loadComplete', false, messages.mapNotFound);
+        this.$emit('loadComplete', false, messages.mapNotFound, 'danger');
         return;
       }
 
@@ -265,7 +265,7 @@ export default {
               }, 0);
             })
             .catch(() => {
-              this.$emit('loadComplete', false, messages.mapNotFound);
+              this.$emit('loadComplete', false, messages.mapNotFound, 'danger');
             });
         }
       } else {
@@ -349,7 +349,7 @@ export default {
         this.isLoadingSearch = false;
         const status = error.status || error.response.status;
         if (status !== 404) {
-          this.$emit('loadComplete', false, messages.unknownError);
+          this.$emit('loadComplete', false, messages.unknownError, 'danger');
           this.searchInputClass = 'is-info';
         } else {
           this.searchInputClass = 'is-danger';

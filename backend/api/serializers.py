@@ -197,6 +197,15 @@ class CompartmentSerializer(serializers.ModelSerializer):
         model = APImodels.Compartment
         fields = ('name', 'name_id', 'letter_code', 'metabolite_count', 'enzyme_count', 'reaction_count', 'subsystem_count')
 
+class CompartmentMapViewerSerializer(serializers.ModelSerializer):
+    compartment_svg = serializers.SlugRelatedField(
+        read_only=True,
+        slug_field='name_id',
+    )
+    class Meta:
+        model = APImodels.Compartment
+        fields = ('name', 'name_id', 'letter_code', 'compartment_svg', 'metabolite_count', 'enzyme_count', 'reaction_count', 'subsystem_count')
+
 
 class GemBrowserTileCompartmentSerializer(serializers.ModelSerializer):
     id = serializers.SerializerMethodField('fetch_id')
@@ -253,6 +262,17 @@ class SubsystemSerializer(serializers.ModelSerializer):
         fields = SubsystemLiteSerializer.Meta.fields + \
             ('system', 'external_id1', 'external_link1', 'external_id2', 'external_link2', 'external_id3', 'external_link3', 'external_id4', 'external_link4',
               'metabolite_count', 'unique_metabolite_count', 'enzyme_count', 'reaction_count', 'compartment_count')
+
+class SubsystemMapViewerSerializer(serializers.ModelSerializer):
+    subsystem_svg = serializers.SlugRelatedField(
+        read_only=True,
+        slug_field='name_id',
+    )
+    class Meta:
+        model = APImodels.Subsystem
+        fields = SubsystemLiteSerializer.Meta.fields + \
+            ('system', 'subsystem_svg', 'external_id1', 'external_link1', 'external_id2', 'external_link2', 'external_id3', 'external_link3',
+              'external_id4', 'external_link4', 'metabolite_count', 'unique_metabolite_count', 'enzyme_count', 'reaction_count', 'compartment_count')
 
 
 class GemBrowserTileSubsystemSerializer(serializers.ModelSerializer):

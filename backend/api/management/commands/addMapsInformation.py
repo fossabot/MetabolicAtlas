@@ -939,6 +939,11 @@ def processData(database, map_type, map_directory, svg_map_metadata_file):
                     cinfo = CompartmentSvg(name=ci[2], name_id=ci[0], compartment=compt[0], filename=ci[3], letter_code=ci[4])
                     cinfo.save(using=database)
 
+                #add reverse relation: compartment -> compartment svg
+                #special case for cytosol (human1)
+                if compt[0].name != 'Cytosol' or ci[0] == 'cytosol_1':
+                    Compartment.objects.using(database).filter(id=compt[0].id).update(compartment_svg=cinfo)
+
                 svg_path = os.path.join(map_directory, ci[3])
                 if not os.path.isfile(svg_path):
                     print("Warning: file '" + svg_path + "' not found")
@@ -977,6 +982,9 @@ def processData(database, map_type, map_directory, svg_map_metadata_file):
                 except SubsystemSvg.DoesNotExist:
                     sinfo = SubsystemSvg(name_id=si[0], subsystem=sub[0], name=si[2], filename=si[3])
                     sinfo.save(using=database)
+
+                #add reverse relation: subsystem -> subsystem svg
+                Subsystem.objects.using(database).filter(id=sub[0].id).update(subsystem_svg=sinfo)
 
                 svg_path = os.path.join(map_directory, si[3])
                 if not os.path.isfile(svg_path):
