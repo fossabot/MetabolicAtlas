@@ -18,18 +18,20 @@
           </div>
           <div class="columns is-centered">
             <div class="column is-three-fifths-desktop is-three-quarters-tablet is-fullwidth-mobile has-text-centered">
-              <div class="dropdown is-hoverable dropdown-trigger">
-                <button v-if="model" class="button is-medium is-fullwidth" aria-haspopup="true" aria-controls="dropdown-menu">
-                  <span>Model: <a class="tag is-primary has-text-weight-bold is-medium">{{ model.short_name }}</a></span>
-                  <span class="icon is-small">
-                    <i class="fa fa-angle-down" aria-hidden="true"></i>
-                  </span>
-                </button>
-                <div class="dropdown-menu is-size-2" id="dropdown-menu" role="menu">
+              <div class="dropdown" :class="{'is-active' : showModelList}" >
+                <div class="dropdown-trigger">
+                  <button v-if="model" class="button is-medium is-fullwidth" aria-haspopup="true" aria-controls="dropdown-menu" @click="showModelList = true" @blur="showModelList = false">
+                    <span>Model: <span class="tag is-primary has-text-weight-bold is-medium">{{ model.short_name }} v{{ model.version }}</span></span>
+                    <span class="icon is-small">
+                      <i class="fa fa-angle-down" aria-hidden="true"></i>
+                    </span>
+                  </button>
+                </div>
+                <div class="dropdown-menu" id="dropdown-menu" role="menu" ref="dropdownmenu">
                   <div class="dropdown-content">
-                    <a class="dropdown-item has-text-centered is-size-6"
+                   <a class="dropdown-item has-text-centered is-size-6"
                       v-for="model, k in models"
-                      @click="selectModel(model)" v-html="getModelDescription(model)">
+                      @mousedown.prevent="selectModel(model); showModelList = false" v-html="getModelDescription(model)">
                     </a>
                   </div>
                 </div>
@@ -92,6 +94,7 @@ export default {
       ],
       model: null,
       models: {},
+      showModelList: false,
       extendWindow: false,
       currentShowComponent: '',
 
