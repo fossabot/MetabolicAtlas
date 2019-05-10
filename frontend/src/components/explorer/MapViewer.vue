@@ -17,16 +17,18 @@
             <ul class="l0">
               <li>Compartments<span>&nbsp;&#9656;</span>
                 <ul class="vhs l1">
-                    <li @click="showMap()" class="has-background-grey-dark clickable"><i>Clear selection</i></li>
+                  <li @click="showMap()" class="has-background-grey-dark clickable"><i>Clear selection</i></li>
                   <div v-show="!has2DCompartmentMaps || show3D">
                     <li v-for="cKey in Object.keys(mapsData3D.compartments).sort()" class="clickable"
+                      :class="{'has-text-warning': cKey === currentDisplayedName }"
                       @click="showMap(mapsData3D.compartments[cKey].name_id)">
                       {{ mapsData3D.compartments[cKey].name }} {{ mapsData3D.compartments[cKey].reaction_count != 0 ? `(${mapsData3D.compartments[cKey].reaction_count})` : '' }}
                     </li>
                   </div>
                   <div v-show="has2DCompartmentMaps && show2D">
                     <li v-for="cKey in Object.keys(mapsData2D.compartments).sort()" class="clickable"
-                      :class="{ 'disable' : !mapsData2D.compartments[cKey].sha }" @click="showMap(mapsData2D.compartments[cKey].name_id)">
+                      :class="{ 'disable' : !mapsData2D.compartments[cKey].sha, 'has-text-warning': cKey === currentDisplayedName }"
+                      @click="showMap(mapsData2D.compartments[cKey].name_id)">
                       {{ mapsData2D.compartments[cKey].name }} {{ mapsData2D.compartments[cKey].reaction_count != 0 ? `(${mapsData2D.compartments[cKey].reaction_count})` : '' }}
                     </li>
                   </div>
@@ -37,12 +39,14 @@
                   <li @click="showMap()" class="has-background-grey-dark clickable"><i>Clear selection</i></li>
                   <div v-show="!has2DSubsystemMaps || show3D">
                     <li v-for="sKey in Object.keys(mapsData3D.subsystems).sort()" class="clickable"
+                      :class="{'has-text-warning': sKey === currentDisplayedName }"
                       @click="showMap(mapsData3D.subsystems[sKey].name_id, 'subsystem')">
                         {{ mapsData3D.subsystems[sKey].name }} {{ mapsData3D.subsystems[sKey].reaction_count != 0 ? `(${mapsData3D.subsystems[sKey].reaction_count})` : '' }}
                     </li>
                   </div>
                   <div v-show="has2DSubsystemMaps && mapsData2D.subsystems">
                     <li v-for="sKey in Object.keys(mapsData2D.subsystems).sort()" class="clickable"
+                      :class="{'has-text-warning': sKey === currentDisplayedName }"
                       v-if="mapsData2D.subsystems[sKey].name_id && mapsData2D.subsystems[sKey].sha" @click="showMap(mapsData2D.subsystems[sKey].name_id, 'subsystem')">
                         {{ mapsData2D.subsystems[sKey].name }} {{ mapsData2D.subsystems[sKey].reaction_count != 0 ? `(${mapsData2D.subsystems[sKey].reaction_count})` : '' }}
                     </li>
@@ -56,7 +60,8 @@
                 <span v-show="HPATissue.length !== 0">&nbsp;&#9656;</span>
                 <ul class="vhs l1">
                   <li v-show="HPATissue.length !== 0" @click="loadHPARNAlevels('None')"  class="has-background-grey-dark clickable"><i>Clear selection</i></li>
-                  <li v-for="tissue in HPATissue" class="clickable is-capitalized" @click="loadHPARNAlevels(tissue)">
+                  <li v-for="tissue in HPATissue" class="clickable is-capitalized" @click="loadHPARNAlevels(tissue)"
+                    :class="{'has-text-warning': tissue === loadedTissue }">
                     {{ tissue }}
                   </li>
                 </ul>
@@ -74,16 +79,16 @@
             :loading="showSelectionLoader">
           </sidebar-data-panels>
         </div>
-        <div v-show="overviewScreen" class="column">
+        <div v-show="showOverviewScreen" class="column">
           <p class="is-size-5">Load a map from the menu</p>
         </div>
-        <div id="graphframe" v-show="!overviewScreen" class="column is-unselectable">
+        <div id="graphframe" v-show="!showOverviewScreen" class="column is-unselectable">
           <div class="is-fullheight">
-            <svgmap v-show="!overviewScreen && show2D" :model="model" :mapsData="mapsData2D"
+            <svgmap v-show="show2D" :model="model" :mapsData="mapsData2D"
               @loadComplete="handleLoadComplete"
               @loading="showLoader=true">
             </svgmap>
-            <d3dforce v-show="!overviewScreen && show3D" :model="model"
+            <d3dforce v-show="show3D" :model="model"
               @loadComplete="handleLoadComplete"
               @loading="showLoader=true">
             </d3dforce>
@@ -91,15 +96,27 @@
           <div id="iLoader" class="loading" v-show="showLoader">
             <a class="button is-loading"></a>
           </div>
-          <div id="iSwitch" v-show="!overviewScreen" class="overlay">
-            <span class="button" @click="switchDimension" :disabled="disabled2D && show3D">
-              Switch to&nbsp;<b>{{ show3D ? '2D' : '3D' }}</b>
+          <div id="iSwitch" class="overlay">
+            <span class="button" @click="switchDimension" :disabled="!activeSwitch">
+              <template v-if="activeSwitch">
+                Switch to&nbsp;<b>{{ show3D ? '2D' : '3D' }}</b>
+              </template>
+              <template v-else>
+                <template v-if="!disabled2D">
+                  Switch to&nbsp;<b>{{ show3D ? '2D' : '3D' }}</b>
+                </template>
+                <template v-else>
+                  2D disabled
+                </template>
+              </template>
             </span>
           </div>
           <transition name="slide-fade">
-            <article id="errorBar" class="message is-danger" v-if="loadErrorMesssage">
+            <article id="errorBar" class="message" v-if="loadErrorMesssage"
+              :class="loadErrorTypeMesssage === 'danger' ? 'is-danger' : 'is-info'">
               <div class="message-header">
-                <i class="fa fa-warning"></i>
+                <i class="fa"
+                :class="loadErrorTypeMesssage === 'danger' ? 'is-danger' : 'is-info'"></i>
               </div>
               <div class="message-body">
                 <h5 class="title is-5">{{ loadErrorMesssage }}</h5>
@@ -133,14 +150,15 @@ export default {
     return {
       errorMessage: '',
       loadErrorMesssage: '',
-      overviewScreen: true,
+      loadErrorTypeMesssage: 'danger', // or info
+      showOverviewScreen: true,
       show2D: true,
       show3D: false,
-      disabled2D: false,
       requestedType: '',
       requestedName: '',
       currentDisplayedType: '',
       currentDisplayedName: '',
+      currentDisplayedData: '',
       has2DCompartmentMaps: false,
       has2DSubsystemMaps: false,
       showLoader: false,
@@ -172,7 +190,21 @@ export default {
   },
   computed: {
     activeSwitch() {
-      return !this.showLoader;
+      return !this.showLoader && !this.disabled2D;
+    },
+    disabled2D() {
+      if (this.show2D || !this.currentDisplayedName || this.showLoader) {
+        return false;
+      }
+      if (!this.has2DCompartmentMaps && !this.has2DSubsystemMaps) {
+        return true;
+      }
+      if (this.currentDisplayedType === 'compartment') {
+        const altID = this.mapsData3D.compartments[this.currentDisplayedName].alternateDim;
+        return !(altID in this.mapsData2D.compartments);
+      }
+      const altID = this.mapsData3D.subsystems[this.currentDisplayedName].alternateDim;
+      return !(altID in this.mapsData2D.subsystems && this.mapsData2D.subsystems[altID].sha);
     },
   },
   watch: {
@@ -199,16 +231,16 @@ export default {
         return;
       }
       if (!this.checkValidRequest(type, name)) {
-        this.handleLoadComplete(false, messages.mapNotFound);
+        this.handleLoadComplete(false, messages.mapNotFound, 'danger');
         return;
       }
+      this.showOverviewScreen = false; // to get the loader visible
       this.selectionData.data = null;
       if (this.show3D) {
         EventBus.$emit('show3Dnetwork', this.requestedType, this.requestedName);
       } else {
         EventBus.$emit('showSVGmap', this.requestedType, this.requestedName, ids, forceReload);
       }
-      this.disabled2D = false;
     });
 
     EventBus.$on('updatePanelSelectionData', (data) => {
@@ -286,7 +318,7 @@ export default {
       $('#menu ul.l1, #menu ul.l2').hide();
     },
     switchDimension() {
-      if (!this.activeSwitch || (this.show3D && this.disabled2D)) {
+      if (!this.activeSwitch) {
         return;
       }
       this.show3D = !this.show3D;
@@ -300,41 +332,37 @@ export default {
       }
 
       if (!this.checkValidRequest(this.currentDisplayedType, this.currentDisplayedName)) {
-        // this.handleLoadComplete(false, messages.mapNotFound);
+        this.handleLoadComplete(false, messages.mapNotFound, 'info');
         this.show3D = !this.show3D;
         this.show2D = !this.show2D;
-        if (this.show3D) {
-          this.disabled2D = true;
-        }
         return;
       }
-
       if (this.show3D) {
         this.URLID = null;
         EventBus.$emit('show3Dnetwork', this.requestedType, this.requestedName);
       } else {
-        this.disabled2D = false;
         EventBus.$emit('destroy3Dnetwork');
         EventBus.$emit('showSVGmap', this.requestedType, this.requestedName, [], true);
       }
       this.updateURL(this.requestedType, this.requestedName, this.URLID);
     },
-    handleLoadComplete(isSuccess, errorMessage) {
+    handleLoadComplete(isSuccess, errorMessage, messageType) {
       if (!isSuccess) {
         this.selectionData.data = null;
         this.loadErrorMesssage = errorMessage;
+        this.loadErrorTypeMesssage = messageType;
         if (!this.loadErrorMesssage) {
           this.loadErrorMesssage = messages.unknownError;
         }
         this.showLoader = false;
         this.currentDisplayedType = '';
         this.currentDisplayedName = '';
-        this.overviewScreen = true;
         setTimeout(() => {
           this.loadErrorMesssage = '';
         }, 3000);
         return;
       }
+      this.showOverviewScreen = false;
       this.currentDisplayedType = this.requestedType;
       this.currentDisplayedName = this.requestedName;
       if (this.show2D) {
@@ -353,11 +381,13 @@ export default {
         for (const c of response.data.compartment) {
           this.mapsData3D.compartments[c.name_id] = c;
           this.mapsData3D.compartments[c.name_id].model_id = c.name_id;
+          this.mapsData3D.compartments[c.name_id].alternateDim = c.compartment_svg;
         }
         this.mapsData2D.compartments = {};
         for (const c of response.data.compartmentsvg) {
           this.mapsData2D.compartments[c.name_id] = c;
           this.mapsData2D.compartments[c.name_id].model_id = c.compartment;
+          this.mapsData2D.compartments[c.name_id].alternateDim = c.compartment;
         }
         this.has2DCompartmentMaps = Object.keys(this.mapsData2D.compartments).length !== 0;
         // this.mapsData2D.compartments.sort();
@@ -365,20 +395,20 @@ export default {
         for (const s of response.data.subsystem) {
           this.mapsData3D.subsystems[s.name_id] = s;
           this.mapsData3D.subsystems[s.name_id].model_id = s.name_id;
+          this.mapsData3D.subsystems[s.name_id].alternateDim = s.subsystem_svg;
         }
         this.mapsData2D.subsystems = {};
         for (const s of response.data.subsystemsvg) {
           this.mapsData2D.subsystems[s.name_id] = s;
           this.mapsData2D.subsystems[s.name_id].model_id = s.subsystem;
+          this.mapsData2D.subsystems[s.name_id].alternateDim = s.subsystem;
         }
         this.has2DSubsystemMaps = Object.keys(this.mapsData2D.subsystems).length !== 0;
 
         if (!this.has2DCompartmentMaps && !this.has2DSubsystemMaps) {
-          this.disabled2D = true;
           this.show3D = true;
           this.show2D = false;
         }
-
         this.checkRoute();
       })
       .catch((error) => {
@@ -394,10 +424,11 @@ export default {
         const type = this.$route.name.includes('Compartment') ? 'compartment' : 'subsystem';
         const mapID = this.$route.params.id;
         this.URLID = this.$route.params.rid;
-        if (!this.$route.query.dim) {
+        const dim = this.$route.query.dim;
+        if (!dim) {
           this.show2D = false;
         } else {
-          this.show2D = this.$route.query.dim === '2d' && !this.disabled2D;
+          this.show2D = dim.toLowerCase() === '2d' && !this.disabled2D;
         }
         this.show3D = !this.show2D;
         this.$nextTick(() => {
@@ -441,16 +472,8 @@ export default {
       }
     },
     checkValidRequest(displayType, displayName) {
-      // correct special cytosol id, due to map split
       this.requestedType = displayType;
       this.requestedName = displayName;
-      if (displayType === 'compartment') {
-        if (this.show2D && displayName === 'cytosol') {
-          this.requestedName = 'cytosol_1';
-        } else if (this.show3D && displayName.includes('cytosol')) {
-          this.requestedName = 'cytosol';
-        }
-      }
       if (this.show2D) {
         if (displayType === 'compartment') {
           return this.requestedName in this.mapsData2D.compartments;
@@ -467,13 +490,15 @@ export default {
       this.selectionData.data = null;
       this.currentDisplayedName = null;
       this.currentDisplayedType = null;
-      this.tissue = null;
+      this.loadedTissue = null;
+      this.requestedTissue = null;
       this.hideDropleftMenus();
       if (compartmentOrSubsystemID) {
-        this.overviewScreen = false;
         EventBus.$emit('showAction', type, compartmentOrSubsystemID, [], false);
       } else {
-        this.overviewScreen = true;
+        this.showOverviewScreen = true;
+        this.$router.push(`/explore/map-viewer/${this.model.database_name}/`);
+        // keep the loaded 2D map, and data info in the 'back', to quickly reload it
       }
     },
   },
@@ -549,7 +574,7 @@ $footer-height: 4.55rem;
     margin: 0;
     right: 0;
     bottom: 35px;
-    border: 1px solid #FF4D4D;
+    border: 1px solid gray;
   }
 
   .slide-fade-enter-active {

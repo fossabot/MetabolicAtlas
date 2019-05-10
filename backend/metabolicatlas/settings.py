@@ -90,9 +90,9 @@ DATABASES = {
         'HOST': 'db',
         'PORT': 5432,
     },
-    'yeast': {
+    'yeast8': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'yeast',
+        'NAME': 'yeast8',
         'USER': os.getenv('POSTGRES_USER'),
         'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
         'HOST': 'db',

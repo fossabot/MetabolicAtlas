@@ -598,9 +598,9 @@ def get_data_viewer(request, model):
         return HttpResponse(status=404)
 
     return JSONResponse({
-            'subsystem': APIserializer.SubsystemSerializer(subsystems, many=True).data,
+            'subsystem': APIserializer.SubsystemMapViewerSerializer(subsystems, many=True).data,
             'subsystemsvg': APIserializer.SubsystemSvgSerializer(subsystems_svg, many=True).data,
-            'compartment':  APIserializer.CompartmentSerializer(compartments, many=True).data,
+            'compartment':  APIserializer.CompartmentMapViewerSerializer(compartments, many=True).data,
             'compartmentsvg': APIserializer.CompartmentSvgSerializer(compartments_svg, many=True).data
         })
 

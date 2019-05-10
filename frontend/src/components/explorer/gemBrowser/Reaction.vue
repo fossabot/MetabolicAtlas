@@ -106,7 +106,7 @@ export default {
           { name: 'subsystem', display: 'Subsystem', modifier: this.reformatSubsystemList },
           { name: 'sbo_id', display: 'SBO', modifier: this.reformatSBOLink },
         ],
-        yeast: [
+        yeast8: [
           { name: 'id' },
           { name: 'equation', modifier: this.reformatEquation },
           { name: 'is_reversible', display: 'Reversible', isComposite: true, modifier: this.reformatReversible },
@@ -121,7 +121,7 @@ export default {
         human1: [
           { name: 'mnxref_id', display: 'Mnxref', link: 'mnxref_link' },
         ],
-        yeast: [],
+        yeast8: [],
       },
       reaction: {},
       errorMessage: '',

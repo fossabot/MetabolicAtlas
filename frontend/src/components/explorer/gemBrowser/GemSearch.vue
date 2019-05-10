@@ -87,7 +87,7 @@ export default {
           subsystem: ['name', 'system'],
           compartment: ['name'],
         },
-        yeast: {
+        yeast8: {
           enzyme: ['id', 'gene_name'],
           reaction: ['id', 'equation'],
           metabolite: ['id', 'name', 'compartment'],
