@@ -88,7 +88,7 @@ export default {
           { name: 'compartment' },
           { name: 'id' },
         ],
-        yeast: [
+        yeast8: [
           { name: 'name' },
           { name: 'alt_name', display: 'Alternate name' },
           { name: 'aliases', display: 'Synonyms' },
@@ -106,7 +106,7 @@ export default {
           { name: 'chebi_id', display: 'Chebi', link: 'chebi_link' },
           { name: 'mnxref_id', display: 'Mnxref', link: 'mnxref_link' },
         ],
-        yeast: [
+        yeast8: [
         ],
       },
       metabolite: {},

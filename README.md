@@ -152,9 +152,9 @@ Each model is stored in separated database.
 
 ```bash
 ...
-'yeast': {
+'human1': {
     'ENGINE': 'django.db.backends.postgresql',
-    'NAME': 'yeast',
+    'NAME': 'human1',
     'USER': os.getenv('POSTGRES_USER'),
     'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
     'HOST': 'db',

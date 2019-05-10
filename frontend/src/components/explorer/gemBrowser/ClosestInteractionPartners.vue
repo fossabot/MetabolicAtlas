@@ -313,7 +313,7 @@ export default {
           { field: 'formula', colName: 'Formula', modifier: chemicalFormula },
           { field: 'compartment', colName: 'Compartment' },
         ],
-        yeast: [
+        yeast8: [
           { field: 'type', colName: 'Type' },
           { field: 'name', colName: 'Name' },
           { field: 'formula', colName: 'Formula', modifier: chemicalFormula },

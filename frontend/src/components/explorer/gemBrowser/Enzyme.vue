@@ -100,7 +100,7 @@ export default {
           { name: 'function' },
           { name: 'id' },
         ],
-        yeast: [
+        yeast8: [
           { name: 'enzymeName', display: 'Gene&nbsp;name' },
           { name: 'prot_name', display: 'Protein&nbsp;name' },
           { name: 'gene_synonyms', display: 'Synonyms' },
@@ -115,7 +115,7 @@ export default {
           { name: 'uniprot_id', display: 'Uniprot', link: 'uniprot_link' },
           { name: 'ncbi_id', display: 'NCBI', link: 'ncbi_link' },
         ],
-        yeast: [],
+        yeast8: [],
       },
       reactions: [],
     };
