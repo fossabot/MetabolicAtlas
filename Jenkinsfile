@@ -40,7 +40,7 @@ pipeline {
         sh '''
           wget https://chalmersuniversity.box.com/shared/static/ux9bnfyycig8qgxtayjnjnczqt7b92b7.db -O human1.db
           wget https://chalmersuniversity.box.com/shared/static/om86nb6y8ji044wzoiljm8aghmbdvs41.db -O gems.db
-          wget https://chalmersuniversity.box.com/shared/static/yqov4k0r4mript3ybl6x2xq42ud9s535.db -O yeast8.db
+          wget https://chalmersuniversity.box.com/shared/static/n3izn3hkp1hmmgodpxaczpkqd0p64ngf.db -O yeast8.db
 
           docker exec -i db psql -U postgres < human1.db
           docker exec -i db psql -U postgres < yeast8.db
