@@ -2,6 +2,7 @@
 // (runtime-only or standalone) has been set in webpack.base.conf with an alias.
 import axios from 'axios';
 import Vue from 'vue';
+import VueMatomo from 'vue-matomo';
 import lodash from 'lodash';
 import VueLodash from 'vue-lodash/dist/vue-lodash.min';
 import App from './App';
@@ -11,6 +12,12 @@ import { EventBus } from './event-bus';
 axios.defaults.baseURL = '/api';
 
 Vue.use(VueLodash, lodash);
+
+Vue.use(VueMatomo, {
+  host: 'https://sysbiowiki.se:4433/',
+  siteId: 12,
+  router,
+});
 
 /* eslint-disable no-new */
 new Vue({
