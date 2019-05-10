@@ -117,8 +117,8 @@ DATABASE_ROUTERS = [
 
 # CORS https://github.com/ottoyiu/django-cors-headers
 CORS_ORIGIN_WHITELIST = (
-    'localhost',
-    'icsb.chalmers.se',
+    'http://localhost',
+    'https://icsb.chalmers.se',
 )
 
 # Password validation https://docs.djangoproject.com/en/1.10/ref/settings/#auth-password-validators

@@ -4,7 +4,7 @@
     <nav id="navbar" class="navbar has-background-primary-lighter" role="navigation" aria-label="main navigation">
       <div class="container">
         <div class="navbar-brand">
-          <router-link id="logo" class="navbar-item" to="/" >
+          <router-link id="logo" class="navbar-item" to="/">
             <img :src="require('./assets/logo.png')"/>
           </router-link>
           <div class="navbar-burger" :class="{ 'is-active': isMobileMenu }"
@@ -226,6 +226,10 @@ $navbar-breakpoint: 1000px;
 
 .has-background-primary-lighter {
   background-color: $primary-lighter;
+}
+
+#logo {
+  margin-left: 0.5rem;
 }
 
 m, .clickable {
