@@ -82,25 +82,22 @@ export default {
           }, 0);
         })
         .catch((error) => {
-          this.$emit('loadComplete', false, error);
+          this.$emit('loadComplete', false, error, 'danger');
         });
     },
     constructGraph() {
-      const width = this.$refs.graphParent.offsetParent.offsetWidth; // FIXME
-      const height = this.$refs.graphParent.offsetParent.offsetHeight; // FIXME
       this.graph = forceGraph3D()(document.getElementById('3d-graph'))
-        .width(width).height(height)
+        .showNavInfo(false)
         .nodeLabel('n')
         .linkSource('s')
         .linkTarget('t')
         .nodeAutoColorBy('g')
         .forceEngine('ngraph')
         .graphData({ nodes: this.network.nodes, links: this.network.links })
-        // .linkAutoColorBy('group')
-        .nodeAutoColorBy('g')
         .nodeOpacity(1)
-        .linkWidth(2)
-        .nodeResolution(8)
+        .linkWidth(0)
+        .linkOpacity(0.35)
+        .nodeResolution(12)
         .warmupTicks(100)
         .cooldownTicks(0)
         .onEngineStop(() => {
@@ -108,7 +105,19 @@ export default {
             this.$emit('loadComplete', true, '');
           }
           this.networkHistory[this.loadedComponentName] = this.network;
+          this.updateGraphBounds();
         });
+    },
+    updateGraphBounds() {
+      setTimeout(() => {
+        if (this.$refs.graphParent.offsetParent) {
+          const width = this.$refs.graphParent.offsetParent.offsetWidth; // FIXME
+          const height = this.$refs.graphParent.offsetParent.offsetHeight; // FIXME
+          if (this.graph.width() !== width || this.graph.height() !== height) {
+            this.graph.width(width).height(height);
+          }
+        }
+      }, 0);
     },
   },
 };

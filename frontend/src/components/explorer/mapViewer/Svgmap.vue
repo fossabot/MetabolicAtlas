@@ -94,7 +94,6 @@ export default {
       currentSearchMatch: 0,
       totalSearchMatch: 0,
 
-      svgMapURL: `${window.location.origin}/svgs`, // SEDME
       defaultEnzymeColor: '#feb',
     };
   },
@@ -232,13 +231,13 @@ export default {
         mapInfo = this.mapsData.subsystems[id];
         if (!mapInfo) {
           this.loadedMapType = null;
-          this.$emit('loadComplete', false, '');
+          this.$emit('loadComplete', false, 'Invalid map ID', 'danger');
           return;
         }
       }
       const newSvgName = mapInfo.filename;
       if (!newSvgName) {
-        this.$emit('loadComplete', false, messages.mapNotFound);
+        this.$emit('loadComplete', false, messages.mapNotFound, 'danger');
         return;
       }
 
@@ -251,8 +250,7 @@ export default {
             this.loadSvgPanZoom(callback);
           }, 0);
         } else {
-          const svgLink = `${this.svgMapURL}/${this.model.database_name}/${newSvgName}`;
-          axios.get(svgLink)
+          axios.get(`https://icsb.chalmers.se/.maps/${this.model.database_name}/${newSvgName}`)
             .then((response) => {
               this.svgContent = response.data;
               this.svgName = newSvgName;
@@ -265,7 +263,7 @@ export default {
               }, 0);
             })
             .catch(() => {
-              this.$emit('loadComplete', false, messages.mapNotFound);
+              this.$emit('loadComplete', false, messages.mapNotFound, 'danger');
             });
         }
       } else {
@@ -349,7 +347,7 @@ export default {
         this.isLoadingSearch = false;
         const status = error.status || error.response.status;
         if (status !== 404) {
-          this.$emit('loadComplete', false, messages.unknownError);
+          this.$emit('loadComplete', false, messages.unknownError, 'danger');
           this.searchInputClass = 'is-info';
         } else {
           this.searchInputClass = 'is-danger';

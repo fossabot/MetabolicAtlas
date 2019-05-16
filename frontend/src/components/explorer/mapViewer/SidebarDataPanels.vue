@@ -181,7 +181,7 @@ export default {
             { name: 'products' },
           ],
         },
-        yeast: {
+        yeast8: {
           metabolite: [],
           enzyme: [],
           reaction: [],

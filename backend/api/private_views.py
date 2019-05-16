@@ -487,7 +487,7 @@ def HPA_all_enzymes(request):
 @api_view()
 def HPA_enzyme_info(request, ensembl_id): # ENSG00000110921
     model = "human1"
-    
+
     # l = logging.getLogger('django.db.backends')
     # l.setLevel(logging.DEBUG)
     # l.addHandler(logging.StreamHandler())
@@ -513,7 +513,7 @@ def HPA_enzyme_info(request, ensembl_id): # ENSG00000110921
         # sub['compartments'] = list(compartments)
         sub_dict['reactions_catalysed'] = APImodels.ReactionModifier.objects.using(model).filter(Q(reaction__in=sub.reactions.all()) & Q(modifier_id=rcid)).count()
         if sub.subsystem_svg.sha:
-            sub_dict['map_url'] = "https://ftp.icsb.chalmers.se/.maps/%s/%s.svg" % (model, sub.name_id)
+            sub_dict['map_url'] = "https://icsb.chalmers.se/.maps/%s/%s.svg" % (model, sub.name_id)
         else:
             sub_dict['map_url'] = ""
         sub_dict['subsystem_url'] = "https://icsb.chalmers.se/explore/gem-browser/%s/subsystem/%s" % (model, sub.name_id)
@@ -598,9 +598,9 @@ def get_data_viewer(request, model):
         return HttpResponse(status=404)
 
     return JSONResponse({
-            'subsystem': APIserializer.SubsystemSerializer(subsystems, many=True).data,
+            'subsystem': APIserializer.SubsystemMapViewerSerializer(subsystems, many=True).data,
             'subsystemsvg': APIserializer.SubsystemSvgSerializer(subsystems_svg, many=True).data,
-            'compartment':  APIserializer.CompartmentSerializer(compartments, many=True).data,
+            'compartment':  APIserializer.CompartmentMapViewerSerializer(compartments, many=True).data,
             'compartmentsvg': APIserializer.CompartmentSvgSerializer(compartments_svg, many=True).data
         })
 
@@ -997,7 +997,6 @@ def search(request, model, term):
                 Q(id__iexact=term) |
                 Q(name__icontains=term) |
                 Q(ec__icontains=term) |
-                Q(sbo_id__iexact=term) |
                 Q(external_id1__iexact=term) |
                 Q(external_id2__iexact=term) |
                 Q(external_id3__iexact=term) |

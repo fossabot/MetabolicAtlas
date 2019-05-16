@@ -24,16 +24,15 @@
           Limited to 50 results per type. Click to search all integrated GEMs
         </div>
         <div class="resList" v-show="!showLoader">
-          <div v-if="searchResults.length !== 0" class="searchGroupResultSection"
-            v-for="(k, i1) in resultsOrder">
-            <hr class="bhr" v-if="i1 != 0 && searchResults[k].length != 0 && (i1 != 0 && searchResults[resultsOrder[i1-1]].length != 0)">
+          <template v-if="searchResults.length !== 0" v-for="(k, i1) in resultsOrder">
             <div v-for="(r, i2) in searchResults[k]" class="searchResultSection">
               <hr class="is-marginless" v-if="i2 != 0">
               <div class="clickable" @mousedown.prevent="goToTab(k, r.id || r.name_id || r.name)">
                  <b class="is-capitalized">{{ k }}: </b><label v-html="formatSearchResultLabel(k, r, searchTermString)"></label>
               </div>
             </div>
-          </div>
+            <hr class="bhr" v-if="searchResults[k].length !== 0">
+          </template>
         </div>
         <div v-show="showLoader" class="has-text-centered">
           <a class="button is-primary is-inverted is-outlined is-large is-loading"></a>
@@ -88,7 +87,7 @@ export default {
           subsystem: ['name', 'system'],
           compartment: ['name'],
         },
-        yeast: {
+        yeast8: {
           enzyme: ['id', 'gene_name'],
           reaction: ['id', 'equation'],
           metabolite: ['id', 'name', 'compartment'],
@@ -263,6 +262,9 @@ export default {
       padding: 0;
       border-top: 3px double #000000;
     }
+  }
+  .bhr:last-child {
+    display: none;
   }
 
   .searchResultSection {

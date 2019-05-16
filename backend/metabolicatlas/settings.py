@@ -90,17 +90,9 @@ DATABASES = {
         'HOST': 'db',
         'PORT': 5432,
     },
-    'hmr2': {
+    'yeast8': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'hmr2',
-        'USER': os.getenv('POSTGRES_USER'),
-        'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
-        'HOST': 'db',
-        'PORT': 5432,
-    },
-    'yeast': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'yeast',
+        'NAME': 'yeast8',
         'USER': os.getenv('POSTGRES_USER'),
         'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
         'HOST': 'db',
@@ -125,17 +117,9 @@ DATABASE_ROUTERS = [
 
 # CORS https://github.com/ottoyiu/django-cors-headers
 CORS_ORIGIN_WHITELIST = (
-    'localhost',
-    'icsb.chalmers.se',
+    'http://localhost',
+    'https://icsb.chalmers.se',
 )
-
-# Password validation https://docs.djangoproject.com/en/1.10/ref/settings/#auth-password-validators
-AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',},
-    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',},
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',},
-]
 
 # SWAGGER
 SWAGGER_SETTINGS = {
@@ -144,6 +128,7 @@ SWAGGER_SETTINGS = {
 
 REST_FRAMEWORK = {
     'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.QueryParameterVersioning',
+    'DEFAULT_AUTHENTICATION_CLASSES': []
 }
 
 # Internationalization https://docs.djangoproject.com/en/1.10/topics/i18n/
