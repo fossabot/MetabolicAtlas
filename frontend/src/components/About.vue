@@ -5,7 +5,7 @@
       <div class="columns is-variable is-8">
         <div class="column is-half has-text-justified">
           <p>
-            The Metabolic Atlas project is headed by <a href="https://www.sysbio.se/labs/nielsen" target="_new">Professor Jens Nielsen</a>, <a href="https://www.sysbio.se">Division of Systems and Synthetic Biology</a>, Department of Biology and Biological Engineering at the <a href="https://www.chalmers.se" target="_new">Chalmers University of Technology</a>. The technical development of the platform is done by members of <a href="https://www.chalmers.se/en/researchinfrastructure/csb/Pages/default.aspx">Computational Systems Biology Infrastructure</a> at Chalmers University of Technology and <a href="https://nbis.se" target="blank">National Bioinformatics Infrastructure Sweden</a>.<br><br>
+            The Metabolic Atlas project is headed by <a href="https://www.sysbio.se/labs/nielsen" target="_new">Professor Jens Nielsen</a>, <a href="https://www.sysbio.se">Division of Systems and Synthetic Biology</a>, Department of Biology and Biological Engineering at the <a href="https://www.chalmers.se" target="_new">Chalmers University of Technology</a>. The platform is developed by members of <a href="https://www.chalmers.se/en/researchinfrastructure/csb/Pages/default.aspx">Computational Systems Biology Infrastructure</a> at Chalmers University of Technology and <a href="https://nbis.se" target="blank">National Bioinformatics Infrastructure Sweden</a>.<br><br>
 
             Metabolic Atlas is a freely available resource containing detailed information about a set of open-source GEMs, specifically <router-link :to="{ name: 'browserRoot', params: {model: 'human1'} }">Human1</router-link> and <router-link :to="{ name: 'browserRoot', params: {model: 'yeast8'} }">Yeast8</router-link>. These are two reference models containing all possible reactions that could occur in human, and yeast, respectively.<br><br>
 
@@ -15,13 +15,13 @@
 
              For versions and release notes of the software behind Metabolic Atlas, <a href="https://github.com/SysBioChalmers/MetabolicAtlas/releases" target="_blank">check the GitHub page</a>. The current team members are Pierre-Etienne Cholley and Mihail Anton; detailed contributions are <a href="https://github.com/SysBioChalmers/MetabolicAtlas/graphs/contributors" target="_blank">shown on GitHub</a>. The integrated models are also available on GitHub, check our <router-link :to="{ name: 'gems' }">GEM Repository</router-link> for links to those.<br><br>
 
-             <p>Metabolic Atlas would not be possible without the following excellent sources of information: <a href="http://proteinatlas.org" target="_blank">The Human Protein Atlas</a>, <a href="http://www.genome.jp/kegg/" target="_blank">KEGG: Kyoto Encyclopedia of Genes and Genomes</a>, <a href="http://www.uniprot.org" target="_blank">UniProt</a>, <a href="http://www.hmdb.ca/" target="_blank">The Human Metabolome Database</a>.
+             <p>Metabolic Atlas would not be possible without the following excellent sources of information: <a href="http://proteinatlas.org" target="_blank">The Human Protein Atlas</a>, <a href="http://www.genome.jp/kegg/" target="_blank">KEGG: Kyoto Encyclopedia of Genes and Genomes</a>, <a href="http://www.uniprot.org" target="_blank">UniProt</a>, <a href="http://www.hmdb.ca/" target="_blank">The Human Metabolome Database</a>, <a href="https://www.metanetx.org" target="_blank">MetaNetX</a>.
           </p>
         </div>
-        <div class="column is-half has-text-justified">
+        <div class="column is-half has-text-justified content">
           <div class="box">
-            <p class="subtitle is-size-4 has-text-primary has-text-centered">Citing Metabolic Atlas</p>
-            <p>Paper under consideration</p>
+            <p class="subtitle has-text-weight-bold is-size-4 has-text-primary has-text-centered">Citing Metabolic Atlas</p>
+            <i>Article under consideration</i>
             <!-- <p>
               <a href="" target="_blank">APA style reference with DOI</a><br><br>
               Abstract here
@@ -31,21 +31,20 @@
           </div>
           <img width="100%" src="../assets/group_18a.jpg">
           <center>The SysBio group 2018</center>
-        </div>
-      </div>
-      <div class="columns is-variable is-8">
-        <div class="column has-text-justified content">
           <h4>Contact</h4>
           <p>
             For any questions, comments or suggestions please email us <a href="mailto:">contact [at] metabolicatlas [dot] org</a> .<br>
             Alternatively, find us at the <a href="https://www.sysbio.se/" target="blank">Division of Systems and Synthetic Biology</a> and <a href="https://nbis.se" target="blank">National Bioinformatics Infrastructure Sweden</a> .
           </p>
-
+        </div>
+      </div>
+      <div class="columns is-variable is-8">
+        <div class="column has-text-justified content">
           <h4 id="privacy">Privacy notice</h4>
           <p>
             Metabolic Atlas gathers information about users solely to improve the usability and usefulness of the website. There are two types of cookie that are set by Metabolic Atlas: functionality cookies and tracking cookies.<br>
             Functionality cookies are used to personalize the appearence of the Metabolic Atlas.<br>
-            Tracking cookies are used by our private analytics to track the users on our website. We use them to anonymously observe the behaviour on our website in order to improve it. We store partial IP, operating system, browser and browser language. This information stored permanently, but is not shared with any third party.
+            Tracking cookies are used by our private analytics to track the users on our website. We use them to observe the anonymized behaviour on our website in order to improve it. We store partial IP, operating system, browser and browser language. This information is stored permanently and is not shared with any third party.
           </p>
 
           <h4>Terms of use</h4>
