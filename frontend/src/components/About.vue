@@ -36,7 +36,7 @@
         </div>
       </div>
       <div class="columns is-variable is-8">
-        <div class="column has-text-justified">
+        <div class="column has-text-justified content">
           <h2 class="subtitle is-4">External resources</h2>
           <p>Metabolic Atlas would not be possible without the following excellent sources of information:</p>
           <ul>
@@ -50,8 +50,14 @@
               For any questions, comments or suggestions please contact <a href="mailto:">contact[at]metabolicatlas.org</a>
             </p>
             <h5><a href="https://www.sysbio.se/contact/" target="blank"> Division of Systems and Synthetic Biology</a></h5>
+
+            <h3 id="Privacy">Privacy statement</h3>
+            Metabolic Atlas gathers information about users solely to improve the usability and usefulness of the site. There are two types of cookie that are set by Metabolic Atlas:<br>
+            <strong>Functionality cookies</strong> are used to personalize the appearence of the Metabolic Atlas.<br>
+            <strong>Tracking cookies</strong> are used via private analytics to track the users on our website. We use them to anonymously observe the behaviour on our website in order to improve it. This information is not shared with any third party.
+          </div>
+
         </div>
-      </div>
       </div>
     </div>
   </section>
