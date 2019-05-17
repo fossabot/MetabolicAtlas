@@ -513,7 +513,7 @@ def HPA_enzyme_info(request, ensembl_id): # ENSG00000110921
         # sub['compartments'] = list(compartments)
         sub_dict['reactions_catalysed'] = APImodels.ReactionModifier.objects.using(model).filter(Q(reaction__in=sub.reactions.all()) & Q(modifier_id=rcid)).count()
         if sub.subsystem_svg.sha:
-            sub_dict['map_url'] = "https://icsb.chalmers.se/.maps/%s/%s.svg" % (model, sub.name_id)
+            sub_dict['map_url'] = "https://ftp.chalmers.se/.maps/%s/%s.svg" % (model, sub.name_id)
         else:
             sub_dict['map_url'] = ""
         sub_dict['subsystem_url'] = "https://icsb.chalmers.se/explore/gem-browser/%s/subsystem/%s" % (model, sub.name_id)
