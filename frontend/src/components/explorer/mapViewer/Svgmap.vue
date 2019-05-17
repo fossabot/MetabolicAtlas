@@ -94,6 +94,7 @@ export default {
       currentSearchMatch: 0,
       totalSearchMatch: 0,
 
+      svgMapURL: `${window.location.origin}/svgs`, // SEDME
       defaultEnzymeColor: '#feb',
     };
   },
@@ -250,7 +251,8 @@ export default {
             this.loadSvgPanZoom(callback);
           }, 0);
         } else {
-          axios.get(`https://icsb.chalmers.se/.maps/${this.model.database_name}/${newSvgName}`)
+          const svgLink = `${this.svgMapURL}/${this.model.database_name}/${newSvgName}`;
+          axios.get(svgLink)
             .then((response) => {
               this.svgContent = response.data;
               this.svgName = newSvgName;

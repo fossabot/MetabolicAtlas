@@ -16,6 +16,9 @@ pipeline {
       steps {
         sh '''cp /var/lib/jenkins/postgres.env .'''
         echo 'Copied PostgreSQL and Django environment.'
+        sh '''
+          sed -i "s/svgMapURL:.*/svgMapURL: 'https:\\/\\/ftp.icsb.chalmers.se\\/.maps',/g"  frontend/src/components/explorer/mapViewer/Svgmap.vue
+        '''
       }
     }
     stage('Test') {
