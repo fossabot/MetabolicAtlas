@@ -831,7 +831,6 @@ def search(request, model, term):
     # iterate on GEMs (databases might be empty)
     filtered_models = []
     for model_db_name in models:
-        print (model_db_name)
         try:
             m = APImodels.GEM.objects.get(database_name=model_db_name)
             models_dict[model_db_name] = m.short_name
@@ -1008,7 +1007,6 @@ def search(request, model, term):
                 reactions_mets = APImodels.Reaction.objects.using(model).prefetch_related('subsystem').distinct().filter(
                     Q(metabolites__in=exact_metabolites) & ~Q(id__in=reactions.values_list('id', flat=True)))[:(limit - reactions.count())]
                 reactions = list(chain(reactions, reactions_mets))
-
 
             enzymes = APImodels.ReactionComponent.objects.using(model).select_related('enzyme').prefetch_related('subsystem_enzyme', 'compartment_enzyme').filter(
                 Q(component_type__exact='e') &
