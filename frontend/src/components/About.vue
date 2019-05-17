@@ -16,15 +16,15 @@
       </div>
       <div class="columns is-variable is-8">
         <div class="column is-half has-text-justified">
-          <h3 class="subtitle is-4">The Metabolic Atlas</h3>
-          <p>The Metabolic Atlas is a freely available electronic database containing detailed information about a set of GEMs, especially Human1 and Yeast8. These are two "reference" models containing all possible reactions that could occur in human, and yeast, respectively.</p><br>
+          <h3 class="subtitle is-4">Metabolic Atlas</h3>
+          <p>Metabolic Atlas is a freely available electronic database containing detailed information about a set of GEMs, especially Human1 and Yeast8. These are two "reference" models containing all possible reactions that could occur in human, and yeast, respectively.</p><br>
           <p>We aim to facilitate the understanding of a model by showing how reactions are connected into subsystems, with the ability to zoom in on a particular pathway.</p>
           <p>Metabolic Atlas is intended to be used for applications in metabolomics, clinical chemistry, biomarker discovery and general education.</p><br>
           For versions and release notes, <a href="https://github.com/SysBioChalmers/MetabolicAtlas/releases" target="_blank">check the GitHub page</a>.
         </div>
         <div class="column is-half has-text-justified">
           <div class="box">
-            <h4 class="subtitle is-size-4 has-text-primary has-text-centered">Citing the Metabolic Atlas</h4>
+            <h4 class="subtitle is-size-4 has-text-primary has-text-centered">Citing Metabolic Atlas</h4>
             <p>Paper under consideration</p>
             <!-- <p>
               <a href="" target="_blank">APA style reference with DOI</a><br><br>
