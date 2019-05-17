@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="column" v-if="tissue && dim === '2d'">
+    <div class="column" v-if="tissue">
       <div class="card">
         <header class="card-header clickabled" @click.prevent="showLvlCardContent = !showLvlCardContent">
           <p class="card-header-title is-inline">
