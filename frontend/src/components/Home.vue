@@ -110,7 +110,7 @@ export default {
           img: require('../assets/analyze.jpg'),
           url: '' },
         { title: 'GEM Repository',
-          text: 'Over 350 GEMs can be downloaded from the browser or directly from the <b>Metabolic Atlas FTP server</b>. The tabular view enables customized selection.<br><br>Clicking on each of the models brings up more information about the model, including a text description and, if available, references.',
+          text: 'Over 350 GEMs can be downloaded from the browser or directly from the <b>Metabolic Atlas FTP server</b>. The tabular view enables customized selection.<br><br>Clicking on each of the models brings up more information about the model, including a text description and, if available, references. For support, the original authors should be contacted.',
           img: require('../assets/gems.jpg'),
           cardLink: 'GEM Repository',
           url: { name: 'gems' } },

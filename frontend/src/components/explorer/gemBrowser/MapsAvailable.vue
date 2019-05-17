@@ -5,8 +5,6 @@
         <span class="icon is-medium"><i class="fa fa-map-o"></i></span>&nbsp;
         <span>{{ messages.mapViewerName }}</span>
       </p>
-      <a href="#" class="card-header-icon" aria-label="more options">
-      </a>
     </header>
     <div class="card-content" style="padding: 0.5rem;">
       <div class="content has-text-left is-paddingless" v-if="Object.keys(mapsAvailable).length !== 0">

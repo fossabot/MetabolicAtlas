@@ -490,12 +490,12 @@ export default {
       this.selectionData.data = null;
       this.currentDisplayedName = null;
       this.currentDisplayedType = null;
-      this.loadedTissue = null;
-      this.requestedTissue = null;
       this.hideDropleftMenus();
       if (compartmentOrSubsystemID) {
         EventBus.$emit('showAction', type, compartmentOrSubsystemID, [], false);
       } else {
+        this.loadedTissue = null;
+        this.requestedTissue = null;
         this.showOverviewScreen = true;
         this.$router.push(`/explore/map-viewer/${this.model.database_name}/`);
         // keep the loaded 2D map, and data info in the 'back', to quickly reload it

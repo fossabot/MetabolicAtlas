@@ -427,7 +427,7 @@ def get_db_json(request, model, component_name_id=None, ctype=None, dup_meta=Fal
                     'g': 'm',
                     'id': mid,
                     #'rid': m.id,
-                    'n': m.name or m.alt_name1,
+                    'n': m.name or m.alt_name1 or mid,
                 }
 
                 nodes[mid] = metabolite
@@ -443,17 +443,18 @@ def get_db_json(request, model, component_name_id=None, ctype=None, dup_meta=Fal
             linksList.append(rel)
 
         for e in r.modifiers.all():
-            eid = e.id;
+            eid = "%s-0" % (e.id)
             if eid in nodes:
                 duplicatedEnz[eid] += 1;
                 eid = "%s-%s" % (eid, duplicatedEnz[eid])
             else:
                 duplicatedEnz[eid] = 0;
+                # eid = "%s-%s" % (eid, duplicatedEnz[eid])
 
             enzyme = {
               'id': eid,
               'g': 'e',
-              'n': e.name or e.alt_name1,
+              'n': e.name or e.alt_name1 or e.id,
             }
             nodes[eid] = enzyme;
 
@@ -513,7 +514,7 @@ def HPA_enzyme_info(request, ensembl_id): # ENSG00000110921
         # sub['compartments'] = list(compartments)
         sub_dict['reactions_catalysed'] = APImodels.ReactionModifier.objects.using(model).filter(Q(reaction__in=sub.reactions.all()) & Q(modifier_id=rcid)).count()
         if sub.subsystem_svg.sha:
-            sub_dict['map_url'] = "https://icsb.chalmers.se/.maps/%s/%s.svg" % (model, sub.name_id)
+            sub_dict['map_url'] = "https://ftp.chalmers.se/.maps/%s/%s.svg" % (model, sub.name_id)
         else:
             sub_dict['map_url'] = ""
         sub_dict['subsystem_url'] = "https://icsb.chalmers.se/explore/gem-browser/%s/subsystem/%s" % (model, sub.name_id)

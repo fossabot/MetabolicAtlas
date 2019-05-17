@@ -9,6 +9,7 @@
 import axios from 'axios';
 import forceGraph3D from '3d-force-graph';
 import { default as EventBus } from '../../../event-bus';
+import { getExpressionColor } from '../../../expression-sources/hpa';
 
 export default {
   name: 'd3dforce',
@@ -27,12 +28,21 @@ export default {
         nodes: [],
         links: [],
       },
+
+      selectedItemHistory: {},
+      selectElementID: null,
+      selectElementIDfull: null,
+      enzymeRNAlevels: {},
+      HPARNAlevelsHistory: {},
+      defaultEnzymeColor: '#feb',
+      tissue: 'None',
     };
   },
   created() {
     EventBus.$off('show3Dnetwork');
     EventBus.$off('destroy3Dnetwork');
     EventBus.$off('update3DLoadedComponent');
+    EventBus.$off('load3DHPARNAlevels');
 
     EventBus.$on('show3Dnetwork', (type, name) => {
       if (name.toLowerCase().substr(0, 7) === 'cytosol') {
@@ -65,15 +75,22 @@ export default {
       this.loadedComponentType = type;
       this.loadedComponentName = name;
     });
+
+    EventBus.$on('load3DHPARNAlevels', (mapType, tissue) => {
+      this.loadHPAlevelsOnMap(mapType, tissue);
+    });
   },
   methods: {
     getJson() {
       this.$emit('loading');
+      this.tissue = 'None';
       axios.get(`/${this.model.database_name}/json/${this.loadedComponentType}/${this.loadedComponentName}`)
         .then((response) => {
           this.network = response.data;
           setTimeout(() => {
             if (this.graph === null) {
+              this.graph = {};
+              this.graph.emitLoadComplete = true;
               this.constructGraph();
             } else {
               this.graph.graphData(this.network);
@@ -86,12 +103,12 @@ export default {
         });
     },
     constructGraph() {
+      /* eslint-disable no-param-reassign */
       this.graph = forceGraph3D()(document.getElementById('3d-graph'))
         .showNavInfo(false)
         .nodeLabel('n')
         .linkSource('s')
         .linkTarget('t')
-        .nodeAutoColorBy('g')
         .forceEngine('ngraph')
         .graphData({ nodes: this.network.nodes, links: this.network.links })
         .nodeOpacity(1)
@@ -100,8 +117,33 @@ export default {
         .nodeResolution(12)
         .warmupTicks(100)
         .cooldownTicks(0)
+        .onNodeClick((n) => {
+          this.selectElement(n);
+        })
+        .nodeColor((n) => {
+          if (n.id === this.selectElementIDfull) {
+            return 'red';
+          }
+          if (n.g === 'e') {
+            if (this.tissue === 'None') {
+              return this.defaultEnzymeColor;
+            }
+            const partialID = n.id.split('-')[0];
+            if (this.enzymeRNAlevels[partialID] !== undefined) {
+              return getExpressionColor(this.enzymeRNAlevels[partialID]);
+            }
+            return 'whitesmoke';
+          } else if (n.g === 'r') {
+            return '#fff';
+          }
+          return '#9df';
+        })
         .onEngineStop(() => {
-          if (this.graph.graphData().nodes.length !== 0) {
+          if (this.graph !== null &&
+            this.graph.emitLoadComplete !== undefined &&
+            !this.graph.emitLoadComplete) {
+            this.graph.emitLoadComplete = true;
+          } else if (this.graph.graphData().nodes.length !== 0) {
             this.$emit('loadComplete', true, '');
           }
           this.networkHistory[this.loadedComponentName] = this.network;
@@ -118,6 +160,111 @@ export default {
           }
         }
       }, 0);
+    },
+    getElementIdAndType(element) {
+      if (element.g === 'r') {
+        return [element.id, 'reaction'];
+      } else if (element.g === 'e') {
+        return [element.id.split('-')[0], 'enzyme'];
+      }
+      return [element.id.split('-')[0], 'metabolite'];
+    },
+    selectElement(element) {
+      const [id, type] = this.getElementIdAndType(element);
+      if (this.selectElementID === id) {
+        this.unSelectElement();
+        this.updateGeometries(false);
+        return;
+      }
+      const selectionData = { type, data: null, error: false };
+      this.selectElementID = id;
+      this.selectElementIDfull = element.id;
+
+      if (this.selectedItemHistory[id]) {
+        selectionData.data = this.selectedItemHistory[id];
+        this.updateGeometries(false);
+        EventBus.$emit('updatePanelSelectionData', selectionData);
+        return;
+      }
+
+      EventBus.$emit('startSelectedElement');
+      axios.get(`${this.model.database_name}/${type}/${id}`)
+      .then((response) => {
+        let data = response.data;
+        if (type === 'reaction') {
+          data = data.reaction;
+        } else if (type === 'enzyme') {
+          // add the RNA level if any
+          if (id in this.enzymeRNAlevels) {
+            data.rnaLvl = this.enzymeRNAlevels[id];
+          }
+        }
+        selectionData.data = data;
+        EventBus.$emit('updatePanelSelectionData', selectionData);
+        this.selectedItemHistory[id] = selectionData.data;
+        EventBus.$emit('endSelectedElement', true);
+        this.updateGeometries(false);
+      })
+      .catch(() => {
+        EventBus.$emit('endSelectedElement', false);
+      });
+    },
+    unSelectElement() {
+      this.selectElementID = null;
+      this.selectElementIDfull = null;
+      EventBus.$emit('unSelectedElement');
+    },
+    updateGeometries(emitLoadComplete) {
+      this.graph.emitLoadComplete = emitLoadComplete;
+      this.graph.nodeRelSize(4);
+    },
+    loadHPAlevelsOnMap(mapType, tissue) {
+      if (this.loadedComponentName in this.HPARNAlevelsHistory) {
+        this.tissue = tissue;
+        this.readHPARNAlevels(tissue);
+        return;
+      }
+      axios.get(`${this.model.database_name}/enzyme/hpa_rna_levels/${mapType}/3d/${this.loadedComponentName}`)
+      .then((response) => {
+        this.HPARNAlevelsHistory[this.loadedComponentName] = response.data;
+        this.tissue = tissue;
+        setTimeout(() => {
+          this.readHPARNAlevels(tissue);
+        }, 0);
+      })
+      .catch(() => {
+        EventBus.$emit('loadRNAComplete', false, '');
+        return;
+      });
+    },
+    readHPARNAlevels(tissue) {
+      if (tissue === 'None') {
+        this.enzymeRNAlevels = {};
+        this.updateGeometries(false);
+        return;
+      }
+      const index = this.HPARNAlevelsHistory[this.loadedComponentName].tissues.indexOf(tissue);
+      if (index === -1) {
+        EventBus.$emit('loadRNAComplete', false, '');
+        return;
+      }
+
+      const levels = this.HPARNAlevelsHistory[this.loadedComponentName].levels;
+      for (const array of levels) {
+        const enzID = array[0];
+        let level = Math.log2(parseFloat(array[1].split(',')[index]) + 1);
+        level = Math.round((level + 0.00001) * 100) / 100;
+        this.enzymeRNAlevels[enzID] = level;
+      }
+
+      // update cached selected elements
+      for (const id of Object.keys(this.selectedItemHistory)) {
+        if (this.enzymeRNAlevels[id] !== undefined) {
+          this.selectedItemHistory[id].rnaLvl = this.enzymeRNAlevels[id];
+        }
+      }
+      this.updateGeometries(false);
+      EventBus.$emit('loadRNAComplete', true, '');
     },
   },
 };

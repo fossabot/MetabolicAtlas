@@ -1,14 +1,14 @@
 <template>
-  <section class="section extended-section">
+  <section class="section section-no-top extended-section">
     <div class="container">
       <div v-if="errorMessage">
         {{ errorMessage }}
       </div>
       <div v-else>
-        <span class="title">Integrated GEMs</span><br><br>
-        <span class="is-size-5">
-          These models are integrated into the Metabolic Atlas database - They can be explored via {{ messages.gemBrowserName }}, {{ messages.mapViewerName }} and {{ messages.interPartName }}.
-        </span><br><br>
+        <h2 class="title is-2">Integrated GEMs</h2><br><br>
+        <p class="is-size-5">
+          These models are integrated into the Metabolic Atlas database; they can be explored via {{ messages.gemBrowserName }}, {{ messages.mapViewerName }} and {{ messages.interPartName }}.
+        </p><br><br>
         <div id="integrated" class="columns is-multiline is-variable is-6">
           <div class="column is-half" v-for="model in integratedModels">
             <div class="card is-size-5">
@@ -57,7 +57,8 @@
             </div>
           </div>
         </div>
-        <span class="title">Repository</span><br><br>
+        <h2 class="title is-2">Repository</h2>
+        <p class="is-size-5">While we do not provide support for these models, we are making them avaible to download. For support, the authors should be contacted. They are listed in the <i>References</i> section of each model. Click on any row to view more.</p><br>
         <loader v-show="showLoader"></loader>
         <div v-if="GEMS.length != 0">
           <vue-good-table
