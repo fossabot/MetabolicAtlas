@@ -1,5 +1,5 @@
 <template>
-  <section class="section extended-section">
+  <section class="section section-no-top extended-section">
     <div class="container">
       <h2 class="title is-2">Documentation</h2>
       <br>
@@ -43,7 +43,7 @@
 
         <div class="column content is-medium has-text-justified">
           <h3 id="Explore">Explore integrated models</h3>
-          For information which genome-scale metabolic models are integrated into the database, please refer to the <router-link :to="{ name: 'gems'}">GEMs Repository</router-link> page.
+          For information which genome-scale metabolic models are integrated into the database, please refer to the <router-link :to="{ name: 'gems'}">GEM Repository</router-link> page.
 
           <h4 id="GEM-Browser">GEM Browser</h4>
           <h6 id="">Metabolite page</h6>
@@ -128,7 +128,7 @@
           Some of the databases that the group have generated are linked from here, for example Human Cancer Secretome Database (HCSD) and stress response in yeast (yStreX).
 
           <h3 id="Privacy">Privacy statement</h3>
-          The Metabolic Atlas gathers information about users solely to improve the usability and usefulness of the site. There are two types of cookie that are set by the Metabolic Atlas:<br>
+          Metabolic Atlas gathers information about users solely to improve the usability and usefulness of the site. There are two types of cookie that are set by Metabolic Atlas:<br>
           <strong>Functionality cookies</strong> are used to personalize the appearence of the Metabolic Atlas.<br>
           <strong>Tracking cookies</strong> are used via private analytics to track the users on our website. We use them to anonymously observe the behaviour on our website in order to improve it. This information is not shared with any third party.
 

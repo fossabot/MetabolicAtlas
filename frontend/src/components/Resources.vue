@@ -1,5 +1,5 @@
 <template>
-  <section class="section extended-section">
+  <section class="section section-no-top extended-section">
     <div class="container">
       <template v-for="(elems, category) in resources">
         <h2 class="title is-2">{{ category}}</h2>
@@ -107,12 +107,18 @@ export default {
             citation: 'Feizi, A., Banaei-Esfahani, A., Nielsen, J. (2015) <i>HCSD: the human cancer secretome database</i>. Database 2015',
             citation_url: 'https://academic.oup.com/database/article/doi/10.1093/database/bav051/2433184' },
         ],
-        API: [
+        APIs: [
           { name: 'Metabolic Atlas API',
             link: 'api/',
             img: require('../assets/logo.png'),
-            title: 'Access the integrated GEMs programatically',
-            description: 'The  API is a set of URL requests for the Metabolic Atlas that will return different .json files depending on the current request. This gives you the possibility of trying it out to see what the results would look like.' },
+            title: 'Access Metabolic Atlas programatically',
+            description: 'The API is a set of URL requests that will respond to the query parameters with JSON formatted text. Our implementation gives the possibility of trying out different queries to see what the results would look like.' },
+          { name: 'Protein Atlas Programmatic data access',
+            link: 'https://www.proteinatlas.org/about/help/dataaccess',
+            img: require('../assets/hpa.png'),
+            title: 'Access Protein Atlas programatically',
+            description: 'Download a subset of the data provided in XML, RDF or TSV format, either as individual queries or search queries. ',
+          },
         ],
       },
     };
