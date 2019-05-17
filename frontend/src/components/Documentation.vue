@@ -43,7 +43,7 @@
 
         <div class="column content is-medium has-text-justified">
           <h3 id="Explore">Explore integrated models</h3>
-          For information which genome-scale metabolic models are integrated into the database, please refer to the <router-link :to="{ name: 'gems'}">GEMs Repository</router-link> page.
+          For information which genome-scale metabolic models are integrated into the database, please refer to the <router-link :to="{ name: 'gems'}">GEM Repository</router-link> page.
 
           <h4 id="GEM-Browser">GEM Browser</h4>
           <h6 id="">Metabolite page</h6>
