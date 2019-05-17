@@ -92,7 +92,7 @@
     <div v-if="showCookieMsg" id="cookies" class="has-background-grey">
       <div class="column has-text-centered">
         <div class="has-text-white">
-          We use cookies to enhance the usability of our website. By continuing you are agreeing to our <a class="has-text-white has-text-weight-semibold" href='/documentation#privacy' target='_blank'>Privacy Notice and Terms of Use</a>&emsp;
+          We use cookies to enhance the usability of our website. By continuing you are agreeing to our <router-link class="has-text-white has-text-weight-bold" :to="{path: '/about#privacy'}">Privacy Notice and Terms of Use</router-link>&emsp;
           <p class="button is-small is-rounded has-background-danger has-text-white has-text-weight-bold" @click="showCookieMsg=false; acceptCookiePolicy()">
             <span class="icon is-small"><i class="fa fa-check"></i></span>
             <span>OKAY</span>
