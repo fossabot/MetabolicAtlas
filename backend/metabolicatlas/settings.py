@@ -24,6 +24,7 @@ DEBUG = True
 ALLOWED_HOSTS = [
     'localhost',
     'icsb.chalmers.se',
+    'metabolicatlas.org',
 ]
 
 # Application definition
