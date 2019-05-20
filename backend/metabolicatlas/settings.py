@@ -24,6 +24,7 @@ DEBUG = True
 ALLOWED_HOSTS = [
     'localhost',
     'icsb.chalmers.se',
+    'metabolicatlas.org',
 ]
 
 # Application definition
@@ -82,17 +83,17 @@ DATABASES = {
         # 'HOST': 'db',
         # 'PORT': 5432,
     },
-    'hmr2': {
+    'human1': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'hmr2',
+        'NAME': 'human1',
         'USER': os.getenv('POSTGRES_USER'),
         'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
         'HOST': 'db',
         'PORT': 5432,
     },
-    'yeast': {
+    'yeast8': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'yeast',
+        'NAME': 'yeast8',
         'USER': os.getenv('POSTGRES_USER'),
         'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
         'HOST': 'db',
@@ -117,27 +118,18 @@ DATABASE_ROUTERS = [
 
 # CORS https://github.com/ottoyiu/django-cors-headers
 CORS_ORIGIN_WHITELIST = (
-    'localhost',
-    'icsb.chalmers.se',
+    'http://localhost',
+    'https://icsb.chalmers.se',
 )
-
-# Password validation https://docs.djangoproject.com/en/1.10/ref/settings/#auth-password-validators
-AUTH_PASSWORD_VALIDATORS = [
-    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',},
-    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',},
-    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',},
-    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',},
-]
 
 # SWAGGER
 SWAGGER_SETTINGS = {
-    # 'LOGIN_URL': 'admin:login',
-    # 'LOGOUT_URL': 'admin:logout',
-    "exclude_namespaces": ["internal_apis"],
+    'USE_SESSION_AUTH': False,
 }
 
 REST_FRAMEWORK = {
     'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.QueryParameterVersioning',
+    'DEFAULT_AUTHENTICATION_CLASSES': []
 }
 
 # Internationalization https://docs.djangoproject.com/en/1.10/topics/i18n/

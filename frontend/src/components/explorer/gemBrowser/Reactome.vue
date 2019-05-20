@@ -1,25 +1,21 @@
 <template>
   <div class="reactome column" v-show="showTable">
-    <h4 class="title is-4">Reactome</h4>
+    <h4 class="title is-4">Reactions</h4>
     <div class="container">
-      <div v-show="false" id="diagram"></div>
       <p class="control field">
-        <button class="button"
-        @click="toggleExpandAllCompartment">
-          <span v-show="!expandAllCompartment">Expand to all compartments</span>
-          <span v-show="expandAllCompartment">Restrict to current compartment</span>
-          </button>
+        <button class="button" @click="toggleExpandAllCompartment">
+          {{ !expandAllCompartment ? "Expand to all compartments" : "Restrict to current compartment" }}
+        </button>
       </p>
-      <reaction-table v-show="!showLoader && !expandAllCompartment"
-      :reactions="reactions" :selectedElmId="ID" :showSubsystem="true" :model="model"></reaction-table>
-      <reaction-table v-show="!showLoader && expandAllCompartment"
-      :reactions="reactionsAllcompartment" :selectedElmId="ID" :showSubsystem="true" :model="model"></reaction-table>
+      <reaction-table v-show="!showLoader" :showSubsystem="true" :model="model" :limit="200"
+        :reactions="!expandAllCompartment ? reactions : reactionsAllcompartment" :selectedElmId="ID">
+      </reaction-table>
       <div v-if="errorMessage" class="columns">
         <div class="column notification is-danger is-half is-offset-one-quarter has-text-centered">
           {{ errorMessage }}
         </div>
       </div>
-      <div v-show="!errorMessage">
+      <div v-else>
         <loader v-show="showLoader"></loader>
       </div>
     </div>
@@ -44,7 +40,6 @@ export default {
       errorMessage: '',
       reactions: [],
       reactionsAllcompartment: [],
-      reactome: null,
       showLoader: true,
       showTable: false,
       expandAllCompartment: false,
@@ -74,9 +69,9 @@ export default {
       }
       this.showLoader = true;
       this.reactomeID = ID;
-      let url = `${this.model.database_name}/metabolite/${ID}/reactions/`;
+      let url = `${this.model.database_name}/metabolite/${ID}/get_reactions/`;
       if (this.expandAllCompartment) {
-        url = `${this.model.database_name}/metabolite/${ID}/reactions/all_compartment/`;
+        url = `${this.model.database_name}/metabolite/${ID}/get_reactions/all_compartments/`;
       }
       axios.get(url)
         .then((response) => {

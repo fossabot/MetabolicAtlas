@@ -4,7 +4,7 @@
     <nav id="navbar" class="navbar has-background-primary-lighter" role="navigation" aria-label="main navigation">
       <div class="container">
         <div class="navbar-brand">
-          <router-link id="logo" class="navbar-item" to="/" >
+          <router-link id="logo" class="navbar-item" to="/">
             <img :src="require('./assets/logo.png')"/>
           </router-link>
           <div class="navbar-burger" :class="{ 'is-active': isMobileMenu }"
@@ -61,7 +61,7 @@
     <footer id="footer" class="footer has-background-primary-lighter is-size-6">
       <div class="columns is-gapless">
         <div class="column is-7">
-          <p><a href="http://sysbio.se" target="blank">Sys<sup>2</sup>Bio</a> | Department of Biology and Biological Engineering | Chalmers University of Technology</p>
+          <p>2019 © <a href="http://sysbio.se" target="blank">Sys<sup>2</sup>Bio</a> | Department of Biology and Biological Engineering | Chalmers University of Technology</p>
         </div>
         <div class="column">
           <div class="content has-text-right">
@@ -92,7 +92,7 @@
     <div v-if="showCookieMsg" id="cookies" class="has-background-grey">
       <div class="column has-text-centered">
         <div class="has-text-white">
-          We use cookies to enhance the usability of our website. <a class="has-text-white has-text-weight-semibold" href='/documentation#privacy' target='_blank'>More information</a>
+          We use cookies to enhance the usability of our website. By continuing you are agreeing to our <router-link class="has-text-white has-text-weight-bold" :to="{path: '/about#privacy'}">Privacy Notice and Terms of Use</router-link>&emsp;
           <p class="button is-small is-rounded has-background-danger has-text-white has-text-weight-bold" @click="showCookieMsg=false; acceptCookiePolicy()">
             <span class="icon is-small"><i class="fa fa-check"></i></span>
             <span>OKAY</span>
@@ -115,7 +115,7 @@ export default {
     return {
       /* eslint-disable quote-props */
       menuElems: {
-        '<span class="icon is-large"><i class="fa fa-search fa-lg"></i></span>': '/explore/search',
+        '<span class="icon is-large"><i class="fa fa-search fa-lg"></i></span>': '/search?term=',
         'Explore': '/explore',
         'GEM': {
           '/gems/': [
@@ -145,9 +145,11 @@ export default {
   },
   beforeMount() {
     EventBus.$on('modelSelected', (model) => {
+      if (this.model) {
+        this.viewerLastPath = '';
+        this.browserLastPath = '';
+      }
       this.model = model;
-      this.viewerLastPath = '';
-      this.browserLastPath = '';
     });
   },
   created() {
@@ -187,7 +189,7 @@ export default {
       } else if (this.$route.name === 'browserRoot') {
         this.browserLastPath = '';
       } else if (['viewerCompartment', 'viewerCompartmentRea', 'viewerSubsystem', 'viewerSubsystemRea'].includes(this.$route.name)) {
-        this.viewerLastPath = this.$route.path;
+        this.viewerLastPath = this.$route.fullPath;
       } else if (this.$route.name === 'viewer') {
         this.viewerLastPath = '';
       }
@@ -214,7 +216,7 @@ $body-size: 14px !default
 $desktop: 1192px !default;
 $widescreen: 1384px !default;
 $fullhd: 1576px !default;
-
+$navbar-breakpoint: 1000px;
 
 @import '~bulma';
 
@@ -226,12 +228,21 @@ $fullhd: 1576px !default;
   background-color: $primary-lighter;
 }
 
-.clickable {
+#logo {
+  margin-left: 0.5rem;
+}
+
+m, .clickable {
   cursor: pointer;
 }
 
 .card-content-compact {
   padding: 0.75rem;
+}
+
+
+.content h1,h2,h3,h4,h5,h6 {
+  margin-top: 1em;
 }
 
 .card-fullheight {
@@ -242,6 +253,10 @@ $fullhd: 1576px !default;
   &:hover {
     border: solid 1px gray;
   }
+}
+
+.section-no-top {
+  padding-top: 0;
 }
 
 #app {
@@ -304,6 +319,12 @@ $fullhd: 1576px !default;
   }
   sup {
     vertical-align: top;
+  }
+}
+
+.metabolite-table, .model-table, .reaction-table, .subsystem-table {
+  .main-table tr td.td-key, #ed-table tr td.td-key {
+    width: 150px;
   }
 }
 

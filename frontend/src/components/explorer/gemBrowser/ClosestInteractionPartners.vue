@@ -99,11 +99,12 @@
                   <span>Color:</span>
                   <span class="color-span clickable"
                     v-bind:style="{ background: nodeDisplayParams.enzymeNodeColor.hex }"
-                    v-on:click="showColorPickerEnz = !showColorPickerEnz">
+                    v-on:click="toggleEnzymeColorPicker()">
                     <compact-picker v-show="showColorPickerEnz"
                     v-model="nodeDisplayParams.enzymeNodeColor" @input="updateExpAndredrawGraph(false, 'enzyme')"></compact-picker>
                   </span>
                 </div>
+                <br>
                 <span class="label">Metabolite</span>
                 <div class="comp">
                   <span>Shape:</span>
@@ -118,7 +119,7 @@
                   <span>Color:</span>
                    <span class="color-span clickable"
                     v-bind:style="{ background: nodeDisplayParams.metaboliteNodeColor.hex }"
-                    v-on:click="showColorPickerMeta = !showColorPickerMeta">
+                    v-on:click="toggleMetaboliteColorPicker()">
                     <compact-picker v-show="showColorPickerMeta"
                     v-model="nodeDisplayParams.metaboliteNodeColor" @input="updateExpAndredrawGraph(false, 'metabolite')"></compact-picker>
                   </span>
@@ -128,7 +129,7 @@
               </div>
             </div>
             <div class="column">
-              <div class="card " v-if="model.database_name === 'hmr2'">
+              <div class="card " v-if="model.database_name === 'human1'">
                 <header class="card-header">
                   <p class="card-header-title">
                     <label class="checkbox is-unselectable">
@@ -307,16 +308,14 @@ export default {
 
       cy: null,
       tableStructure: {
-        hmr2: [
+        human1: [
           { field: 'type', colName: 'Type' },
           { field: 'name', colName: 'Name' },
-          { field: 'formula', colName: 'Formula', modifier: chemicalFormula },
           { field: 'compartment', colName: 'Compartment' },
         ],
-        yeast: [
+        yeast8: [
           { field: 'type', colName: 'Type' },
           { field: 'name', colName: 'Name' },
-          { field: 'formula', colName: 'Formula', modifier: chemicalFormula },
           { field: 'compartment', colName: 'Compartment' },
         ],
       },
@@ -354,15 +353,15 @@ export default {
         enzymeExpSample: false,
         enzymeNodeShape: 'rectangle',
         enzymeNodeColor: {
-          hex: '#C92F63',
+          hex: '#9F0500',
           hsl: {
-            h: 150, s: 0.5, l: 0.2, a: 1,
+            h: 1.8868, s: 1, l: 0.3118, a: 1,
           },
           hsv: {
-            h: 150, s: 0.66, v: 0.30, a: 1,
+            h: 1.8868, s: 1, v: 0.6235, a: 1,
           },
           rgba: {
-            r: 25, g: 77, b: 51, a: 1,
+            r: 159, g: 5, b: 0, a: 1,
           },
           a: 1,
         },
@@ -371,15 +370,15 @@ export default {
         metaboliteExpSample: false,
         metaboliteNodeShape: 'ellipse',
         metaboliteNodeColor: {
-          hex: '#259F64',
+          hex: '#73D8FF',
           hsl: {
-            h: 150, s: 0.5, l: 0.2, a: 1,
+            h: 196.714, s: 1, l: 0.7255, a: 1,
           },
           hsv: {
-            h: 150, s: 0.66, v: 0.30, a: 1,
+            h: 196.7142, s: 0.549, v: 1, a: 1,
           },
           rgba: {
-            r: 25, g: 77, b: 51, a: 1,
+            r: 115, g: 216, b: 255, a: 1,
           },
           a: 1,
         },
@@ -496,7 +495,6 @@ export default {
         })
         .catch((error) => {
           this.loading = false;
-          // console.log(error);
           switch (error.response.status) {
             case 406:
               this.errorMessage = messages.tooManyInteractionPartner;
@@ -552,7 +550,6 @@ export default {
           }, 0);
         })
         .catch((error) => {
-          // console.log(error);
           this.loading = false;
           switch (error.response.status) {
             case 406:
@@ -854,7 +851,6 @@ export default {
     },
     applyLevels(componentType, expSource, expType, expSample) {
       setTimeout(() => {  // wait this.toggleEnzymeExpLevel
-        // console.log('Type Source, Type, Sample', componentType, expSource, expType, expSample);
         if (this.disableExpLvl) {
           return;
         }
@@ -1006,6 +1002,16 @@ export default {
         this.nodeDisplayParams.enzymeExpType = false;
         this.nodeDisplayParams.enzymeExpSample = false;
       });
+    },
+    toggleEnzymeColorPicker() {
+      this.showColorPickerMeta = false;
+      this.showColorPickerEnz = !this.showColorPickerEnz;
+      return this.showColorPickerEnz;
+    },
+    toggleMetaboliteColorPicker() {
+      this.showColorPickerEnz = false;
+      this.showColorPickerMeta = !this.showColorPickerMeta;
+      return this.showColorPickerMeta;
     },
     chemicalFormula,
     chemicalName,

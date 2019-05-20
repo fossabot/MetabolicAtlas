@@ -11,7 +11,7 @@
           <h3 class="title is-3">Metabolite {{ metabolite.name }}</h3>
         </div>
       </div>
-      <div class="columns is-multiline metabolite-table">
+      <div class="columns is-multiline metabolite-table is-variable is-8">
         <div class="column is-10-widescreen is-9-desktop is-full-tablet">
           <table v-if="metabolite && Object.keys(metabolite).length != 0" class="table main-table is-fullwidth">
             <tr v-for="el in mainTableKey[model.database_name]">
@@ -32,8 +32,7 @@
             </tr>
           </table>
           <template v-if="hasExternalID">
-            <br>
-            <span class="subtitle">External IDs</span>
+            <h4 class="title is-4">External links</h4>
             <table v-if="metabolite && Object.keys(metabolite).length != 0" id="ed-table" class="table is-fullwidth">
               <tr v-for="el in externalIDTableKey[model.database_name]" v-if="metabolite[el.name] && metabolite[el.link]">
                 <td v-if="'display' in el" class="td-key has-background-primary has-text-white-bis" v-html="el.display"></td>
@@ -45,13 +44,12 @@
             </table>
           </template>
         </div>
-        <div class="column is-2-widescreen is-3-desktop is-full-tablet">
-          <div class="box has-text-centered">
-            <router-link class="button is-info is-fullwidth"
-              :to="{path: `/explore/gem-browser/${model.database_name}/interaction/${this.mId}`}">
-              {{ messages.interPartName }}
-            </router-link>
-          </div>
+        <div class="column is-2-widescreen is-3-desktop is-full-tablet has-text-centered">
+          <router-link class="button is-info is-fullwidth is-outlined"
+            :to="{path: `/explore/gem-browser/${model.database_name}/interaction/${this.mId}`}">
+            <span class="icon"><i class="fa fa-connectdevelop fa-lg"></i></span>&nbsp;
+            <span>{{ messages.interPartName }}</span>
+          </router-link>
         </div>
       </div>
       <div class="columns">
@@ -80,7 +78,7 @@ export default {
       mId: this.$route.params.id,
       metaboliteID: '',
       mainTableKey: {
-        hmr2: [
+        human1: [
           { name: 'name' },
           { name: 'alt_name', display: 'Alternate name' },
           { name: 'aliases', display: 'Synonyms' },
@@ -91,7 +89,7 @@ export default {
           { name: 'compartment' },
           { name: 'id' },
         ],
-        yeast: [
+        yeast8: [
           { name: 'name' },
           { name: 'alt_name', display: 'Alternate name' },
           { name: 'aliases', display: 'Synonyms' },
@@ -104,12 +102,12 @@ export default {
         ],
       },
       externalIDTableKey: {
-        hmr2: [
-          { name: 'hmdb_id', display: 'HMDB ID', link: 'hmdb_link' },
-          { name: 'chebi_id', display: 'Chebi ID', link: 'chebi_link' },
-          { name: 'mnxref_id', display: 'Mnxref ID', link: 'mnxref_link' },
+        human1: [
+          { name: 'hmdb_id', display: 'HMDB', link: 'hmdb_link' },
+          { name: 'chebi_id', display: 'Chebi', link: 'chebi_link' },
+          { name: 'mnxref_id', display: 'Mnxref', link: 'mnxref_link' },
         ],
-        yeast: [
+        yeast8: [
         ],
       },
       metabolite: {},

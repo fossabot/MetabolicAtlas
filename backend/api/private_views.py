@@ -20,10 +20,48 @@ class JSONResponse(HttpResponse):
         kwargs['content_type'] = 'application/json'
         super(JSONResponse, self).__init__(content, **kwargs)
 
+@api_view()
+def get_gemodels(request):
+    """
+    List all GEMs that the group have made
+    """
+    # get models from database
+
+    serializer = APIserializer.GEModelListSerializer(APImodels.GEModel.objects.all(). \
+        prefetch_related('gemodelset__reference', 'ref').select_related('gemodelset', 'sample'), many=True)
+
+    return JSONResponse(serializer.data)
+
+
+@api_view()
+def get_gemodel(request, gem_id):
+    """
+    For a given Genome-scale metabolic model ID or label, pull out everything we know about it.
+    """
+
+    try:
+        int(gem_id)
+        is_int = True
+    except ValueError:
+        is_int = False
+
+    if is_int:
+         model = APImodels.GEModel.objects.filter(id=gem_id). \
+         prefetch_related('files', 'ref')
+    else:
+         model = APImodels.GEModel.objects.filter(label__iexact=gem_id). \
+             prefetch_related('files', 'ref')
+
+    if not model:
+        return HttpResponse(status=404)
+
+    serializer = APIserializer.GEModelSerializer(model[0])
+    return JSONResponse(serializer.data)
 
 @api_view(['POST'])
 @is_model_valid
 def convert_to_reaction_component_ids(request, model, compartment_name_id=None):
+    # not used
     arrayTerms = [el.strip() for el in request.data['data'] if len(el) != 0]
     if not arrayTerms:
         return JSONResponse({})
@@ -41,6 +79,10 @@ def convert_to_reaction_component_ids(request, model, compartment_name_id=None):
         query |= Q(external_id2__iexact=term)
         query |= Q(external_id3__iexact=term)
         query |= Q(external_id4__iexact=term)
+        query |= Q(external_id5__iexact=term)
+        query |= Q(external_id6__iexact=term)
+        query |= Q(external_id7__iexact=term)
+        query |= Q(external_id8__iexact=term)
 
     # get the list of component id
     reaction_component_ids = APImodels.ReactionComponent.objects.using(model).filter(query).values_list('id');
@@ -53,6 +95,7 @@ def convert_to_reaction_component_ids(request, model, compartment_name_id=None):
 
     if not compartment_name_id:
         # get the compartment id for each component id
+        # TODO FIXME not work for enzyme, use CompartmentEnzymeSvg
         rcci = APImodels.ReactionComponentCompartmentSvg.objects.using(model) \
         .filter(Q(rc_id__in=reaction_component_ids)) \
         .select_related('Compartmentsvg') \
@@ -71,6 +114,7 @@ def convert_to_reaction_component_ids(request, model, compartment_name_id=None):
             return HttpResponse(status=404)
 
         # get the component ids in the input compartment
+        # TODO FIXME not work for enzyme, use CompartmentEnzymeSvg
         rcci = APImodels.ReactionComponentCompartmentSvg.objects.using(model).filter(
                 Q(rc_id__in=reaction_component_ids) & Q(Compartmentsvg_id=compartment.id)
             ).select_related('Compartmentsvg') \
@@ -111,13 +155,19 @@ def search_on_map(request, model, map_type, map_name_id, term):
     query |= Q(external_id2__iexact=term)
     query |= Q(external_id3__iexact=term)
     query |= Q(external_id4__iexact=term)
+    query |= Q(external_id5__iexact=term)
+    query |= Q(external_id6__iexact=term)
+    query |= Q(external_id7__iexact=term)
+    query |= Q(external_id8__iexact=term)
     query |= Q(formula__iexact=term)
 
     mapIDset = None
     if map_type == 'compartment':
         try:
             compartment = APImodels.CompartmentSvg.objects.using(model).get(name_id=map_name_id)
-            mapIDsetRC  = APImodels.ReactionComponentCompartmentSvg.objects.using(model) \
+            mapIDsetMet = APImodels.ReactionComponentCompartmentSvg.objects.using(model) \
+                .filter(Q(compartmentsvg=compartment.id)).values_list('rc_id')
+            mapIDsetEnz = APImodels.CompartmentSvgEnzyme.objects.using(model) \
                 .filter(Q(compartmentsvg=compartment.id)).values_list('rc_id')
             mapIDsetReaction = APImodels.ReactionCompartmentSvg.objects.using(model) \
                 .filter(Q(compartmentsvg=compartment.id)).values_list('reaction_id')
@@ -126,15 +176,18 @@ def search_on_map(request, model, map_type, map_name_id, term):
     else:
         try:
             subsystem = APImodels.SubsystemSvg.objects.using(model).get(name_id=map_name_id)
-            mapIDsetRC  = APImodels.ReactionComponentSubsystemSvg.objects.using(model) \
+            mapIDsetMet = APImodels.ReactionComponentSubsystemSvg.objects.using(model) \
+                .filter(Q(subsystemsvg=subsystem.id)).values_list('rc_id')
+            mapIDsetEnz = APImodels.SubsystemSvgEnzyme.objects.using(model) \
                 .filter(Q(subsystemsvg=subsystem.id)).values_list('rc_id')
             mapIDsetReaction = APImodels.ReactionSubsystemSvg.objects.using(model) \
                 .filter(Q(subsystemsvg=subsystem.id)).values_list('reaction_id')
         except APImodels.SubsystemSvg.DoesNotExist:
             return HttpResponse(status=404)
 
+    # TODO merge requests?
     # get the list of component id
-    reaction_component_ids = APImodels.ReactionComponent.objects.using(model).filter(id__in=mapIDsetRC).filter(query).values_list('id', flat=True);
+    reaction_component_ids = APImodels.ReactionComponent.objects.using(model).filter(Q(id__in=mapIDsetMet) | Q(id__in=mapIDsetEnz)).filter(query).values_list('id', flat=True);
 
     # get the list of reaction id
     reaction_ids = APImodels.Reaction.objects.using(model).filter(id__in=mapIDsetReaction).filter(reaction_query).values_list('id', flat=True)
@@ -148,23 +201,124 @@ def search_on_map(request, model, map_type, map_name_id, term):
 
 @api_view()
 @is_model_valid
-def get_available_maps(request, model, reaction_id):
-    # get compartment maps
-    results = { "count" : 0 }
-    compartment_svg = APImodels.ReactionCompartmentSvg.objects.using(model) \
-                .filter(Q(reaction_id=reaction_id)).select_related('compartmentsvg').values_list('compartmentsvg__name_id', 'compartmentsvg__name')
-    if compartment_svg:
-        results["compartment"] = compartment_svg
-        results["count"] += compartment_svg.count()
+def get_available_maps(request, model, component_type, component_id):
 
-    subsystem_svg = APImodels.ReactionSubsystemSvg.objects.using(model) \
-                .filter(Q(reaction_id=reaction_id)).values_list('subsystemsvg__name_id').values_list('subsystemsvg__name_id', 'subsystemsvg__name')
-    if subsystem_svg:
-        results["subsystem"] = subsystem_svg
-        results["count"] += compartment_svg.count()
+    results = { "count" : 0,
+            "2d" : {
+                "compartment" : [],
+                "subsystem" : [],
+                "count" : 0,
+            },
+            "3d" : {
+                "compartment" : [],
+                "subsystem" : [],
+                "count" : 0,
+            },
+            'default' : None  # is there is only one map it's there
+          }
+
+    if component_type not in ['reaction', 'compartment', 'subsystem']:
+        return HttpResponse(status=404)
+
+    if component_type == 'reaction':
+        try:
+            reaction = APImodels.Reaction.objects.using(model).get(id__iexact=component_id)
+        except APImodels.Reaction.DoesNotExist:
+            return HttpResponse(status=404)
+
+        # check 2D maps
+        compartment_svg = APImodels.ReactionCompartmentSvg.objects.using(model) \
+                    .filter(Q(reaction_id=reaction.id)).select_related('compartmentsvg').order_by("compartmentsvg__name").extra(select = {'type': "'compartment'"}). \
+                    values_list('compartmentsvg__name_id', 'compartmentsvg__name', 'type')
+        if compartment_svg:
+            results["2d"]["compartment"] = compartment_svg
+            results["2d"]["count"] += compartment_svg.count()
+            results["count"] += compartment_svg.count()
+            results["default"] = compartment_svg[0]
+
+        subsystem_svg = APImodels.ReactionSubsystemSvg.objects.using(model) \
+                    .filter(Q(reaction_id=reaction.id)).select_related('subsystemsvg').order_by("subsystemsvg__name").extra(select = {'type': "'subsystem'"}). \
+                    values_list('subsystemsvg__name_id', 'subsystemsvg__name', 'type')
+        if subsystem_svg:
+            results["2d"]["subsystem"] = subsystem_svg
+            results["2d"]["count"] += subsystem_svg.count()
+            results["count"] += subsystem_svg.count()
+            results["default"] = subsystem_svg[0]
+
+        #check 3D maps
+        compartment = APImodels.ReactionCompartment.objects.using(model) \
+                    .filter(Q(reaction_id=reaction.id)).select_related('compartment').order_by("compartment__name").extra(select = {'type': "'compartment'"}). \
+                    values_list('compartment__name_id', 'compartment__name', 'type')
+        if compartment:
+            results["3d"]["compartment"] = compartment
+            results["3d"]["count"] += compartment.count()
+            results["count"] += compartment.count()
+            results["default"] = compartment[0]
+
+        subsystem = APImodels.SubsystemReaction.objects.using(model) \
+                    .filter(Q(reaction_id=reaction.id)).select_related('subsystem').order_by("subsystem__name").extra(select = {'type': "'subsystem'"}). \
+                    values_list('subsystem__name_id', 'subsystem__name', 'type')
+        if subsystem:
+            results["3d"]["subsystem"] = subsystem
+            results["3d"]["count"] += subsystem.count()
+            results["count"] += subsystem.count()
+            results["default"] = subsystem[0]
+
+    elif component_type == 'compartment':
+        try:
+            compartment = APImodels.Compartment.objects.using(model).get(name_id__iexact=component_id)
+        except APImodels.Compartment.DoesNotExist:
+            return HttpResponse(status=404)
+
+        # check 2D maps
+        compartment_svg = APImodels.CompartmentSvg.objects.using(model) \
+                    .filter(Q(compartment=compartment.id)).order_by("name").extra(select = {'type': "'compartment'"}). \
+                    values_list('name_id', 'name', 'type')
+        if compartment_svg:
+            results["2d"]["compartment"] = compartment_svg
+            results["2d"]["count"] += compartment_svg.count()
+            results["count"] += compartment_svg.count()
+            results["default"] = compartment_svg[0]
+
+        #check 3D maps
+        compartment = APImodels.Compartment.objects.using(model).filter(name_id__iexact=component_id). \
+                order_by("name").extra(select = {'type': "'compartment'"}).values_list('name_id', 'name', 'type')
+
+        if compartment:
+            results["3d"]["compartment"] = compartment
+            results["3d"]["count"] = compartment.count() # should be 1
+            results["count"] = compartment.count()
+            results["default"] = compartment[0]
+
+    elif component_type == 'subsystem':
+        try:
+            subsystem = APImodels.Subsystem.objects.using(model).get(name_id__iexact=component_id)
+        except APImodels.Subsystem.DoesNotExist:
+            return HttpResponse(status=404)
+
+        # check 2D maps
+        subsystem_svg = APImodels.SubsystemSvg.objects.using(model) \
+                    .filter(Q(subsystem=subsystem.id) & Q(sha__isnull=False)).order_by("name").extra(select = {'type': "'subsystem'"}). \
+                    values_list('name_id', 'name', 'type')
+        if subsystem_svg:
+            results["2d"]["compartment"] = subsystem_svg
+            results["2d"]["count"] += subsystem_svg.count()
+            results["count"] += subsystem_svg.count()
+            results["default"] = subsystem_svg[0]
+
+        #check 3D maps
+        subsystem = APImodels.Subsystem.objects.using(model).filter(name_id__iexact=component_id). \
+                order_by("name").extra(select = {'type': "'subsystem'"}).values_list('name_id', 'name', 'type')
+
+        if subsystem:
+            results["3d"]["compartment"] = subsystem
+            results["3d"]["count"] = subsystem.count()  # should be 1
+            results["count"] = subsystem.count()
+            results["default"] = subsystem[0]
 
     if results["count"] == 0:
         return HttpResponse(status=404)
+
     return JSONResponse(results)
 
 
@@ -273,7 +427,7 @@ def get_db_json(request, model, component_name_id=None, ctype=None, dup_meta=Fal
                     'g': 'm',
                     'id': mid,
                     #'rid': m.id,
-                    'n': m.name or m.alt_name1,
+                    'n': m.name or m.alt_name1 or mid,
                 }
 
                 nodes[mid] = metabolite
@@ -289,17 +443,18 @@ def get_db_json(request, model, component_name_id=None, ctype=None, dup_meta=Fal
             linksList.append(rel)
 
         for e in r.modifiers.all():
-            eid = e.id;
+            eid = "%s-0" % (e.id)
             if eid in nodes:
                 duplicatedEnz[eid] += 1;
                 eid = "%s-%s" % (eid, duplicatedEnz[eid])
             else:
                 duplicatedEnz[eid] = 0;
+                # eid = "%s-%s" % (eid, duplicatedEnz[eid])
 
             enzyme = {
               'id': eid,
               'g': 'e',
-              'n': e.name or e.alt_name1,
+              'n': e.name or e.alt_name1 or e.id,
             }
             nodes[eid] = enzyme;
 
@@ -326,45 +481,49 @@ def get_db_json(request, model, component_name_id=None, ctype=None, dup_meta=Fal
 
 @api_view()
 def HPA_all_enzymes(request):
-    model = "hmr2"
+    model = "human1"
     result = APImodels.SubsystemEnzyme.objects.using(model).values_list('rc__id', 'subsystem__name','subsystem__name_id')
     return JSONResponse(result)
 
 @api_view()
 def HPA_enzyme_info(request, ensembl_id): # ENSG00000110921
-    model = "hmr2"
-    # TODO provide the model, remove 'hmr2'
-    # remove 'Collection of reactions' subsystems
+    model = "human1"
+
+    # l = logging.getLogger('django.db.backends')
+    # l.setLevel(logging.DEBUG)
+    # l.addHandler(logging.StreamHandler())
+
     try:
         res = APImodels.ReactionComponent.objects.using(model).get(id=ensembl_id)
         rcid = res.id
-    except:
+    except APImodels.ReactionComponent.DoesNotExist:
         return HttpResponse(status=404)
 
     subs = APImodels.Subsystem.objects.using(model).filter(
             Q(id__in=APImodels.SubsystemEnzyme.objects.using(model).filter(rc_id=rcid).values('subsystem_id')) &
             ~Q(system='Collection of reactions')
-        ).values('id', 'name', 'name_id', 'reaction_count', 'enzyme_count', 'metabolite_count', 'unique_metabolite_count')
+        ).select_related('subsystem_svg').prefetch_related('reactions', 'compartment', 'enzymes')
 
     subsystems = []
     for sub in subs.all():
+        sub_dict = {}
         # get the reactions
-        reactions = APImodels.SubsystemReaction.objects.using(model).filter(subsystem_id=sub['id']).values('reaction_id')
-        compartments = APImodels.Compartment.objects.using(model).filter(
-            id__in=APImodels.SubsystemCompartment.objects.using(model).filter(subsystem_id=sub['id']).values('compartment_id').distinct()
-        ).values_list('name', flat=True)
-        sub['enzymes'] = APImodels.SubsystemEnzyme.objects.using(model).filter(subsystem_id=sub['id']).values_list('rc_id', flat=True)
-        sub['compartments'] = list(compartments)
-        sub['reactions_catalysed'] = APImodels.ReactionModifier.objects.using(model).filter(Q(reaction__in=reactions) & Q(modifier_id=rcid)).count()
-        sub['map_url'] = "https://ftp.icsb.chalmers.se/.maps/%s/%s.svg" % (model, sub['name_id'])
-        sub['subsystem_url'] = "https://icsb.chalmers.se/explore/gem-browser/%s/subsystem/%s" % (model, sub['name_id'])
-        sub['model_metabolite_count'] = sub['unique_metabolite_count']
-        sub['compartment_metabolite_count'] = sub['metabolite_count']
-        del sub['metabolite_count']
-        del sub['unique_metabolite_count']
-        del sub['id']
-        del sub['name_id']
-        subsystems.append(sub)
+        sub_dict['name'] = sub.name
+        sub_dict['compartments'] = sub.compartment.values_list('name', flat=True)
+        sub_dict['enzymes'] = sub.enzymes.all().values_list('id', flat=True)
+        # sub['compartments'] = list(compartments)
+        sub_dict['reactions_catalysed'] = APImodels.ReactionModifier.objects.using(model).filter(Q(reaction__in=sub.reactions.all()) & Q(modifier_id=rcid)).count()
+        if sub.subsystem_svg.sha:
+            sub_dict['map_url'] = "https://ftp.chalmers.se/.maps/%s/%s.svg" % (model, sub.name_id)
+        else:
+            sub_dict['map_url'] = ""
+        sub_dict['subsystem_url'] = "https://icsb.chalmers.se/explore/gem-browser/%s/subsystem/%s" % (model, sub.name_id)
+        sub_dict['model_metabolite_count'] = sub.unique_metabolite_count
+        sub_dict['compartment_metabolite_count'] = sub.metabolite_count
+        sub_dict['reaction_count'] = sub.reaction_count
+        sub_dict['enzyme_count'] = sub.enzyme_count
+
+        subsystems.append(sub_dict)
 
     result = {
         'enzyme_url': "https://icsb.chalmers.se/explore/gem-browser/%s/enzyme/%s" % (model, ensembl_id),
@@ -440,9 +599,9 @@ def get_data_viewer(request, model):
         return HttpResponse(status=404)
 
     return JSONResponse({
-            'subsystem': APIserializer.SubsystemSerializer(subsystems, many=True).data,
+            'subsystem': APIserializer.SubsystemMapViewerSerializer(subsystems, many=True).data,
             'subsystemsvg': APIserializer.SubsystemSvgSerializer(subsystems_svg, many=True).data,
-            'compartment':  APIserializer.CompartmentSerializer(compartments, many=True).data,
+            'compartment':  APIserializer.CompartmentMapViewerSerializer(compartments, many=True).data,
             'compartmentsvg': APIserializer.CompartmentSvgSerializer(compartments_svg, many=True).data
         })
 
@@ -514,6 +673,7 @@ def get_component_with_interaction_partners(request, model, id):
 @api_view()
 @is_model_valid
 def connected_metabolites(request, model, id):
+    # TODO remove, use views api, split enzyme info and reactions into 2 requests
     try:
         enzyme = APImodels.ReactionComponent.objects.using(model).get(
                 Q(component_type='e') &
@@ -548,20 +708,45 @@ def get_hpa_tissues(request, model):
 
 @api_view()
 @is_model_valid
-def get_hpa_rna_levels_compartment(request, model, compartment_name_id):
-    try:
-        compartment = APImodels.Compartment.objects.using(model).get(name_id__iexact=compartment_name_id)
-    except APImodels.Compartment.DoesNotExist:
+def get_hpa_rna_levels_map(request, model, map_type, dim, name_id):
+    if map_type == "compartment":
+        if dim == "2d":
+            try:
+                compartment = APImodels.CompartmentSvg.objects.using(model).get(name_id__iexact=name_id)
+            except APImodels.CompartmentSvg.DoesNotExist:
+                return HttpResponse(status=404)
+            levels = APImodels.HpaEnzymeLevel.objects.using(model). \
+                filter(rc__in=APImodels.CompartmentSvgEnzyme.objects.filter(compartmentsvg=compartment).values('rc')).values_list('rc_id', 'levels')
+        elif dim == "3d":
+            try:
+                compartment = APImodels.Compartment.objects.using(model).get(name_id__iexact=name_id)
+            except APImodels.Compartment.DoesNotExist:
+                return HttpResponse(status=404)
+            levels = APImodels.HpaEnzymeLevel.objects.using(model). \
+                filter(rc__in=APImodels.CompartmentEnzyme.objects.filter(compartment=compartment).values('rc')).values_list('rc_id', 'levels')
+        else:
+            return HttpResponse(status=404)
+    elif map_type == "subsystem":
+        if dim == "2d":
+            try:
+                subsystem = APImodels.SubsystemSvg.objects.using(model).get(name_id__iexact=name_id)
+            except APImodels.SubsystemSvg.DoesNotExist:
+                return HttpResponse(status=404)
+            levels = APImodels.HpaEnzymeLevel.objects.using(model). \
+                filter(rc__in=APImodels.SubsystemSvgEnzyme.objects.filter(subsystemsvg=subsystem).values('rc')).values_list('rc_id', 'levels')
+        elif dim == "3d":
+            try:
+                subsystem = APImodels.Subsystem.objects.using(model).get(name_id__iexact=name_id)
+            except APImodels.Subsystem.DoesNotExist:
+                return HttpResponse(status=404)
+            levels = APImodels.HpaEnzymeLevel.objects.using(model). \
+                filter(rc__in=APImodels.SubsystemEnzyme.objects.filter(subsystem=subsystem).values('rc')).values_list('rc_id', 'levels')
+        else:
+            return HttpResponse(status=404)
+    else:
         return HttpResponse(status=404)
 
-    rc_compart = APImodels.ReactionComponentCompartment.objects.using(model). \
-        filter(Q(compartment=compartment)).values_list('rc_id')
-    enzyme_compart = APImodels.ReactionComponent.objects.using(model). \
-        filter(Q(component_type='e') & Q(id__in=rc_compart)).values_list('id')
-
-    levels = APImodels.HpaEnzymeLevel.objects.using(model).filter(rc__in=enzyme_compart).values_list('rc_id', 'levels')
     tissues = APImodels.HpaTissue.objects.using(model).all().values_list('tissue', flat=True)
-
     return JSONResponse(
         {
           'tissues': tissues,
@@ -591,7 +776,7 @@ def search(request, model, term):
     """
         Searches for the term in metabolites, enzymes, reactions, subsystems and compartments.
         Current search rules:
-        
+
         =: exact match, case insensitive
         ~: contain in, case insensitive
 
@@ -599,27 +784,25 @@ def search(request, model, term):
             ~name
         subsystem:
             ~name
-            =external_id
+            =external_idX
         reaction:
             =id
             ~name
             ~equation
             ~name_equation
             ~ec
-            =sbo
+            =external_idX
         metabolite:
             =id
             ~full_name
             ~alt_name1
             ~alt_name2
             ~aliases
-            =external_id1
-            =external_id2
-            =external_id3
-            =external_id4
+            =external_idX
             ~formula
         enzyme:
             same as metabolite, but name instead of full_name
+            (enzymes do not have formula)
     """
 
     # l = logging.getLogger('django.db.backends')
@@ -646,9 +829,17 @@ def search(request, model, term):
         models = [model]
         limit = 50
 
+    # iterate on GEMs (databases might be empty)
+    filtered_models = []
     for model_db_name in models:
-        m = APImodels.GEM.objects.get(database_name=model_db_name)
-        models_dict[model_db_name] = m.short_name
+        try:
+            m = APImodels.GEM.objects.get(database_name=model_db_name)
+            models_dict[model_db_name] = m.short_name
+            filtered_models.append(model_db_name)
+        except APImodels.GEM.DoesNotExist:
+            pass
+    models = filtered_models
+
 
     match_found = False
     for model in models:
@@ -771,7 +962,10 @@ def search(request, model, term):
 
             subsystems = APImodels.Subsystem.objects.using(model).prefetch_related('compartment').filter(
                 Q(name__icontains=term) |
-                Q(external_id__iexact=term)
+                Q(external_id1__iexact=term) |
+                Q(external_id2__iexact=term) |
+                Q(external_id3__iexact=term) |
+                Q(external_id4__iexact=term)
             )[:limit]
 
             metabolites = APImodels.ReactionComponent.objects.using(model).select_related('metabolite').prefetch_related('subsystem_metabolite').filter(
@@ -785,6 +979,10 @@ def search(request, model, term):
                 Q(external_id2__iexact=term) |
                 Q(external_id3__iexact=term) |
                 Q(external_id4__iexact=term) |
+                Q(external_id5__iexact=term) |
+                Q(external_id6__iexact=term) |
+                Q(external_id7__iexact=term) |
+                Q(external_id8__iexact=term) |
                 Q(formula__icontains=term))
             )[:limit]
 
@@ -799,19 +997,19 @@ def search(request, model, term):
                 Q(id__iexact=term) |
                 Q(name__icontains=term) |
                 Q(ec__icontains=term) |
-                Q(sbo_id__iexact=term) |
                 Q(external_id1__iexact=term) |
                 Q(external_id2__iexact=term) |
                 Q(external_id3__iexact=term) |
-                Q(external_id4__iexact=term)
+                Q(external_id4__iexact=term) |
+                Q(external_id5__iexact=term) |
+                Q(external_id6__iexact=term)
             )[:limit]
             if reactions.count() < limit:
-                reactions_mets = APImodels.Reaction.objects.using(model).prefetch_related('subsystem').filter(
+                reactions_mets = APImodels.Reaction.objects.using(model).prefetch_related('subsystem').distinct().filter(
                     Q(metabolites__in=exact_metabolites) & ~Q(id__in=reactions.values_list('id', flat=True)))[:(limit - reactions.count())]
                 reactions = list(chain(reactions, reactions_mets))
 
-
-            enzymes = APImodels.ReactionComponent.objects.using(model).select_related('enzyme').prefetch_related('subsystem_enzyme', 'compartments').filter(
+            enzymes = APImodels.ReactionComponent.objects.using(model).select_related('enzyme').prefetch_related('subsystem_enzyme', 'compartment_enzyme').filter(
                 Q(component_type__exact='e') &
                 (Q(id__iexact=term) |
                 Q(name__icontains=term) |
@@ -821,7 +1019,11 @@ def search(request, model, term):
                 Q(external_id1__iexact=term) |
                 Q(external_id2__iexact=term) |
                 Q(external_id3__iexact=term) |
-                Q(external_id4__iexact=term))
+                Q(external_id4__iexact=term) |
+                Q(external_id5__iexact=term) |
+                Q(external_id6__iexact=term) |
+                Q(external_id7__iexact=term) |
+                Q(external_id8__iexact=term))
             )[:limit]
 
         if (metabolites.count() + enzymes.count() + compartments.count() + subsystems.count() + len(reactions)) != 0:

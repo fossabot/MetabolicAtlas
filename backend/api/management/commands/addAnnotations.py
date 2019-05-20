@@ -19,10 +19,18 @@ def get_mapping_model_annotation_dict(ctype):
             'external_link3': [APImodels.Metabolite, ['external_link3']],
             'external_id4': [APImodels.ReactionComponent, ['external_id4']],
             'external_link4': [APImodels.Metabolite, ['external_link4']],
+            'external_id5': [APImodels.ReactionComponent, ['external_id5']],
+            'external_link5': [APImodels.Metabolite, ['external_link5']],
+            'external_id6': [APImodels.ReactionComponent, ['external_id6']],
+            'external_link6': [APImodels.Metabolite, ['external_link6']],
+            'external_id7': [APImodels.ReactionComponent, ['external_id7']],
+            'external_link7': [APImodels.Metabolite, ['external_link7']],
+            'external_id8': [APImodels.ReactionComponent, ['external_id8']],
+            'external_link8': [APImodels.Metabolite, ['external_link8']],
             'formula': [APImodels.ReactionComponent, ['formula']],
             'description': [APImodels.Metabolite, ['description']],
-            'function1': [APImodels.Metabolite, ['function1']],
-            'function2': [APImodels.Metabolite, ['function2']],
+            'function1': [APImodels.Metabolite, ['function']],
+            # 'function2': [APImodels.Metabolite, ['function2']],
             'charge': [APImodels.Metabolite, ['charge']],
             'mass': [APImodels.Metabolite, ['mass']],
             'mass_avg': [APImodels.Metabolite, ['mass_avg']],
@@ -42,15 +50,22 @@ def get_mapping_model_annotation_dict(ctype):
             'external_link3': [APImodels.Enzyme, ['external_link3']],
             'external_id4': [APImodels.ReactionComponent, ['external_id4']],
             'external_link4': [APImodels.Enzyme, ['external_link4']],
-            'function1': [APImodels.Enzyme, ['function1']],
-            'function2': [APImodels.Enzyme, ['function2']],
+            'external_id5': [APImodels.ReactionComponent, ['external_id5']],
+            'external_link5': [APImodels.Enzyme, ['external_link5']],
+            'external_id6': [APImodels.ReactionComponent, ['external_id6']],
+            'external_link6': [APImodels.Enzyme, ['external_link6']],
+            'external_id7': [APImodels.ReactionComponent, ['external_id7']],
+            'external_link7': [APImodels.Enzyme, ['external_link7']],
+            'external_id8': [APImodels.ReactionComponent, ['external_id8']],
+            'external_link8': [APImodels.Enzyme, ['external_link8']],
+            'function1': [APImodels.Enzyme, ['function']],
+            # 'function2': [APImodels.Enzyme, ['function2']],
             'ec': [APImodels.Enzyme, ['ec']],
             'catalytic_activity': [APImodels.Enzyme, ['catalytic_activity']],
-            'cofactor': [APImodels.Enzyme, ['cofactor']],
+            # 'cofactor': [APImodels.Enzyme, ['cofactor']],
         },
         'reaction': {
             'name': [APImodels.Reaction, ['name']],
-            'sbo_id': [APImodels.Reaction, ['sbo_id']],
             'ec': [APImodels.Reaction, ['ec']],
             'pmid': [APImodels.ReactionReference, ['pmid']],
             'external_id1': [APImodels.Reaction, ['external_id1']],
@@ -61,12 +76,22 @@ def get_mapping_model_annotation_dict(ctype):
             'external_link3': [APImodels.Reaction, ['external_link3']],
             'external_id4': [APImodels.Reaction, ['external_id4']],
             'external_link4': [APImodels.Reaction, ['external_link4']],
+            'external_id5': [APImodels.Reaction, ['external_id5']],
+            'external_link5': [APImodels.Reaction, ['external_link5']],
+            'external_id6': [APImodels.Reaction, ['external_id6']],
+            'external_link6': [APImodels.Reaction, ['external_link6']],
         },
         'subsystem': {
             'description': [APImodels.Subsystem, ['description']],
             'system': [APImodels.Subsystem, ['system']],
-            'external_id': [APImodels.Subsystem, ['external_id']],
-            'external_link': [APImodels.Subsystem, ['external_link']],
+            'external_id1': [APImodels.Subsystem, ['external_id1']],
+            'external_link1': [APImodels.Subsystem, ['external_link1']],
+            'external_id2': [APImodels.Subsystem, ['external_id2']],
+            'external_link2': [APImodels.Subsystem, ['external_link2']],
+            'external_id3': [APImodels.Subsystem, ['external_id3']],
+            'external_link3': [APImodels.Subsystem, ['external_link3']],
+            'external_id4': [APImodels.Subsystem, ['external_id4']],
+            'external_link4': [APImodels.Subsystem, ['external_link4']],
         }
     }
 
@@ -317,10 +342,10 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         database = options['database']
         if options['type'] == 'test':
-            insert_annotation(database, 'metabolite', '/project/annotation/%s/test/METABOLITES.txt' % database)
-            insert_annotation(database, 'enzyme', '/project/annotation/%s/test/ENZYMES.txt' % database)
-            insert_annotation(database, 'reaction', '/project/annotation/%s/test/REACTIONS.txt' % database)
-            insert_annotation(database, 'subsystem', '/project/annotation/%s/test/SUBSYSTEMS.txt' % database)
+            insert_annotation(database, 'metabolite', '/project/annotation/%s/example/METABOLITES.txt' % database)
+            insert_annotation(database, 'enzyme', '/project/annotation/%s/example/ENZYMES.txt' % database)
+            insert_annotation(database, 'reaction', '/project/annotation/%s/example/REACTIONS.txt' % database)
+            insert_annotation(database, 'subsystem', '/project/annotation/%s/example/SUBSYSTEMS.txt' % database)
         elif options['type'] == 'all':
             insert_annotation(database, 'metabolite', '/project/annotation/%s/METABOLITES.txt' % database)
             insert_annotation(database, 'enzyme', '/project/annotation/%s/ENZYMES.txt' % database)

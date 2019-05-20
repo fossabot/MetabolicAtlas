@@ -15,7 +15,7 @@
       </div>
       <div class="columns">
         <div class="column">
-          <div class="columns is-multiline">
+          <div class="columns is-multiline is-variable is-8">
             <div id="enzyme-details" class="reaction-table column is-10-widescreen is-9-desktop is-full-tablet">
               <table v-if="enzyme && Object.keys(enzyme).length != 0" class="table main-table is-fullwidth">
                 <tr v-for="el in mainTableKey[model.database_name]">
@@ -33,8 +33,7 @@
                 </tr>
               </table>
               <template v-if="hasExternalID">
-                <br>
-                <span class="subtitle">External IDs</span>
+                <h4 class="title is-4">External links</h4>
                 <table v-if="enzyme && Object.keys(enzyme).length != 0" id="ed-table" class="table is-fullwidth">
                   <tr v-for="el in externalIDTableKey[model.database_name]" v-if="enzyme[el.name] && enzyme[el.link]">
                     <td v-if="'display' in el" class="td-key has-background-primary has-text-white-bis" v-html="el.display"></td>
@@ -46,28 +45,22 @@
                 </table>
               </template>
             </div>
-            <div class="column is-2-widescreen is-3-desktop is-full-tablet">
-              <div class="box has-text-centered">
-                <div class="button is-info is-fullwidth"
-                  @click="viewInteractionPartners">
-                  {{ messages.interPartName }}
-                </div>
-                <br>
-                <template v-if="model.database_name === 'hmr2'">
-                  <a class="button is-info is-fullwidth" title="View on Human Protein Atlas" target="_blank"
-                    :href="`https://www.proteinatlas.org/${enzyme.id}`">
-                    ProteinAtlas.org
-                  </a>
-                </template>
-              </div>
+            <div class="column is-2-widescreen is-3-desktop is-full-tablet has-text-centered">
+              <router-link class="button is-info is-fullwidth is-outlined"
+                :to="{ path: `/explore/gem-browser/${model.database_name}/interaction/${enzyme.id}` }">
+                <span class="icon"><i class="fa fa-connectdevelop fa-lg"></i></span>&nbsp;
+                <span>{{ messages.interPartName }}</span>
+              </router-link>
             </div>
           </div>
           <div class="columns">
             <div class="column">
-              <loader v-show="loading"></loader>
-              <template v-show="reactions.length > 0">
-                <h4 class="title is-4" v-show="!loading">Reactome</h4>
-                <reaction-table v-show="!loading" :reactions="reactions" :showSubsystem="true" :model="model"></reaction-table>
+              <template v-if="loading">
+                <loader></loader>
+              </template>
+              <template v-else>
+                <h4 class="title is-4" v-show="!loading && reactions.length > 0">Reactions</h4>
+                <reaction-table v-show="!loading && reactions.length > 0" :reactions="reactions" :showSubsystem="true" :model="model" :limit="200"></reaction-table>
               </template>
             </div>
           </div>
@@ -101,14 +94,14 @@ export default {
       enzyme: {},
       enzymeName: '',
       mainTableKey: {
-        hmr2: [
+        human1: [
           { name: 'enzymeName', display: 'Gene&nbsp;name' },
           { name: 'prot_name', display: 'Protein&nbsp;name' },
           { name: 'gene_synonyms', display: 'Synonyms' },
           { name: 'function' },
           { name: 'id' },
         ],
-        yeast: [
+        yeast8: [
           { name: 'enzymeName', display: 'Gene&nbsp;name' },
           { name: 'prot_name', display: 'Protein&nbsp;name' },
           { name: 'gene_synonyms', display: 'Synonyms' },
@@ -117,12 +110,13 @@ export default {
         ],
       },
       externalIDTableKey: {
-        hmr2: [
-          { name: 'id', display: 'Ensembl ID', link: 'name_link' },
-          { name: 'uniprot_id', display: 'Uniprot ID', link: 'uniprot_link' },
-          { name: 'ncbi_id', display: 'NCBI ID', link: 'ncbi_link' },
+        human1: [
+          { name: 'id', display: 'Ensembl', link: 'name_link' },
+          { name: 'hpa_id', display: 'Protein Atlas', link: 'hpa_link' },
+          { name: 'uniprot_id', display: 'Uniprot', link: 'uniprot_link' },
+          { name: 'ncbi_id', display: 'NCBI', link: 'ncbi_link' },
         ],
-        yeast: [],
+        yeast8: [],
       },
       reactions: [],
     };
@@ -183,9 +177,6 @@ export default {
           }
         });
     },
-    viewInteractionPartners() {
-      this.$router.push(`/explore/gem-browser/${this.model.database_name}/interaction/${this.enzyme.id}`);
-    },
     chemicalFormula,
     chemicalName,
     chemicalNameExternalLink,
@@ -198,9 +189,4 @@ export default {
 </script>
 
 <style lang="scss">
-
-h1, h2 {
-  font-weight: normal;
-}
-
 </style>

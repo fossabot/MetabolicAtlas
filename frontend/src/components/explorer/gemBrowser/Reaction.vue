@@ -13,7 +13,7 @@
     <div class="columns" v-show="showLoader">
       <loader></loader>
     </div>
-    <div class="columns is-multiline" v-show="!showLoader">
+    <div class="columns is-multiline is-variable is-8" v-show="!showLoader">
       <div class="reaction-table column is-10-widescreen is-9-desktop is-full-tablet">
         <table v-if="reaction && Object.keys(reaction).length != 0" class="table main-table is-fullwidth">
           <tr v-for="el in mainTableKey[model.database_name]">
@@ -34,8 +34,7 @@
           </tr>
         </table>
         <template v-if="hasExternalID">
-          <br>
-          <h4 class="title is-size-4">External IDs</h4>
+          <h4 class="title is-4">External links</h4>
           <table v-if="reaction && Object.keys(reaction).length != 0" id="ed-table" class="table is-fullwidth">
             <tr v-for="el in externalIDTableKey[model.database_name]" v-if="reaction[el.name] && reaction[el.link]">
               <td v-if="'display' in el" class="td-key has-background-primary has-text-white-bis" v-html="el.display"></td>
@@ -46,12 +45,11 @@
             </tr>
           </table>
         </template>
-        <br>
         <template v-if="formattedRef.length != 0">
-          <h4 class="title is-size-4">References (PMID)</h4>
+          <h4 class="title is-size-4">References</h4>
           <table class="main-table table">
             <tr v-for="oneRef in formattedRef">
-              <td v-if="oneRef.title" class="td-key has-background-primary has-text-white-bis">{{ oneRef.pmid }}</td>
+              <td v-if="oneRef.title" class="td-key has-background-primary has-text-white-bis" title="PMID">{{ oneRef.pmid }}</td>
               <a :href="oneRef.link" target="_blank">
                 <td>
                   <template v-for="author in oneRef.authors">
@@ -68,12 +66,8 @@
           <p>No PMID references found</p>
         </template>
       </div>
-      <div class="column is-2-widescreen is-3-desktop is-full-tablet">
-        <div class="box has-text-centered">
-          <div class="button is-info is-fullwidth" @click="viewReactionOnMap(rId)">
-            <p>View on {{ messages.mapViewerName }}</p>
-          </div>
-        </div>
+      <div class="column is-2-widescreen is-3-desktop is-full-tablet has-text-centered">
+        <maps-available :model="model" :type="'reaction'" :id="rId" :elementID="rId"></maps-available>
       </div>
     </div>
   </div>
@@ -83,6 +77,7 @@
 import axios from 'axios';
 import $ from 'jquery';
 import Loader from 'components/Loader';
+import MapsAvailable from 'components/explorer/gemBrowser/MapsAvailable';
 import { default as EventBus } from '../../../event-bus';
 import { chemicalFormula, chemicalName, chemicalNameExternalLink } from '../../../helpers/chemical-formatters';
 import { reformatTableKey, addMassUnit, reformatSBOLink, reformatECLink, reformatCompEqString } from '../../../helpers/utils';
@@ -93,13 +88,14 @@ export default {
   props: ['model'],
   components: {
     Loader,
+    MapsAvailable,
   },
   data() {
     return {
       messages,
       rId: this.$route.params.id,
       mainTableKey: {
-        hmr2: [
+        human1: [
           { name: 'id' },
           { name: 'equation', modifier: this.reformatEquation },
           { name: 'is_reversible', display: 'Reversible', isComposite: true, modifier: this.reformatReversible },
@@ -110,7 +106,7 @@ export default {
           { name: 'subsystem', display: 'Subsystem', modifier: this.reformatSubsystemList },
           { name: 'sbo_id', display: 'SBO', modifier: this.reformatSBOLink },
         ],
-        yeast: [
+        yeast8: [
           { name: 'id' },
           { name: 'equation', modifier: this.reformatEquation },
           { name: 'is_reversible', display: 'Reversible', isComposite: true, modifier: this.reformatReversible },
@@ -122,14 +118,15 @@ export default {
         ],
       },
       externalIDTableKey: {
-        hmr2: [
-          { name: 'mnxref_id', display: 'MNXREF ID', link: 'mnxref_link' },
+        human1: [
+          { name: 'mnxref_id', display: 'Mnxref', link: 'mnxref_link' },
         ],
-        yeast: [],
+        yeast8: [],
       },
       reaction: {},
       errorMessage: '',
       showLoader: true,
+      mapsAvailable: {},
       formattedRef: [],
     };
   },
@@ -184,25 +181,26 @@ export default {
     reformatModifiers() {
       let newGRnameArr = null;
       if (this.reaction.name_gene_rule) {
-        newGRnameArr = this.reaction.name_gene_rule.split(/ and | or /).map(
+        newGRnameArr = this.reaction.name_gene_rule.split(/ +/).map(
         e => e.replace(/^\(+|\)+$/g, '')
         );
       }
-
       let newGR = this.reaction.gene_rule;
       if (newGR) {
-        const newGRArr = newGR.split(/ and | or /).map(
-          e => e.replace(/^\(+|\)+$/g, '')
-          );
-        for (let i = 0, l = newGRArr.length; i < l; i += 1) {
-          let e;
-          if (newGRnameArr) {
-            e = `<span class="tag"><a class="e is-size-6" name="${newGRArr[i]}">${newGRnameArr[i]}</a></span>`;
-          } else {
-            e = `<span class="tag"><a class="e is-size-6" name="${newGRArr[i]}">${newGRArr[i]}</a></span>`;
-          }
-          newGR = newGR.replace(newGRArr[i], e);
-        }
+        let i = -1;
+        const newGRArr = newGR.split(/ +/).map(
+          (e) => {
+            i += 1;
+            if (e === 'or' || e === 'and') {
+              return e;
+            }
+            const prefix = e[0] === '(' ? '(' : '';
+            const suffix = e.slice(-1) === ')' ? ')' : '';
+            const newE = e.replace(/^\(+|\)+$/g, '');
+            const tag = newGRnameArr ? newGRnameArr[i] : newE;
+            return `${prefix}<span class="tag"><a class="e is-size-6" name="${newE}">${tag}</a></span>${suffix}`;
+          });
+        newGR = newGRArr.join(' ');
       }
       return newGR;
     },
@@ -252,7 +250,7 @@ export default {
           const details = response.data.result[i.pmid];
           const newRef = {};
           newRef.pmid = i.pmid;
-          newRef.link = `http://pubmed.com/${i.pmid}`;
+          newRef.link = `https://www.ncbi.nlm.nih.gov/pubmed/${i.pmid}`;
           if (details.pubdate) {
             newRef.year = details.pubdate.substring(0, 4);
           }

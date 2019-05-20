@@ -1,0 +1,41 @@
+# TO BE USED TO INSERT MODEL ANNOTATIONS IN METABOLIC ATLAS DATABASE
+# for METABOLITE ONLY
+# annotations will be visible in the GEM browser pages and some can be used by the search engine
+
+# some rules:
+# this is a TAB separated file, thus TABs are not allowed in any field values
+# each line added must have exactly 20 columns to be parsed properly
+# do not modify the @ line
+# column 'ID' is mandatory, other columns are optional
+# external_id / external_link must be filled as pair to be valid
+# be consistent with external ids: e.g. if a MetaNetX ID has been provided as external_id1 for reaction #1, you must provide a MetaNetX ID as external_id1 for reaction #2 as well
+# follow the max size limits
+
+# columns description:
+# column name    | max size | description
+# -----------------------------------------
+# name_link      | 255      | ID URL, if the model ID is from an external database
+# alt_name1      | 255      | long name or full name of the metabolite (note: if 'malate' is the name, malate[c] is already stored in the db, do not re-specify it in this file)
+# alt_name2      | 255      | another commonly used name for the metabolite, if any
+# aliases        | 2000     | list of aliases, semicolon separated values
+# external_id1   | 50       | another identifier from an external database or another model
+# external_link1 | 255      | full URL to associate with the 'external_id1' column
+# external_id2   | 50       | another identifier from an external database or another model
+# external_link2 | 255      | full URL to associate with the 'external_id2' column
+# external_id3   | 50       | another identifier from an external database or another model
+# external_link3 | 255      | full URL to associate with the 'external_id3' column
+# external_id4   | 50       | another identifier from an external database or another model
+# external_link4 | 255      | full URL to associate with the 'external_id4' column
+# formula        | 255      | the formula, use [a-Z], [0-9], [+-] characters only
+# description    | -        | full description of the metabolite
+# function       | 3000     | some text about the function, can describe multiple functions
+# charge         | float    | charge, numeric value only
+# mass           | float    | mass in g/mol, numeric value only (without the unit)
+# mass_avg       | float    | mass in g/mol, numeric value only (without the unit)
+# inchi          | 255      | inchi code
+
+# In this line specify the name of external databases used for name_link and each external_id column:	[name_link]				[external_id1]		[external_id2]		[external_id3]		[external_id4]								
+# e.g. replace [external_id2] with "MetaNetX" if the 'external_id2' column contains MetaNetX IDs and the 'external_link2' column contains MetaNetX links.
+
+@ID	name_link	alt_name1	alt_name2	aliases	external_id1	external_link1	external_id2	external_link2	external_id3	external_link3	external_id4	external_link4	formula	description	function	charge	mass	mass_avg	inchi
+[start here]

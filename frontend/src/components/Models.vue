@@ -1,56 +1,64 @@
 <template>
-  <section class="section extended-section">
+  <section class="section section-no-top extended-section">
     <div class="container">
       <div v-if="errorMessage">
         {{ errorMessage }}
       </div>
       <div v-else>
-        <span class="title">Integrated Genome-Scale Metabolic Models</span><br><br>
-        <span class="is-size-5">
-          These models are integrated into the Metabolic Atlas database - the models can be explored via {{ messages.gemBrowserName }}, {{ messages.mapViewerName }} and {{ messages.interPartName }}.
-        </span><br><br>
+        <h2 class="title is-2">Integrated GEMs</h2><br><br>
+        <p class="is-size-5">
+          These models are integrated into the Metabolic Atlas database; they can be explored via {{ messages.gemBrowserName }}, {{ messages.mapViewerName }} and {{ messages.interPartName }}.
+        </p><br><br>
         <div id="integrated" class="columns is-multiline is-variable is-6">
-          <div class="column is-half" v-for="model in models">
+          <div class="column is-half" v-for="model in integratedModels">
             <div class="card is-size-5">
-              <header class="card-header clickable has-background-primary" @click="getModelData(model.details.id)">
-                <p class="card-content has-text-weight-bold has-text-white">
-                  {{ model.name }} - {{ model.short_name }} [+]
+              <header class="card-header clickable has-background-primary-lighter" @click="showIntegratedModelData(model)">
+                <p class="card-header-title card-content has-text-weight-bold has-text-primary">
+                  {{ model.full_name }} &ndash; {{ model.short_name }}
                 </p>
+                <div class="card-header-icon">
+                  <span class="icon has-text-primary">
+                    <i class="fa fa-plus-square"></i>
+                  </span>
+                </div>
               </header>
               <div class="card-content">
-                <div class="columns is-multiline">
-                  <div class="column is-4">
+                <div class="columns">
+                  <div class="column is-narrow">
                     Reactions: {{ model.reaction_count }}<br>
                     Metabolites: {{ model.metabolite_count }}<br>
-                    Enzymes: {{ model.enzyme_count }}
-                  </div>
-                  <div class="column is-8">
-                    Condition: {{ model.details.condition }}<br>
-                    Tissue/Cell type: {{ model.tissue }}
-                  </div>
-                  <div class="column is-4">
-                    Date: {{ model.details.last_update || "n/a" }}<br>
-                    <a :href="model.details.repo_name" target="_blank">
-                      <span class="icon"><i class="fa fa-github fa-lg"></i></span>
-                      GitHub
+                    Enzymes: {{ model.enzyme_count }}<br><br>
+                    Date: {{ model.date || "n/a" }}<br>
+                    <a :href="model.link" target="_blank">
+                      <template v-if="model.link.includes('github.com')">
+                        <span class="icon"><i class="fa fa-github fa-lg"></i></span>
+                        GitHub
+                     </template>
+                     <template v-else>
+                        <span class="icon"><i class="fa fa-link fa-lg"></i></span>
+                        External link
+                     </template>
                     </a>
                   </div>
-                  <div class="column is-8">
-                    <router-link class="button is-info" :to="{ path: `/explore/gem-browser/${model.database_name}` }">
-                      <span>{{ messages.gemBrowserName }}</span>&nbsp;
-                      <span class="icon"><i class="fa fa-search-plus fa-lg"></i></span>
+                  <div class="column">
+                    Condition: {{ model.condition }}<br>
+                    Tissue/Cell type: {{ model.sample }}<br><br>
+                    <router-link class="button is-info is-medium is-outlined" :to="{ path: `/explore/gem-browser/${model.database_name}` }">
+                      <span class="icon is-large"><i class="fa fa-search-plus"></i></span>
+                      <span>{{ messages.gemBrowserName }}</span>
                     </router-link>
-                    <router-link class="button is-info" :to="{ path: `/explore/map-viewer/${model.database_name}` }">
-                      <span>{{ messages.mapViewerName }}</span>&nbsp;
-                      <span class="icon"><i class="fa fa-map-o fa-lg"></i></span>
-                    </router-link><br
+                    <router-link class="button is-info is-medium is-outlined" :to="{ path: `/explore/map-viewer/${model.database_name}` }">
+                      <span class="icon is-large"><i class="fa fa-map-o"></i></span>
+                      <span>{{ messages.mapViewerName }}</span>
+                    </router-link>
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-        <span class="title">Genome-Scale Metabolic Models</span><br><br>
+        <h2 class="title is-2">Repository</h2>
+        <p class="is-size-5">While we do not provide support for these models, we are making them avaible to download. For support, the authors should be contacted. They are listed in the <i>References</i> section of each model. Click on any row to view more.</p><br>
         <loader v-show="showLoader"></loader>
         <div v-if="GEMS.length != 0">
           <vue-good-table
@@ -68,7 +76,12 @@
           <div class="modal-content column is-6-fullhd is-8-desktop is-10-tablet is-full-mobile has-background-white" v-on:keyup.esc="showModelTable = false" tabindex="0">
             <div id="modal-info" class="model-table">
               <h2 class="title">
-                {{ selectedModel.set_name}} - {{ selectedModel.label || selectedModel.tissue}}
+                <template v-if="selectedModel.database_name">
+                  {{ selectedModel.full_name }}
+                </template>
+                <template v-else>
+                  {{ selectedModel.set_name }} - {{ selectedModel.label || selectedModel.tissue}}
+                </template>
               </h2>
               {{ selectedModel.description }}<br><br>
               <table class="table main-table">
@@ -80,6 +93,27 @@
                     </td>
                     <td v-else>
                       {{ selectedModel[field.name] }}
+                    </td>
+                  </tr>
+                  <template v-if="selectedModel.authors && selectedModel.authors.length !== 0">
+                    <tr v-for="a in selectedModel.authors">
+                      <td class="td-key has-background-primary has-text-white-bis" :rowspan="selectedModel.authors.length">Author(s)
+                      </td>
+                      <td>
+                        {{ a.given_name }} {{ a.family_name }}
+                      </td>
+                    </tr>
+                  </template>
+                  <tr v-if="selectedModel.date">
+                    <td  class="td-key has-background-primary has-text-white-bis">Date</td>
+                    <td>
+                      {{ selectedModel.date }}
+                    </td>
+                  </tr>
+                  <tr v-if="selectedModel.link">
+                    <td class="td-key has-background-primary has-text-white-bis">URL</td>
+                    <td>
+                      {{ selectedModel.link }}
                     </td>
                   </tr>
                   <tr v-if="selectedModel.ref && selectedModel.ref.length !== 0">
@@ -96,17 +130,19 @@
                   </tr>
                 </tbody>
               </table>
-              <br>
-              <span class="subtitle">Files</span>
-              <table class="table">
-                <tbody>
-                  <tr>
-                    <td v-for="file in selectedModel.files">
-                      <a :href="file.path">{{ file.format }}</a>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+              <template v-if="selectedModel.files">
+                <br>
+                <span class="subtitle">Files</span>
+                <table class="table">
+                  <tbody>
+                    <tr>
+                      <td v-for="file in selectedModel.files">
+                        <a :href="file.path">{{ file.format }}</a>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </template>
             </div>
           </div>
           <button class="modal-close is-large" @click="showModelTable = false"></button>
@@ -160,7 +196,7 @@ export default {
           },
           sortable: true,
         }, {
-          label: 'System',
+          label: 'System/Organ',
           field: 'organ_system',
           filterOptions: {
             enabled: true,
@@ -208,6 +244,7 @@ export default {
         },
       ],
       model_fields: [
+        { name: 'version', display: 'Version' },
         { name: 'organism', display: 'Organism' },
         { name: 'set_name', display: 'Set' },
         { name: 'organ_system', display: 'System' },
@@ -239,7 +276,7 @@ export default {
         ofLabel: 'of',
       },
       messages,
-      models: [],
+      integratedModels: [],
     };
   },
   created() {
@@ -248,20 +285,22 @@ export default {
     });
   },
   beforeMount() {
-    this.getModelList();
+    this.getIntegratedModels();
     this.getModels();
   },
   methods: {
-    getModelList() {
+    getIntegratedModels() {
       // get models list
       axios.get('models/')
       .then((response) => {
-        const models = {};
+        const models = [];
         for (const model of response.data) {
-          model.tissue = [model.details.sample.tissue, model.details.sample.cell_type, model.details.sample.cell_line].filter(e => e).join(' ‒ ') || '-';
-          models[model.database_name] = model;
+          $.extend(model, model.sample);
+          model.sample = [model.sample.tissue, model.sample.cell_type, model.sample.cell_line].filter(e => e).join(' ‒ ') || '-';
+          models.push(model);
         }
-        this.models = models;
+        models.sort((a, b) => (a.short_name < b.short_name ? 1 : -1));
+        this.integratedModels = models;
       })
       .catch(() => {
         this.errorMessage = messages.unknownError;
@@ -298,6 +337,10 @@ export default {
       .catch(() => {
         this.showModelTable = false;
       });
+    },
+    showIntegratedModelData(model) {
+      this.selectedModel = model;
+      this.showModelTable = true;
     },
     getModels() {
       this.showLoader = true;
