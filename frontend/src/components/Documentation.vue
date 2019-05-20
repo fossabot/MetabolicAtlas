@@ -148,9 +148,9 @@
           [Coming for the next release]
 
           <h4 id="FTP download">FTP download</h4>
-          Genome-Scale Metabolic model files can be downloaded from <a href="https://ftp.icsb.chalmers.se">ftp.icsb.chalmers.se</a> or by connecting to the FTP using your favorite FTP client (e.g. <a href="https://filezilla-project.org/">FileZilla</a>).
+          Genome-Scale Metabolic model files can be downloaded from <a href="https://ftp.metabolicatlas.org">ftp.metabolicatlas.org</a> or by connecting to the FTP using your favorite FTP client (e.g. <a href="https://filezilla-project.org/">FileZilla</a>).
           <br>
-          <span class="has-text-weight-bold lab">Host:</span> <a href="https://ftp.icsb.chalmers.se">ftp.icsb.chalmers.se</a><br>
+          <span class="has-text-weight-bold lab">Host:</span> <a href="https://ftp.metabolicatlas.org">ftp.metabolicatlas.org</a><br>
           <span class="has-text-weight-bold lab">Login:</span> (leave it empty)<br>
           <span class="has-text-weight-bold lab">Password:</span> (leave it empty)<br>
           <span class="has-text-weight-bold lab">Port:</span> 21

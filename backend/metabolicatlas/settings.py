@@ -120,6 +120,7 @@ DATABASE_ROUTERS = [
 CORS_ORIGIN_WHITELIST = (
     'http://localhost',
     'https://icsb.chalmers.se',
+    'https://metabolicatlas.org',
 )
 
 # SWAGGER

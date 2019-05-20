@@ -517,7 +517,7 @@ def HPA_enzyme_info(request, ensembl_id): # ENSG00000110921
             sub_dict['map_url'] = "https://ftp.chalmers.se/.maps/%s/%s.svg" % (model, sub.name_id)
         else:
             sub_dict['map_url'] = ""
-        sub_dict['subsystem_url'] = "https://icsb.chalmers.se/explore/gem-browser/%s/subsystem/%s" % (model, sub.name_id)
+        sub_dict['subsystem_url'] = "https://metabolicatlas.org/explore/gem-browser/%s/subsystem/%s" % (model, sub.name_id)
         sub_dict['model_metabolite_count'] = sub.unique_metabolite_count
         sub_dict['compartment_metabolite_count'] = sub.metabolite_count
         sub_dict['reaction_count'] = sub.reaction_count
@@ -526,7 +526,7 @@ def HPA_enzyme_info(request, ensembl_id): # ENSG00000110921
         subsystems.append(sub_dict)
 
     result = {
-        'enzyme_url': "https://icsb.chalmers.se/explore/gem-browser/%s/enzyme/%s" % (model, ensembl_id),
+        'enzyme_url': "https://metabolicatlas.org/explore/gem-browser/%s/enzyme/%s" % (model, ensembl_id),
         'subsystems': subsystems,
         'doc': 'A subsystem can contain the same chemical metabolite that comes from different compartments.',
     }
