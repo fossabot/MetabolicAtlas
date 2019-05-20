@@ -109,12 +109,6 @@
               <template v-if="selectionHasNoData()">
                 {{ messages.noInfoAvailable }}
               </template>
-              <template v-else-if="selectionData.error">
-                <!-- TODO FIXME  unreachable code -->
-                <div class="has-text-danger">
-                  {{ messages.unknownError }}
-                </div>
-              </template>
             </div>
           </div>
           <footer class="card-footer" v-if="!selectionData.error">

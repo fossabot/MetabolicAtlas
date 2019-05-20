@@ -27,10 +27,6 @@ def populate_database(database, yaml_file, overwrite=False, metadata_only=False,
 
             python manage.py addMapsInformation %s ['compartment'|'subsystem'] [SVG file directory] database_generation/%s/[metadatafile].tsv
 
-        Add currency met with:
-
-            python manage.py addCurrencyMetabolites %s
-
         Add interaction partners info with:
 
             python manage.py addNumberOfInteractionPartners %s
@@ -54,5 +50,3 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         populate_database(options['database'], options['yaml file'], overwrite=options['overwrite'], metadata_only=options['metadata_only'], content_only=options['content_only'])
-
-
