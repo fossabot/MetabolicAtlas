@@ -80,7 +80,7 @@ export default {
       idsFound: [],
       elmFound: [],
       elmsHL: [],
-      
+
       selectedItemHistory: {},
       selectElementID: null,
 

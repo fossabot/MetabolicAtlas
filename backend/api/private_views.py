@@ -58,81 +58,6 @@ def get_gemodel(request, gem_id):
     serializer = APIserializer.GEModelSerializer(model[0])
     return JSONResponse(serializer.data)
 
-@api_view(['POST'])
-@is_model_valid
-def convert_to_reaction_component_ids(request, model, compartment_name_id=None):
-    # not used
-    arrayTerms = [el.strip() for el in request.data['data'] if len(el) != 0]
-    if not arrayTerms:
-        return JSONResponse({})
-
-    query = Q()
-    reaction_query = Q()
-    for term in arrayTerms:
-        query |= Q(id__iexact=term)
-        reaction_query |= Q(id__iexact=term)
-        query |= Q(name__iexact=term)
-        query |= Q(full_name__iexact=term)
-        query |= Q(alt_name1__iexact=term)
-        query |= Q(alt_name2__iexact=term)
-        query |= Q(external_id1__iexact=term)
-        query |= Q(external_id2__iexact=term)
-        query |= Q(external_id3__iexact=term)
-        query |= Q(external_id4__iexact=term)
-        query |= Q(external_id5__iexact=term)
-        query |= Q(external_id6__iexact=term)
-        query |= Q(external_id7__iexact=term)
-        query |= Q(external_id8__iexact=term)
-
-    # get the list of component id
-    reaction_component_ids = APImodels.ReactionComponent.objects.using(model).filter(query).values_list('id');
-
-    # get the list of reaction id
-    reaction_ids = APImodels.Reaction.objects.using(model).filter(reaction_query).values_list('id')
-
-    if not reaction_component_ids and not reaction_ids:
-        return HttpResponse(status=404)
-
-    if not compartment_name_id:
-        # get the compartment id for each component id
-        # TODO FIXME not work for enzyme, use CompartmentEnzymeSvg
-        rcci = APImodels.ReactionComponentCompartmentSvg.objects.using(model) \
-        .filter(Q(rc_id__in=reaction_component_ids)) \
-        .select_related('Compartmentsvg') \
-        .values_list('compartmentsvg__display_name', 'rc_id')
-
-        # get the compartment id for each reaction id
-        rci = APImodels.ReactionCompartmentSvg.objects.using(model).filter(Q(reaction_id__in=reaction_ids)) \
-        .select_related('Compartmentsvg') \
-        .values_list('compartmentsvg__display_name', 'reaction_id')
-
-    else:
-        try:
-            compartment = APImodels.CompartmentSvg.objects.using(model).get(name_id=compartment_name_id)
-            compartmentID = compartment.compartment
-        except APImodels.CompartmentSvg.DoesNotExist:
-            return HttpResponse(status=404)
-
-        # get the component ids in the input compartment
-        # TODO FIXME not work for enzyme, use CompartmentEnzymeSvg
-        rcci = APImodels.ReactionComponentCompartmentSvg.objects.using(model).filter(
-                Q(rc_id__in=reaction_component_ids) & Q(Compartmentsvg_id=compartment.id)
-            ).select_related('Compartmentsvg') \
-            .values_list('compartmentsvg__display_name', 'rc_id')
-
-        # get the reaction ids in the input compartment
-        rci = APImodels.ReactionCompartmentSvg.objects.using(model).filter(
-            Q(reaction_id__in=reaction_ids) & Q(Compartmentsvg_id=compartment.id)
-        ).select_related('Compartmentsvg') \
-        .values_list('compartmentsvg__display_name', 'reaction_id')
-
-        if not rcci.count() and not rci.count():
-            return HttpResponse(status=404)
-
-    results = reactionComponents = list(chain(rcci, rci))
-    return JSONResponse(results)
-
-
 @api_view()
 @is_model_valid
 def search_on_map(request, model, map_type, map_name_id, term):
@@ -185,7 +110,6 @@ def search_on_map(request, model, map_type, map_name_id, term):
         except APImodels.SubsystemSvg.DoesNotExist:
             return HttpResponse(status=404)
 
-    # TODO merge requests?
     # get the list of component id
     reaction_component_ids = APImodels.ReactionComponent.objects.using(model).filter(Q(id__in=mapIDsetMet) | Q(id__in=mapIDsetEnz)).filter(query).values_list('id', flat=True);
 
@@ -328,9 +252,7 @@ def get_db_json(request, model, component_name_id=None, ctype=None, dup_meta=Fal
     if component_name_id:
         if ctype == 'compartment':
             try:
-                # TODO fix 'cytosol' request
                 compartment = APImodels.Compartment.objects.using(model).get(name_id__iexact=component_name_id)
-                # compartment = compartmentSVG.compartment
             except APImodels.Compartment.DoesNotExist:
                 return HttpResponse(status=404)
 
@@ -341,7 +263,6 @@ def get_db_json(request, model, component_name_id=None, ctype=None, dup_meta=Fal
         else:
             try:
                 subsystem = APImodels.Subsystem.objects.using(model).get(name_id__iexact=component_name_id)
-                # subsystem = subsystemSVG.subsystem
             except APImodels.Subsystem.DoesNotExist:
                 return HttpResponse(status=404)
 
@@ -610,12 +531,10 @@ def get_data_viewer(request, model):
 @api_view()
 @is_model_valid
 def get_tiles_data(request, model):
-
     # l = logging.getLogger('django.db.backends')
     # l.setLevel(logging.DEBUG)
     # l.addHandler(logging.StreamHandler())
 
-    # TODO optimize the queries or use raw()
     compartments = APImodels.Compartment.objects.using(model).all().order_by('?').prefetch_related('subsystem')[:2]
     subsystems = APImodels.Subsystem.objects.using(model).all().order_by('?')[:2]
     reactions = APImodels.Reaction.objects.using(model).all().order_by('?')[:2]
@@ -673,7 +592,6 @@ def get_component_with_interaction_partners(request, model, id):
 @api_view()
 @is_model_valid
 def connected_metabolites(request, model, id):
-    # TODO remove, use views api, split enzyme info and reactions into 2 requests
     try:
         enzyme = APImodels.ReactionComponent.objects.using(model).get(
                 Q(component_type='e') &
