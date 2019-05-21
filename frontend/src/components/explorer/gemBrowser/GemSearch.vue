@@ -273,7 +273,7 @@ export default {
       padding: 7px 0px;
     }
     div:hover, label:hover {
-      color: #006992; // todo somehow replace it by $link..
+      color: #006992;
     }
   }
 }

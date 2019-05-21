@@ -49,7 +49,7 @@ class ReactionComponentLiteSerializer(serializers.ModelSerializer):
 
 
 class ReactionComponentSerializer(ReactionComponentBasicSerializer):
-    class Meta(ReactionComponentBasicSerializer.Meta): 
+    class Meta(ReactionComponentBasicSerializer.Meta):
         model = APImodels.ReactionComponent
         fields = ReactionComponentBasicSerializer.Meta.fields + \
             ('is_currency', 'alt_name1', 'alt_name2', 'external_id1', 'external_id2', 'external_id3', 'external_id4',
@@ -118,7 +118,7 @@ class EnzymeReactionComponentSerializer(ReactionComponentSerializer):
     external_link7 = serializers.SerializerMethodField('read_external_link7')
     external_link8 = serializers.SerializerMethodField('read_external_link8')
 
-    class Meta(ReactionComponentSerializer.Meta): 
+    class Meta(ReactionComponentSerializer.Meta):
         model = APImodels.ReactionComponent
         fields = ReactionComponentSerializer.Meta.fields + \
             ('function1', 'function2', 'ec', 'catalytic_activity', 'cofactor', 'name_link', 'external_link1', 'external_link2', 'external_link3', 'external_link4',
@@ -517,7 +517,6 @@ class GemBrowserTileReactionSerializer(serializers.ModelSerializer):
         fields = ('id', 'equation_wname', 'is_reversible', 'subsystem_count', 'compartment_count', 'enzyme_count')
 
     def read_compartment_count(self, model):
-        # todo create a many to mnay field for this?
         return len(re.compile(" => | + ").split(model.compartment))
 
     def read_subsystem_count(self, model):
