@@ -171,6 +171,19 @@ class HmrInteractionPartnerSerializer(serializers.ModelSerializer):
 
 
 # =========================================================================================
+class MetaboliteReactionSerializer(serializers.Serializer):
+    reaction_id = serializers.CharField()
+    enzyme_role = serializers.CharField()
+    subsystem = serializers.SerializerMethodField('get_subsystems')
+    reactants = APIrcSerializer.ReactionComponentSerializer(many=True, read_only=True)
+    products = APIrcSerializer.ReactionComponentSerializer(many=True, read_only=True)
+    modifiers = APIrcSerializer.ReactionComponentSerializer(many=True, read_only=True)
+
+    def get_subsystems(self, model):
+        ss_ids = SubsystemReaction.objects.using(self.context.get('model')).filter(reaction=model.reaction_id).values_list('subsystem')
+        return Subsystem.objects.using(self.context.get('model')).filter(id__in=ss_ids).values_list('name')
+
+
 class ConnectedMetabolitesSerializer(serializers.Serializer):
     enzyme = APIrcSerializer.ReactionComponentSerializer(read_only=True)
     compartment = serializers.CharField()
