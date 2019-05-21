@@ -123,19 +123,19 @@
           Users can also hover a node to overlay its the name/id orleft-clik on a node (wait for the graph to be completly static) to display some of its information in the sidebar. Additonal information of the corresponding selected element is shown by clicking the <i>GEM browser</i> button.<br>
 
           <h5 id="HPA RNA levels">Human Protein Atlas RNA levels</h5>
-          RNA expressinon levels, provided by protein atlas, for enzymes can be loaded using the corresponding sidebar button. Once selected a RNA tissue will be apply to subsequent map selected, clear RNA lvl by using the clear selection button. RNA levels are available for both the 2D and 3D viewer.<br>
-          Expression levels from the Human Protein Atlas (HPA) can be loaded in the <i>Interaction Partners</i> using the panel on the right, and in the <i>Map Viewer</i> using the corresponding sidebar button. Doing so will update the enzyme node's color only according to the legend. Some enzymes might not have RNA levels, in such case their color corresponds to the n/a color.
+          RNA expressinon levels for enzymes, provided by the Human Protein Atlas, can be loaded using the corresponding sidebar button. Once selected, the RNA tissue will be applied to the selected map. To clear RNA level, use the <i>Clear selection</i> button. RNA levels are available for both the 2D and 3D viewers.<br>
+          Expression levels from the Human Protein Atlas can be loaded in the <i>Interaction Partners</i> using the panel on the right, and in the <i>Map Viewer</i> using the corresponding sidebar button. Doing so will update the enzyme node's color only according to the legend. Some enzymes might not have RNA levels, in such case their color corresponds to the n/a color.
           <div v-html="getExpLvlLegend()"></div><br>
 
           <h3 id="Global search">Global search</h3>
-          The global search queries all the integrated metabolic models. Each metabolic component has its own results tables accessible via the dedicated tab; they are inactivated when no hits are found. Search criteria are not restricted to the columns, for instance searching for an MNXref ID will output results for the metabolite or reactions matching the ID. The search algorithm matches partial name of component: searching for 'choleste' will output all metaboties containing the substring cholesterol. When the complete name of a metabolite is provide. e.g. 'cholesterol' not only all the metabolite matching or partially matching this name is provided, but the list of reaction that involve the 'cholesterol' metabolite is pull out from the database. The global search is also able to query reactions in a more advance way using special keyword:<br>
+          The <i>Global search</i> page queries all the integrated metabolic models. Each metabolic component has its own results table accessible via the dedicated tab. Tabs are inactivated when no results are found. Search criteria are not restricted to the columns, for instance searching for an MNXref ID will output results for the metabolite or reactions matching the ID. The search algorithm matches partial name of component: searching for 'choleste' will output all metaboties containing the substring cholesterol. When the complete name of a metabolite is provide. e.g. 'cholesterol' not only all the metabolite matching or partially matching this name is provided, but the list of reaction that involve the 'cholesterol' metabolite is pull out from the database. The global search is also able to query reactions in a more advance way using special keyword:<br>
             - use " => " and metabolite terms - ID (m02439c), name (malate) or full name (malate[c]) - in the query term to indicate the algorithm you are looking for a reactions only, and a reaction that involve a specify metabolites as reactant/product.<br>
 
           <h3 id="API">API</h3>
-          We have a dedicated interface to facilite the use of the API. JSON format are provided are output. The API is still under developpement and subject to change without notive. Changes will be though documented and highlight in the news section.
+          We have a dedicated interface to facilite the use of the API, with output provided in JSON format. The API is still under developpement and subject to change without notice.
 
           <h3 id="GEMs">GEMs</h3>
-          [explain Genome-scale metabolic models (GEMs)]
+          A genome scale metabolic model (GEM) is a mathematical representation of a metabolic network.
 
           <h4 id="Integrated models">Integrated GEMs</h4>
           Currently Metabolic Atlas contains two integrated models, yeastGEM and humanGEM.
@@ -145,7 +145,7 @@
           Click on a row on the table to show more information about this GEM. Users can download models in various file format (when available).
 
           <h4 id="Comparison">Comparison</h4>
-          [Coming for the next release]
+          Currently, the <i>Comparison</i> page provides statistics about the comparison/overlap between Human1 and HMR2, and Recond3D.
 
           <h4 id="FTP download">FTP download</h4>
           Genome-Scale Metabolic model files can be downloaded from <a href="https://ftp.metabolicatlas.org">ftp.metabolicatlas.org</a> or by connecting to the FTP using your favorite FTP client (e.g. <a href="https://filezilla-project.org/">FileZilla</a>).
@@ -156,7 +156,7 @@
           <span class="has-text-weight-bold lab">Port:</span> 21
 
           <h3 id="Resources">Resources</h3>
-          List the most relevant software tools, algorithms or databases produced/published by the sysbio reaseerch group. Click on the left-side image/logo to navigate to the corresponding remote web resources.
+          This is a list of the most relevant software tools, algorithms or databases published by the SysBio group. To navigate to the cprresponding pages, click o the image on the left.t
 
         </div>
       </div>
