@@ -5,8 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
   </head>
   <body>
-
-    <div id="loading">
+    <div id="init-loading" style="display: none">
       <h3>Loading Metabolic Atlas</h3>
       <!-- source https://codepen.io/camdenfoucht/pen/BVxawq -->
       <div class="multi-spinner-container">
@@ -28,15 +27,19 @@
         </div>
       </div>
     </div>
-
+    <noscript>
+      JavaScript is required for Metabolic Atlas to work.
+    </noscript>
+    <script>
+      document.getElementById("init-loading").style.display = "block";
+    </script>
     <style>
-      #loading {
+      #init-loading {
         text-align: center;
       }
-      /* MULTI SPINNER */
       .multi-spinner-container {
-        width: 250px;
-        height: 250px;
+        width: 200px;
+        height: 200px;
         position: relative;
         margin: 30px auto;
       }
@@ -134,8 +137,5 @@
     </style>
     <div id="app"></div>
     <!-- built files will be auto injected -->
-    <noscript>
-      JavaScript is disabled. Please enable it to view the website.
-    </noscript>
   </body>
 </html>
