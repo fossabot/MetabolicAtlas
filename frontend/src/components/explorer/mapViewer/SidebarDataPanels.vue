@@ -135,7 +135,7 @@
 
 <script>
 import { capitalize, reformatStringToLink, idfy } from '../../../helpers/utils';
-import { chemicalFormula } from '../../../helpers/chemical-formatters';
+import { chemicalFormula, chemicalReaction } from '../../../helpers/chemical-formatters';
 import { getExpLvlLegend } from '../../../expression-sources/hpa';
 import { default as messages } from '../../../helpers/messages';
 import { default as EventBus } from '../../../event-bus';
@@ -228,6 +228,7 @@ export default {
     capitalize,
     reformatStringToLink,
     chemicalFormula,
+    chemicalReaction,
     idfy,
   },
 };
