@@ -1,17 +1,6 @@
 pipeline {
   agent any
   stages {
-    stage('Docker cleanup') {
-      steps {
-        sh '''
-          docker stop $(docker ps -a -q) || true
-          docker rm $(docker ps -a -q) || true
-          docker rmi $(docker images -q) || true
-          docker volume prune --force || true
-        '''
-        echo 'Deleted all Docker containers and images.'
-      }
-    }
     stage('Configure') {
       steps {
         sh '''cp /var/lib/jenkins/postgres.env .'''
@@ -21,16 +10,29 @@ pipeline {
         '''
       }
     }
-    stage('Test') {
-      steps {
-        echo 'Should do some testing..'
-      }
-    }
     stage('Build') {
       steps {
         sh '''
           PATH=$PATH:/usr/local/bin
           docker-compose -f docker-compose.yml -f docker-compose-prod.yml build
+        '''
+        echo 'Built new Docker images.'
+      }
+    }
+    stage('Cleanup old Docker setup') {
+      steps {
+        sh '''
+          docker stop $(docker ps -a -q) || true
+          docker rm $(docker ps -a -q) || true
+          docker volume prune --force || true
+        '''
+        echo 'Deleted old Docker containers and volumes.'
+      }
+    }
+    stage('Run') {
+      steps {
+        sh '''
+          PATH=$PATH:/usr/local/bin
           docker-compose -f docker-compose.yml -f docker-compose-prod.yml up -d
         '''
       }
@@ -56,9 +58,10 @@ pipeline {
     stage('Clean up') {
       steps {
         sh '''
+          docker rmi $(docker images -q) || true
           rm *.db
         '''
-        echo 'We are live!'
+        echo 'Deleted old Docker images. We are live!'
       }
     }
   }
