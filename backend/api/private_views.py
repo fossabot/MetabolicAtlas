@@ -588,33 +588,6 @@ def get_component_with_interaction_partners(request, model, id):
 
     return JSONResponse(result)
 
-
-@api_view()
-@is_model_valid
-def connected_metabolites(request, model, id):
-    try:
-        enzyme = APImodels.ReactionComponent.objects.using(model).get(
-                Q(component_type='e') &
-                (Q(id__iexact=id) | Q(id__iexact=id))
-            )
-    except APImodels.ReactionComponent.DoesNotExist:
-        return HttpResponse(status=404)
-
-    reactions = APImodels.Reaction.objects.using(model).filter(
-            Q(reactionmodifier__modifier_id=enzyme.id)
-            ).prefetch_related('reactants', 'products', 'modifiers').distinct()
-
-    ReactionSerializerClass = componentDBserializerSelector(model, 'reaction', serializer_type='lite')
-    EnzymeSerializerClass = componentDBserializerSelector(model, 'enzyme')
-
-    result =  {
-        'enzyme' : EnzymeSerializerClass(enzyme, context={'model': model}).data,
-        'reactions': ReactionSerializerClass(reactions, many=True, context={'model': model}).data
-    }
-
-    return JSONResponse(result)
-
-
 ##########################################################################################
 
 @api_view()
