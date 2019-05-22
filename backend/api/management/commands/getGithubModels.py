@@ -122,10 +122,10 @@ for repo in list_repo:
         }
 
         if 'reference' in repo_dict and repo_dict['reference']:
-            # '>Kerkhoven EJ, Pomraning KR, Baker SE, Nielsen J (2016) 
+            # '>Kerkhoven EJ, Pomraning KR, Baker SE, Nielsen J (2016)
             # "Regulation of amino-acid metabolism controls flux
             # to lipid accumulation in _Yarrowia lipolytica_."
-            # npj Systems Biology and Applications 2:16005. 
+            # npj Systems Biology and Applications 2:16005.
             # doi:[10.1038/npjsba.2016.5](http://www.nature.com/articles/npjsba20165)
             reference['title'] = repo_dict['reference'].strip('>').split(' doi:[')[0]
     else:
@@ -169,7 +169,7 @@ for repo in list_repo:
             # 'gemodelset': None,  # specified upon the creation
             # 'sample': None,  # specified upon the creation
             'description': None,  # should be None, description will always be the set description
-            'label': None, # TODO have a algo to generate label
+            'label': None, # extract from model metadata yaml
             'condition': None,
             'reaction_count': 0,
             'metabolite_count': 0,

@@ -567,8 +567,8 @@ class Command(BaseCommand):
         start_parsing()
         print ("""
 Models file are located in backend/model_files/FTP and
-must be move to the ftp.icsb.chalmers.se VM into /home/cholley/models/
+must be move to the ftp.metabolicatlas.org VM into /home/cholley/models/
 with the following command:
-rsync -avup backend/model_files/FTP/ cholley@ftp.icsb.chalmers.se:/home/cholley/models/  --include='*/' --include='*.zip' --exclude='*'
+rsync -avup backend/model_files/FTP/ cholley@ftp.metabolicatlas.org:/home/cholley/models/  --include='*/' --include='*.zip' --exclude='*'
 then move the /home/cholley/models dir to /ftp (on the VM)
 """)

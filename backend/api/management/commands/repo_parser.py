@@ -66,12 +66,12 @@ default_readme_rules = {
                 },
     'keywords': [
         ['GEM Category', True, ['Species', 'Community', 'Collection']],
-        ['Utilisation', True, 
-            ['maximising product growth', 'minimising product growth', 
+        ['Utilisation', True,
+            ['maximising product growth', 'minimising product growth',
              'predictive simulation', 'experimental data reconstruction']
         ],
-        ['Field', True, 
-            ['metabolic engineering', 'bacterial community', 
+        ['Field', True,
+            ['metabolic engineering', 'bacterial community',
             'thermodynamic modelling', 'metabolic-network reconstruction']
         ],
         ['Type of Model', True, []],
@@ -98,7 +98,7 @@ error_message = ''
 warning_messages = []
 gem_category = ''
 model_files_found = {}
-table_CCTS = { 
+table_CCTS = {
                  'cell line': False,
                  'cell type': False,
                  'tissue': False,
@@ -123,7 +123,7 @@ def check_model_files(model_dir, name, rule):
 
     mfl = {}
     if not parse_local_repo:
-        URL = model_dir['url'] 
+        URL = model_dir['url']
         success, model_files_json = get_json(URL)
         if not success:
             return False
@@ -344,7 +344,6 @@ def parse_categories(readme_dict):
             required_cat.remove(cat)
 
     if required_cat:
-        # TODO check PMID_cat_found
         error_message = "Error: categories not found: %s" % \
             ", ".join(["'%s'" % c for c in required_cat])
         return False
@@ -504,7 +503,6 @@ def get_gemodel(repo_name):
             error_message = "Error: invalid repo name '%s', it should end with '-GEM' or '-GEMS'"
             return False
 
-        # TODO add parsing local directory
         URL = 'https://api.github.com/repos/SysBioChalmers/' + repo_name
         success, repo_json = get_json(URL)
         if not success:

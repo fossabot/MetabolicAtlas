@@ -19,7 +19,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = os.getenv('DJANGO_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DJANGO_IS_DEBUG')
 
 ALLOWED_HOSTS = [
     'localhost',
@@ -120,6 +120,7 @@ DATABASE_ROUTERS = [
 CORS_ORIGIN_WHITELIST = (
     'http://localhost',
     'https://icsb.chalmers.se',
+    'https://metabolicatlas.org',
 )
 
 # SWAGGER

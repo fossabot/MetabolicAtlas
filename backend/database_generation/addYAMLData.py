@@ -9,7 +9,7 @@ from django.db import models
 from api.models import *
 from django.db.models import Q
 
-# import api.management.commands.repo_parser as github_model_parser TODO FIX
+# import api.management.commands.repo_parser as github_model_parser
 
 import re
 import collections
@@ -82,7 +82,6 @@ def insert_model_metadata(database, metadata, overwrite=False, content_only=Fals
         if not overwrite:
             print("Error: model '%s' already in the database" % metadata_dict["short_name"])
             exit(1)
-        # might trigger an delete error, TODO to fix
         gem.delete()
     except GEM.DoesNotExist:
         if content_only:
@@ -109,7 +108,7 @@ def insert_model_metadata(database, metadata, overwrite=False, content_only=Fals
                                                       cell_type=metadata_dict["cell_type"])
     except GEModelSample.DoesNotExist:
         # create a new sample
-        sample = GEModelSample(organism=metadata_dict["organism"], 
+        sample = GEModelSample(organism=metadata_dict["organism"],
                       organ_system=metadata_dict["organ_system"],
                       tissue=metadata_dict["tissue"],
                       cell_type=metadata_dict["cell_type"],

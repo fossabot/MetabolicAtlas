@@ -171,9 +171,7 @@ class HmrInteractionPartnerSerializer(serializers.ModelSerializer):
 
 
 # =========================================================================================
-
 class MetaboliteReactionSerializer(serializers.Serializer):
-    # TODO remove or fix
     reaction_id = serializers.CharField()
     enzyme_role = serializers.CharField()
     subsystem = serializers.SerializerMethodField('get_subsystems')

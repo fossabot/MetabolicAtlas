@@ -58,7 +58,7 @@
           </div>
         </div>
         <h2 class="title is-2">Repository</h2>
-        <p class="is-size-5">While we do not provide support for these models, we are making them avaible to download. For support, the authors should be contacted. They are listed in the <i>References</i> section of each model. Click on any row to view more.</p><br>
+        <p class="is-size-5">While we do not provide support for these models, we are making them available to download. For support, the authors should be contacted. They are listed in the <i>References</i> section of each model. Click on any row to view more.</p><br>
         <loader v-show="showLoader"></loader>
         <div v-if="GEMS.length != 0">
           <vue-good-table

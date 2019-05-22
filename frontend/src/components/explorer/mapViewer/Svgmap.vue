@@ -80,7 +80,7 @@ export default {
       idsFound: [],
       elmFound: [],
       elmsHL: [],
-      // TODO handle multi model history
+
       selectedItemHistory: {},
       selectElementID: null,
 

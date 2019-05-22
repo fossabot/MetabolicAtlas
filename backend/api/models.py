@@ -376,20 +376,6 @@ class CompartmentSvg(models.Model):
     class Meta:
         db_table = "compartmentsvg"
 
-class NumberOfInteractionPartners(models.Model):
-    rc = models.ForeignKey('ReactionComponent', db_column='rc', on_delete=models.CASCADE)
-    first_order = models.FloatField()
-    second_order = models.FloatField(null=True)
-    third_order = models.FloatField(null=True)
-    catalysed_reactions = models.FloatField(default=0.0)
-
-    class Meta:
-        db_table = "number_of_interaction_partners"
-
-#
-# ?
-#
-
 class MetaboliteReaction(object):
     def __init__(self, reaction, role):
         self.reaction_id = reaction.id
