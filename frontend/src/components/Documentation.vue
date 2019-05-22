@@ -34,7 +34,7 @@
                   <li><a href="#Integrated models">Integrated models</a></li>
                   <li><a href="#Repository">Repository</a></li>
                   <li><a href="#Comparison">Comparison</a></li>
-                  <li><a href="#FTP download">FTP download</a></li>
+                  <li><a href="#FTP-download">FTP download</a></li>
                 </ul>
               </li>
               <li><a href="#Resources"><b>Resources</b></a></li>
@@ -147,7 +147,7 @@
           <h4 id="Comparison">Comparison</h4>
           [Coming for the next release]
 
-          <h4 id="FTP download">FTP download</h4>
+          <h4 id="FTP-download">FTP download</h4>
           Genome-Scale Metabolic model files can be downloaded from <a href="https://ftp.icsb.chalmers.se">ftp.icsb.chalmers.se</a> or by connecting to the FTP using your favorite FTP client (e.g. <a href="https://filezilla-project.org/">FileZilla</a>).
           <br>
           <span class="has-text-weight-bold lab">Host:</span> <a href="https://ftp.icsb.chalmers.se">ftp.icsb.chalmers.se</a><br>
@@ -166,10 +166,16 @@
 
 <script>
 
+import $ from 'jquery';
 import { getExpLvlLegend } from '../expression-sources/hpa';
 
 export default {
   name: 'help',
+  mounted() {
+    if (this.$route.hash) {
+      $(window).scrollTop($(this.$route.hash).offset().top);
+    }
+  },
   methods: {
     getExpLvlLegend,
   },
