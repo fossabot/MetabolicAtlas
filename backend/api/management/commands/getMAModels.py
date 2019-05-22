@@ -28,9 +28,10 @@ import urllib.request
 # the zip file contains multiple files, remove all but the .xml to fix the parsing
 
 def build_ftp_path_and_dl(liste_dico_data, FTP_root, model_set, root_path, model_set_data, global_dict):
-
-    if (model_set_data['name'] in ['Fungi models', 'Bacteria models', 'S.cerevisiae models']):
+    if (model_set_data['name'] in ['Fungi models', 'Bacteria models']):
         path_key = ['name', 'organism', 'organ_system', ['tissue', 'cell_type', 'cell_line']]
+    elif model_set_data['name'] == "Human gut microbiota models":
+        path_key = ['"bacteria_models"', 'name', 'organ_system', ['tissue', 'cell_type', 'cell_line']]
     else:
         path_key = ['organism', 'name', 'organ_system', ['tissue', 'cell_type', 'cell_line']]
     model_data_list = []
@@ -52,7 +53,9 @@ def build_ftp_path_and_dl(liste_dico_data, FTP_root, model_set, root_path, model
                         path = os.path.join(path, dic[name].lower().replace(',', '').replace(' ', '_'))
                         break
             else:
-                if k in dic or k in model_set:
+                if k.startswith('"') and k.endswith('"'):
+                    path = os.path.join(path, k.strip('"'))
+                elif k in dic or k in model_set:
                     v = dic[k] if k in dic else model_set[k]
                     if v:
                         path = os.path.join(path, v.lower().replace(',', '').replace(' ', '_'))
@@ -172,7 +175,10 @@ def build_ftp_path_and_dl(liste_dico_data, FTP_root, model_set, root_path, model
             if k not in dic:
                 GEM[k] = None
             else:
-                GEM[k] = dic[k]
+                if len(dic[k].strip()) == 0:
+                    GEM[k] = None
+                else:
+                    GEM[k] = dic[k]
 
         a = 'reference_title' in dic
         b = 'reference_pubmed' in dic
@@ -257,12 +263,12 @@ def parse_info_file(info_file):
             global_dict[row[0]] = row[1]
 
         if 'name' in global_dict:
-            model_set_data['name'] = global_dict.pop('name').capitalize()
+            model_set_data['name'] = global_dict.pop('name')
         else:
             model_set_data['name'] = None
 
         if 'description' in global_dict:
-            model_set_data['description'] = global_dict.pop('description').capitalize()
+            model_set_data['description'] = global_dict.pop('description')
         else:
             model_set_data['description'] = None
 
@@ -337,9 +343,9 @@ def read_gems_data_file(parse_data_file, global_dict=None):
         types = next(reader)
         glob_value = {}
         for row in reader:
-            if len([e for e in row if e]) == 0 or len(row) == 0 or row[0][0] == "#":
+            if len([e for e in row if e]) == 0 or len(row) == 0 or (len(row[0]) and row[0][0] == "#"):
                 continue
-            if row[0][0] == "@":
+            if len(row[0]) and row[0][0] == "@":
                 if not row[1] or row[1] == "none":
                     # remove the key
                     glob_value.pop(row[0][1:], None)
@@ -475,6 +481,7 @@ def insert_gems(model_set_data, model_data_list):
         files_ids = []
         for file in model_dict.pop('files'):
             try:
+                file['path'] = os.path.splitext(file['path'])[0].replace('/project/model_files/FTP/', 'https://ftp.metabolicatlas.org/models/') + '.zip'
                 gf = GEModelFile.objects.get(path=file['path'])
                 # print ("gf1 %s" % gf)
             except GEModelFile.DoesNotExist:
