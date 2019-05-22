@@ -107,7 +107,7 @@ def build_ftp_path_and_dl(liste_dico_data, FTP_root, model_set, root_path, model
                     if not output_file_path.endswith('.zip'):
 
                         output_zip = os.path.splitext(output_file_path)[0] + '.zip'
-                        print (output_zip)
+                        # print (output_zip)
                         if not os.path.isfile(output_zip):
                             import zipfile
                             try:
@@ -147,6 +147,11 @@ def build_ftp_path_and_dl(liste_dico_data, FTP_root, model_set, root_path, model
                 else:
                     GEM['enzyme_count'] = 0
 
+            if GEM['metabolite_count'] == '*' and GEM['enzyme_count'] == '*' and GEM['reaction_count'] == '*':
+                GEM['metabolite_count'] = None
+                GEM['enzyme_count'] = None
+                GEM['reaction_count'] = None
+
             if output_file_path.endswith('.xml'):
                 output_paths.append(os.path.splitext(output_file_path)[0] + '.zip')
             else:
@@ -163,7 +168,7 @@ def build_ftp_path_and_dl(liste_dico_data, FTP_root, model_set, root_path, model
             else:
                 GEM_sample[k] = dic[k].capitalize()
         
-        for k in ['description', 'label', 'maintained', 'condition']:
+        for k in ['description', 'tag', 'maintained', 'condition']:
             if k not in dic:
                 GEM[k] = None
             else:
@@ -181,7 +186,7 @@ def build_ftp_path_and_dl(liste_dico_data, FTP_root, model_set, root_path, model
 
         if next(iter(set([a,b,c,d]))):
             GEM['reference'] = [{
-                                'title': dic['reference_title'], 
+                                'title': dic['reference_title'],
                                 'link': dic['reference_link'],
                                 'pmid': dic['reference_pubmed'],
                                 'year': dic['reference_year'],
@@ -243,6 +248,7 @@ def parse_info_file(info_file):
     with open(info_file, "r") as f:
         reader = csv.reader(f, delimiter='\t')
         for row in reader:
+            row = [e.strip() for e in row]
             if len(row) == 0 or row[0][0] == "#":
                 continue
             if len(row) != 2:
@@ -374,7 +380,7 @@ def read_gems_data_file(parse_data_file, global_dict=None):
                 for k, v in glob_value.items():
                     d[k] = v
             if 'file' not in d and 'file1' not in d:
-                print ("error")
+                print ("error, 'file' key not found")
                 print (d)
                 print (row)
                 exit()
@@ -402,13 +408,13 @@ def insert_gems(model_set_data, model_data_list):
         if not reference:
             continue
         try:
-            gr = GEModelReference.objects.get(Q(link=reference['link']) &
-                                          Q(pubmed=reference['pubmed']))
+            gr = GEModelReference.objects.get(Q(link=reference['link']) |
+                                          Q(pmid=reference['pmid']))
             # print ("gr1 %s" % gr)
         except GEModelReference.DoesNotExist:
             gr = GEModelReference(**reference)
             print ("gem_set_reference %s" % reference)
-            # print ("gr2 %s" % gr)
+            # print ("gr2 %s" % gr.__dict__)
             gr.save()
         set_references.append(gr)
         set_references_ids.append(gr.id)
@@ -447,7 +453,7 @@ def insert_gems(model_set_data, model_data_list):
             for gem_reference in gem_reference:
                 try:
                     gr = GEModelReference.objects.get(Q(link=gem_reference['link']) &
-                                                  Q(pubmed=gem_reference['pubmed']))
+                                                  Q(pmid=gem_reference['pmid']))
                     # print ("current Gem ref year %s " % gr.year)
                     # print ("gr1 %s" % gr)
                 except GEModelReference.DoesNotExist:
@@ -483,7 +489,7 @@ def insert_gems(model_set_data, model_data_list):
         try:
             g = GEModel.objects.get(Q(gemodelset=gg) &
                                 Q(sample=gs) &
-                                Q(label=model_dict['label']) &
+                                Q(tag=model_dict['tag']) &
                                 Q(reaction_count=model_dict['reaction_count']) &
                                 Q(enzyme_count=model_dict['enzyme_count']) &
                                 Q(metabolite_count=model_dict['metabolite_count']))
@@ -502,8 +508,8 @@ def insert_gems(model_set_data, model_data_list):
     print ("%s models added" % i)
 
 def start_parsing():
-    dir_path = os.path.dirname(os.path.realpath(__file__))
-    dir_path = os.path.dirname(os.path.join(dir_path, "HMR/"))
+    # dir_path = os.path.dirname(os.path.realpath(__file__))
+    # dir_path = os.path.dirname(os.path.join(dir_path, "HMR/"))
     # dir_path = os.path.dirname(os.path.join(dir_path, "INIT_cancer/"))
     # dir_path = os.path.dirname(os.path.join(dir_path, "INIT_normal/"))
     # dir_path = os.path.dirname(os.path.join(dir_path, "curated_model/"))

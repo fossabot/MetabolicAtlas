@@ -122,7 +122,7 @@
                       <template v-for="oneRef in selectedModel.ref">
                         <p v-if="!oneRef.link">{{ oneRef.title }}</p>
                         <a v-else :href="oneRef.link" target="_blank">
-                          {{ oneRef.title }} (PMID {{ oneRef.pubmed }})
+                          {{ oneRef.title }} (PMID: {{ oneRef.pmid }})
                         </a>
                         <br>
                       </template>
@@ -189,8 +189,8 @@ export default {
           sortable: true,
           html: true,
         }, {
-          label: 'Label',
-          field: 'label',
+          label: 'Tag',
+          field: 'tag',
           filterOptions: {
             enabled: true,
           },
@@ -381,12 +381,6 @@ export default {
         this.errorMessage = messages.notFoundError;
         this.showLoader = false;
       });
-    },
-    buildHeader() {
-      if (this.selectedModel.label) {
-        return ` <i>${this.selectedModel.organism}</i>: ${this.selectedModel.set_name} - ${this.selectedModel.label}`;
-      }
-      return ` <i>${this.selectedModel.organism}</i>: ${this.selectedModel.set_name} - ${this.selectedModel.tissue}`;
     },
   },
 };

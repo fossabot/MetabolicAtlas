@@ -69,7 +69,7 @@ repo_parser.show_summary = False
 models = GEModel.objects.all()
 model_dict = {}
 for model in models:
-    model_dict[model.repo_name] = model.last_update
+    model_dict[model.repo_url] = model.last_update
 
 try:
     URL = 'https://api.github.com/orgs/SysBioChalmers/repos'
@@ -82,6 +82,7 @@ except Exception as e:
 
 for repo in list_repo:
     repo_name = repo['name']
+    repo_url = repo['html_url']
     if not repo_name.endswith('-GEM') and not repo_name.endswith('-GEMS') and not repo_name.endswith('-GEMs'):
         continue
 
@@ -94,16 +95,16 @@ for repo in list_repo:
         logging.warn("repo '%s' is up-to-date, skip" % repo_name)
         continue
 
-    logging.warn("Parsing " + repo_name)
+    logging.warn("Parsing " + repo_url)
     repo_dict = repo_parser.get_gemodel(repo_name)
     if not repo_dict:
-        logging.warn("Error: cannot parse the github model %s" % repo_name)
+        logging.warn("Error: cannot parse the github repo '%s'" % repo_name)
         logging.warn(repo_parser.error_message)
         # send an email to the owner, tell him to use the parser script.
         continue
 
     if repo_parser.warning_messages:
-        logging.warn("Warning: the github model %s have warnings:" % repo_name)
+        logging.warn("Warning: the github repo '%s' have warnings:" % repo_name)
         for wm in repo_parser.warning_messages:
             logging.warn(wm)
 
@@ -177,7 +178,7 @@ for repo in list_repo:
             'maintained': True,
             'reference': None,  # should be None, reference will be the set reference
             'last_update': repo_updated_at,
-            'repo_name': repo_name,
+            'repo_url': repo_url,
         }
 
         if i == 0:

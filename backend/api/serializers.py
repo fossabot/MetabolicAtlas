@@ -350,7 +350,7 @@ class GEModelSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = APImodels.GEModel
-        fields = ('id', 'gemodelset', 'sample', 'label', 'description', 'condition', 'reaction_count', 'metabolite_count', 'enzyme_count', 'files', 'ref', 'maintained', 'repo_name', 'last_update')
+        fields = ('id', 'gemodelset', 'sample', 'tag', 'description', 'condition', 'reaction_count', 'metabolite_count', 'enzyme_count', 'files', 'ref', 'maintained', 'repo_url', 'last_update')
 
 
 class GEModelListSerializer(serializers.ModelSerializer):
@@ -372,7 +372,7 @@ class GEModelListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = APImodels.GEModel
-        fields = ('id', 'set_name', 'sample', 'label', 'condition', 'reaction_count', 'metabolite_count', 'enzyme_count', 'maintained', 'year', 'last_update')
+        fields = ('id', 'set_name', 'sample', 'tag', 'condition', 'reaction_count', 'metabolite_count', 'enzyme_count', 'maintained', 'year', 'last_update')
 
 
 class AuthorSerializer(serializers.ModelSerializer):

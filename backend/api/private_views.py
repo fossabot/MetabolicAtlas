@@ -49,7 +49,7 @@ def get_gemodel(request, gem_id):
          model = APImodels.GEModel.objects.filter(id=gem_id). \
          prefetch_related('files', 'ref')
     else:
-         model = APImodels.GEModel.objects.filter(label__iexact=gem_id). \
+         model = APImodels.GEModel.objects.filter(tag__iexact=gem_id). \
              prefetch_related('files', 'ref')
 
     if not model:
