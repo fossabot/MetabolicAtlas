@@ -5,34 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
   </head>
   <body>
-    <div id="init-loading" style="display: none">
-      <h3>Loading Metabolic Atlas</h3>
-      <!-- source https://codepen.io/camdenfoucht/pen/BVxawq -->
-      <div class="multi-spinner-container">
-        <div class="multi-spinner">
-          <div class="multi-spinner">
-            <div class="multi-spinner">
-              <div class="multi-spinner">
-                <div class="multi-spinner">
-                  <div class="multi-spinner">
-                    <div class="multi-spinner">
-                      <div class="multi-spinner">
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <noscript>
-      JavaScript is required for Metabolic Atlas to work.
-    </noscript>
-    <script>
-      document.getElementById("init-loading").style.display = "block";
-    </script>
     <style>
       #init-loading {
         text-align: center;
@@ -135,7 +107,36 @@
         }
       }
     </style>
-    <div id="app"></div>
+    <div id="app">
+      <div id="init-loading" style="display: none">
+        <h3>Loading Metabolic Atlas</h3>
+        <!-- source https://codepen.io/camdenfoucht/pen/BVxawq -->
+        <div class="multi-spinner-container">
+          <div class="multi-spinner">
+            <div class="multi-spinner">
+              <div class="multi-spinner">
+                <div class="multi-spinner">
+                  <div class="multi-spinner">
+                    <div class="multi-spinner">
+                      <div class="multi-spinner">
+                        <div class="multi-spinner">
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <noscript>
+        JavaScript is required for Metabolic Atlas to work.
+      </noscript>
+      <script>
+        document.getElementById("init-loading").style.display = "block";
+      </script>
+    </div>
     <!-- built files will be auto injected -->
   </body>
 </html>
