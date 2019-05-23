@@ -24,6 +24,7 @@ DEBUG = os.getenv('DJANGO_IS_DEBUG')
 ALLOWED_HOSTS = [
     'localhost',
     'icsb.chalmers.se',
+    'metabolicatlas.sysbio.chalmers.se',
     'metabolicatlas.org',
 ]
 
