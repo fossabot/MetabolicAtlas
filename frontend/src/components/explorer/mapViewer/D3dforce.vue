@@ -51,16 +51,22 @@ export default {
       if (this.loadedComponentType !== type ||
           this.loadedComponentName !== name ||
           this.emptyNetwork) {
+        if (!this.emptyNetwork) {
+          this.unSelectElement();
+        }
         this.loadedComponentType = type;
         this.loadedComponentName = name;
         if (name in this.networkHistory) {
           this.$emit('loading');
           this.graph.resetCamera = true;
           this.graph.reloadHistory = true;
-          this.graph.graphData(this.networkHistory[name]);
+          this.network = this.networkHistory[name];
+          this.graph.graphData(this.network);
         } else {
           this.getJson();
         }
+      } else {
+        this.$emit('loadComplete', true, '');
       }
     });
 
