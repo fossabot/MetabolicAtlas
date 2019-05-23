@@ -5,7 +5,7 @@
         {{ errorMessage }}
       </div>
       <div v-else>
-        <h2 class="title is-2">Integrated GEMs</h2><br><br>
+        <h2 class="title is-2">Integrated GEMs</h2>
         <p class="is-size-5">
           These models are integrated into the Metabolic Atlas database; they can be explored via {{ messages.gemBrowserName }}, {{ messages.mapViewerName }} and {{ messages.interPartName }}.
         </p><br><br>
@@ -14,7 +14,7 @@
             <div class="card is-size-5">
               <header class="card-header clickable has-background-primary-lighter" @click="showIntegratedModelData(model)">
                 <p class="card-header-title card-content has-text-weight-bold has-text-primary">
-                  {{ model.full_name }} &ndash; {{ model.short_name }}
+                  {{ model.short_name }} &ndash; {{ model.full_name }}
                 </p>
                 <div class="card-header-icon">
                   <span class="icon has-text-primary">
@@ -22,16 +22,18 @@
                   </span>
                 </div>
               </header>
-              <div class="card-content">
+              <div class="card-content is-fullheight">
                 <div class="columns">
-                  <div class="column is-narrow">
+                  <div class="column">
                     Reactions: {{ model.reaction_count }}<br>
                     Metabolites: {{ model.metabolite_count }}<br>
-                    Enzymes: {{ model.enzyme_count }}<br><br>
+                    Enzymes: {{ model.enzyme_count }}<br>
+                  </div>
+                  <div class="column">
                     Date: {{ model.date || "n/a" }}<br>
                     <a :href="model.link" target="_blank">
                       <template v-if="model.link.includes('github.com')">
-                        <span class="icon"><i class="fa fa-github fa-lg"></i></span>
+                        <span class="icon"><i class="fa fa-github"></i></span>
                         GitHub
                       </template>
                      <template v-else>
@@ -40,20 +42,18 @@
                      </template>
                     </a>
                   </div>
-                  <div class="column">
-                    Condition: {{ model.condition }}<br>
-                    Tissue/Cell type: {{ model.sample }}<br><br>
-                    <router-link class="button is-info is-medium is-outlined" :to="{ path: `/explore/gem-browser/${model.database_name}` }">
-                      <span class="icon is-large"><i class="fa fa-search-plus"></i></span>
-                      <span>{{ messages.gemBrowserName }}</span>
-                    </router-link>
-                    <router-link class="button is-info is-medium is-outlined" :to="{ path: `/explore/map-viewer/${model.database_name}` }">
-                      <span class="icon is-large"><i class="fa fa-map-o"></i></span>
-                      <span>{{ messages.mapViewerName }}</span>
-                    </router-link>
-                  </div>
                 </div>
               </div>
+              <footer class="card-footer">
+                <router-link class="card-footer-item is-info is-outlined" :to="{ path: `/explore/gem-browser/${model.database_name}` }">
+                  <span class="icon is-large"><i class="fa fa-database fa-lg"></i></span>
+                  <span>{{ messages.gemBrowserName }}</span>
+                </router-link>
+                <router-link class="card-footer-item is-info is-outlined" :to="{ path: `/explore/map-viewer/${model.database_name}` }">
+                  <span class="icon is-large"><i class="fa fa-map-o fa-lg"></i></span>
+                  <span>{{ messages.mapViewerName }}</span>
+                </router-link>
+              </footer>
             </div>
           </div>
         </div>

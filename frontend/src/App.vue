@@ -475,6 +475,13 @@ m, .clickable {
 #integrated {
   .card {
     height: 100%;
+    display: flex;
+    flex-direction: column;
+    .card-header {
+      flex-grow: 1;
+    }
+    .card-footer {
+    }
   }
   margin-bottom: 2rem;
 }
