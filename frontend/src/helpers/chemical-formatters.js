@@ -13,13 +13,10 @@ export function chemicalName(value) {
   if (value === null || value === undefined) {
     return '';
   }
-  // TODO: Add logic to format formulas
   return value.replace(/([^\s])(\+)([^\s]?)/g, '$1<sup class="top">+</sup>$3')
   .replace(/H2O/g, 'H<sub>2</sub>O').replace(/(O|H)(2|3)(-?)/g, '$1<sub>$2$3</sub>');
 }
 
-
-// TODO look about rel=noopener
 export function chemicalNameExternalLink(value, link) {
   if (value === null || value === undefined) {
     return '';

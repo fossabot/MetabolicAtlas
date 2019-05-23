@@ -130,7 +130,6 @@ export default {
     idfy,
     formatChemicalReaction(v, r) { return chemicalReaction(v, r); },
     reformatChemicalReactionHTML(r) {
-      // TODO fix me
       if (this.$parent.$parent.$parent.reformatChemicalReactionLink) {
         return this.$parent.$parent.$parent.reformatChemicalReactionLink(r);
       }
