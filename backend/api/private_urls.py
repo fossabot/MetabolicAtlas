@@ -10,7 +10,8 @@ urlpatterns = [
     url(r'^hpa/enzyme/(?P<ensembl_id>[^/]+)/?$', private_views.HPA_enzyme_info),
     url(r'^hpa/enzymes/?$', private_views.HPA_all_enzymes),
 
-    url(r'^(?P<model>[^/]+)/search_map/(?P<map_type>[^/]+)/(?P<map_name_id>[^/]+)/(?P<term>[^/]+)/?$', private_views.search_on_map),
+    url(r'^(?P<model>[^/]+)/get_id/(?P<term>[^/]+)/?$', private_views.get_id),
+
     url(r'^(?P<model>[^/]+)/available_maps/(?P<component_type>[^/]+)/(?P<component_id>[^/]+)/?$', private_views.get_available_maps),
 
     url(r'^(?P<model>[^/]+)/json/?$', private_views.get_db_json),

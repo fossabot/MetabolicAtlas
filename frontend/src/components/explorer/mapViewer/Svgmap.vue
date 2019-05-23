@@ -339,7 +339,7 @@ export default {
         return;
       }
       this.isLoadingSearch = true;
-      axios.get(`${this.model.database_name}/search_map/${this.loadedMapType}/${this.loadedMap.name_id}/${this.searchTerm}`)
+      axios.get(`${this.model.database_name}/get_id/${this.searchTerm}`)
       .then((response) => {
         this.searchInputClass = 'is-success';
         this.idsFound = response.data;
@@ -362,6 +362,7 @@ export default {
         return;
       }
       this.elmFound = [];
+      this.totalSearchMatch = 0;
       for (let i = 0; i < this.idsFound.length; i += 1) {
         const id = this.idsFound[i].trim();
         const rselector = `#svg-wrapper .rea#${id}`;
@@ -370,7 +371,7 @@ export default {
           const selectors = `#svg-wrapper .met.${id}, #svg-wrapper .enz.${id}`;
           elms = $(selectors);
         }
-        this.totalSearchMatch = elms.length;
+        this.totalSearchMatch += elms.length;
         this.currentSearchMatch = 0;
         for (let j = 0; j < elms.length; j += 1) {
           this.elmFound.push($(elms[j]));

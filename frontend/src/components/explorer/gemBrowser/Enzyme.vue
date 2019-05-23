@@ -74,7 +74,7 @@
 import axios from 'axios';
 import ReactionTable from 'components/explorer/gemBrowser/ReactionTable';
 import Loader from 'components/Loader';
-import { chemicalFormula, chemicalName, chemicalNameExternalLink } from '../../../helpers/chemical-formatters';
+import { chemicalName, chemicalNameExternalLink } from '../../../helpers/chemical-formatters';
 import { reformatTableKey } from '../../../helpers/utils';
 import { default as messages } from '../../../helpers/messages';
 
@@ -177,7 +177,6 @@ export default {
           }
         });
     },
-    chemicalFormula,
     chemicalName,
     chemicalNameExternalLink,
   },
