@@ -90,7 +90,7 @@ def insert_model_metadata(database, metadata, overwrite=False, content_only=Fals
 
     #fix metadata dict
     if database == "human1":
-        metadata_dict["organism"] = "Human"
+        metadata_dict["organism"] = "Homo sapiens"
         metadata_dict["organ_system"] = None
         metadata_dict["tissue"] = None
         metadata_dict["cell_type"] = "Generic cell"
@@ -333,80 +333,85 @@ def insert_compartment_stats(database):
 def load_YAML(database, yaml_file, overwrite=False, metadata_only=False, content_only=False):
     with open(yaml_file, 'r') as fh:
         print ('Reading YAML file...')
-        model_list = yaml.load(fh.read())
+        model_list = yaml.load(fh.read()) # using a loader (Loader=yaml.safe_load) returns a dispose() error
         metadata, metabolites, reactions, genes, compartments = model_list
 
     # counts must be updated so we need the gem object
     gem = insert_model_metadata(database, metadata, overwrite=overwrite, content_only=content_only)
 
-    if metadata_only:
-        return
+    if not metadata_only:
+        if overwrite:
+            Compartment.objects.using(database).all().delete()
 
-    if overwrite:
-        Compartment.objects.using(database).all().delete()
+        print("Inserting compartments...")
+        compartment_dict = {} 
+        for letter_code, name in compartments[1]:
+            compartment = Compartment.objects.using(database).filter(name__iexact=name)
+            if not compartment:     # only add the compartment if it does not already exists...
+                compartment = Compartment(name=name, name_id=idfy_name(name), letter_code=letter_code)
+                compartment.save(using=database)
+            else:
+                compartment=compartment[0]
+            compartment_dict[letter_code] = compartment
 
-    print("Inserting compartments...")
-    compartment_dict = {}
-    for letter_code, name in compartments[1]:
-        compartment = Compartment.objects.using(database).filter(name__iexact=name)
-        if not compartment:     # only add the compartment if it does not already exists...
-            compartment = Compartment(name=name, name_id=idfy_name(name), letter_code=letter_code)
-            compartment.save(using=database)
-        else:
-            compartment=compartment[0]
-        compartment_dict[letter_code] = compartment
-
-    if overwrite:
+    if overwrite and not metadata_only:
         ReactionComponent.objects.using(database).all().delete()
 
-    print("Inserting metabolites (rc)...")
+    if not metadata_only:
+        print("Inserting metabolites (rc)...")
     rc_dict = {} # store reaction component pour connectivity tables (reaction/reactant, rc/subsystem, rc /compartment)
     unique_metabolite = set()
     for el in metabolites[1]:
         dict_metabolite = make_meta_dict(el)
-        rc = ReactionComponent.objects.using(database).filter(id__iexact=dict_metabolite['id'])
-        if not rc:
-            compartment = compartment_dict[dict_metabolite['compartment']]
-            full_name = "%s[%s]" % (dict_metabolite['name'], dict_metabolite['compartment'])
-            rc = ReactionComponent(id=dict_metabolite['id'], name=dict_metabolite['name'], full_name=full_name,
-                component_type='m', formula=dict_metabolite['formula'], compartment=compartment, compartment_str=compartment.name)
-            rc.save(using=database)
+        if not metadata_only:
+            rc = ReactionComponent.objects.using(database).filter(id__iexact=dict_metabolite['id'])
+            if not rc:
+                compartment = compartment_dict[dict_metabolite['compartment']]
+                full_name = "%s[%s]" % (dict_metabolite['name'], dict_metabolite['compartment'])
+                rc = ReactionComponent(id=dict_metabolite['id'], name=dict_metabolite['name'], full_name=full_name,
+                    component_type='m', formula=dict_metabolite['formula'], compartment=compartment, compartment_str=compartment.name)
+                rc.save(using=database)
 
-            rcc = ReactionComponentCompartment(rc=rc, compartment=rc.compartment)
-            rcc.save(using=database)
+                rcc = ReactionComponentCompartment(rc=rc, compartment=rc.compartment)
+                rcc.save(using=database)
 
-            if dict_metabolite['charge'] is not None:
-                ## add Metabolite object, with the charge
-                met = Metabolite(rc=rc, charge=dict_metabolite['charge'])
-                met.save(using=database)
-        else:
-            rc = rc[0]
+                if dict_metabolite['charge'] is not None:
+                    ## add Metabolite object, with the charge
+                    met = Metabolite(rc=rc, charge=dict_metabolite['charge'])
+                    met.save(using=database)
+            else:
+                rc = rc[0]
+            rc_dict[dict_metabolite['id']] = rc
         unique_metabolite.add(dict_metabolite['name'])
-
-        rc_dict[dict_metabolite['id']] = rc
 
     # update metabolite count
     GEM.objects.filter(id=gem.id).update(metabolite_count=len(unique_metabolite))
 
-    print("Inserting enzymes (rc)...")
-    for el in genes[1]:
-        id_string, id_value = el[0]
-        rc = ReactionComponent.objects.using(database).filter(id__iexact=id_value)
-        if not rc:
-            # name should be provide in the annotation file
-            # the is no compartment localization for enzyme
-            rc = ReactionComponent(id=id_value, name='', component_type='e')
-            rc.save(using=database)
-        else:
-            rc = rc[0]
-        rc_dict[id_value] = rc
+    if not metadata_only:
+        print("Inserting enzymes (rc)...")
+        for el in genes[1]:
+            id_string, id_value = el[0]
+            rc = ReactionComponent.objects.using(database).filter(id__iexact=id_value)
+            if not rc:
+                # name should be provide in the annotation file
+                # the is no compartment localization for enzyme
+                rc = ReactionComponent(id=id_value, name='', component_type='e')
+                rc.save(using=database)
+            else:
+                rc = rc[0]
+            rc_dict[id_value] = rc
 
     # update enzyme count
     GEM.objects.filter(id=gem.id).update(enzyme_count=len(genes[1]))
 
-    if overwrite:
+    if overwrite and not metadata_only:
         Reaction.objects.using(database).all().delete()
         Subsystem.objects.using(database).all().delete()
+
+    if metadata_only:
+        # update reaction count
+        GEM.objects.filter(id=gem.id).update(reaction_count=len(reactions[1]))
+        return
 
     reaction_dict = {}
     print("Inserting reactions...")
