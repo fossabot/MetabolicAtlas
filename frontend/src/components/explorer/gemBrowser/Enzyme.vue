@@ -177,6 +177,18 @@ export default {
           }
         });
     },
+    loadReactions() {
+      // this.reactions = [];
+      this.showReactionLoader = true;
+      axios.get(`${this.model.database_name}/enzyme/${this.eId}/get_reactions`)
+        .then((response) => {
+          this.reactions = response.data;
+          this.showReactionLoader = false;
+        })
+        .catch(() => {
+          this.reactions = [];
+        });
+    },
   },
   beforeMount() {
     this.setup();
