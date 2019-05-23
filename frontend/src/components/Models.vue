@@ -80,20 +80,30 @@
                   {{ selectedModel.full_name }}
                 </template>
                 <template v-else>
-                  {{ selectedModel.set_name }} - {{ selectedModel.label || selectedModel.tissue}}
+                   <template v-if="selectedModel.tag || selectedModel.tissue || selectedModel.cell_type || selectedModel.cell_line">
+                    {{ selectedModel.set_name }} - {{ selectedModel.tag || selectedModel.tissue || selectedModel.cell_type || selectedModel.cell_line }}
+                   </template>
+                   <template v-else>
+                    {{ selectedModel.set_name }}
+                   </template>
                 </template>
               </h2>
               {{ selectedModel.description }}<br><br>
               <table class="table main-table">
                 <tbody>
-                  <tr v-for="field in model_fields" v-if="selectedModel[field.name]">
-                    <td v-html="field.display" class="td-key has-background-primary has-text-white-bis"></td>
-                    <td v-if="typeof(selectedModel[field.name]) === 'boolean'">
-                      {{ selectedModel[field.name] ? 'Yes' : 'No' }}
-                    </td>
-                    <td v-else>
-                      {{ selectedModel[field.name] }}
-                    </td>
+                  <tr v-for="field in model_fields">
+                    <template v-if="['reaction_count', 'metabolite_count', 'enzyme_count'].includes(field.name)">
+                      <td v-html="field.display" class="td-key has-background-primary has-text-white-bis"></td>
+                      <td>{{ selectedModel[field.name] !== null ? selectedModel[field.name] : '-' }}</td>
+                    </template>
+                    <template v-else-if="typeof(selectedModel[field.name]) === 'boolean'">
+                      <td v-html="field.display" class="td-key has-background-primary has-text-white-bis"></td>
+                      <td>{{ selectedModel[field.name] ? 'Yes' : 'No' }}</td>
+                    </template>
+                    <template v-else-if="selectedModel[field.name]">
+                      <td v-html="field.display" class="td-key has-background-primary has-text-white-bis"></td>
+                      <td>{{ selectedModel[field.name] }}</td>
+                    </template>
                   </tr>
                   <template v-if="selectedModel.authors && selectedModel.authors.length !== 0">
                     <tr v-for="a in selectedModel.authors">
@@ -122,7 +132,7 @@
                       <template v-for="oneRef in selectedModel.ref">
                         <p v-if="!oneRef.link">{{ oneRef.title }}</p>
                         <a v-else :href="oneRef.link" target="_blank">
-                          {{ oneRef.title }} (PMID {{ oneRef.pubmed }})
+                          {{ oneRef.title }} (PMID: {{ oneRef.pmid }})
                         </a>
                         <br>
                       </template>
@@ -189,8 +199,8 @@ export default {
           sortable: true,
           html: true,
         }, {
-          label: 'Label',
-          field: 'label',
+          label: 'Tag',
+          field: 'tag',
           filterOptions: {
             enabled: true,
           },
@@ -300,7 +310,7 @@ export default {
           model.sample = [model.sample.tissue, model.sample.cell_type, model.sample.cell_line].filter(e => e).join(' ‒ ') || '-';
           models.push(model);
         }
-        models.sort((a, b) => (a.short_name < b.short_name ? 1 : -1));
+        models.sort((a, b) => (a.short_name.toLowerCase() < b.short_name.toLowerCase() ? -1 : 1));
         this.integratedModels = models;
       })
       .catch(() => {
@@ -382,12 +392,6 @@ export default {
         this.errorMessage = messages.notFoundError;
         this.showLoader = false;
       });
-    },
-    buildHeader() {
-      if (this.selectedModel.label) {
-        return ` <i>${this.selectedModel.organism}</i>: ${this.selectedModel.set_name} - ${this.selectedModel.label}`;
-      }
-      return ` <i>${this.selectedModel.organism}</i>: ${this.selectedModel.set_name} - ${this.selectedModel.tissue}`;
     },
   },
 };

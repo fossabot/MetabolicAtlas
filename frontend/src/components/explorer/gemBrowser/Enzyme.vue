@@ -53,14 +53,16 @@
               </router-link>
             </div>
           </div>
+          <template v-if="!this.showLoader">
+            <h4 class="title is-4">Reactions</h4>
+          </template>
           <div class="columns">
             <div class="column">
-              <template v-if="loading">
+              <template v-if="!this.showLoader && this.showReactionLoader">
                 <loader></loader>
               </template>
-              <template v-else>
-                <h4 class="title is-4" v-show="!loading && reactions.length > 0">Reactions</h4>
-                <reaction-table v-show="!loading && reactions.length > 0" :reactions="reactions" :showSubsystem="true" :model="model" :limit="200"></reaction-table>
+              <template v-else-if="!this.showReactionLoader">
+                <reaction-table :reactions="this.reactions" :showSubsystem="true" :model="this.model" :limit="this.limitReaction"></reaction-table>
               </template>
             </div>
           </div>
@@ -74,7 +76,6 @@
 import axios from 'axios';
 import ReactionTable from 'components/explorer/gemBrowser/ReactionTable';
 import Loader from 'components/Loader';
-import { chemicalName, chemicalNameExternalLink } from '../../../helpers/chemical-formatters';
 import { reformatTableKey } from '../../../helpers/utils';
 import { default as messages } from '../../../helpers/messages';
 
@@ -88,7 +89,8 @@ export default {
   data() {
     return {
       messages,
-      loading: true,
+      showLoader: true,
+      showReactionLoader: true,
       errorMessage: null,
       eId: '',
       enzyme: {},
@@ -119,6 +121,7 @@ export default {
         yeast8: [],
       },
       reactions: [],
+      limitReaction: 200,
     };
   },
   watch: {
@@ -132,9 +135,6 @@ export default {
     },
   },
   computed: {
-    filename() {
-      return `ma_catalyzed_reaction_${this.enzymeName}`;
-    },
     hasExternalID() {
       for (const item of this.externalIDTableKey[this.model.database_name]) {
         if (this.enzyme[item.name] && this.enzyme[item.link]) {
@@ -149,24 +149,24 @@ export default {
       this.eId = this.$route.params.id;
       if (this.eId) {
         this.load();
+        this.loadReactions();
       }
     },
     reformatTableKey(k) { return reformatTableKey(k); },
     load() {
-      this.loading = true;
+      this.showLoader = true;
       // const enzymeId = this.eid;
-      axios.get(`${this.model.database_name}/enzyme/${this.eId}/connected_metabolites`)
+      axios.get(`${this.model.database_name}/enzyme/${this.eId}/`)
         .then((response) => {
-          this.loading = false;
+          this.showLoader = false;
           this.errorMessage = null;
-          this.eId = response.data.enzyme.id;
-          this.enzymeName = response.data.enzyme.gene_name || response.data.enzyme.id;
-          this.enzyme = response.data.enzyme;
+          this.eId = response.data.id;
+          this.enzymeName = response.data.gene_name || response.data.id;
+          this.enzyme = response.data;
           this.enzyme.enzymeName = this.enzymeName;
-          this.reactions = response.data.reactions;
         })
         .catch((error) => {
-          this.loading = false;
+          this.showLoader = false;
           this.reactions = [];
           switch (error.response.status) {
             case 404:
@@ -177,8 +177,6 @@ export default {
           }
         });
     },
-    chemicalName,
-    chemicalNameExternalLink,
   },
   beforeMount() {
     this.setup();
