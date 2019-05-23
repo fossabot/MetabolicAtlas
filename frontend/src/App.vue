@@ -105,7 +105,6 @@
 
 <script>
 
-import $ from 'jquery';
 import { default as EventBus } from './event-bus';
 import { isCookiePolicyAccepted, acceptCookiePolicy } from './helpers/store';
 
@@ -154,7 +153,6 @@ export default {
   },
   created() {
     this.setupButons();
-    $('#loading').css('display', 'none');
   },
   methods: {
     setupButons() {
