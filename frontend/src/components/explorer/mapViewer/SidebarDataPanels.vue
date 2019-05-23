@@ -59,7 +59,7 @@
         </div>
         <div class="card" v-else-if="selectionData.data && ['metabolite', 'enzyme', 'reaction'].includes(selectionData.type)">
           <header class="card-header clickable" v-if="!selectionData.error" @click.prevent="showSelectionCardContent = !showSelectionCardContent">
-            <p class="card-header-title is-capitalized is-inline">
+            <p class="card-header-title is-inline">
               {{ selectionData.type }}: <i>{{ selectionData.data.id }}</i>
             </p>
             <a href="#" class="card-header-icon" aria-label="more options">
@@ -101,6 +101,10 @@
                   <p><span class="has-text-weight-bold" v-html="capitalize(item.display || item.name) + ':'"></span><br>
                   <span v-html="chemicalReaction(selectionData.data[item.name], selectionData.data['is_reversible'])"></span></p>
                 </template>
+                <template v-else-if="item.name === 'formula'">
+                  <p><span class="has-text-weight-bold" v-html="capitalize(item.display || item.name) + ':'"></span>
+                  <span v-html="chemicalFormula(selectionData.data[item.name], selectionData.data.charge)"></span></p>
+                </template>
                 <template v-else>
                   <p><span class="has-text-weight-bold" v-html="capitalize(item.display || item.name) + ':'"></span>
                   {{ selectionData.data[item.name] }}</p>
@@ -125,7 +129,7 @@
 
 <script>
 import { capitalize, reformatStringToLink, idfy } from '../../../helpers/utils';
-import { chemicalReaction } from '../../../helpers/chemical-formatters';
+import { chemicalFormula, chemicalReaction } from '../../../helpers/chemical-formatters';
 import { getExpLvlLegend } from '../../../expression-sources/hpa';
 import { default as messages } from '../../../helpers/messages';
 import { default as EventBus } from '../../../event-bus';
@@ -217,6 +221,7 @@ export default {
     getExpLvlLegend,
     capitalize,
     reformatStringToLink,
+    chemicalFormula,
     chemicalReaction,
     idfy,
   },
