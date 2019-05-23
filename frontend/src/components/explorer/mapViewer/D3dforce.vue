@@ -55,6 +55,8 @@ export default {
         this.loadedComponentName = name;
         if (name in this.networkHistory) {
           this.$emit('loading');
+          this.graph.resetCamera = true;
+          this.graph.reloadHistory = true;
           this.graph.graphData(this.networkHistory[name]);
         } else {
           this.getJson();
@@ -91,8 +93,10 @@ export default {
             if (this.graph === null) {
               this.graph = {};
               this.graph.emitLoadComplete = true;
+              this.graph.resetCamera = true;
               this.constructGraph();
             } else {
+              this.graph.resetCamera = true;
               this.graph.graphData(this.network);
             }
             this.emptyNetwork = false;
@@ -139,6 +143,15 @@ export default {
           return '#9df';
         })
         .onEngineStop(() => {
+          if (this.graph === null ||
+            this.graph.reloadHistory === undefined || !this.graph.reloadHistory) {
+            this.networkHistory[this.loadedComponentName] = this.network;
+          }
+          if (this.graph.resetCamera) {
+            this.graph.resetCamera = false;
+            this.resetCameraPosition();
+          }
+          this.updateGraphBounds();
           if (this.graph !== null &&
             this.graph.emitLoadComplete !== undefined &&
             !this.graph.emitLoadComplete) {
@@ -146,8 +159,6 @@ export default {
           } else if (this.graph.graphData().nodes.length !== 0) {
             this.$emit('loadComplete', true, '');
           }
-          this.networkHistory[this.loadedComponentName] = this.network;
-          this.updateGraphBounds();
         });
     },
     updateGraphBounds() {
@@ -213,6 +224,14 @@ export default {
       this.selectElementID = null;
       this.selectElementIDfull = null;
       EventBus.$emit('unSelectedElement');
+    },
+    resetCameraPosition() {
+      this.graph.cameraPosition(
+          { x: 0, y: 0, z: 0 },
+          { x: 0, y: 0, z: 0 }, // lookAt ({ x, y, z })
+          0  // ms transition duration
+        );
+      this.graph.camera().position.z = Math.cbrt(this.graph.graphData().nodes.length) * 150;
     },
     updateGeometries(emitLoadComplete) {
       this.graph.emitLoadComplete = emitLoadComplete;
