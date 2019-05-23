@@ -293,7 +293,6 @@ class GemBrowserTileSerializer(serializers.Serializer):
 
 
 class GEModelFileSerializer(serializers.ModelSerializer):
-    path = serializers.SerializerMethodField('get_file_path')
     class Meta:
         model = APImodels.GEModelFile
         fields = ('path', 'format')
