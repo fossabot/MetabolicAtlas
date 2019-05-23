@@ -67,23 +67,23 @@ class GEModel(models.Model):
     gemodelset = models.ForeignKey(GEModelSet, on_delete=models.CASCADE)
     sample = models.ForeignKey(GEModelSample, on_delete=models.CASCADE)
     description = models.TextField(null=True)
-    label = models.CharField(max_length=200, null=True)
+    tag = models.CharField(max_length=200, null=True)
     condition = models.CharField(max_length=200, null=True)
-    reaction_count = models.IntegerField(default=0)
-    metabolite_count = models.IntegerField(default=0)
-    enzyme_count = models.IntegerField(default=0)
+    reaction_count = models.IntegerField(default=0, blank=True, null=True)
+    metabolite_count = models.IntegerField(default=0, blank=True, null=True)
+    enzyme_count = models.IntegerField(default=0, blank=True, null=True)
     files = models.ManyToManyField(GEModelFile, related_name='gemodel')
     maintained = models.BooleanField(default=False)
     ref = models.ManyToManyField(GEModelReference, related_name='gemodel', blank=True)
     last_update = models.DateField(null=True)
-    repo_name = models.CharField(max_length=200, null=True)
+    repo_url = models.CharField(max_length=200, null=True)
 
     def save(self, *args, **kwargs):
         if not self.gemodelset:
             raise AttributeError("Model set must be specified")
         if not self.sample:
             raise AttributeError("Model sample must be specified")
-        if not self.reaction_count and not self.metabolite_count and not self.enzyme_count:
+        if self.reaction_count == 0 and self.metabolite_count == 0 and self.enzyme_count == 0:
             raise AttributeError("component count cannot be all 0")
         super(GEModel, self).save(*args, **kwargs)
 

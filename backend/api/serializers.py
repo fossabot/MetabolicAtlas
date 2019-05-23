@@ -171,24 +171,6 @@ class HmrInteractionPartnerSerializer(serializers.ModelSerializer):
 
 
 # =========================================================================================
-class MetaboliteReactionSerializer(serializers.Serializer):
-    reaction_id = serializers.CharField()
-    enzyme_role = serializers.CharField()
-    subsystem = serializers.SerializerMethodField('get_subsystems')
-    reactants = APIrcSerializer.ReactionComponentSerializer(many=True, read_only=True)
-    products = APIrcSerializer.ReactionComponentSerializer(many=True, read_only=True)
-    modifiers = APIrcSerializer.ReactionComponentSerializer(many=True, read_only=True)
-
-    def get_subsystems(self, model):
-        ss_ids = SubsystemReaction.objects.using(self.context.get('model')).filter(reaction=model.reaction_id).values_list('subsystem')
-        return Subsystem.objects.using(self.context.get('model')).filter(id__in=ss_ids).values_list('name')
-
-
-class ConnectedMetabolitesSerializer(serializers.Serializer):
-    enzyme = APIrcSerializer.ReactionComponentSerializer(read_only=True)
-    compartment = serializers.CharField()
-    reactions = MetaboliteReactionSerializer(many=True)
-
 
 class CompartmentSerializer(serializers.ModelSerializer):
     class Meta:
@@ -311,16 +293,9 @@ class GemBrowserTileSerializer(serializers.Serializer):
 
 
 class GEModelFileSerializer(serializers.ModelSerializer):
-    path = serializers.SerializerMethodField('get_file_path')
     class Meta:
         model = APImodels.GEModelFile
         fields = ('path', 'format')
-
-    def get_file_path(self, model):
-        if '/FTP' in model.path:
-            return "%s%s" % ('https://ftp.metabolicatlas.org/models', model.path.split('/FTP')[1])
-        else:
-            return model.path
 
 class GEModelReferenceSerializer(serializers.ModelSerializer):
     class Meta:
@@ -348,7 +323,7 @@ class GEModelSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = APImodels.GEModel
-        fields = ('id', 'gemodelset', 'sample', 'label', 'description', 'condition', 'reaction_count', 'metabolite_count', 'enzyme_count', 'files', 'ref', 'maintained', 'repo_name', 'last_update')
+        fields = ('id', 'gemodelset', 'sample', 'tag', 'description', 'condition', 'reaction_count', 'metabolite_count', 'enzyme_count', 'files', 'ref', 'maintained', 'repo_url', 'last_update')
 
 
 class GEModelListSerializer(serializers.ModelSerializer):
@@ -370,7 +345,7 @@ class GEModelListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = APImodels.GEModel
-        fields = ('id', 'set_name', 'sample', 'label', 'condition', 'reaction_count', 'metabolite_count', 'enzyme_count', 'maintained', 'year', 'last_update')
+        fields = ('id', 'set_name', 'sample', 'tag', 'condition', 'reaction_count', 'metabolite_count', 'enzyme_count', 'maintained', 'year', 'last_update')
 
 
 class AuthorSerializer(serializers.ModelSerializer):

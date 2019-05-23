@@ -49,7 +49,7 @@ def get_gemodel(request, gem_id):
          model = APImodels.GEModel.objects.filter(id=gem_id). \
          prefetch_related('files', 'ref')
     else:
-         model = APImodels.GEModel.objects.filter(label__iexact=gem_id). \
+         model = APImodels.GEModel.objects.filter(tag__iexact=gem_id). \
              prefetch_related('files', 'ref')
 
     if not model:
@@ -60,18 +60,21 @@ def get_gemodel(request, gem_id):
 
 @api_view()
 @is_model_valid
-def search_on_map(request, model, map_type, map_name_id, term):
+def get_id(request, model, term):
     if not term:
         return JSONResponse([])
-
-    if map_type not in ['subsystem', 'compartment'] or not map_name_id:
-        return HttpResponse(status=404)
 
     query = Q()
     reaction_query = Q()
     query |= Q(id__iexact=term)
     reaction_query |= Q(id__iexact=term)
     reaction_query |= Q(name__iexact=term)
+    reaction_query |= Q(external_id1__iexact=term)
+    reaction_query |= Q(external_id2__iexact=term)
+    reaction_query |= Q(external_id3__iexact=term)
+    reaction_query |= Q(external_id4__iexact=term)
+    reaction_query |= Q(external_id5__iexact=term)
+    reaction_query |= Q(external_id6__iexact=term)
     query |= Q(name__iexact=term)
     query |= Q(full_name__iexact=term)
     query |= Q(alt_name1__iexact=term)
@@ -86,35 +89,11 @@ def search_on_map(request, model, map_type, map_name_id, term):
     query |= Q(external_id8__iexact=term)
     query |= Q(formula__iexact=term)
 
-    mapIDset = None
-    if map_type == 'compartment':
-        try:
-            compartment = APImodels.CompartmentSvg.objects.using(model).get(name_id=map_name_id)
-            mapIDsetMet = APImodels.ReactionComponentCompartmentSvg.objects.using(model) \
-                .filter(Q(compartmentsvg=compartment.id)).values_list('rc_id')
-            mapIDsetEnz = APImodels.CompartmentSvgEnzyme.objects.using(model) \
-                .filter(Q(compartmentsvg=compartment.id)).values_list('rc_id')
-            mapIDsetReaction = APImodels.ReactionCompartmentSvg.objects.using(model) \
-                .filter(Q(compartmentsvg=compartment.id)).values_list('reaction_id')
-        except APImodels.CompartmentSvg.DoesNotExist:
-            return HttpResponse(status=404)
-    else:
-        try:
-            subsystem = APImodels.SubsystemSvg.objects.using(model).get(name_id=map_name_id)
-            mapIDsetMet = APImodels.ReactionComponentSubsystemSvg.objects.using(model) \
-                .filter(Q(subsystemsvg=subsystem.id)).values_list('rc_id')
-            mapIDsetEnz = APImodels.SubsystemSvgEnzyme.objects.using(model) \
-                .filter(Q(subsystemsvg=subsystem.id)).values_list('rc_id')
-            mapIDsetReaction = APImodels.ReactionSubsystemSvg.objects.using(model) \
-                .filter(Q(subsystemsvg=subsystem.id)).values_list('reaction_id')
-        except APImodels.SubsystemSvg.DoesNotExist:
-            return HttpResponse(status=404)
-
     # get the list of component id
-    reaction_component_ids = APImodels.ReactionComponent.objects.using(model).filter(Q(id__in=mapIDsetMet) | Q(id__in=mapIDsetEnz)).filter(query).values_list('id', flat=True);
+    reaction_component_ids = APImodels.ReactionComponent.objects.using(model).filter(query).values_list('id', flat=True);
 
     # get the list of reaction id
-    reaction_ids = APImodels.Reaction.objects.using(model).filter(id__in=mapIDsetReaction).filter(reaction_query).values_list('id', flat=True)
+    reaction_ids = APImodels.Reaction.objects.using(model).filter(reaction_query).values_list('id', flat=True)
 
     if not reaction_component_ids.count() and not reaction_ids.count():
         return HttpResponse(status=404)
@@ -587,33 +566,6 @@ def get_component_with_interaction_partners(request, model, id):
              }
 
     return JSONResponse(result)
-
-
-@api_view()
-@is_model_valid
-def connected_metabolites(request, model, id):
-    try:
-        enzyme = APImodels.ReactionComponent.objects.using(model).get(
-                Q(component_type='e') &
-                (Q(id__iexact=id) | Q(id__iexact=id))
-            )
-    except APImodels.ReactionComponent.DoesNotExist:
-        return HttpResponse(status=404)
-
-    reactions = APImodels.Reaction.objects.using(model).filter(
-            Q(reactionmodifier__modifier_id=enzyme.id)
-            ).prefetch_related('reactants', 'products', 'modifiers').distinct()
-
-    ReactionSerializerClass = componentDBserializerSelector(model, 'reaction', serializer_type='lite')
-    EnzymeSerializerClass = componentDBserializerSelector(model, 'enzyme')
-
-    result =  {
-        'enzyme' : EnzymeSerializerClass(enzyme, context={'model': model}).data,
-        'reactions': ReactionSerializerClass(reactions, many=True, context={'model': model}).data
-    }
-
-    return JSONResponse(result)
-
 
 ##########################################################################################
 

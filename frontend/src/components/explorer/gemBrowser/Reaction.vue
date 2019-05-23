@@ -79,8 +79,7 @@ import $ from 'jquery';
 import Loader from 'components/Loader';
 import MapsAvailable from 'components/explorer/gemBrowser/MapsAvailable';
 import { default as EventBus } from '../../../event-bus';
-import { chemicalFormula, chemicalName, chemicalNameExternalLink } from '../../../helpers/chemical-formatters';
-import { reformatTableKey, addMassUnit, reformatSBOLink, reformatECLink, reformatCompEqString } from '../../../helpers/utils';
+import { reformatTableKey, addMassUnit, reformatECLink, reformatCompEqString } from '../../../helpers/utils';
 import { default as messages } from '../../../helpers/messages';
 
 export default {
@@ -104,7 +103,6 @@ export default {
           { name: 'ec', display: 'EC', modifier: this.reformatECLink },
           { name: 'compartment', isComposite: true, modifier: this.reformatCompartment },
           { name: 'subsystem', display: 'Subsystem', modifier: this.reformatSubsystemList },
-          { name: 'sbo_id', display: 'SBO', modifier: this.reformatSBOLink },
         ],
         yeast8: [
           { name: 'id' },
@@ -267,10 +265,6 @@ export default {
     viewReactionOnMap(reactionID) {
       EventBus.$emit('viewReactionOnMap', reactionID);
     },
-    chemicalFormula,
-    chemicalName,
-    chemicalNameExternalLink,
-    reformatSBOLink,
     reformatTableKey,
     reformatECLink,
     reformatCompEqString,
