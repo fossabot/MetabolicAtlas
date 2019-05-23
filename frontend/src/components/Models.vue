@@ -33,7 +33,7 @@
                       <template v-if="model.link.includes('github.com')">
                         <span class="icon"><i class="fa fa-github fa-lg"></i></span>
                         GitHub
-                     </template>
+                      </template>
                      <template v-else>
                         <span class="icon"><i class="fa fa-link fa-lg"></i></span>
                         External link
@@ -137,7 +137,7 @@
                   <tbody>
                     <tr>
                       <td v-for="file in selectedModel.files">
-                        <a :href="file.path">{{ file.format }}</a>
+                        <a :href="`${filesURL}${file.path}`">{{ file.format }}</a>
                       </td>
                     </tr>
                   </tbody>
@@ -277,6 +277,7 @@ export default {
       },
       messages,
       integratedModels: [],
+      filesURL: 'https://ftp.metabolicatlas.org/',
     };
   },
   created() {
