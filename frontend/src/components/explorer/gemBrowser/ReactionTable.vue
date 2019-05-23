@@ -172,7 +172,7 @@ export default {
 .reaction-table {
 
   m {
-    color: #006992;
+    color: #00549E;
     &.cms {
       color: rgb(54, 54, 54);
       cursor: default;

@@ -204,10 +204,10 @@ export default {
 $primary: #25543C;
 $primary-light: #4C735F;
 $primary-lighter: #EEF0EF;
-$link: #006992;
+$link: #00549E;
 $warning: #FFC67D;
 $danger: #F46036;
-$info: #00549E;
+$info: $link;
 
 $body-size: 14px !default
 
