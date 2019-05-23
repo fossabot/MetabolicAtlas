@@ -24,8 +24,6 @@ urlpatterns = [
     url(r'^(?P<model>[^/]+)/viewer/?$', private_views.get_data_viewer),
     url(r'^(?P<model>[^/]+)/gem_browser_tiles/?$', private_views.get_tiles_data),
 
-    url(r'^(?P<model>[^/]+)/enzyme/(?P<id>[^/]+)/connected_metabolites/?$', private_views.connected_metabolites),
-
     url(r'^(?P<model>[^/]+)/enzyme/hpa_rna_levels/(?P<map_type>[^/]+)/(?P<dim>[^/]+)/(?P<name_id>[^/]+)/?$', private_views.get_hpa_rna_levels_map),
     url(r'^(?P<model>[^/]+)/enzyme/hpa_rna_levels/?$', private_views.get_hpa_rna_levels),
     url(r'^(?P<model>[^/]+)/enzyme/hpa_tissue/?$', private_views.get_hpa_tissues),
@@ -37,7 +35,7 @@ urlpatterns = [
 
     url(r'^(?P<model>[^/]+)/compartment/(?P<compartment_name_id>[^/]+)/summary/?$', views.get_compartment, {'api': False}),
     url(r'^(?P<model>[^/]+)/subsystem/(?P<subsystem_name_id>[^/]+)/summary/?$', views.get_subsystem, {'api': False}),
-    url(r'^(?P<model>[^/]+)/subsystem/(?P<subsystem_name_id>[^/]+)/reaction_list/?$', views.get_subsystem_reactions, {'api': False}),
+    url(r'^(?P<model>[^/]+)/subsystem/(?P<subsystem_name_id>[^/]+)/get_reactions/?$', views.get_subsystem_reactions, {'api': False}),
 
     url(r'^(?P<model>[^/]+)/search/(?P<term>[^/]+)/?$', private_views.search),
 ]

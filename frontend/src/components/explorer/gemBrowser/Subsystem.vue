@@ -195,7 +195,7 @@ export default {
     },
     getReactions() {
       this.showReactionLoader = true;
-      axios.get(`${this.model.database_name}/subsystem/${this.sName}/reaction_list`)
+      axios.get(`${this.model.database_name}/subsystem/${this.sName}/get_reactions`)
       .then((response) => {
         this.reactions = response.data.reactions;
         this.limitReaction = response.data.limit;
