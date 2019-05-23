@@ -36,6 +36,7 @@ export default {
       HPARNAlevelsHistory: {},
       defaultEnzymeColor: '#feb',
       tissue: 'None',
+      focusOnID: null,
     };
   },
   created() {
@@ -44,9 +45,15 @@ export default {
     EventBus.$off('update3DLoadedComponent');
     EventBus.$off('load3DHPARNAlevels');
 
-    EventBus.$on('show3Dnetwork', (type, name) => {
+    EventBus.$on('show3Dnetwork', (type, name, ids) => {
       if (name.toLowerCase().substr(0, 7) === 'cytosol') {
         name = 'cytosol'; // eslint-disable-line no-param-reassign
+      }
+      if (ids && ids.length === 1) {
+        this.focusOnID = ids[0];
+      } else {
+        // do not handle multiple ids for now;
+        this.focusOnID = null;
       }
       if (this.loadedComponentType !== type ||
           this.loadedComponentName !== name ||
@@ -65,6 +72,9 @@ export default {
         } else {
           this.getJson();
         }
+      } else if (this.focusOnID) {
+        this.graph.emitLoadComplete = true;
+        this.focusOnNode(this.focusOnID);
       } else {
         this.$emit('loadComplete', true, '');
       }
@@ -165,6 +175,9 @@ export default {
           } else if (this.graph.graphData().nodes.length !== 0) {
             this.$emit('loadComplete', true, '');
           }
+          if (this.focusOnID) {
+            this.focusOnNode(this.focusOnID);
+          }
         });
     },
     updateGraphBounds() {
@@ -230,6 +243,28 @@ export default {
       this.selectElementID = null;
       this.selectElementIDfull = null;
       EventBus.$emit('unSelectedElement');
+    },
+    focusOnNode(id) {
+      this.focusOnID = null;
+      this.unSelectElement();
+      let node = this.network.nodes.filter(n => n.g === 'r' && n.id.toLowerCase() === id.toLowerCase());
+      if (node.length !== 1) {
+        return;
+      }
+      node = node[0];
+      this.selectElement(node, false);
+      const np = node.__threeObj.position; // eslint-disable-line no-underscore-dangle
+      setTimeout(() => {
+        const distance = 120;
+        const distRatio = 1 + (distance / Math.hypot(np.x, np.y, np.z));
+        this.graph.cameraPosition(
+          { x: np.x * distRatio,
+            y: np.y * distRatio,
+            z: np.z * distRatio },
+          np, // lookAt ({ x, y, z })
+          3000  // ms transition duration
+        );
+      }, 0);
     },
     resetCameraPosition() {
       this.graph.cameraPosition(
