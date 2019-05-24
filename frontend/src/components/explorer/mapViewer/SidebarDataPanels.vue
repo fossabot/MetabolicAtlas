@@ -24,8 +24,8 @@
           </p>
         </header>
         <footer class="card-footer">
-          <router-link class="button is-info is-medium is-outlined card-footer-item has-text-centered" :to="{ path: `/explore/gem-browser/${model.database_name}/${mapType}/${ mapsData.compartments[mapName] ? mapsData.compartments[mapName].model_id : mapsData.subsystems[mapName] ? mapsData.subsystems[mapName].model_id : '' }`}">
-            <span class="icon is-large"><i class="fa fa-search-plus"></i></span>
+          <router-link class="is-paddingless is-info is-outlined card-footer-item has-text-centered" :to="{ path: `/explore/gem-browser/${model.database_name}/${mapType}/${ mapsData.compartments[mapName] ? mapsData.compartments[mapName].model_id : mapsData.subsystems[mapName] ? mapsData.subsystems[mapName].model_id : '' }`}">
+            <span class="icon is-large"><i class="fa fa-database fa-lg"></i></span>
             <span>{{ messages.gemBrowserName }}</span>
           </router-link>
         </footer>
@@ -45,21 +45,21 @@
             </p>
           </header>
           <footer class="card-footer" v-if="!selectionData.error">
-            <router-link class="button is-info is-medium is-outlined card-footer-item has-text-centered" :to="{ path: `/explore/gem-browser/${model.database_name}/${selectionData.type}/${idfy(selectionData.data.id)}`}">
-              <span class="icon is-large"><i class="fa fa-search-plus"></i></span>
+            <router-link class="is-paddingless is-info is-outlined card-footer-item has-text-centered" :to="{ path: `/explore/gem-browser/${model.database_name}/${selectionData.type}/${idfy(selectionData.data.id)}`}">
+              <span class="icon is-large"><i class="fa fa-database fa-lg"></i></span>
               <span>{{ messages.gemBrowserName }}</span>
             </router-link>
-            <div class="button is-primary is-medium is-outlined card-footer-item has-text-centered"
+            <div class="is-paddingless is-primary is-outlined card-footer-item has-text-centered"
               @click="(mapsData.subsystems[idfy(selectionData.data.id)] && mapsData.subsystems[idfy(selectionData.data.id)].sha) && showSubsystem(idfy(selectionData.data.id))"
               :disabled="!mapsData.subsystems[idfy(selectionData.data.id)] || !mapsData.subsystems[idfy(selectionData.data.id)].sha">
-              <span class="icon is-large"><i class="fa fa-map-o"></i></span>
+              <span class="icon is-large"><i class="fa fa-map-o fa-lg"></i></span>
               <span>Load map</span>
             </div>
           </footer>
         </div>
         <div class="card" v-else-if="selectionData.data && ['metabolite', 'enzyme', 'reaction'].includes(selectionData.type)">
           <header class="card-header clickable" v-if="!selectionData.error" @click.prevent="showSelectionCardContent = !showSelectionCardContent">
-            <p class="card-header-title is-inline">
+            <p class="card-header-title is-inline is-capitalized">
               {{ selectionData.type }}: <i>{{ selectionData.data.id }}</i>
             </p>
             <a href="#" class="card-header-icon" aria-label="more options">
@@ -83,7 +83,7 @@
                       <span class="has-text-weight-bold">{{ capitalize(eid[0]) }}:</span>
                       <span v-html="reformatStringToLink(selectionData.data[eid[1]], selectionData.data[eid[2]])"></span><br>
                     </template>
-                  </p v-if="hasExternalIDs(item.value)">
+                  </p>
                 </template>
                 <template v-else-if="['aliases', 'subsystem'].includes(item.name)">
                   <span class="has-text-weight-bold">{{ capitalize(item.display || item.name) }}:</span><p>
@@ -92,10 +92,12 @@
                   </template></p>
                 </template>
                 <template v-else-if="['reactants', 'products'].includes(item.name)">
-                  <span class="has-text-weight-bold">{{ capitalize(item.display || item.name) }}:</span><p>
-                  <template v-for="s in selectionData.data[item.name]">
-                    &ndash;&nbsp;{{ s.name }}<br>
-                  </template></p>
+                  <span class="has-text-weight-bold">{{ capitalize(item.display || item.name) }}:</span>
+                  <p>
+                    <template v-for="s in selectionData.data[item.name]">
+                      &ndash;&nbsp;{{ s.name }}<br>
+                    </template>
+                  </p>
                 </template>
                 <template v-else-if="item.name === 'equation'">
                   <p><span class="has-text-weight-bold" v-html="capitalize(item.display || item.name) + ':'"></span><br>
@@ -116,8 +118,8 @@
             </div>
           </div>
           <footer class="card-footer" v-if="!selectionData.error">
-            <router-link class="button is-info is-medium is-outlined card-footer-item has-text-centered" :to="{ path: `/explore/gem-browser/${model.database_name}/${selectionData.type}/${idfy(selectionData.data.id)}`}">
-              <span class="icon is-large"><i class="fa fa-search-plus"></i></span>
+            <router-link class="is-paddingless is-info is-outlined card-footer-item has-text-centered" :to="{ path: `/explore/gem-browser/${model.database_name}/${selectionData.type}/${idfy(selectionData.data.id)}`}">
+              <span class="icon is-large"><i class="fa fa-database fa-lg"></i></span>
               <span>{{ messages.gemBrowserName }}</span>
             </router-link>
           </footer>

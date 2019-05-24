@@ -6,7 +6,7 @@ import SearchTable from 'components/SearchTable';
 import Resources from 'components/Resources';
 import About from 'components/About';
 import Documentation from 'components/Documentation';
-import Models from 'components/Models';
+import Repository from 'components/Repository';
 import CompareModels from 'components/CompareModels';
 import NotFound from 'components/NotFound';
 
@@ -24,7 +24,7 @@ const routes = [
   { path: '/explore/map-viewer/:model/compartment/:id/:rid', name: 'viewerCompartmentRea', component: Explorer, props: true },
   { path: '/explore/map-viewer/:model/subsystem/:id/:rid', name: 'viewerSubsystemRea', component: Explorer, props: true },
   { path: '/about', name: 'about', component: About },
-  { path: '/gems/repository', name: 'gems', component: Models },
+  { path: '/gems/repository', name: 'gems', component: Repository },
   { path: '/gems/comparison', name: 'comparemodels', component: CompareModels },
   { path: '/resources', name: 'resources', component: Resources },
   { path: '/documentation', name: 'documentation', component: Documentation },
