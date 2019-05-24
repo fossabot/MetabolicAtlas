@@ -15,8 +15,8 @@
         <div id="iSideBar" class="column is-one-fifth-widescreen is-one-quarter-desktop is-one-quarter-tablet is-half-mobile is-fullheight">
           <div id="menu">
             <ul class="l0">
-              <li>Compartments<span>&nbsp;&#9656;</span>
-                <ul class="vhs l1">
+              <li :title="`Select a ${show2D ? '2D' : '3D'} compartment network to show`">Compartments<span>&nbsp;&#9656;</span>
+                <ul class="vhs l1" title="">
                   <li @click="showMap()" class="has-background-grey-dark clickable"><i>Clear selection</i></li>
                   <div v-show="!has2DCompartmentMaps || show3D">
                     <li v-for="cKey in Object.keys(mapsData3D.compartments).sort()" class="clickable"
@@ -34,8 +34,8 @@
                   </div>
                 </ul>
               </li>
-              <li>Subsystems<span>&nbsp;&#9656;</span>
-                <ul class="vhs l1">
+              <li :title="`Select a ${show2D ? '2D' : '3D'} subsystem network to show`">Subsystems<span>&nbsp;&#9656;</span>
+                <ul class="vhs l1" title="">
                   <li @click="showMap()" class="has-background-grey-dark clickable"><i>Clear selection</i></li>
                   <div v-show="!has2DSubsystemMaps || show3D">
                     <li v-for="sKey in Object.keys(mapsData3D.subsystems).sort()" class="clickable"
@@ -97,7 +97,8 @@
             <a class="button is-loading"></a>
           </div>
           <div id="iSwitch" class="overlay">
-            <span class="button" @click="switchDimension" :disabled="!activeSwitch">
+            <span class="button" @click="switchDimension" :disabled="!activeSwitch"
+            :title="activeSwitch ? `Reload the current network in ${show2D ? '3D' : '2D'}` : ''">
               <template v-if="activeSwitch">
                 Switch to&nbsp;<b>{{ show3D ? '2D' : '3D' }}</b>
               </template>
