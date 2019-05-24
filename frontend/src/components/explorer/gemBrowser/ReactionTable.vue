@@ -19,7 +19,10 @@
         <tr class="has-background-white-ter">
           <th class="is-unselectable clickable"
           v-for="f in fields" v-show="showCol(f.name)"
-            @click="sortTable(f.name, null, null)" v-html="f.display"></th>
+            @click="sortTable(f.name, null, null)"
+            :title="`Sort by ${f.display}`">
+              {{ f.display.replace('_', '&nbsp;') }}
+            </th>
         </tr>
       </thead>
       <tbody>
@@ -68,7 +71,7 @@ export default {
     return {
       showCP: false,
       fields: [{
-        display: 'Reaction&nbsp;ID',
+        display: 'Reaction ID',
         name: 'id',
       }, {
         display: 'Equation',

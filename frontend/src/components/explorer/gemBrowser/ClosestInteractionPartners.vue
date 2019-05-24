@@ -73,13 +73,13 @@
               </transition>
               <div id="graphOption">
                 <span class="button" v-bind:class="[{ 'is-active': showGraphLegend }, '']"
-                v-on:click="toggleGraphLegend"><i class="fa fa-cog"></i></span>
-                <span class="button" v-on:click="zoomGraph(true)"><i class="fa fa-search-plus"></i></span>
-                <span class="button" v-on:click="zoomGraph(false)"><i class="fa fa-search-minus"></i></span>
-                <span class="button" v-on:click="fitGraph()"><i class="fa fa-arrows-alt"></i></span>
-                <span class="button" v-on:click="resetGraph(true)"><i class="fa fa-refresh"></i></span>
+                v-on:click="toggleGraphLegend" title="Options"><i class="fa fa-cog"></i></span>
+                <span class="button" v-on:click="zoomGraph(true)" title="Zoom In"><i class="fa fa-search-plus"></i></span>
+                <span class="button" v-on:click="zoomGraph(false)" title="Zoom Out"><i class="fa fa-search-minus"></i></span>
+                <span class="button" v-on:click="fitGraph()" title="Fit to frame"><i class="fa fa-arrows-alt"></i></span>
+                <span class="button" v-on:click="resetGraph(true)" title="Reload"><i class="fa fa-refresh"></i></span>
                 <span class="button" v-on:click="resetGraph(false)" title="Clean selection/highlight"><i class="fa fa-eraser"></i></span>
-                <span class="button" v-on:click="viewReaction(reactionHL)" v-show="reactionHL">
+                <span class="button" v-on:click="viewReaction(reactionHL)" v-show="reactionHL" title="Options">
                   {{ reactionHL }}
                 </span>
               </div>
@@ -132,7 +132,8 @@
               <div class="card " v-if="model.database_name === 'human1'">
                 <header class="card-header">
                   <p class="card-header-title">
-                    <label class="checkbox is-unselectable">
+                    <label class="checkbox is-unselectable" 
+                    :title="`Click to ${toggleEnzymeExpLevel ? 'disable' : 'activate'} expression RNA levels`">
                       <input type="checkbox" v-model="toggleEnzymeExpLevel" :disabled="disableExpLvl"
                       @click="applyLevels('enzyme', 'HPA', 'RNA', selectedSample)">
                       Enable <a href="https://www.proteinatlas.org/" target="_blank">proteinAtlas.org</a>&nbsp;RNA levels
@@ -145,7 +146,8 @@
                   <br>
                   <div class="select is-fullwidth" :class="{ 'is-loading' : loadingHPA && toggleEnzymeExpLevel}" v-show="toggleEnzymeExpLevel && !disableExpLvl">
                     <select id="enz-select" ref="enzHPAselect" v-model="selectedSample" :disabled="!toggleEnzymeExpLevel"
-                    @change.prevent="applyLevels('enzyme', 'HPA', 'RNA', selectedSample)">
+                    @change.prevent="applyLevels('enzyme', 'HPA', 'RNA', selectedSample)"
+                    title="Select a tissue type">
                       <optgroup label="HPA - RNA levels - Tissues">
                        <!--  <option value="None">None</option> -->
                         <option v-for="tissue in tissues['HPA']" :value="tissue">
