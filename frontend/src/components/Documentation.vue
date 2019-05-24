@@ -95,13 +95,13 @@
             <li>Highlight reaction: each nodes might be involve in many chemical reactions. Select a reaction from the list to show the others interaction partners in the scope of the selected reaction (others interaction partners will be grayed-out). The hightligthed reaction ID will be show on the top of the graph. The directionality of each edge is indicated as triangle, or diamonds in case of for reversible reaction. To remove the highlight click on the "eraser" button on the top of the graph.</li>
           </ul>
           Clicking on a node also shows a link on the right sidebar to quickly access the <a href="#GEM Browser">GEM browser</a> page of that node.
-          The top-left buttons allow to (from left to right): customize the graph node's shape and colors, zoom-in, zoom-out, reset the display, reload graph (removes expanded interaction partners), and hide any reaction highlight. The nodes can also be moved around on the graph.
+          The top-left buttons allow to (from left to right): customize the graph node's shape and colors, zoom-in, zoom-out, reset the display, reload graph (remove expanded interaction partners), and remove any highlight. The nodes can also be moved around on the graph.
 
           <h6 class="has-text-grey">Export graph</h6>
           Clicking the <i>Export graph</i> button, two options are displayed: GraphML or PNG. The first is a Cytoscape compatible GraphML format; currently the colors are not exported in this format.
 
           <h6 class="has-text-grey">Highlights</h6>
-          Nodes might belong to multiple compartments / subsystems. The filter box allows to highlight (red text color) the node in a given subsystem or compartment. The two filters are additive, and can be clear using the erase button.
+          Nodes might belong to multiple compartments / subsystems. The filter box allows to highlight (label color) the node in a given subsystem or compartment. The two filters are additive. Enzymes might catalyze multiple reactions in differents compartments / subsystems, such enzymes are highlighted in orange color.
 
           <h6 class="has-text-grey">Nodes table</h6>
           All the metabolites and enzyme nodes are shown in this table, along with their compartment localization. For enzymes, the compartment is computed using the localization of the metabolites of reactions catalyzed by said enzyme; it does not describe the <i>in vivo</i> localization of the enzyme in the cell compartment. Selecting a row will select the node on the graph and vice versa, selecting a node on the graph will select the row in the table. The search bar above the table can be used to filter out rows to find a given component.
@@ -128,8 +128,12 @@
           <div v-html="getExpLvlLegend()"></div><br>
 
           <h3 id="Global search">Global search</h3>
-          The <i>Global search</i> page queries all the integrated metabolic models. Each metabolic component has its own results table accessible via the dedicated tab. Tabs are inactivated when no results are found. Search criteria are not restricted to the columns, for instance searching for an MNXref ID will output results for the metabolite or reactions matching the ID. The search algorithm matches partial name of component: searching for 'choleste' will output all metaboties containing the substring cholesterol. When the complete name of a metabolite is provide. e.g. 'cholesterol' not only all the metabolite matching or partially matching this name is provided, but the list of reaction that involve the 'cholesterol' metabolite is pull out from the database. The global search is also able to query reactions in a more advance way using special keyword:<br>
-            - use " => " and metabolite terms - ID (m02439c), name (malate) or full name (malate[c]) - in the query term to indicate the algorithm you are looking for a reactions only, and a reaction that involve a specify metabolites as reactant/product.<br>
+          The <i>Global search</i> page queries all the integrated metabolic models. Each metabolic component has its own results table accessible via the dedicated tab. Tabs are inactivated when no results are found. Search criteria are not restricted to the columns, for instance searching for an MNXref ID will output results for the metabolite or reactions matching the ID. The search algorithm matches partial name of component: searching for 'choleste' will output all metaboties containing the substring cholesterol. When the complete name of a metabolite is provide. e.g. 'cholesterol' not only all the metabolite matching or partially matching this name is provided, but the list of reaction that involve the 'cholesterol' metabolite is pull out from the database. The global search is also able to query reactions in a more advance way using special patterns:<br>
+            - Use the compartment letter at the end of a metabolite name, e.g cholesterol[c] to match the metabolite of that compartment.
+            - Use " => " and metabolite terms - ID (m02439c), name (malate) or full name (malate[c]) - in the query term to indicate the algorithm you are looking for a reactions only, that involve a specify metabolites as reactant/product.<br>
+            for instance, "pyruvate =>" will return all the reaction having at least one of the reactants metabolite as pyruvate.
+            - Use " + " and metabolite terms - ID (m02439c), name (malate) or full name (malate[c]) - to force the presence of multiple metabolites in the result reactions. For instance "pyruvate + malate" returns all the reactions having pyruvate <b>and</b> malate in the equation.
+            - Combine the three patterns to restrict even more the results.
 
           <h3 id="API">API</h3>
           We have a dedicated interface to facilite the use of the API, with output provided in JSON format. The API is still under developpement and subject to change without notice.
