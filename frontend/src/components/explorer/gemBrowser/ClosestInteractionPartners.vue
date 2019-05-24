@@ -78,7 +78,7 @@
                 <span class="button" v-on:click="zoomGraph(false)"><i class="fa fa-search-minus"></i></span>
                 <span class="button" v-on:click="fitGraph()"><i class="fa fa-arrows-alt"></i></span>
                 <span class="button" v-on:click="resetGraph(true)"><i class="fa fa-refresh"></i></span>
-                <span class="button" v-on:click="resetGraph(false)" :disabled="reactionHL === null" :class="{'is-disabled': reactionHL === null }"><i class="fa fa-eraser"></i></span>
+                <span class="button" v-on:click="resetGraph(false)" title="Clean selection/highlight"><i class="fa fa-eraser"></i></span>
                 <span class="button" v-on:click="viewReaction(reactionHL)" v-show="reactionHL">
                   {{ reactionHL }}
                 </span>
@@ -165,12 +165,7 @@
               <div class="card" v-if="compartmentList.length != 0 || subsystemList.length != 0">
                 <header class="card-header">
                   <p class="card-header-title">
-                    Highlight&nbsp;
-                    <span class="button has-margin-left" v-on:click="resetHighlight(false)"
-                    :disabled="isCompartmentSubsystemHLDisabled()"
-                    :class="{'is-disabled': isCompartmentSubsystemHLDisabled() }">
-                      <i class="fa fa-eraser"></i>
-                    </span>
+                    Highlight
                   </p>
                 </header>
                 <div class="card-content">
@@ -311,12 +306,12 @@ export default {
         human1: [
           { field: 'type', colName: 'Type' },
           { field: 'name', colName: 'Name' },
-          { field: 'compartment', colName: 'Compartment' },
+          { field: 'compartment_str', colName: 'Compartment' },
         ],
         yeast8: [
           { field: 'type', colName: 'Type' },
           { field: 'name', colName: 'Name' },
-          { field: 'compartment', colName: 'Compartment' },
+          { field: 'compartment_str', colName: 'Compartment' },
         ],
       },
 
@@ -621,7 +616,6 @@ export default {
       }
       this.compartmentHL = '';
       this.subsystemHL = '';
-      this.redrawGraph();
     },
     resetGraph(reload) {
       this.reactionHL = null;
@@ -629,7 +623,9 @@ export default {
       this.selectedElmId = '';
       this.clickedElm = null;
       this.clickedElmId = '';
+      this.showGraphContextMenu = false;
       this.resetEnzymeExpression();
+      this.resetHighlight();
       if (reload) {
         this.load();
       } else {
