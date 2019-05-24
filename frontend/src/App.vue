@@ -15,7 +15,7 @@
           </div>
         </div>
         <div id="#nav-menu" class="navbar-menu" :class="{ 'is-active': isMobileMenu }">
-          <div class="navbar-start has-text-centered" v-show="model" title="Click to toggle between the Gem Browser and the Map Viewer">
+          <div class="navbar-start has-text-centered" v-show="model" title="Click to toggle between the GEM Browser and the Map Viewer">
             <router-link v-if="activeViewerBut || activeBrowserBut" :to="{ path: '/explore'}" class="navbar-item is-size-3 has-text-primary has-text-weight-bold is-unselectable"
               title="Current selected model, click to change your selection">{{ model ? model.short_name : '' }}
             </router-link>
