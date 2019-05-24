@@ -161,7 +161,7 @@
           <span class="has-text-weight-bold lab">Port:</span> 21
 
           <h3 id="Resources">Resources</h3>
-          This is a list of the most relevant software tools, algorithms or databases published by the SysBio group. To navigate to the cprresponding pages, click o the image on the left.t
+          This is a list of the most relevant software tools, algorithms or databases published by the SysBio group. To navigate to the cprresponding pages, click o the image on the left.
 
         </div>
       </div>
