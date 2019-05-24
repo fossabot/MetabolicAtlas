@@ -287,6 +287,8 @@ m, .clickable {
       border-bottom: 1px solid $primary;
     }
     &.router-link-active {
+      color: $black-bis;
+      background-color: $grey-lighter;
       border-bottom: 1px solid $primary;
     }
   }
