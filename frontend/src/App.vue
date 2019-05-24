@@ -61,7 +61,7 @@
     <footer id="footer" class="footer has-background-primary-lighter is-size-6">
       <div class="columns is-gapless">
         <div class="column is-7">
-          <p>2019 © <a href="http://sysbio.se" target="blank">Sys<sup>2</sup>Bio</a> | Department of Biology and Biological Engineering | Chalmers University of Technology</p>
+          <p>2019 © Department of Biology and Biological Engineering | Chalmers University of Technology</p>
         </div>
         <div class="column">
           <div class="content has-text-right">
@@ -282,9 +282,15 @@ m, .clickable {
     color: $black-bis;
     background-color: $grey-lighter;
   }
-  .underline.is-active {
-    border-bottom: 1px solid $primary;
+  .underline {
+    &.is-active {
+      border-bottom: 1px solid $primary;
+    }
+    &.router-link-active {
+      border-bottom: 1px solid $primary;
+    }
   }
+
   .navbar-brand {
     a {
       font-weight: 400;
