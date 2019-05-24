@@ -238,7 +238,7 @@ export default {
       this.showOverviewScreen = false; // to get the loader visible
       this.selectionData.data = null;
       if (this.show3D) {
-        EventBus.$emit('show3Dnetwork', this.requestedType, this.requestedName);
+        EventBus.$emit('show3Dnetwork', this.requestedType, this.requestedName, ids);
       } else {
         EventBus.$emit('showSVGmap', this.requestedType, this.requestedName, ids, forceReload);
       }
