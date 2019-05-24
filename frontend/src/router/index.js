@@ -1,4 +1,5 @@
 import Vue from 'vue';
+import $ from 'jquery';
 import VueRouter from 'vue-router';
 import Home from 'components/Home';
 import Explorer from 'components/Explorer';
@@ -34,6 +35,11 @@ const routes = [
 const router = new VueRouter({
   mode: 'history',
   routes,
+  scrollBehavior(to) {
+    if (to.hash) {
+      $(window).scrollTop($(to.hash).offset().top);
+    }
+  },
 });
 
 export default router;

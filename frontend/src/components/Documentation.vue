@@ -25,7 +25,7 @@
                   </ul>
                   <li><a href="#HPA RNA levels">HPA RNA levels</a></li>
                   <li><a href="#API">API</a></li>
-                  <li><a href="#Global search">Global search</a></li>
+                  <li><a href="#Global-search">Global search</a></li>
                 </ul>
               </li>
               <li>
@@ -41,7 +41,6 @@
             </ul>
           </aside>
         </div>
-
         <div class="column content is-medium has-text-justified">
           <h3 id="Explore">Explore integrated models</h3>
           The <i>Explore</i> section of Metabolic Atlas allows to vizualize the content of the integrated <a href="#Integrated-models">Genome-scale metabolic models (GEMs)</a> by using the <a href="#GEM Browser">GEM browser</a> tool and allows to navigate the metabolic network maps via the <a href="#Map-Viewer">Map viewer</a> tool. These two tools are available once one of the integrated models have been selected. The selected model is indicated on the right side of the Metabolic Atlas's logo in the top navigation bar. Leaving the <i>Explore</i> section (or the <i>GEM Browser</i> / <i>Map Viewer</i> tools) will unselect the model, and remove its name from the navigation bar.<br>
@@ -123,17 +122,24 @@
           Users can also hover a node to overlay its the name/id orleft-clik on a node (wait for the graph to be completly static) to display some of its information in the sidebar. Additonal information of the corresponding selected element is shown by clicking the <i>GEM browser</i> button.<br>
 
           <h5 id="HPA RNA levels">Human Protein Atlas RNA levels</h5>
-          RNA expressinon levels for enzymes, provided by the Human Protein Atlas, can be loaded using the corresponding sidebar button. Once selected, the RNA tissue will be applied to the selected map. To clear RNA level, use the <i>Clear selection</i> button. RNA levels are available for both the 2D and 3D viewers.<br>
+          <div class="columns is-marginless">
+            <div class="column is-paddingless">
+            RNA expressinon levels for enzymes, provided by the Human Protein Atlas, can be loaded using the corresponding sidebar button. Once selected, the RNA tissue will be applied to the selected map. To clear RNA level, use the <i>Clear selection</i> button. RNA levels are available for both the 2D and 3D viewers.<br>
           Expression levels from the Human Protein Atlas can be loaded in the <i>Interaction Partners</i> using the panel on the right, and in the <i>Map Viewer</i> using the corresponding sidebar button. Doing so will update the enzyme node's color only according to the legend. Some enzymes might not have RNA levels, in such case their color corresponds to the n/a color.
-          <div v-html="getExpLvlLegend()"></div><br>
+            </div>
+            <div class="column" v-html="getExpLvlLegend()" style="padding-right: 0">
+            </div>
+          </div>
 
-          <h3 id="Global search">Global search</h3>
-          The <i>Global search</i> page queries all the integrated metabolic models. Each metabolic component has its own results table accessible via the dedicated tab. Tabs are inactivated when no results are found. Search criteria are not restricted to the columns, for instance searching for an MNXref ID will output results for the metabolite or reactions matching the ID. The search algorithm matches partial name of component: searching for 'choleste' will output all metaboties containing the substring cholesterol. When the complete name of a metabolite is provide. e.g. 'cholesterol' not only all the metabolite matching or partially matching this name is provided, but the list of reaction that involve the 'cholesterol' metabolite is pull out from the database. The global search is also able to query reactions in a more advance way using special patterns:<br>
-            - Use the compartment letter at the end of a metabolite name, e.g cholesterol[c] to match the metabolite of that compartment.
-            - Use " => " and metabolite terms - ID (m02439c), name (malate) or full name (malate[c]) - in the query term to indicate the algorithm you are looking for a reactions only, that involve a specify metabolites as reactant/product.<br>
-            for instance, "pyruvate =>" will return all the reaction having at least one of the reactants metabolite as pyruvate.
-            - Use " + " and metabolite terms - ID (m02439c), name (malate) or full name (malate[c]) - to force the presence of multiple metabolites in the result reactions. For instance "pyruvate + malate" returns all the reactions having pyruvate <b>and</b> malate in the equation.
-            - Combine the three patterns to restrict even more the results.
+          <h3 id="Global-search">Global search</h3>
+          The <i>Global search</i> page queries all the integrated metabolic models. Each metabolic component has its own results table accessible via the dedicated tab. Tabs are inactivated when no results are found. Search criteria are not restricted to the columns, for instance searching for an MNXref ID will output results for the metabolite or reactions matching the ID. The search algorithm matches partial name of component: searching for 'choleste' will output all metaboties containing the substring cholesterol. When the complete name of a metabolite is provide. e.g. 'cholesterol' not only all the metabolite matching or partially matching this name is provided, but the list of reaction that involve the 'cholesterol' metabolite is pull out from the database. The global search is also able to query reactions in a more advance way using special patterns:
+          <ul>
+            <li>Use the compartment letter at the end of a metabolite name, e.g cholesterol[c] to match the metabolite of that compartment.</li>
+            <li>Use " => " and metabolite terms - ID (m02439c), name (malate) or full name (malate[c]) - in the query term to indicate the algorithm you are looking for a reactions only, that involve a specify metabolites as reactant/product.</li>
+            for instance, "pyruvate =>" will return all the reaction having at least one of the reactants metabolite as pyruvate.</li>
+            <li>Use " + " and metabolite terms - ID (m02439c), name (malate) or full name (malate[c]) - to force the presence of multiple metabolites in the result reactions. For instance "pyruvate + malate" returns all the reactions having pyruvate <b>and</b> malate in the equation.</li>
+            <li>Combine the three patterns to restrict even more the results.</li>
+          </ul>
 
           <h3 id="API">API</h3>
           We have a dedicated interface to facilite the use of the API, with output provided in JSON format. The API is still under developpement and subject to change without notice.
@@ -161,8 +167,7 @@
           <span class="has-text-weight-bold lab">Port:</span> 21
 
           <h3 id="Resources">Resources</h3>
-          This is a list of the most relevant software tools, algorithms or databases published by the SysBio group. To navigate to the cprresponding pages, click o the image on the left.t
-
+          This is a list of the most relevant software tools, algorithms or databases published by the SysBio group. To navigate to the corresponding pages, click on the image on the left.
         </div>
       </div>
     </div>
@@ -171,16 +176,10 @@
 
 <script>
 
-import $ from 'jquery';
 import { getExpLvlLegend } from '../expression-sources/hpa';
 
 export default {
   name: 'help',
-  mounted() {
-    if (this.$route.hash) {
-      $(window).scrollTop($(this.$route.hash).offset().top);
-    }
-  },
   methods: {
     getExpLvlLegend,
   },
