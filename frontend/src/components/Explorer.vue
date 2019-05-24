@@ -20,7 +20,8 @@
             <div class="column is-three-fifths-desktop is-three-quarters-tablet is-fullwidth-mobile has-text-centered">
               <div class="dropdown" :class="{'is-active' : showModelList}" >
                 <div class="dropdown-trigger">
-                  <button v-if="model" class="button is-medium is-fullwidth" aria-haspopup="true" aria-controls="dropdown-menu" @click="showModelList = true" @blur="showModelList = false">
+                  <button v-if="model" class="button is-medium is-fullwidth" aria-haspopup="true" aria-controls="dropdown-menu" @click="showModelList = true" @blur="showModelList = false"
+                    title="Click to view the list of integrated models">
                     <span>Model: <span class="tag is-primary has-text-weight-bold is-medium">{{ model.short_name }} v{{ model.version }}</span></span>
                     <span class="icon is-small">
                       <i class="fa fa-angle-down" aria-hidden="true"></i>
@@ -42,7 +43,7 @@
           <div id="toolsSelect" class="columns is-multiline">
             <template v-if="model" v-for="tool in explorerTools">
               <div class="column is-12-tablet is-half-desktop">
-                <router-link :to="{ path: `${tool.url}/${model.database_name }` }">
+                <router-link :to="{ path: `${tool.url}/${model.database_name }` }" :title="`Click to access the ${tool.name} for ${model.short_name} model`">
                   <div class="card card-fullheight card-selectable has-text-justified">
                     <header class="card-header">
                       <p class="card-header-title is-size-5">{{ tool.name }}</p>

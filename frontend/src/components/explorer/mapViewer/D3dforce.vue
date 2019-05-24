@@ -36,6 +36,7 @@ export default {
       HPARNAlevelsHistory: {},
       defaultEnzymeColor: '#feb',
       tissue: 'None',
+      focusOnID: null,
     };
   },
   created() {
@@ -44,21 +45,38 @@ export default {
     EventBus.$off('update3DLoadedComponent');
     EventBus.$off('load3DHPARNAlevels');
 
-    EventBus.$on('show3Dnetwork', (type, name) => {
+    EventBus.$on('show3Dnetwork', (type, name, ids) => {
       if (name.toLowerCase().substr(0, 7) === 'cytosol') {
         name = 'cytosol'; // eslint-disable-line no-param-reassign
+      }
+      if (ids && ids.length === 1) {
+        this.focusOnID = ids[0];
+      } else {
+        // do not handle multiple ids for now;
+        this.focusOnID = null;
       }
       if (this.loadedComponentType !== type ||
           this.loadedComponentName !== name ||
           this.emptyNetwork) {
+        if (!this.emptyNetwork) {
+          this.unSelectElement();
+        }
         this.loadedComponentType = type;
         this.loadedComponentName = name;
         if (name in this.networkHistory) {
           this.$emit('loading');
-          this.graph.graphData(this.networkHistory[name]);
+          this.graph.resetCamera = true;
+          this.graph.reloadHistory = true;
+          this.network = this.networkHistory[name];
+          this.graph.graphData(this.network);
         } else {
           this.getJson();
         }
+      } else if (this.focusOnID) {
+        this.graph.emitLoadComplete = true;
+        this.focusOnNode(this.focusOnID);
+      } else {
+        this.$emit('loadComplete', true, '');
       }
     });
 
@@ -91,8 +109,10 @@ export default {
             if (this.graph === null) {
               this.graph = {};
               this.graph.emitLoadComplete = true;
+              this.graph.resetCamera = true;
               this.constructGraph();
             } else {
+              this.graph.resetCamera = true;
               this.graph.graphData(this.network);
             }
             this.emptyNetwork = false;
@@ -139,6 +159,15 @@ export default {
           return '#9df';
         })
         .onEngineStop(() => {
+          if (this.graph === null ||
+            this.graph.reloadHistory === undefined || !this.graph.reloadHistory) {
+            this.networkHistory[this.loadedComponentName] = this.network;
+          }
+          if (this.graph.resetCamera) {
+            this.graph.resetCamera = false;
+            this.resetCameraPosition();
+          }
+          this.updateGraphBounds();
           if (this.graph !== null &&
             this.graph.emitLoadComplete !== undefined &&
             !this.graph.emitLoadComplete) {
@@ -146,8 +175,9 @@ export default {
           } else if (this.graph.graphData().nodes.length !== 0) {
             this.$emit('loadComplete', true, '');
           }
-          this.networkHistory[this.loadedComponentName] = this.network;
-          this.updateGraphBounds();
+          if (this.focusOnID) {
+            this.focusOnNode(this.focusOnID);
+          }
         });
     },
     updateGraphBounds() {
@@ -213,6 +243,36 @@ export default {
       this.selectElementID = null;
       this.selectElementIDfull = null;
       EventBus.$emit('unSelectedElement');
+    },
+    focusOnNode(id) {
+      this.focusOnID = null;
+      this.unSelectElement();
+      let node = this.network.nodes.filter(n => n.g === 'r' && n.id.toLowerCase() === id.toLowerCase());
+      if (node.length !== 1) {
+        return;
+      }
+      node = node[0];
+      this.selectElement(node, false);
+      const np = node.__threeObj.position; // eslint-disable-line no-underscore-dangle
+      setTimeout(() => {
+        const distance = 120;
+        const distRatio = 1 + (distance / Math.hypot(np.x, np.y, np.z));
+        this.graph.cameraPosition(
+          { x: np.x * distRatio,
+            y: np.y * distRatio,
+            z: np.z * distRatio },
+          np, // lookAt ({ x, y, z })
+          3000  // ms transition duration
+        );
+      }, 0);
+    },
+    resetCameraPosition() {
+      this.graph.cameraPosition(
+          { x: 0, y: 0, z: 0 },
+          { x: 0, y: 0, z: 0 }, // lookAt ({ x, y, z })
+          0  // ms transition duration
+        );
+      this.graph.camera().position.z = Math.cbrt(this.graph.graphData().nodes.length) * 150;
     },
     updateGeometries(emitLoadComplete) {
       this.graph.emitLoadComplete = emitLoadComplete;
