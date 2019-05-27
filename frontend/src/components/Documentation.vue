@@ -11,23 +11,19 @@
             </p>
             <ul class="menu-list">
               <li>
-                <a href="#Explore"><b>Explore integrated models</b></a>
+                <a href="#GEM Browser"><b>GEM Browser</b></a>
                 <ul class="menu-list">
-                  <li><a href="#GEM Browser">GEM Browser</a></li>
-                  <ul class="menu-list">
-                    <li><a href="#GEM Browser Search">Search</a></li>
-                    <li><a href="#Interaction Partners">Interaction Partners</a></li>
-                  </ul>
-                  <li><a href="#Map Viewer">Map Viewer</a></li>
-                  <ul class="menu-list">
-                    <li><a href="#2D Viewer">2D Viewer</a></li>
-                    <li><a href="#3D Viewer">3D Viewer</a></li>
-                  </ul>
-                  <li><a href="#HPA RNA levels">HPA RNA levels</a></li>
-                  <li><a href="#API">API</a></li>
-                  <li><a href="#Global-search">Global search</a></li>
+                  <li><a href="#GEM Browser Search">Search</a></li>
+                  <li><a href="#Interaction Partners">Interaction Partners</a></li>
+                </ul>
+                <a href="#Map Viewer"><b>Map Viewer</b></a>
+                <ul class="menu-list">
+                  <li><a href="#2D Viewer">2D Viewer</a></li>
+                  <li><a href="#3D Viewer">3D Viewer</a></li>
                 </ul>
               </li>
+              <a href="#HPA RNA levels"><b>RNA levels</b></a>
+              <a href="#Global-search"><b>Global search</b></a>
               <li>
                 <a href="#GEMs"><b>GEMs</b></a>
                 <ul class="menu-list">
@@ -37,127 +33,131 @@
                   <li><a href="#FTP-download">FTP download</a></li>
                 </ul>
               </li>
-              <li><a href="#Resources"><b>Resources</b></a></li>
+              <li>
+                <a href="#Resources"><b>Resources</b></a>
+                <ul class="menu-list">
+                  <li><a href="#API">API</a></li>
+                </ul>
+              </li>
             </ul>
           </aside>
         </div>
-        <div class="column content is-medium has-text-justified">
-          <h3 id="Explore">Explore integrated models</h3>
-          The <i>Explore</i> section of Metabolic Atlas allows to vizualize the content of the integrated <a href="#Integrated-models">Genome-scale metabolic models (GEMs)</a> by using the <a href="#GEM Browser">GEM browser</a> tool and allows to navigate the metabolic network maps via the <a href="#Map-Viewer">Map viewer</a> tool. These two tools are available once one of the integrated models have been selected. The selected model is indicated on the right side of the Metabolic Atlas's logo in the top navigation bar. Leaving the <i>Explore</i> section (or the <i>GEM Browser</i> / <i>Map Viewer</i> tools) will unselect the model, and remove its name from the navigation bar.<br>
-          To browse our integrated genome-scale metabolic models, please refer to the <router-link :to="{ name: 'gems'}">GEM Repository</router-link> page.<br>
-          The <i>GEM Browser</i> and the <i>Map Viewer</i> are closely connected, one can navigate between the two tools using the buttons in the navigation bar.
+        <div id="documentation" class="column content is-medium has-text-justified">
+          Metabolic Atlas allows users to vizualize the content of the integrated <a href="#Integrated-models">Genome-scale metabolic models (GEMs)</a> by using the <a href="#GEM Browser">GEM browser</a> tool, and enables navigation of the metabolic network maps via the <a href="#Map-Viewer">Map viewer</a> tool. These two tools are available upon selecting one of the integrated models. The selected model is indicated to the right of the Metabolic Atlas logo in the top navigation bar. Leaving the <i>Explore</i> section (or the <i>GEM Browser</i> / <i>Map Viewer</i> tools) will unselect the model, and remove its name from the navigation bar.<br>
+          To browse our integrated GEMs, visit the <router-link :to="{ name: 'gems'}">GEM Repository</router-link> page.<br>
+          The <i>GEM Browser</i> and the <i>Map Viewer</i> are closely connected, and users can navigate between the two tools using the buttons in the top navigation bar.
 
-          <h4 id="GEM Browser">GEM Browser</h4>
-          The <i>GEM Browser</i> is a set of dedicated pages for multiple metabolic components of the model; reaction, metabolite, enzyme/gene, subsystem, compartment.
+          <hr>
+          <h3 id="GEM Browser">GEM Browser</h3>
+          The <i>GEM Browser</i> is a set of dedicated pages for different components of the model; reactions, metabolites, enzymes/genes, subsystems, and compartments.
 
           <h5>Reaction page</h5>
           This page shows information about the current selected reaction. If available, a list of references (PMIDs) is also shown in the Reference table below.<br>
-          On the right of the page, a list of maps/networks where this reaction can be vizualize is displayed. Clicking on a map name will redirected the user to the <i>Map Viewer</i> tool, to come back to the <i>GEM Browser</i> click the <i>GEM Browser</i> button in the header bar.
+          On the right of the page, a list of maps/networks where this reaction can be vizualize is displayed. Clicking on a map name will redirect the user to the <i>Map Viewer</i> tool; to return back to the <i>GEM Browser</i>, click the <i>GEM Browser</i> button in the top navigation bar.
 
           <h5>Metabolite page</h5>
-          The Metabolite page shows information on the current selected metabolite. Metabolite compounds in GEMs are ofter distinct according their cell compartment localization (e.g., reticulum endoplasmic); for this reason, one biological metabolite, e.g., cholesterol, might correspond to several metabolites in GEMs such as cholesterol[c] or cholesterol[m] (the suffix indicates in which compartment the metabolic is localized).<br>
-          The top table contains basic information extracted from the metabolic model. If provided, several additional identifiers from external databases will be shown in the External IDs table below.<br>
-          On the right side of the page user can access the interaction partners [link] tool for this metabolite.
+          The Metabolite page shows information on the current selected metabolite. Metabolites in GEMs are often differentiated according to their cell compartment localization (e.g., endoplasmic reticulum). For this reason, one metabolic species, e.g. cholesterol, may correspond to several different metabolite entries in a GEM, such as cholesterol[c], cholesterol[m], etc. (the suffix indicates the compartment in which the metabolite is localized).<br>
+          The top table contains basic information extracted from the GEM. If provided, several additional identifiers from external databases will be shown in the External IDs table below.<br>
+          On the right side of the page, users can access the <a href="#Interaction Partners">Interaction Partners</a> tool for the metabolite.
 
           <h6 class="has-text-grey">Reactions table</h6>
-          Show all the reactions involving the current metabolite, either as a reactant or a product.<br> The current metabolite is denoted with a black text color in the reaction's equations.<br>
-          Since a metabolite is restricted to a cell compartment, Only reactions involving metabolites in that compartment are displayed. To remove this restriction and display additional reactions, click the <i>Expand to all compartments</i> button.<br>
-          <i>Please note</i> that the number of reactions is limited to 200; to get all the reactions we invite users to use the <a href="#API">API</a>.
+          Lists all the reactions involving the current metabolite as a reactant or a product. The current metabolite is denoted with a black text color in the reaction equations. Since metabolites are specific to a cell compartment, only reactions involving the metabolite in its specific compartment are displayed. To remove this restriction and display additional reactions involving the metabolite in any compartment, click the <i>Expand to all compartments</i> button.<br>
+          Note that the number of reactions is limited to 200; to retrieve all the reactions we invite users to use the <a href="#API">API</a>.
 
           <h5>Enzyme page</h5>
-          Show information on the current selected enzyme/gene. The top table contains basic information extracted with the metabolic model. If provided several, additional identifiers from external databases will be shown in the external IDs table.<br>On the right side of the page user can access the interact partners [link] for this enzyme/gene.
+          Shows information about the current selected enzyme/gene. The top table contains basic information extracted from the GEM. If provided, several additional identifiers from external databases will be shown in the external IDs table.<br>On the right side of the page, users can access the <a href="#Interaction Partners">Interaction Partners</a> tool for this enzyme/gene.
 
           <h6 class="has-text-grey">Reactions table</h6>
-          Show all the reactions involving the current enzyme.<br>
-          <i>Please note</i> that the number of reactions is limited to 200; to get all the reactions we invite users to use the <a href="#API">API</a>.
+          Lists all the reactions catalyzed by the current enzyme.<br>
+          Note that the number of reactions is limited to 200; to retrieve all the reactions we invite users to use the <a href="#API">API</a>.
 
           <h5>Subsystem page</h5>
-          This page shows information on the current selected subsystem. Subsystems correspond to a group of reactions playing a role in the same metabolic function. In GEMs, not all the reactions in a given subsystem have to be linked into a complete network, unlike reactions in a metabolic pathway.<br>
-          The list of metabolites and enymes are shown in the table but restricted to 1000 for each category. Use the <a href="#API">API</a> to get them all for the selected subsystem.<br>
+          This page shows information on the current selected metabolic subsystem. Subsystems correspond to a set of reactions that share a similar metabolic function. Unlike a metabolic pathway, the reactions comprising a subsystem are not necessarily linked into a completely connected network.<br>
+          A list of metabolites and enzymes contained within the current subsystem are shown in the table, but are restricted to a maximum of 1000 for each category. Use the <a href="#API">API</a> to retrieve the complete set of metabolites and enzymes for the selected subsystem.<br>
 
           <h6 class="has-text-grey">Reactions table</h6>
-          Show all the reactions part of the current subsystem. In some GEMs a given reaction can be part of multiple subsystems.
-          <i>Please note</i> that the number of reactions is limited to 1000; to get all the reactions we invite users to use our <a href="#API">API</a>.
+          Shows all the reactions that belong to the current subsystem. Note that in some GEMs, a given reaction can be associated with multiple subsystems.
+          The number of reactions shown is limited to 1000; to retrieve all associated reactions we invite users to use the <a href="#API">API</a>.
 
           <h5>Compartment page</h5>
-          Show information on the current selected compartment. The full list of metabolites, enzymes, reactions is available through the <a href="#API">API</a>.
+          Shows information on the current selected compartment. The full list of metabolites, enzymes and reactions is available through the <a href="#API">API</a>.
 
-          <h4 id="GEM Browser Search">Search</h4>
-          Search for any term in metabolites, enzymes, reactions, subsystems or compartments information.<br>
-          The search is restricted to the selected model and limited to 50 results per type. Alternatively, you can press Enter run the query on the <i>Global Search</i>, where the term is search against all the integrated model's component and unrestricted. To learn more about the search terms possiblities go to the <a href="#Global Search">Global Search</a> section of this page.
+          <h5 id="GEM Browser Search">Search</h5>
+          Search for any term in metabolites, enzymes, reactions, subsystems, or compartments information.<br>
+          The search is restricted to the selected GEM and limited to 50 results per type. Alternatively, users can click on the banner under the search input field to run a <i>Global Search</i>, where the term is searched among all the integrated models' components and is unrestricted. To learn more about the search term possiblities, go to the <a href="#Global Search">Global Search</a> section of this page.
 
-          <h4 id="Interaction Partners">Interaction Partners</h4>
-          For a given metabolite or enzyme, this page shows the other metabolites and enzymes that interact with it. The selected metabolite or enzyme is centered on the graph. Connectivity is computed from chemical equations that involve this metabolite or enzyme. For medium size networks of interaction partners, the user is asked to generate the graph. For very large network (e.g. with H<sub>2</sub>O) the graph will not be generated. Users can click on a node to display a context menu with 3 options:<br>
+          <h5 id="Interaction Partners">Interaction Partners</h5>
+          For a given metabolite or enzyme, this page shows the other metabolites and enzymes with which it interacts via shared reaction(s). The selected metabolite or enzyme is centered on the graph. Connectivity is computed from reaction equations that involve this metabolite or enzyme. For medium-sized networks of interaction partners, the user is prompted before generating the graph. For very large networks (e.g. for H<sub>2</sub>O) the graph will not be generated. Users can click on a node to display a context menu with 3 options:<br>
           <ul>
-            <li>Load interaction partners: reload the interactions partners graph with the clicked node as central node</li>
-            <li>Expand interaction partners: add additionnal interactions partners nodes of the clicked node to the graph. Expanded interactions are represented as dotted lines.</li>
-            <li>Highlight reaction: each nodes might be involve in many chemical reactions. Select a reaction from the list to show the others interaction partners in the scope of the selected reaction (others interaction partners will be grayed-out). The hightligthed reaction ID will be show on the top of the graph. The directionality of each edge is indicated as triangle, or diamonds in case of for reversible reaction. To remove the highlight click on the "eraser" button on the top of the graph.</li>
+            <li>Load interaction partners: reload the interaction partners graph with the clicked node as the new central node.</li>
+            <li>Expand interaction partners: add additional interaction partner nodes for the clicked node to the graph. Expanded interactions are represented with dashed lines.</li>
+            <li>Highlight reaction: some nodes may be involve in many different reactions. Select a reaction from the list to show the other interaction partners associated with the selected reaction (other interaction partners will be grayed-out). The highlighted reaction ID will be shown on the top of the graph. The directionality of each edge is indicated as a triangle, or diamonds in case of a reversible reaction. To remove the highlight, click on the "eraser" button at the top of the graph.</li>
           </ul>
-          Clicking on a node also shows a link on the right sidebar to quickly access the <a href="#GEM Browser">GEM browser</a> page of that node.
-          The top-left buttons allow to (from left to right): customize the graph node's shape and colors, zoom-in, zoom-out, reset the display, reload graph (remove expanded interaction partners), and remove any highlight. The nodes can also be moved around on the graph.
+          Clicking on a node also shows a link on the right sidebar to quickly access the <a href="#GEM Browser">GEM browser</a> page for that node.
+          The top-left buttons allow users to (from left to right): customize the graph node's shape and colors, zoom in, zoom out, reset the display, reload the graph (remove expanded interaction partners), and remove any highlighting. The nodes can also be moved around the graph by the user.
 
           <h6 class="has-text-grey">Export graph</h6>
-          Clicking the <i>Export graph</i> button, two options are displayed: GraphML or PNG. The first is a Cytoscape compatible GraphML format; currently the colors are not exported in this format.
+          Clicking the <i>Export graph</i> button will display two options: GraphML or PNG. The first is a Cytoscape compatible GraphML format; currently, the colors are not exported in this format.
 
           <h6 class="has-text-grey">Highlights</h6>
-          Nodes might belong to multiple compartments / subsystems. The filter box allows to highlight (label color) the node in a given subsystem or compartment. The two filters are additive. Enzymes might catalyze multiple reactions in differents compartments / subsystems, such enzymes are highlighted in orange color.
+          Nodes may belong to multiple compartments and/or subsystems. The filter box allows users to highlight (label color) the nodes belonging to a given subsystem or compartment. The two filters are additive. Enzymes may catalyze multiple reactions in differents compartments / subsystems - such enzymes are highlighted in orange.
 
           <h6 class="has-text-grey">Nodes table</h6>
-          All the metabolites and enzyme nodes are shown in this table, along with their compartment localization. For enzymes, the compartment is computed using the localization of the metabolites of reactions catalyzed by said enzyme; it does not describe the <i>in vivo</i> localization of the enzyme in the cell compartment. Selecting a row will select the node on the graph and vice versa, selecting a node on the graph will select the row in the table. The search bar above the table can be used to filter out rows to find a given component.
+          All the metabolite and enzyme nodes are listed in this table along with their compartment localization. For enzymes, the compartment is determined based on the localization of the metabolites of reactions catalyzed by the enzyme; it does not describe the <i>in vivo</i> localization of the enzyme in the cell compartment. Selecting a row in the table will select the corresponding node on the graph, and vice versa. The search bar above the table can be used to filter out rows to find a given component.
 
-          <h4 id="Map Viewer">Map Viewer</h4>
-          The <i>Map Viewer</i> is a separated and independant interface, accessible after an integrated model has been selected. It includes a 2D viewer to vizualize metabolic maps in SVG format, and a 3D viewer to look at the metabolic network in 3 dimensional space. Users can easly toggle between <i>GEM Browser</i> and <i>Map Viewer</i> using the header buttons.<br>
-          To switch between 2D maps and 3D network use the top left button. This button is disabled for model without 2D maps or when the alternative 2D version of a 3D maps is not available [refactor]. To select a compartment or subssystem use the 2 left sidebar buttons.
+          <hr>
+          <h3 id="Map Viewer">Map Viewer</h3>
+          The <i>Map Viewer</i> is a separate and independent interface, accessible after an integrated model has been selected. It includes a 2D viewer to vizualize metabolic maps in SVG format, and a 3D viewer to explore the metabolic network in 3 dimensions. Users can easly toggle between the <i>GEM Browser</i> and <i>Map Viewer</i> using the buttons in the top navigation bar.<br>
+          To switch between 2D maps and 3D network, use the "Switch to 2D" or "Switch to 3D" button in the top left of the map, respectively. This button is disabled for a model without 2D maps, or when the corresponding 2D version of a 3D network is not available. The two left sidebar buttons are used to select which compartment or subsystem will be shown in the viewer.
 
           <h5 id="2D Viewer">2D Viewer</h5>
-          2D SVG maps are provided with metabolic models. They represented either a cell compartment or a subsystem/pathway. While a very high percentage of the reactions in the model are represented on the 2D maps, some can still be missing.<br>
-          3 buttons on the top left of the UI allow to Zoom in, Zoom out and Show/Hide the genes/enzymes on the loaded map respectively.<br>
-          Users can interact with the maps using the mouse by clicking and dragging the mouse to pan the view and using the wheel button to zoom in/out.<br>
-          A search function is available for 2D maps using the search bar. The window will zoom and center on hits found. Click the 'highlight' button to color in red all the hits on the maps. To remove the highlight, simply empty the search bar.<br>
-          SVG are interactive; click on a node (metabolite, reaction, enzyme) or a subsystem to load some of its information in the sidebar. Additonal information of the corresponding selected element is shown by clicking the <i>GEM browser</i> button.<br>
+          2D SVG maps are provided for integrated GEMs. They represent either a cell compartment or a subsystem/pathway. While a very high percentage of the reactions in the model are represented on the 2D maps, some may be unavailable.<br>
+          Three buttons on the top left of the UI allow users to zoom in, zoom out and show/hide the genes/enzymes on the current map.<br>
+          Users can interact with the maps by clicking and dragging the mouse to pan the view or using the mouse wheel to zoom in/out.<br>
+          A search function is available for 2D maps using the search bar. The window will zoom and center on each component found. Click the 'highlight' button to color all found components on the maps in red. To remove the highlight, simply clear the search bar.<br>
+          The SVGs are interactive; click on a node (metabolite, reaction, enzyme) or a subsystem to load some of its information in the sidebar. Additonal information on the corresponding selected element can be accessed by clicking the <i>GEM browser</i> button.<br>
 
           <h5 id="3D Viewer">3D Viewer</h5>
-          3D renderings of the metabolic network are automatically generated from the model data. This 3D graph contains all the reactions in the model.<br>
-          Interaction on the 3D graph is possible using the mouse by holding left-click and move the mose to rotate the view, right-click to pan, and use the mouse wheel to zoom in/out.<br>
-          Users can also hover a node to overlay its the name/id orleft-clik on a node (wait for the graph to be completly static) to display some of its information in the sidebar. Additonal information of the corresponding selected element is shown by clicking the <i>GEM browser</i> button.<br>
+          3D renderings of the metabolic network are automatically generated from the GEM data. This 3D graph contains all the reactions in the model, grouped by cellular compartment or subsystem.<br>
+          Interaction with the 3D graph is possible using the mouse by holding left-click and moving the mose to rotate the view, right-click to pan, and use the mouse wheel to zoom in/out.<br>
+          Users can also hover a node to view its name/id or left-clik on a node (once the graph has stopped moving) to display some of its information in the sidebar. Additonal information on the corresponding selected element can be accessed by clicking the <i>GEM browser</i> button.<br>
 
-          <h5 id="HPA RNA levels">Human Protein Atlas RNA levels</h5>
+          <hr>
+          <h3 id="HPA RNA levels">RNA levels</h3>
           <div class="columns is-marginless">
             <div class="column is-paddingless">
-            RNA expressinon levels for enzymes, provided by the Human Protein Atlas, can be loaded using the corresponding sidebar button. Once selected, the RNA tissue will be applied to the selected map. To clear RNA level, use the <i>Clear selection</i> button. RNA levels are available for both the 2D and 3D viewers.<br>
-          Expression levels from the Human Protein Atlas can be loaded in the <i>Interaction Partners</i> using the panel on the right, and in the <i>Map Viewer</i> using the corresponding sidebar button. Doing so will update the enzyme node's color only according to the legend. Some enzymes might not have RNA levels, in such case their color corresponds to the n/a color.
+            RNA expression levels for enzymes from <a href="http://proteinatlas.org" target="_blank">The Human Protein Atlas</a> can be loaded using the corresponding sidebar button. Once selected, the RNA levels corresponding to the chosen tissue will be overlaid on the selected map. To clear the RNA levels, use the <i>Clear selection</i> button. RNA levels are available for both the 2D and 3D viewers.<br>
+            Expression levels from the Human Protein Atlas can be loaded in the <i>Interaction Partners</i> graph using the panel on the right, and in the <i>Map Viewer</i> using the corresponding sidebar button. Doing so will update the enzyme's node color according to the legend. Some enzymes may not have RNA levels available - in such case their color corresponds to the n/a color.
             </div>
             <div class="column" v-html="getExpLvlLegend()" style="padding-right: 0">
             </div>
           </div>
 
+          <hr>
           <h3 id="Global-search">Global search</h3>
-          The <i>Global search</i> page queries all the integrated metabolic models. Each metabolic component has its own results table accessible via the dedicated tab. Tabs are inactivated when no results are found. Search criteria are not restricted to the columns, for instance searching for an MNXref ID will output results for the metabolite or reactions matching the ID. The search algorithm matches partial name of component: searching for 'choleste' will output all metaboties containing the substring cholesterol. When the complete name of a metabolite is provide. e.g. 'cholesterol' not only all the metabolite matching or partially matching this name is provided, but the list of reaction that involve the 'cholesterol' metabolite is pull out from the database. The global search is also able to query reactions in a more advance way using special patterns:
+          The <i>Global search</i> page queries all the integrated metabolic models. Each metabolic component has its own results table accessible via the dedicated tab. Tabs are inactivated when no results are found. The search text is not restricted to the visible columns; for example, searching an MNXref ID will return results for the metabolites and/or reactions matching the ID even though the MNXref column is not in the table. The search algorithm matches partial names of components: searching for 'cholesterol' will output all metabolites containing the substring 'cholesterol'. When the name of a metabolite is provided, all metabolites matching or partially matching this name be returned, in addition to a the list of all reactions that involve these matching metabolites. The global search is also able to query reactions in a more advanced way using special patterns:
           <ul>
-            <li>Use the compartment letter at the end of a metabolite name, e.g cholesterol[c] to match the metabolite of that compartment.</li>
-            <li>Use " => " and metabolite terms - ID (m02439c), name (malate) or full name (malate[c]) - in the query term to indicate the algorithm you are looking for a reactions only, that involve a specify metabolites as reactant/product.</li>
-            for instance, "pyruvate =>" will return all the reaction having at least one of the reactants metabolite as pyruvate.</li>
-            <li>Use " + " and metabolite terms - ID (m02439c), name (malate) or full name (malate[c]) - to force the presence of multiple metabolites in the result reactions. For instance "pyruvate + malate" returns all the reactions having pyruvate <b>and</b> malate in the equation.</li>
-            <li>Combine the three patterns to restrict even more the results.</li>
+            <li>Use the compartment letter at the end of a metabolite name, e.g cholesterol[c] to match metabolites associated with that compartment.</li>
+            <li>Use " => " and metabolite terms - ID (m02439c), name (malate) or name with compartment (malate[c]) - in the query term to indicate that only reactions should be searched, and to return reactions involve the specified metabolite(s) as reactant/product. For example, "pyruvate =>" will return all reactions in which pyruvate participates as a reactant.</li>
+            <li>Use " + " and metabolite terms - ID (m02439c), name (malate) or name with compartment (malate[c]) - to force the presence of multiple metabolites in the retrieved reactions. For example, "pyruvate + malate" returns all reactions involving at least pyruvate <b>and</b> malate.</li>
+            <li>Combine the three patterns to refine the results even further.</li>
           </ul>
 
-          <h3 id="API">API</h3>
-          We have a dedicated interface to facilite the use of the API, with output provided in JSON format. The API is still under developpement and subject to change without notice.
-
+          <hr>
           <h3 id="GEMs">GEMs</h3>
-          A genome scale metabolic model (GEM) is a mathematical representation of a metabolic network.
+          A genome-scale metabolic model (GEM) is a mathematical representation of a metabolic reaction network.
 
-          <h4 id="Integrated models">Integrated GEMs</h4>
-          Currently Metabolic Atlas contains two integrated models, yeastGEM and humanGEM.
+          <h5 id="Integrated models">Integrated GEMs</h5>
+          Currently, Metabolic Atlas contains two integrated models, <i>YeastGEM</i> and <i>HumanGEM</i>.
 
-          <h4 id="Repository">Repository</h4>
-          Currently, the Repository lists all models made by the SysBio research group; this includes older models that might no longer be maintained (for example HMR2), but also those just published. The later ones can also be found in the SysBioChalmers organization on GitHub.<br>
-          Click on a row on the table to show more information about this GEM. Users can download models in various file format (when available).
+          <h5 id="Repository">Repository</h5>
+          The Repository lists all models constructed by the SysBio research group; this includes older models that may no longer be maintained (for example HMR2), and others that were recently published. The more recent GEMs can also be found in the <a href="https://www.github.com/SysBioChalmers/" target="_blank">SysBioChalmers organization GitHub</a>.<br>
+          Click on a row in the table to show more information about a GEM. Users can download models in various file formats (when available).
 
-          <h4 id="Comparison">Comparison</h4>
-          Currently, the <i>Comparison</i> page provides statistics about the comparison/overlap between Human1 and HMR2, and Recond3D.
+          <h5 id="Comparison">Comparison</h5>
+          The <i>Comparison</i> page provides statistics about the comparison/overlap between Human1 and HMR2, and Recond3D.
 
-          <h4 id="FTP-download">FTP download</h4>
+          <h5 id="FTP-download">FTP download</h5>
           Genome-Scale Metabolic model files can be downloaded from <a href="https://ftp.metabolicatlas.org">ftp.metabolicatlas.org</a> or by connecting to the FTP using your favorite FTP client (e.g. <a href="https://filezilla-project.org/">FileZilla</a>).
 
           <br>
@@ -166,8 +166,12 @@
           <span class="has-text-weight-bold lab">Password:</span> (leave it empty)<br>
           <span class="has-text-weight-bold lab">Port:</span> 21
 
+          <hr>
           <h3 id="Resources">Resources</h3>
-          This is a list of the most relevant software tools, algorithms or databases published by the SysBio group. To navigate to the corresponding pages, click on the image on the left.
+          Lists of the most relevant software tools, algorithms, or databases published by the SysBio group. To navigate to the corresponding pages, click on the image on the left of its description.
+
+          <h5 id="API">API</h5>
+          We have a dedicated interface to facilite the use of the API, with output provided in JSON format. The API is still under developpement and subject to change without notice.
         </div>
       </div>
     </div>

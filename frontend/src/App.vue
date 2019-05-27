@@ -515,4 +515,8 @@ m, .clickable {
   }
 }
 
+#documentation hr {
+   margin-top: 2.75rem;
+}
+
 </style>
