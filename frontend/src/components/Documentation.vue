@@ -1,7 +1,7 @@
 <template>
   <section class="section section-no-top extended-section">
     <div class="container">
-      <h2 class="title is-2 has-text-primary">Documentation</h2>
+      <h2 class="title is-2">Documentation</h2>
       <br>
       <div class="columns is-variable is-8">
         <div class="column is-narrow">
@@ -11,23 +11,19 @@
             </p>
             <ul class="menu-list">
               <li>
-                <a href="#Explore"><b>Explore integrated models</b></a>
+                <a href="#GEM Browser"><b>GEM Browser</b></a>
                 <ul class="menu-list">
-                  <li><a href="#GEM Browser">GEM Browser</a></li>
-                  <ul class="menu-list">
-                    <li><a href="#GEM Browser Search">Search</a></li>
-                    <li><a href="#Interaction Partners">Interaction Partners</a></li>
-                  </ul>
-                  <li><a href="#Map Viewer">Map Viewer</a></li>
-                  <ul class="menu-list">
-                    <li><a href="#2D Viewer">2D Viewer</a></li>
-                    <li><a href="#3D Viewer">3D Viewer</a></li>
-                  </ul>
-                  <li><a href="#HPA RNA levels">HPA RNA levels</a></li>
-                  <li><a href="#Global-search">Global search</a></li>
-                  <li><a href="#API">API</a></li>
+                  <li><a href="#GEM Browser Search">Search</a></li>
+                  <li><a href="#Interaction Partners">Interaction Partners</a></li>
+                </ul>
+                <a href="#Map Viewer"><b>Map Viewer</b></a>
+                <ul class="menu-list">
+                  <li><a href="#2D Viewer">2D Viewer</a></li>
+                  <li><a href="#3D Viewer">3D Viewer</a></li>
                 </ul>
               </li>
+              <a href="#HPA RNA levels"><b>RNA levels</b></a>
+              <a href="#Global-search"><b>Global search</b></a>
               <li>
                 <a href="#GEMs"><b>GEMs</b></a>
                 <ul class="menu-list">
@@ -37,17 +33,22 @@
                   <li><a href="#FTP-download">FTP download</a></li>
                 </ul>
               </li>
-              <li><a href="#Resources"><b>Resources</b></a></li>
+              <li>
+                <a href="#Resources"><b>Resources</b></a>
+                <ul class="menu-list">
+                  <li><a href="#API">API</a></li>
+                </ul>
+              </li>
             </ul>
           </aside>
         </div>
         <div id="documentation" class="column content is-medium has-text-justified">
-          <h3 id="Explore">Explore integrated models</h3>
-          The <i>Explore</i> section of Metabolic Atlas allows to vizualize the content of the integrated <a href="#Integrated-models">Genome-scale metabolic models (GEMs)</a> by using the <a href="#GEM Browser">GEM browser</a> tool and allows to navigate the metabolic network maps via the <a href="#Map-Viewer">Map viewer</a> tool. These two tools are available once one of the integrated models have been selected. The selected model is indicated on the right side of the Metabolic Atlas's logo in the top navigation bar. Leaving the <i>Explore</i> section (or the <i>GEM Browser</i> / <i>Map Viewer</i> tools) will unselect the model, and remove its name from the navigation bar.<br>
+          Metabolic Atlas allows to vizualize the content of the integrated <a href="#Integrated-models">Genome-scale metabolic models (GEMs)</a> by using the <a href="#GEM Browser">GEM browser</a> tool and allows to navigate the metabolic network maps via the <a href="#Map-Viewer">Map viewer</a> tool. These two tools are available once one of the integrated models have been selected. The selected model is indicated on the right side of the Metabolic Atlas's logo in the top navigation bar. Leaving the <i>Explore</i> section (or the <i>GEM Browser</i> / <i>Map Viewer</i> tools) will unselect the model, and remove its name from the navigation bar.<br>
           To browse our integrated genome-scale metabolic models, visit the <router-link :to="{ name: 'gems'}">GEM Repository</router-link> page.<br>
           The <i>GEM Browser</i> and the <i>Map Viewer</i> are closely connected, one can navigate between the two tools using the buttons in the navigation bar.
 
-          <h4 id="GEM Browser">GEM Browser</h4>
+          <hr>
+          <h3 id="GEM Browser">GEM Browser</h3>
           The <i>GEM Browser</i> is a set of dedicated pages for multiple metabolic components of the model; reaction, metabolite, enzyme/gene, subsystem and compartment.
 
           <h5>Reaction page</h5>
@@ -105,7 +106,8 @@
           <h6 class="has-text-grey">Nodes table</h6>
           All the metabolites and enzyme nodes are shown in this table, along with their compartment localization. For enzymes, the compartment is computed using the localization of the metabolites of reactions catalyzed by said enzyme; it does not describe the <i>in vivo</i> localization of the enzyme in the cell compartment. Selecting a row will select the node on the graph and vice versa, selecting a node on the graph will select the row in the table. The search bar above the table can be used to filter out rows to find a given component.
 
-          <h4 id="Map Viewer">Map Viewer</h4>
+          <hr>
+          <h3 id="Map Viewer">Map Viewer</h3>
           The <i>Map Viewer</i> is a separated and independant interface, accessible after an integrated model has been selected. It includes a 2D viewer to vizualize metabolic maps in SVG format, and a 3D viewer to look at the metabolic network in 3 dimensional space. Users can easly toggle between <i>GEM Browser</i> and <i>Map Viewer</i> using the header buttons.<br>
           To switch between 2D maps and 3D network use the top left button. This button is disabled for model without 2D maps or when the alternative 2D version of a 3D maps is not available. To select a compartment or subssystem use the 2 left sidebar buttons.
 
@@ -121,7 +123,8 @@
           Interaction on the 3D graph is possible using the mouse by holding left-click and move the mose to rotate the view, right-click to pan, and use the mouse wheel to zoom in/out.<br>
           Users can also hover a node to overlay its the name/id orleft-clik on a node (wait for the graph to be completly static) to display some of its information in the sidebar. Additonal information of the corresponding selected element is shown by clicking the <i>GEM browser</i> button.<br>
 
-          <h5 id="HPA RNA levels">Human Protein Atlas RNA levels</h5>
+          <hr>
+          <h3 id="HPA RNA levels">Human Protein Atlas RNA levels</h3>
           <div class="columns is-marginless">
             <div class="column is-paddingless">
             RNA expressinon levels for enzymes, provided by the Human Protein Atlas, can be loaded using the corresponding sidebar button. Once selected, the RNA tissue will be applied to the selected map. To clear RNA level, use the <i>Clear selection</i> button. RNA levels are available for both the 2D and 3D viewers.<br>
@@ -131,6 +134,7 @@
             </div>
           </div>
 
+          <hr>
           <h3 id="Global-search">Global search</h3>
           The <i>Global search</i> page queries all the integrated metabolic models. Each metabolic component has its own results table accessible via the dedicated tab. Tabs are inactivated when no results are found. Search criteria are not restricted to the columns, for instance searching for an MNXref ID will output results for the metabolite or reactions matching the ID. The search algorithm matches partial name of component: searching for 'cholesterol' will output all metaboties containing the substring cholesterol. When the complete name of a metabolite is provided &emdash; e.g. 'cholesterol' &emdash; not only all the metabolite matching or partially matching this name is provided, but the list of reactions that involve the 'cholesterol' metabolite is also pull out from the database. The global search is also able to query reactions in a more advance way using special patterns:
           <ul>
@@ -141,9 +145,7 @@
             <li>Combine the three patterns to restrict even more the results.</li>
           </ul>
 
-          <h3 id="API">API</h3>
-          We have a dedicated interface to facilite the use of the API, with output provided in JSON format. The API is still under developpement and subject to change without notice.
-
+          <hr>
           <h3 id="GEMs">GEMs</h3>
           A genome scale metabolic model (GEM) is a mathematical representation of a metabolic network.
 
@@ -166,8 +168,13 @@
           <span class="has-text-weight-bold lab">Password:</span> (leave it empty)<br>
           <span class="has-text-weight-bold lab">Port:</span> 21
 
+          <hr>
           <h3 id="Resources">Resources</h3>
           list of the most relevant software tools, algorithms or databases published by the SysBio group. To navigate to the corresponding pages, click on the image on the left.
+
+          <h5 id="API">API</h5>
+          We have a dedicated interface to facilite the use of the API, with output provided in JSON format. The API is still under developpement and subject to change without notice.
+
         </div>
       </div>
     </div>

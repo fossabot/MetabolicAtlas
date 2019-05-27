@@ -515,8 +515,8 @@ m, .clickable {
   }
 }
 
-#documentation h3 {
-  color: $primary;
+#documentation hr {
+   margin-top: 2.75rem;
 }
 
 </style>
