@@ -515,4 +515,8 @@ m, .clickable {
   }
 }
 
+#documentation h3 {
+  color: $primary;
+}
+
 </style>
