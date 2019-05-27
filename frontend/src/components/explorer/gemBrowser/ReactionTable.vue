@@ -21,7 +21,7 @@
           v-for="f in fields" v-show="showCol(f.name)"
             @click="sortTable(f.name, null, null)"
             :title="`Sort by ${f.display}`">
-              {{ f.display.replace('_', '&nbsp;') }}
+              {{ f.display.replace(' ', '&nbsp;') }}
             </th>
         </tr>
       </thead>

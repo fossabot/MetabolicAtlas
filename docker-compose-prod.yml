@@ -21,7 +21,7 @@ services:
     volumes:
       - backend:/backend:ro
       - frontend:/frontend:ro
-      - /home/jenkins/ssl:/ssl:ro
+      - /var/ssl:/ssl:ro
 
 volumes:
   frontend:
