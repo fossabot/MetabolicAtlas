@@ -26,6 +26,7 @@ ALLOWED_HOSTS = [
     'icsb.chalmers.se',
     'metabolicatlas.sysbio.chalmers.se',
     'metabolicatlas.org',
+    'www.metabolicatlas.org',
 ]
 
 # Application definition
