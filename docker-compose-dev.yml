@@ -10,7 +10,10 @@ services:
 
   nginx:
     build:
-      dockerfile: Dockerfile
+      dockerfile: nginx/Dockerfile
+    depends_on:
+      - backend
+      - frontend
     volumes:
       - ./backend/static:/static
       - ./nginx/svgs:/svgs
@@ -21,11 +24,13 @@ services:
       - ./utils/annotation:/project/annotation
 
   frontend:
+    container_name: frontend
+    depends_on:
+      - backend
+    build: ./frontend
     command: npm run dev
-    volumes:
-      - ./frontend/src:/project/src
-      - ./frontend/dist:/project/dist
-      - ./frontend/test:/project/test
+    networks:
+      - net-tier
 
 volumes:
   voldb:

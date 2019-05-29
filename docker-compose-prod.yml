@@ -9,20 +9,13 @@ services:
     volumes:
       - backend:/project
 
-  frontend:
-    command: npm run build
-    volumes:
-      - frontend:/project
-
   nginx:
     restart: always
     build:
-      dockerfile: Dockerfile-prod
+      dockerfile: nginx/Dockerfile-prod
     volumes:
       - backend:/backend:ro
-      - frontend:/frontend:ro
       - /var/ssl:/ssl:ro
 
 volumes:
-  frontend:
   backend:
