@@ -123,6 +123,7 @@ CORS_ORIGIN_WHITELIST = (
     'http://localhost',
     'https://icsb.chalmers.se',
     'https://metabolicatlas.org',
+    'https://www.metabolicatlas.org',
 )
 
 # SWAGGER
