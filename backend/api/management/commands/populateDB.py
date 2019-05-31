@@ -31,7 +31,7 @@ def populate_database(database, yaml_file, overwrite=False, metadata_only=False,
 
             python manage.py addHPAexpression %s
 
-        """ % (database, database, database, database, database, database))
+        """ % (database, database, database, database))
 
 
 class Command(BaseCommand):

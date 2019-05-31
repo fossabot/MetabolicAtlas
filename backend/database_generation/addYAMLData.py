@@ -56,6 +56,9 @@ def insert_model_metadata(database, metadata, overwrite=False, content_only=Fals
         # github      : "https://github.com/SysBioChalmers/human-GEM"
         # description : "Human genome-scale metabolic models are important tools for the study of human health and diseases, by providing a scaffold upon which different types of data can be analyzed. This is the latest version of human-GEM, which is a genome-scale model of the generic human cell. The objective of human-GEM is to serve as a community model for enabling integrative and mechanistic studies of human metabolism."
 
+    if content_only:
+        return None
+
     metadata_dict = metadata[1]
     # fix missing keys
     if "condition" not in metadata_dict:
@@ -76,17 +79,14 @@ def insert_model_metadata(database, metadata, overwrite=False, content_only=Fals
     # check if the model already exists
     try:
         gem = GEM.objects.using('gems').get(Q(short_name=metadata_dict["short_name"]) | Q(database_name=database))
-        if content_only:
-            return gem
 
         if not overwrite:
             print("Error: model '%s' already in the database" % metadata_dict["short_name"])
             exit(1)
         gem.delete()
     except GEM.DoesNotExist:
-        if content_only:
-            print("Error: model '%s' is not in the database" % metadata_dict["short_name"])
-            exit(1)
+        print("Error: model '%s' is not in the database" % metadata_dict["short_name"])
+        exit(1)
 
     #fix metadata dict
     if database == "human1":
@@ -385,7 +385,8 @@ def load_YAML(database, yaml_file, overwrite=False, metadata_only=False, content
         unique_metabolite.add(dict_metabolite['name'])
 
     # update metabolite count
-    GEM.objects.filter(id=gem.id).update(metabolite_count=len(unique_metabolite))
+    if not content_only:
+        GEM.objects.filter(id=gem.id).update(metabolite_count=len(unique_metabolite))
 
     if not metadata_only:
         print("Inserting enzymes (rc)...")
@@ -402,13 +403,14 @@ def load_YAML(database, yaml_file, overwrite=False, metadata_only=False, content
             rc_dict[id_value] = rc
 
     # update enzyme count
-    GEM.objects.filter(id=gem.id).update(enzyme_count=len(genes[1]))
+    if not content_only:
+        GEM.objects.filter(id=gem.id).update(enzyme_count=len(genes[1]))
 
     if overwrite and not metadata_only:
         Reaction.objects.using(database).all().delete()
         Subsystem.objects.using(database).all().delete()
 
-    if metadata_only:
+    if metadata_only and not content_only:
         # update reaction count
         GEM.objects.filter(id=gem.id).update(reaction_count=len(reactions[1]))
         return
@@ -589,7 +591,8 @@ def load_YAML(database, yaml_file, overwrite=False, metadata_only=False, content
                         sc.save(using=database)
 
     # update reaction count
-    GEM.objects.filter(id=gem.id).update(reaction_count=len(reactions[1]))
+    if not content_only:
+        GEM.objects.filter(id=gem.id).update(reaction_count=len(reactions[1]))
 
     print("Inserting subsystem stats...")
     insert_subsystem_stats(database)
