@@ -33,8 +33,6 @@ If you encounter any problems try running `restart-stack`, or look at the logs `
 
 ### Create the databases
 
-The integrated models databases are mapping public models (supposedly) inserted into the GEMs database, thus GEMs database should be built prior the Full models databases.
-
 #### GEMs database
 
 Connect to the corresponding DB docker container (db):
@@ -72,7 +70,7 @@ python manage.py getGithubModels
 ```
 Watch out the API rate limit (https://developer.github.com/v3/rate_limit/).
 
-#### Full model databases
+#### Integrated model databases
 
 Connect to the db container and once inside run psql
 
@@ -105,7 +103,10 @@ python manage.py addAnnotations [database] 'all' # add content of annotations fi
 
 (as adapted from `http://eli.thegreenplace.net/2014/02/15/programmatically-populating-a-django-database`)
 
-Insert all information related to the svg maps, compare the DB and svg maps, and shows maps statistics
+Insert information related to the svg maps, such as:
+- the association between model compartments <=> compartment SVG maps
+- the association between model subsystems <=> subsystem SVG maps
+- the localization (in which maps to find) metabolite ID / reaction ID / enzymes ID on maps
 
 ```bash
 python manage.py addMapsInformation [database] [map type] [map directory] [map metadata file]
@@ -114,6 +115,22 @@ python manage.py addMapsInformation [database] [map type] [map directory] [map m
 ```
 see the example file [human1_compartmentSVG.tsv](/backend/database_generation/example/human1_compartmentSVG.tsv)
 
+#### Using the dump files
+
+Alternativly one can create and import the database content using the .db files stored on the box folder:
+``` bash
+docker exec -i db psql -U postgres < human1.db
+docker exec -i db psql -U postgres < yeast8.db
+docker exec -i db psql -U postgres < gems.db
+```
+
+Then do not forget to resync the migrations files with:
+```bash
+docker exec backend python manage.py makemigrations
+docker exec backend python manage.py migrate --database yeast8 --fake
+docker exec backend python manage.py migrate --database human1 --fake
+docker exec backend python manage.py migrate --database gems --fake
+```
 
 ### Dump databases
 
@@ -121,7 +138,7 @@ Integrated model databases:
 ```bash
 docker exec -it db  pg_dump -U postgres -d human1 --create -T 'auth_*' -T 'django_*' > human1.db
 ```
-Once imported the database cannot be migrated anymore with django, thus should only be used for production. To create a woking version of the db remove "--create -T 'auth_*' -T 'django_*'"
+Once imported the database cannot be migrated anymore with django, thus should only be used for production. To create a working version of the db, remove "--create -T 'auth_*' -T 'django_*'"
 
 GEMs database:
 ```bash
@@ -135,7 +152,7 @@ docker exec -it db psql -U postgres human1 < PATH_TO_DB_FILE
 docker exec -it db psql -U postgres gems < PATH_TO_DB_FILE
 ```
 
-### Adding a new model in the website (to be done locally only)
+### Adding a new model in the website (under development)
 
 1) The model must be publicly available online, and must have a valid README file to parse with:
 
