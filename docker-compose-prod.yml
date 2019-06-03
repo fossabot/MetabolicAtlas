@@ -6,16 +6,10 @@ services:
 
   backend:
     restart: always
-    volumes:
-      - backend:/project
 
   nginx:
     restart: always
     build:
       dockerfile: nginx/Dockerfile-prod
     volumes:
-      - backend:/backend:ro
       - /var/ssl:/ssl:ro
-
-volumes:
-  backend:
