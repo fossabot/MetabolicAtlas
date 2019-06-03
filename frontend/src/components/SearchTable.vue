@@ -43,38 +43,34 @@
                 {{ messages.searchNoResult }}
               </div>
               <div class="content">
-                <p>This page provides search by the following parameters:</p>
-                <p>Metabolites by:</p>
-                <ul class="menu-list">
+                <div class="has-text-centered">Search using the following parameters:</div>
+                <span>Metabolites by:</span>
+                <ul>
                   <li>ID</li>
-                  <li>name</li>
-                  <li>formula</li>
-                  <li>HMDB ID, name</li>
-                  <li>KEGG ID</li>
+                  <li>Name or aliases</li>
+                  <li>Formula</li>
+                  <li>External identifiers</li>
                 </ul>
-                <p>Enzymes by:</p>
-                <ul class="menu-list">
+                <span>Enzymes by:</span>
+                <ul>
                   <li>ID</li>
-                  <li>name</li>
-                  <li>Ensembl ID</li>
-                  <li>Uniprot ID, name</li>
-                  <li>KEGG ID</li>
+                  <li>Name or aliases</li>
+                  <li>External identifiers</li>
                 </ul>
-                <p>Reactions by:</p>
-                <ul class="menu-list">
+                <span>Reactions by:</span>
+                <ul>
                   <li>ID</li>
-                  <li>equation:</li>
-                  <ul class="menu-list">
-                    <li>e.g. malonyl-CoA[c] => acetyl-CoA[c] + CO2[c]</li>
-                    <li>without specifying compartment e.g 2 ADP => AMP + ATP</li>
-                  </ul>
+                  <li>Equation (view the <router-link :to="{ 'path': '/documentation', hash:'Global-search'}">documentation</router-link> for more information)</li>
                   <li>EC code</li>
-                  <li>SBO ID</li>
+                  <li>External identifiers</li>
                 </ul>
-                <p>Subsystem and compartment by:</p>
-                <ul class="menu-list">
+                <span>Subsystem and compartment by:</span>
+                <ul>
                   <li>name</li>
+                  <li>External identifiers (subsystem only)</li>
                 </ul>
+                <br>
+                <div class="has-text-centered"><u>External identifiers and aliases may be missing if they are not provided with the models.</u></div>
               </div>
             </div>
             <template v-for="header in tabs">

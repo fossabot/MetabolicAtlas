@@ -62,7 +62,7 @@ python manage.py migrate --database gems
 python manage.py getMAModels
 ```
 
-Follow the instructions displayed at the end to serve the models file from ftp.icsb.chalmers.se.
+Follow the instructions displayed at the end to serve the models file from ftp.metabolicatlas.org.
 Note: model files are stored in backend/model_files/FTP, removing this folder will re-download models files from remote locations (http://www.metabolicatlas.org/ and http://biomet-toolbox.chalmers.se/).
 
 

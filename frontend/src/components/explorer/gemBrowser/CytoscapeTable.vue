@@ -106,7 +106,9 @@ export default {
       return this.elms.map((e) => {
         const v = e;
         if (typeof v.compartment !== 'string' && !(v.compartment instanceof String)) {
-          v.compartment = Object.keys(v.compartment).join(', ');
+          v.compartment_str = Object.keys(v.compartment).join(', ');
+        } else {
+          v.compartment_str = v.compartment;
         }
         return v;
       });

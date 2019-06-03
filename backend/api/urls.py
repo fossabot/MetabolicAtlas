@@ -13,7 +13,7 @@ urlpatterns = [
     url(r'^(?P<model>[^/]+)/reaction/(?P<id>[^/]+)/modifiers/?$', views.get_reaction_modifiers),
 
     url(r'^(?P<model>[^/]+)/enzymes/?$', views.get_enzymes),
-    url(r'^(?P<model>[^/]+)/enzyme/(?P<id>[^/]+)?$', views.get_enzyme),
+    url(r'^(?P<model>[^/]+)/enzyme/(?P<id>[^/]+)/?$', views.get_enzyme),
     url(r'^(?P<model>[^/]+)/enzyme/(?P<id>[^/]+)/interaction_partners/?$', views.get_enzyme_interaction_partners),
     url(r'^(?P<model>[^/]+)/enzyme/(?P<id>[^/]+)/reactions/?$', views.get_enzyme_reactions),
 

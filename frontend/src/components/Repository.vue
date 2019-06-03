@@ -5,7 +5,7 @@
         {{ errorMessage }}
       </div>
       <div v-else>
-        <h2 class="title is-2">Integrated GEMs</h2><br><br>
+        <h2 class="title is-2">Integrated GEMs</h2>
         <p class="is-size-5">
           These models are integrated into the Metabolic Atlas database; they can be explored via {{ messages.gemBrowserName }}, {{ messages.mapViewerName }} and {{ messages.interPartName }}.
         </p><br><br>
@@ -14,7 +14,7 @@
             <div class="card is-size-5">
               <header class="card-header clickable has-background-primary-lighter" @click="showIntegratedModelData(model)">
                 <p class="card-header-title card-content has-text-weight-bold has-text-primary">
-                  {{ model.full_name }} &ndash; {{ model.short_name }}
+                  {{ model.short_name }} &ndash; {{ model.full_name }}
                 </p>
                 <div class="card-header-icon">
                   <span class="icon has-text-primary">
@@ -22,43 +22,43 @@
                   </span>
                 </div>
               </header>
-              <div class="card-content">
+              <div class="card-content is-fullheight">
                 <div class="columns">
-                  <div class="column is-narrow">
+                  <div class="column">
                     Reactions: {{ model.reaction_count }}<br>
                     Metabolites: {{ model.metabolite_count }}<br>
-                    Enzymes: {{ model.enzyme_count }}<br><br>
+                    Enzymes: {{ model.enzyme_count }}<br>
+                  </div>
+                  <div class="column">
                     Date: {{ model.date || "n/a" }}<br>
                     <a :href="model.link" target="_blank">
                       <template v-if="model.link.includes('github.com')">
-                        <span class="icon"><i class="fa fa-github fa-lg"></i></span>
+                        <span class="icon"><i class="fa fa-github"></i></span>
                         GitHub
-                     </template>
+                      </template>
                      <template v-else>
                         <span class="icon"><i class="fa fa-link fa-lg"></i></span>
                         External link
                      </template>
                     </a>
                   </div>
-                  <div class="column">
-                    Condition: {{ model.condition }}<br>
-                    Tissue/Cell type: {{ model.sample }}<br><br>
-                    <router-link class="button is-info is-medium is-outlined" :to="{ path: `/explore/gem-browser/${model.database_name}` }">
-                      <span class="icon is-large"><i class="fa fa-search-plus"></i></span>
-                      <span>{{ messages.gemBrowserName }}</span>
-                    </router-link>
-                    <router-link class="button is-info is-medium is-outlined" :to="{ path: `/explore/map-viewer/${model.database_name}` }">
-                      <span class="icon is-large"><i class="fa fa-map-o"></i></span>
-                      <span>{{ messages.mapViewerName }}</span>
-                    </router-link>
-                  </div>
                 </div>
               </div>
+              <footer class="card-footer">
+                <router-link class="card-footer-item is-info is-outlined" :to="{ path: `/explore/gem-browser/${model.database_name}` }">
+                  <span class="icon is-large"><i class="fa fa-database fa-lg"></i></span>
+                  <span>{{ messages.gemBrowserName }}</span>
+                </router-link>
+                <router-link class="card-footer-item is-info is-outlined" :to="{ path: `/explore/map-viewer/${model.database_name}` }">
+                  <span class="icon is-large"><i class="fa fa-map-o fa-lg"></i></span>
+                  <span>{{ messages.mapViewerName }}</span>
+                </router-link>
+              </footer>
             </div>
           </div>
         </div>
         <h2 class="title is-2">Repository</h2>
-        <p class="is-size-5">While we do not provide support for these models, we are making them avaible to download. For support, the authors should be contacted. They are listed in the <i>References</i> section of each model. Click on any row to view more.</p><br>
+        <p class="is-size-5">While we do not provide support for these models, we are making them available to download. For support, the authors should be contacted. They are listed in the <i>References</i> section of each model. Click on any row to view more. To download multiple models at once use the <router-link :to=" { path: '/documentation', hash: 'FTP-download'} ">FTP server</router-link>.</p><br>
         <loader v-show="showLoader"></loader>
         <div v-if="GEMS.length != 0">
           <vue-good-table
@@ -80,20 +80,30 @@
                   {{ selectedModel.full_name }}
                 </template>
                 <template v-else>
-                  {{ selectedModel.set_name }} - {{ selectedModel.label || selectedModel.tissue}}
+                   <template v-if="selectedModel.tag || selectedModel.tissue || selectedModel.cell_type || selectedModel.cell_line">
+                    {{ selectedModel.set_name }} - {{ selectedModel.tag || selectedModel.tissue || selectedModel.cell_type || selectedModel.cell_line }}
+                   </template>
+                   <template v-else>
+                    {{ selectedModel.set_name }}
+                   </template>
                 </template>
               </h2>
               {{ selectedModel.description }}<br><br>
               <table class="table main-table">
                 <tbody>
-                  <tr v-for="field in model_fields" v-if="selectedModel[field.name]">
-                    <td v-html="field.display" class="td-key has-background-primary has-text-white-bis"></td>
-                    <td v-if="typeof(selectedModel[field.name]) === 'boolean'">
-                      {{ selectedModel[field.name] ? 'Yes' : 'No' }}
-                    </td>
-                    <td v-else>
-                      {{ selectedModel[field.name] }}
-                    </td>
+                  <tr v-for="field in model_fields">
+                    <template v-if="['reaction_count', 'metabolite_count', 'enzyme_count'].includes(field.name)">
+                      <td v-html="field.display" class="td-key has-background-primary has-text-white-bis"></td>
+                      <td>{{ selectedModel[field.name] !== null ? selectedModel[field.name] : '-' }}</td>
+                    </template>
+                    <template v-else-if="typeof(selectedModel[field.name]) === 'boolean'">
+                      <td v-html="field.display" class="td-key has-background-primary has-text-white-bis"></td>
+                      <td>{{ selectedModel[field.name] ? 'Yes' : 'No' }}</td>
+                    </template>
+                    <template v-else-if="selectedModel[field.name]">
+                      <td v-html="field.display" class="td-key has-background-primary has-text-white-bis"></td>
+                      <td>{{ selectedModel[field.name] }}</td>
+                    </template>
                   </tr>
                   <template v-if="selectedModel.authors && selectedModel.authors.length !== 0">
                     <tr v-for="a in selectedModel.authors">
@@ -122,7 +132,7 @@
                       <template v-for="oneRef in selectedModel.ref">
                         <p v-if="!oneRef.link">{{ oneRef.title }}</p>
                         <a v-else :href="oneRef.link" target="_blank">
-                          {{ oneRef.title }} (PMID {{ oneRef.pubmed }})
+                          {{ oneRef.title }} (PMID: {{ oneRef.pmid }})
                         </a>
                         <br>
                       </template>
@@ -137,7 +147,7 @@
                   <tbody>
                     <tr>
                       <td v-for="file in selectedModel.files">
-                        <a :href="file.path">{{ file.format }}</a>
+                        <a :href="`${filesURL}${file.path}`">{{ file.format }}</a>
                       </td>
                     </tr>
                   </tbody>
@@ -163,7 +173,7 @@ import { default as EventBus } from '../event-bus';
 import { default as messages } from '../helpers/messages';
 
 export default {
-  name: 'gems',
+  name: 'repository',
   components: {
     Loader,
     VueGoodTable,
@@ -189,8 +199,8 @@ export default {
           sortable: true,
           html: true,
         }, {
-          label: 'Label',
-          field: 'label',
+          label: 'Tag',
+          field: 'tag',
           filterOptions: {
             enabled: true,
           },
@@ -277,6 +287,7 @@ export default {
       },
       messages,
       integratedModels: [],
+      filesURL: 'https://ftp.metabolicatlas.org/',
     };
   },
   created() {
@@ -299,7 +310,7 @@ export default {
           model.sample = [model.sample.tissue, model.sample.cell_type, model.sample.cell_line].filter(e => e).join(' ‒ ') || '-';
           models.push(model);
         }
-        models.sort((a, b) => (a.short_name < b.short_name ? 1 : -1));
+        models.sort((a, b) => (a.short_name.toLowerCase() < b.short_name.toLowerCase() ? -1 : 1));
         this.integratedModels = models;
       })
       .catch(() => {
@@ -381,12 +392,6 @@ export default {
         this.errorMessage = messages.notFoundError;
         this.showLoader = false;
       });
-    },
-    buildHeader() {
-      if (this.selectedModel.label) {
-        return ` <i>${this.selectedModel.organism}</i>: ${this.selectedModel.set_name} - ${this.selectedModel.label}`;
-      }
-      return ` <i>${this.selectedModel.organism}</i>: ${this.selectedModel.set_name} - ${this.selectedModel.tissue}`;
     },
   },
 };

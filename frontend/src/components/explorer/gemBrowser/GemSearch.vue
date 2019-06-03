@@ -28,7 +28,7 @@
             <div v-for="(r, i2) in searchResults[k]" class="searchResultSection">
               <hr class="is-marginless" v-if="i2 != 0">
               <div class="clickable" @mousedown.prevent="goToTab(k, r.id || r.name_id || r.name)">
-                 <b class="is-capitalized">{{ k }}: </b><label v-html="formatSearchResultLabel(k, r, searchTermString)"></label>
+                 <b class="is-capitalized">{{ k }}: </b><label class="clickable" v-html="formatSearchResultLabel(k, r, searchTermString)"></label>
               </div>
             </div>
             <hr class="bhr" v-if="searchResults[k].length !== 0">
@@ -273,7 +273,7 @@ export default {
       padding: 7px 0px;
     }
     div:hover, label:hover {
-      color: #006992; // todo somehow replace it by $link..
+      color: #00549E;
     }
   }
 }
