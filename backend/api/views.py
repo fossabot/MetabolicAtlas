@@ -231,15 +231,104 @@ def get_enzyme_interaction_partners(request, model, id):
 @api_view()
 @is_model_valid
 def get_interaction_partners(request, model, id, type=None):
-
-
     reactions = []
+    interactionPartners = []
+    IP_dict = {}
+    # type on interaction:
+    #    REACTANT - reactant = 'converted with'
+    #    REACTANT - product = 'converted into'
+    #    PRODUCT - reactant = 'systhesised from'
+    #    PRODUCT - product = 'systhesised with
+    #    PRODUCT/REACTANT - enzyme = 'catalyze by'
+    #    ENZYME - REACTANT = ''catalyze conversion'
+    #    ENZYME - PRODUCT = ''catalyze synthesis'
+    #    ENZYME - ENZYME = 'catalyze with'
+
     if type == 'm':
         try:
             component = APImodels.ReactionComponent.objects.using(model).get((Q(id__iexact=id) | Q(full_name__iexact=id)) & Q(component_type=type))
         except APImodels.ReactionComponent.DoesNotExist:
             return HttpResponse(status=404)
         reactions = component.reactions_as_metabolite.prefetch_related('reactants', 'products', 'modifiers').all()
+        for r in reactions:
+            if component in r.reactants.all():
+                component_type = 'r'
+            else:
+                component_type = 'p'
+
+            for reactant in r.reactants.all():
+                if component_type == 'r' and reactant == component:
+                    continue
+
+                if reactant.id in IP_dict:
+                    IP_dict[reactant.id]['reactions'].append(
+                    {
+                        'reaction_id': r.id,
+                        'interaction_type': 'converted with' if component_type == 'r' else 'systhesised from',
+                    })
+                    if r.is_reversible:
+                        IP_dict[reactant.id]['reactions'][-1]['interaction_type'] += ' (reversible)'
+                    continue
+
+                ip = {
+                    'id': reactant.id,
+                    'name': reactant.full_name,
+                    'reactions': [{
+                        'reaction_id': r.id,
+                        'interaction_type': 'converted with' if component_type == 'r' else 'systhesised from',
+                    }]
+                }
+                if r.is_reversible:
+                    ip['reactions'][0]['interaction_type'] += ' (reversible)'
+                IP_dict[reactant.id] = ip
+                interactionPartners.append(ip)
+
+            for product in r.products.all():
+                if component_type == 'p' and product == component:
+                    continue
+
+                if product.id in IP_dict:
+                    IP_dict[product.id]['reactions'].append(
+                    {
+                        'reaction_id': r.id,
+                        'interaction_type': 'converted into' if component_type == 'r' else 'systhesised with',
+                    })
+                    if r.is_reversible:
+                        IP_dict[product.id]['reactions'][-1]['interaction_type'] += ' (reversible)'
+                    continue
+
+                ip = {
+                    'id': product.id,
+                    'name': product.full_name,
+                    'reactions': [{
+                        'reaction_id': r.id,
+                        'interaction_type': 'converted into' if component_type == 'r' else 'systhesised with',
+                    }]
+                }
+                if r.is_reversible:
+                    ip['reactions'][0]['interaction_type'] += ' (reversible)'
+                IP_dict[product.id] = ip
+                interactionPartners.append(ip)
+
+            for enzyme in r.modifiers.all():
+                if enzyme.id in IP_dict:
+                    IP_dict[enzyme.id]['reactions'].append(
+                    {
+                        'reaction_id': r.id,
+                        'interaction_type': 'catalyze by',
+                    })
+                    continue
+
+                ip = {
+                    'id': enzyme.id,
+                    'name': enzyme.name,
+                    'reactions': [{
+                        'reaction_id': r.id,
+                        'interaction_type': 'catalyze by',
+                    }]
+                }
+                IP_dict[enzyme.id] = ip
+                interactionPartners.append(ip)
     elif type == 'e':
         try:
             component = APImodels.ReactionComponent.objects.using(model).get((Q(id__iexact=id) | Q(name__iexact=id)) & Q(component_type=type))
@@ -247,9 +336,79 @@ def get_interaction_partners(request, model, id, type=None):
             return HttpResponse(status=404)
         reactions = component.reactions_as_modifier.prefetch_related('reactants', 'products', 'modifiers').all()
 
-    InteractionPartnerSerializerClass = componentDBserializerSelector(model, 'interaction partner', serializer_type="lite", api_version=request.version)
-    serializer = InteractionPartnerSerializerClass(reactions, many=True)
-    return JSONResponse(serializer.data)
+        for r in reactions:
+            for reactant in r.reactants.all():
+                if reactant.id in IP_dict:
+                    IP_dict[reactant.id]['reactions'].append(
+                    {
+                        'reaction_id': r.id,
+                        'interaction_type': 'catalyse conversion',
+                    })
+                    if r.is_reversible:
+                        IP_dict[reactant.id]['reactions'][-1]['interaction_type'] += ' (reversible)'
+                    continue
+
+                ip = {
+                    'id': reactant.id,
+                    'name': reactant.full_name,
+                    'reactions': [{
+                        'reaction_id': r.id,
+                        'interaction_type': 'catalyse conversion',
+                    }]
+                }
+                if r.is_reversible:
+                    ip['reactions'][0]['interaction_type'] += ' (reversible)'
+                IP_dict[reactant.id] = ip
+                interactionPartners.append(ip)
+
+            for product in r.products.all():
+                if product.id in IP_dict:
+                    IP_dict[product.id]['reactions'].append(
+                    {
+                        'reaction_id': r.id,
+                        'interaction_type': 'catalyse synthesis',
+                    })
+                    if r.is_reversible:
+                        IP_dict[product.id]['reactions'][-1]['interaction_type'] += ' (reversible)'
+                    continue
+
+                ip = {
+                    'id': product.id,
+                    'name': product.full_name,
+                    'reactions': [{
+                        'reaction_id': r.id,
+                        'interaction_type': 'catalyse synthesis',
+                    }]
+                }
+                if r.is_reversible:
+                    ip['reactions'][0]['interaction_type'] += ' (reversible)'
+                IP_dict[product.id] = ip
+                interactionPartners.append(ip)
+
+            for enzyme in r.modifiers.all():
+                if enzyme == component:
+                    continue
+
+                if enzyme.id in IP_dict:
+                    IP_dict[enzyme.id]['reactions'].append(
+                    {
+                        'reaction_id': r.id,
+                        'interaction_type': 'catalyse with',
+                    })
+                    continue
+
+                ip = {
+                    'id': enzyme.id,
+                    'name': enzyme.name,
+                    'reactions': [{
+                        'reaction_id': r.id,
+                        'interaction_type': 'catalyse with',
+                    }]
+                }
+                IP_dict[enzyme.id] = ip
+                interactionPartners.append(ip)
+
+    return JSONResponse(interactionPartners)
 
 
 @api_view()
