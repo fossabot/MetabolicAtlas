@@ -9,7 +9,7 @@ from django.db import models
 from api.models import *
 from django.db.models import Q
 
-# import api.management.commands.repo_parser as github_model_parser
+import api.management.commands.repo_parser as github_model_parser
 
 import re
 import collections
