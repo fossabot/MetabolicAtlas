@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="column" v-if="tissue && dim === '2d'">
+    <div class="column" v-if="tissue">
       <div class="card">
         <header class="card-header clickabled" @click.prevent="showLvlCardContent = !showLvlCardContent">
           <p class="card-header-title is-inline">
@@ -19,13 +19,13 @@
       <div class="card">
         <header class="card-header" @click.prevent="showMapCardContent = !showMapCardContent">
           <p class="card-header-title is-capitalized is-inline">
-            {{ capitalize(mapType) }}:
+            {{ mapType }}:
             <i>{{ mapsData.compartments[mapName] ? mapsData.compartments[mapName].name : mapsData.subsystems[mapName] ? mapsData.subsystems[mapName].name : '' }}</i>
           </p>
         </header>
         <footer class="card-footer">
-          <router-link class="button is-info is-medium is-outlined card-footer-item has-text-centered" :to="{ path: `/explore/gem-browser/${model.database_name}/${mapType}/${ mapsData.compartments[mapName] ? mapsData.compartments[mapName].model_id : mapsData.subsystems[mapName] ? mapsData.subsystems[mapName].model_id : '' }`}">
-            <span class="icon is-large"><i class="fa fa-search-plus"></i></span>
+          <router-link class="is-paddingless is-info is-outlined card-footer-item has-text-centered" :to="{ path: `/explore/gem-browser/${model.database_name}/${mapType}/${ mapsData.compartments[mapName] ? mapsData.compartments[mapName].model_id : mapsData.subsystems[mapName] ? mapsData.subsystems[mapName].model_id : '' }`}">
+            <span class="icon is-large"><i class="fa fa-database fa-lg"></i></span>
             <span>{{ messages.gemBrowserName }}</span>
           </router-link>
         </footer>
@@ -45,21 +45,21 @@
             </p>
           </header>
           <footer class="card-footer" v-if="!selectionData.error">
-            <router-link class="button is-info is-medium is-outlined card-footer-item has-text-centered" :to="{ path: `/explore/gem-browser/${model.database_name}/${selectionData.type}/${idfy(selectionData.data.id)}`}">
-              <span class="icon is-large"><i class="fa fa-search-plus"></i></span>
+            <router-link class="is-paddingless is-info is-outlined card-footer-item has-text-centered" :to="{ path: `/explore/gem-browser/${model.database_name}/${selectionData.type}/${idfy(selectionData.data.id)}`}">
+              <span class="icon is-large"><i class="fa fa-database fa-lg"></i></span>
               <span>{{ messages.gemBrowserName }}</span>
             </router-link>
-            <div class="button is-primary is-medium is-outlined card-footer-item has-text-centered"
+            <div class="is-paddingless is-primary is-outlined card-footer-item has-text-centered"
               @click="(mapsData.subsystems[idfy(selectionData.data.id)] && mapsData.subsystems[idfy(selectionData.data.id)].sha) && showSubsystem(idfy(selectionData.data.id))"
               :disabled="!mapsData.subsystems[idfy(selectionData.data.id)] || !mapsData.subsystems[idfy(selectionData.data.id)].sha">
-              <span class="icon is-large"><i class="fa fa-map-o"></i></span>
+              <span class="icon is-large"><i class="fa fa-map-o fa-lg"></i></span>
               <span>Load map</span>
             </div>
           </footer>
         </div>
         <div class="card" v-else-if="selectionData.data && ['metabolite', 'enzyme', 'reaction'].includes(selectionData.type)">
           <header class="card-header clickable" v-if="!selectionData.error" @click.prevent="showSelectionCardContent = !showSelectionCardContent">
-            <p class="card-header-title is-capitalized is-inline">
+            <p class="card-header-title is-inline is-capitalized">
               {{ selectionData.type }}: <i>{{ selectionData.data.id }}</i>
             </p>
             <a href="#" class="card-header-icon" aria-label="more options">
@@ -83,7 +83,7 @@
                       <span class="has-text-weight-bold">{{ capitalize(eid[0]) }}:</span>
                       <span v-html="reformatStringToLink(selectionData.data[eid[1]], selectionData.data[eid[2]])"></span><br>
                     </template>
-                  </p v-if="hasExternalIDs(item.value)">
+                  </p>
                 </template>
                 <template v-else-if="['aliases', 'subsystem'].includes(item.name)">
                   <span class="has-text-weight-bold">{{ capitalize(item.display || item.name) }}:</span><p>
@@ -92,14 +92,20 @@
                   </template></p>
                 </template>
                 <template v-else-if="['reactants', 'products'].includes(item.name)">
-                  <span class="has-text-weight-bold">{{ capitalize(item.display || item.name) }}:</span><p>
-                  <template v-for="s in selectionData.data[item.name]">
-                    &ndash;&nbsp;{{ s.name }}<br>
-                  </template></p>
+                  <span class="has-text-weight-bold">{{ capitalize(item.display || item.name) }}:</span>
+                  <p>
+                    <template v-for="s in selectionData.data[item.name]">
+                      &ndash;&nbsp;{{ s.name }}<br>
+                    </template>
+                  </p>
                 </template>
                 <template v-else-if="item.name === 'equation'">
                   <p><span class="has-text-weight-bold" v-html="capitalize(item.display || item.name) + ':'"></span><br>
                   <span v-html="chemicalReaction(selectionData.data[item.name], selectionData.data['is_reversible'])"></span></p>
+                </template>
+                <template v-else-if="item.name === 'formula'">
+                  <p><span class="has-text-weight-bold" v-html="capitalize(item.display || item.name) + ':'"></span>
+                  <span v-html="chemicalFormula(selectionData.data[item.name], selectionData.data.charge)"></span></p>
                 </template>
                 <template v-else>
                   <p><span class="has-text-weight-bold" v-html="capitalize(item.display || item.name) + ':'"></span>
@@ -109,17 +115,11 @@
               <template v-if="selectionHasNoData()">
                 {{ messages.noInfoAvailable }}
               </template>
-              <template v-else-if="selectionData.error">
-                <!-- TODO FIXME  unreachable code -->
-                <div class="has-text-danger">
-                  {{ messages.unknownError }}
-                </div>
-              </template>
             </div>
           </div>
           <footer class="card-footer" v-if="!selectionData.error">
-            <router-link class="button is-info is-medium is-outlined card-footer-item has-text-centered" :to="{ path: `/explore/gem-browser/${model.database_name}/${selectionData.type}/${idfy(selectionData.data.id)}`}">
-              <span class="icon is-large"><i class="fa fa-search-plus"></i></span>
+            <router-link class="is-paddingless is-info is-outlined card-footer-item has-text-centered" :to="{ path: `/explore/gem-browser/${model.database_name}/${selectionData.type}/${idfy(selectionData.data.id)}`}">
+              <span class="icon is-large"><i class="fa fa-database fa-lg"></i></span>
               <span>{{ messages.gemBrowserName }}</span>
             </router-link>
           </footer>
@@ -131,7 +131,7 @@
 
 <script>
 import { capitalize, reformatStringToLink, idfy } from '../../../helpers/utils';
-import { chemicalReaction } from '../../../helpers/chemical-formatters';
+import { chemicalFormula, chemicalReaction } from '../../../helpers/chemical-formatters';
 import { getExpLvlLegend } from '../../../expression-sources/hpa';
 import { default as messages } from '../../../helpers/messages';
 import { default as EventBus } from '../../../event-bus';
@@ -143,7 +143,7 @@ export default {
     return {
       errorMessage: '',
       selectedElementDataKeys: {
-        hmr2: {
+        human1: {
           metabolite: [
             { name: 'name' },
             { name: 'model_name', display: 'Model&nbsp;name' },
@@ -181,7 +181,7 @@ export default {
             { name: 'products' },
           ],
         },
-        yeast: {
+        yeast8: {
           metabolite: [],
           enzyme: [],
           reaction: [],
@@ -223,6 +223,7 @@ export default {
     getExpLvlLegend,
     capitalize,
     reformatStringToLink,
+    chemicalFormula,
     chemicalReaction,
     idfy,
   },

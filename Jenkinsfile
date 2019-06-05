@@ -1,29 +1,13 @@
 pipeline {
   agent any
   stages {
-    stage('Docker cleanup') {
-      steps {
-        sh '''
-          docker stop $(docker ps -a -q) || true
-          docker rm $(docker ps -a -q) || true
-          docker rmi $(docker images -q) || true
-          docker volume prune --force || true
-        '''
-        echo 'Deleted all Docker containers and images.'
-      }
-    }
     stage('Configure') {
       steps {
         sh '''cp /var/lib/jenkins/postgres.env .'''
         echo 'Copied PostgreSQL and Django environment.'
         sh '''
-          sed -i "s/svgMapURL:.*/svgMapURL: 'https:\\/\\/ftp.icsb.chalmers.se\\/.maps',/g"  frontend/src/components/explorer/mapViewer/Svgmap.vue
+          sed -i "s/svgMapURL:.*/svgMapURL: 'https:\\/\\/ftp.metabolicatlas.org\\/.maps',/g"  frontend/src/components/explorer/mapViewer/Svgmap.vue
         '''
-      }
-    }
-    stage('Test') {
-      steps {
-        echo 'Should do some testing..'
       }
     }
     stage('Build') {
@@ -31,6 +15,24 @@ pipeline {
         sh '''
           PATH=$PATH:/usr/local/bin
           docker-compose -f docker-compose.yml -f docker-compose-prod.yml build
+        '''
+        echo 'Built new Docker images.'
+      }
+    }
+    stage('Cleanup old Docker setup') {
+      steps {
+        sh '''
+          docker stop $(docker ps -a -q) || true
+          docker rm $(docker ps -a -q) || true
+          docker volume prune --force || true
+        '''
+        echo 'Deleted old Docker containers and volumes.'
+      }
+    }
+    stage('Run') {
+      steps {
+        sh '''
+          PATH=$PATH:/usr/local/bin
           docker-compose -f docker-compose.yml -f docker-compose-prod.yml up -d
         '''
       }
@@ -38,17 +40,17 @@ pipeline {
     stage('Import databases') {
       steps {
         sh '''
-          wget https://chalmersuniversity.box.com/shared/static/q41d7lvcqe18g0gwr9yaar8zoedqvhfl.db -O hmr2.db
+          wget https://chalmersuniversity.box.com/shared/static/ux9bnfyycig8qgxtayjnjnczqt7b92b7.db -O human1.db
           wget https://chalmersuniversity.box.com/shared/static/om86nb6y8ji044wzoiljm8aghmbdvs41.db -O gems.db
-          wget https://chalmersuniversity.box.com/shared/static/yqov4k0r4mript3ybl6x2xq42ud9s535.db -O yeast.db
+          wget https://chalmersuniversity.box.com/shared/static/n3izn3hkp1hmmgodpxaczpkqd0p64ngf.db -O yeast8.db
 
-          docker exec -i db psql -U postgres < hmr2.db
-          docker exec -i db psql -U postgres < yeast.db
+          docker exec -i db psql -U postgres < human1.db
+          docker exec -i db psql -U postgres < yeast8.db
           docker exec -i db psql -U postgres < gems.db
 
           docker exec backend python manage.py makemigrations
-          docker exec backend python manage.py migrate --database yeast --fake
-          docker exec backend python manage.py migrate --database hmr2 --fake
+          docker exec backend python manage.py migrate --database yeast8 --fake
+          docker exec backend python manage.py migrate --database human1 --fake
           docker exec backend python manage.py migrate --database gems --fake
         '''
       }
@@ -56,9 +58,10 @@ pipeline {
     stage('Clean up') {
       steps {
         sh '''
+          docker rmi $(docker images -q) || true
           rm *.db
         '''
-        echo 'We are live!'
+        echo 'Deleted old Docker images. We are live!'
       }
     }
   }

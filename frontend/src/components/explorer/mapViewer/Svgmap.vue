@@ -80,7 +80,7 @@ export default {
       idsFound: [],
       elmFound: [],
       elmsHL: [],
-      // TODO handle multi model history
+
       selectedItemHistory: {},
       selectElementID: null,
 
@@ -129,8 +129,6 @@ export default {
         }
       } else if (type === 'find') {
         this.hlElements(name, ids);
-      } else if (!this.svgName || type === 'wholemap') {
-        this.loadSVG('wholemap', null);
       }
     });
 
@@ -234,13 +232,13 @@ export default {
         mapInfo = this.mapsData.subsystems[id];
         if (!mapInfo) {
           this.loadedMapType = null;
-          this.$emit('loadComplete', false, '');
+          this.$emit('loadComplete', false, 'Invalid map ID', 'danger');
           return;
         }
       }
       const newSvgName = mapInfo.filename;
       if (!newSvgName) {
-        this.$emit('loadComplete', false, messages.mapNotFound);
+        this.$emit('loadComplete', false, messages.mapNotFound, 'danger');
         return;
       }
 
@@ -267,15 +265,15 @@ export default {
               }, 0);
             })
             .catch(() => {
-              this.$emit('loadComplete', false, messages.mapNotFound);
+              this.$emit('loadComplete', false, messages.mapNotFound, 'danger');
             });
         }
-      } else if (callback) {
-        // if already loaded, just call the callback funtion
-        this.loadedMap = mapInfo;
-        callback();
       } else {
         this.loadedMap = mapInfo;
+        // if already loaded, just call the callback funtion
+        if (callback) {
+          callback();
+        }
         this.$emit('loadComplete', true, '');
       }
     },
@@ -341,7 +339,7 @@ export default {
         return;
       }
       this.isLoadingSearch = true;
-      axios.get(`${this.model.database_name}/search_map/${this.loadedMapType}/${this.loadedMap.name_id}/${this.searchTerm}`)
+      axios.get(`${this.model.database_name}/get_id/${this.searchTerm}`)
       .then((response) => {
         this.searchInputClass = 'is-success';
         this.idsFound = response.data;
@@ -351,7 +349,7 @@ export default {
         this.isLoadingSearch = false;
         const status = error.status || error.response.status;
         if (status !== 404) {
-          this.$emit('loadComplete', false, messages.unknownError);
+          this.$emit('loadComplete', false, messages.unknownError, 'danger');
           this.searchInputClass = 'is-info';
         } else {
           this.searchInputClass = 'is-danger';
@@ -364,6 +362,7 @@ export default {
         return;
       }
       this.elmFound = [];
+      this.totalSearchMatch = 0;
       for (let i = 0; i < this.idsFound.length; i += 1) {
         const id = this.idsFound[i].trim();
         const rselector = `#svg-wrapper .rea#${id}`;
@@ -372,7 +371,7 @@ export default {
           const selectors = `#svg-wrapper .met.${id}, #svg-wrapper .enz.${id}`;
           elms = $(selectors);
         }
-        this.totalSearchMatch = elms.length;
+        this.totalSearchMatch += elms.length;
         this.currentSearchMatch = 0;
         for (let j = 0; j < elms.length; j += 1) {
           this.elmFound.push($(elms[j]));

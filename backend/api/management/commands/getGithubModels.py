@@ -15,8 +15,6 @@ import requests
 import json
 
 import base64
-
-
 import logging
 
 def check_PMID(PMID):
@@ -71,7 +69,7 @@ repo_parser.show_summary = False
 models = GEModel.objects.all()
 model_dict = {}
 for model in models:
-    model_dict[model.repo_name] = model.last_update
+    model_dict[model.repo_url] = model.last_update
 
 try:
     URL = 'https://api.github.com/orgs/SysBioChalmers/repos'
@@ -84,6 +82,7 @@ except Exception as e:
 
 for repo in list_repo:
     repo_name = repo['name']
+    repo_url = repo['html_url']
     if not repo_name.endswith('-GEM') and not repo_name.endswith('-GEMS') and not repo_name.endswith('-GEMs'):
         continue
 
@@ -96,16 +95,16 @@ for repo in list_repo:
         logging.warn("repo '%s' is up-to-date, skip" % repo_name)
         continue
 
-    logging.warn("Parsing " + repo_name)
+    logging.warn("Parsing " + repo_url)
     repo_dict = repo_parser.get_gemodel(repo_name)
     if not repo_dict:
-        logging.warn("Error: cannot parse the github model %s" % repo_name)
+        logging.warn("Error: cannot parse the github repo '%s'" % repo_name)
         logging.warn(repo_parser.error_message)
         # send an email to the owner, tell him to use the parser script.
         continue
 
     if repo_parser.warning_messages:
-        logging.warn("Warning: the github model %s have warnings:" % repo_name)
+        logging.warn("Warning: the github repo '%s' have warnings:" % repo_name)
         for wm in repo_parser.warning_messages:
             logging.warn(wm)
 
@@ -118,15 +117,15 @@ for repo in list_repo:
         reference = {
             'title': title,
             'link': 'https://www.ncbi.nlm.nih.gov/pubmed/%s' % PMID,
-            'pubmed': PMID,
+            'pmid': PMID,
             'year': year
         }
 
         if 'reference' in repo_dict and repo_dict['reference']:
-            # '>Kerkhoven EJ, Pomraning KR, Baker SE, Nielsen J (2016) 
+            # '>Kerkhoven EJ, Pomraning KR, Baker SE, Nielsen J (2016)
             # "Regulation of amino-acid metabolism controls flux
             # to lipid accumulation in _Yarrowia lipolytica_."
-            # npj Systems Biology and Applications 2:16005. 
+            # npj Systems Biology and Applications 2:16005.
             # doi:[10.1038/npjsba.2016.5](http://www.nature.com/articles/npjsba20165)
             reference['title'] = repo_dict['reference'].strip('>').split(' doi:[')[0]
     else:
@@ -170,7 +169,7 @@ for repo in list_repo:
             # 'gemodelset': None,  # specified upon the creation
             # 'sample': None,  # specified upon the creation
             'description': None,  # should be None, description will always be the set description
-            'label': None, # TODO have a algo to generate label
+            'label': None, # extract from model metadata yaml
             'condition': None,
             'reaction_count': 0,
             'metabolite_count': 0,
@@ -179,7 +178,7 @@ for repo in list_repo:
             'maintained': True,
             'reference': None,  # should be None, reference will be the set reference
             'last_update': repo_updated_at,
-            'repo_name': repo_name,
+            'repo_url': repo_url,
         }
 
         if i == 0:

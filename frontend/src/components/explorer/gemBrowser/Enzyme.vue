@@ -48,16 +48,21 @@
             <div class="column is-2-widescreen is-3-desktop is-full-tablet has-text-centered">
               <router-link class="button is-info is-fullwidth is-outlined"
                 :to="{ path: `/explore/gem-browser/${model.database_name}/interaction/${enzyme.id}` }">
-                {{ messages.interPartName }}
+                <span class="icon"><i class="fa fa-connectdevelop fa-lg"></i></span>&nbsp;
+                <span>{{ messages.interPartName }}</span>
               </router-link>
             </div>
           </div>
+          <template v-if="!this.showLoader">
+            <h4 class="title is-4">Reactions</h4>
+          </template>
           <div class="columns">
             <div class="column">
-              <loader v-show="loading"></loader>
-              <template v-show="reactions.length > 0">
-                <h4 class="title is-4" v-show="!loading">Reactions</h4>
-                <reaction-table v-show="!loading" :reactions="reactions" :showSubsystem="true" :model="model"></reaction-table>
+              <template v-if="!this.showLoader && this.showReactionLoader">
+                <loader></loader>
+              </template>
+              <template v-else-if="!this.showReactionLoader">
+                <reaction-table :reactions="this.reactions" :showSubsystem="true" :model="this.model" :limit="this.limitReaction"></reaction-table>
               </template>
             </div>
           </div>
@@ -71,7 +76,6 @@
 import axios from 'axios';
 import ReactionTable from 'components/explorer/gemBrowser/ReactionTable';
 import Loader from 'components/Loader';
-import { chemicalFormula, chemicalName, chemicalNameExternalLink } from '../../../helpers/chemical-formatters';
 import { reformatTableKey } from '../../../helpers/utils';
 import { default as messages } from '../../../helpers/messages';
 
@@ -85,20 +89,21 @@ export default {
   data() {
     return {
       messages,
-      loading: true,
+      showLoader: true,
+      showReactionLoader: true,
       errorMessage: null,
       eId: '',
       enzyme: {},
       enzymeName: '',
       mainTableKey: {
-        hmr2: [
+        human1: [
           { name: 'enzymeName', display: 'Gene&nbsp;name' },
           { name: 'prot_name', display: 'Protein&nbsp;name' },
           { name: 'gene_synonyms', display: 'Synonyms' },
           { name: 'function' },
           { name: 'id' },
         ],
-        yeast: [
+        yeast8: [
           { name: 'enzymeName', display: 'Gene&nbsp;name' },
           { name: 'prot_name', display: 'Protein&nbsp;name' },
           { name: 'gene_synonyms', display: 'Synonyms' },
@@ -107,15 +112,16 @@ export default {
         ],
       },
       externalIDTableKey: {
-        hmr2: [
+        human1: [
           { name: 'id', display: 'Ensembl', link: 'name_link' },
           { name: 'hpa_id', display: 'Protein Atlas', link: 'hpa_link' },
           { name: 'uniprot_id', display: 'Uniprot', link: 'uniprot_link' },
           { name: 'ncbi_id', display: 'NCBI', link: 'ncbi_link' },
         ],
-        yeast: [],
+        yeast8: [],
       },
       reactions: [],
+      limitReaction: 200,
     };
   },
   watch: {
@@ -129,9 +135,6 @@ export default {
     },
   },
   computed: {
-    filename() {
-      return `ma_catalyzed_reaction_${this.enzymeName}`;
-    },
     hasExternalID() {
       for (const item of this.externalIDTableKey[this.model.database_name]) {
         if (this.enzyme[item.name] && this.enzyme[item.link]) {
@@ -146,24 +149,24 @@ export default {
       this.eId = this.$route.params.id;
       if (this.eId) {
         this.load();
+        this.loadReactions();
       }
     },
     reformatTableKey(k) { return reformatTableKey(k); },
     load() {
-      this.loading = true;
+      this.showLoader = true;
       // const enzymeId = this.eid;
-      axios.get(`${this.model.database_name}/enzyme/${this.eId}/connected_metabolites`)
+      axios.get(`${this.model.database_name}/enzyme/${this.eId}/`)
         .then((response) => {
-          this.loading = false;
+          this.showLoader = false;
           this.errorMessage = null;
-          this.eId = response.data.enzyme.id;
-          this.enzymeName = response.data.enzyme.gene_name || response.data.enzyme.id;
-          this.enzyme = response.data.enzyme;
+          this.eId = response.data.id;
+          this.enzymeName = response.data.gene_name || response.data.id;
+          this.enzyme = response.data;
           this.enzyme.enzymeName = this.enzymeName;
-          this.reactions = response.data.reactions;
         })
         .catch((error) => {
-          this.loading = false;
+          this.showLoader = false;
           this.reactions = [];
           switch (error.response.status) {
             case 404:
@@ -174,9 +177,18 @@ export default {
           }
         });
     },
-    chemicalFormula,
-    chemicalName,
-    chemicalNameExternalLink,
+    loadReactions() {
+      // this.reactions = [];
+      this.showReactionLoader = true;
+      axios.get(`${this.model.database_name}/enzyme/${this.eId}/get_reactions`)
+        .then((response) => {
+          this.reactions = response.data;
+          this.showReactionLoader = false;
+        })
+        .catch(() => {
+          this.reactions = [];
+        });
+    },
   },
   beforeMount() {
     this.setup();

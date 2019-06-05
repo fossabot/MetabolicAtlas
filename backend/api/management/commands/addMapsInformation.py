@@ -1,6 +1,3 @@
-###########################################################
-### Go through all pathways and figure out X,Y for them ###
-###########################################################
 import csv
 import os
 import re
@@ -22,7 +19,6 @@ def file_as_bytes(file):
 
 
 def read_map_reaction(filePath):
-    """ Read svgs file and get all reactions ID and its coordinate x,y """
     res = set()
     with open(filePath, "r") as myfile:
         data = myfile.readlines()
@@ -225,10 +221,10 @@ def get_compt_subsystem_connectivity(database, map_directory, compt_rme, rme_com
     result = {}
 
     for meta in rme_compt:
-        # for each meta 
+        # for each meta
         # count when the meta is reactant or product in each reaction
         # store the info for each compartment and for each subsystem where the reaction is
-        if meta[:6] == 'ENSG00': # TODO change me, model specific to ensembl gene id
+        if meta[:6] == 'ENSG00':
             continue
         result[meta] = {'compartment': {}, 'subsystem': {}}
         reactions_as_reactant = {e for e in ReactionReactant.objects.using(database).filter(reactant_id=meta).values_list('reaction_id', flat=True)}
@@ -442,7 +438,7 @@ def get_components_interconnection(database):
         compt_reaction = ReactionCompartment.objects.using(database).filter(compartment=c).values_list('reaction_id', flat=True)
         compt_reaction_set = {e for e in compt_reaction}
         compt_enzyme_set = {e for e in ReactionModifier.objects.using(database).filter(reaction_id__in=compt_reaction).values_list('modifier_id', flat=True)}
-        
+
         print (c.name, "metabolite", len(compt_metabolite_set))
         print (c.name, "reaction", len(compt_reaction_set))
         print (c.name, "enzyme", len(compt_enzyme_set))
@@ -622,7 +618,7 @@ def get_components_interconnection(database):
     '''
     pathway_compt_coverage:
 
-    {'Transport, nuclear': 
+    {'Transport, nuclear':
         [75, # total reaction
         {'Extracellular': 0,
          'Peroxisome': 0,
@@ -804,14 +800,13 @@ def insert_subsystem_svg_connectivity_and_stats(database, subsystem, map_directo
         add.save(using=database)
     enzyme_count  = rcs.count()
 
-    if reaction_count == 0 or metabolite_count == 0 or unique_meta_count == 0 or enzyme_count == 0:
+    if reaction_count == 0 or metabolite_count == 0 or unique_meta_count == 0:
         print ("Error: subsystem '%s'" % subsystem.filename)
         print("reaction_count", reaction_count)
         print("metabolite_count", metabolite_count)
         print("unique metabolite_count", unique_meta_count)
         print("enzyme_count", enzyme_count)
 
-    # TODO save compartment count?
     SubsystemSvg.objects.using(database). \
         filter(id=subsystem.id).update(reaction_count=reaction_count, \
          metabolite_count=metabolite_count, unique_metabolite_count=unique_meta_count, enzyme_count=enzyme_count)
@@ -939,6 +934,11 @@ def processData(database, map_type, map_directory, svg_map_metadata_file):
                     cinfo = CompartmentSvg(name=ci[2], name_id=ci[0], compartment=compt[0], filename=ci[3], letter_code=ci[4])
                     cinfo.save(using=database)
 
+                #add reverse relation: compartment -> compartment svg
+                #special case for cytosol (human1)
+                if compt[0].name != 'Cytosol' or ci[0] == 'cytosol_1':
+                    Compartment.objects.using(database).filter(id=compt[0].id).update(compartment_svg=cinfo)
+
                 svg_path = os.path.join(map_directory, ci[3])
                 if not os.path.isfile(svg_path):
                     print("Warning: file '" + svg_path + "' not found")
@@ -977,6 +977,9 @@ def processData(database, map_type, map_directory, svg_map_metadata_file):
                 except SubsystemSvg.DoesNotExist:
                     sinfo = SubsystemSvg(name_id=si[0], subsystem=sub[0], name=si[2], filename=si[3])
                     sinfo.save(using=database)
+
+                #add reverse relation: subsystem -> subsystem svg
+                Subsystem.objects.using(database).filter(id=sub[0].id).update(subsystem_svg=sinfo)
 
                 svg_path = os.path.join(map_directory, si[3])
                 if not os.path.isfile(svg_path):

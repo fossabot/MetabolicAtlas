@@ -19,7 +19,9 @@
               <td v-else-if="el.name == 'id'" class="td-key has-background-primary has-text-white-bis">{{ model.short_name }} ID</td>
               <td v-else class="td-key has-background-primary has-text-white-bis">{{ reformatTableKey(el.name) }}</td>
               <td v-if="metabolite[el.name] !== null">
-                <span v-if="el.modifier" v-html="el.modifier(metabolite[el.name])">
+                <span v-if="el.name === 'formula'" v-html="chemicalFormula(metabolite[el.name], metabolite.charge)">
+                </span>
+                <span v-else-if="el.modifier" v-html="el.modifier(metabolite[el.name])">
                 </span>
                 <span v-else-if="el.name == 'compartment'">
                   <router-link :to="{ path: `/explore/gem-browser/${model.database_name}/compartment/${idfy(metabolite[el.name])}` }">{{ metabolite[el.name] }}</router-link>
@@ -47,7 +49,8 @@
         <div class="column is-2-widescreen is-3-desktop is-full-tablet has-text-centered">
           <router-link class="button is-info is-fullwidth is-outlined"
             :to="{path: `/explore/gem-browser/${model.database_name}/interaction/${this.mId}`}">
-            {{ messages.interPartName }}
+            <span class="icon"><i class="fa fa-connectdevelop fa-lg"></i></span>&nbsp;
+            <span>{{ messages.interPartName }}</span>
           </router-link>
         </div>
       </div>
@@ -61,7 +64,7 @@
 <script>
 import axios from 'axios';
 import Reactome from 'components/explorer/gemBrowser/Reactome';
-import { chemicalFormula, chemicalName, chemicalNameExternalLink } from '../../../helpers/chemical-formatters';
+import { chemicalFormula } from '../../../helpers/chemical-formatters';
 import { reformatTableKey, reformatStringToLink, addMassUnit, idfy } from '../../../helpers/utils';
 import { default as messages } from '../../../helpers/messages';
 
@@ -77,23 +80,23 @@ export default {
       mId: this.$route.params.id,
       metaboliteID: '',
       mainTableKey: {
-        hmr2: [
+        human1: [
           { name: 'name' },
           { name: 'alt_name', display: 'Alternate name' },
           { name: 'aliases', display: 'Synonyms' },
           { name: 'description', display: 'Description' },
-          { name: 'formula', modifier: chemicalFormula },
+          { name: 'formula' },
           { name: 'charge' },
           { name: 'inchi' },
           { name: 'compartment' },
           { name: 'id' },
         ],
-        yeast: [
+        yeast8: [
           { name: 'name' },
           { name: 'alt_name', display: 'Alternate name' },
           { name: 'aliases', display: 'Synonyms' },
           { name: 'description', display: 'Description' },
-          { name: 'formula', modifier: chemicalFormula },
+          { name: 'formula' },
           { name: 'charge' },
           { name: 'inchi' },
           { name: 'compartment' },
@@ -101,12 +104,12 @@ export default {
         ],
       },
       externalIDTableKey: {
-        hmr2: [
+        human1: [
           { name: 'hmdb_id', display: 'HMDB', link: 'hmdb_link' },
           { name: 'chebi_id', display: 'Chebi', link: 'chebi_link' },
           { name: 'mnxref_id', display: 'Mnxref', link: 'mnxref_link' },
         ],
-        yeast: [
+        yeast8: [
         ],
       },
       metabolite: {},
@@ -158,13 +161,11 @@ export default {
     reformatLink(s, link) { return reformatStringToLink(s, link); },
     reformatMass(s) { return addMassUnit(s); },
     idfy,
+    chemicalFormula,
   },
   beforeMount() {
     this.setup();
   },
-  chemicalFormula,
-  chemicalName,
-  chemicalNameExternalLink,
 };
 </script>
 

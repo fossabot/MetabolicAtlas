@@ -1,5 +1,5 @@
 <template>
-  <section class="section extended-section">
+  <section class="section section-no-top extended-section">
     <div class="container">
       <template v-for="(elems, category) in resources">
         <h2 class="title is-2">{{ category}}</h2>
@@ -66,9 +66,9 @@ export default {
             link: 'https://github.com/SysBioChalmers/RAVEN/',
             img: require('../assets/raven-logo.jpg'),
             title: 'RAVEN (Reconstruction, Analysis and Visualization of Metabolic Networks) Toolbox is a software suite that allows for semi-automated reconstruction of genome-scale models',
-            description: 'RAVEN makes use of published models and/or the KEGG database, coupled with extensive gap-filling and quality control features. The software suite also contains methods for visualizing simulation results and omics data, as well as a range of methods for performing simulations and analyzing the results. The software is a useful tool for system-wide data analysis in a metabolic context and for streamlined reconstruction of metabolic networks based on protein homology.  All the online tools powered by the RAVEN toolbox.',
-            citation: 'Agren, R., Liu, L., Shoaie, S., Vongsangnak, W., Nookaew, I., Nielsen, J. (2013). <i>The RAVEN Toolbox and Its Use for Generating a Genome-scale Metabolic Model for Penicillium chrysogenum</i>. PLOS Computational Biology',
-            citation_url: 'http://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1002980' },
+            description: 'RAVEN is primarily intended for the generation and curation of genome-scale models by using published models and/or the MetaCyc and KEGG databases, coupled with extensive gap-filling and quality control features. Furthermore, the software incorporates functionality to contextualize generic models using the task-based INIT algorithm, for generating e.g. tissue-specific models. RAVEN also contains methods for visualizing simulation results and omics data, as well as a range of methods for performing simulations and analyzing the results. The software is a useful tool for system-wide data analysis in a metabolic context and for streamlined reconstruction of metabolic networks based on protein homology and expression data.',
+            citation: 'Wang, H., Marcišauskas, S., Sánchez, B.J., Domenzain, I., Hermansson, D., Agren, R., Nielsen, J., Kerkhoven, E.J. (2018) RAVEN 2.0: A versatile toolbox for metabolic network reconstruction and a case study on Streptomyces coelicolor. PLOS Computational Biology, 14, e1006541.',
+            citation_url: 'https://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1006541&rev=2' },
           { name: 'BioMet-toolbox',
             link: 'http://biomet-toolbox.chalmers.se/',
             img: require('../assets/biomet-logo.png'),
@@ -107,12 +107,18 @@ export default {
             citation: 'Feizi, A., Banaei-Esfahani, A., Nielsen, J. (2015) <i>HCSD: the human cancer secretome database</i>. Database 2015',
             citation_url: 'https://academic.oup.com/database/article/doi/10.1093/database/bav051/2433184' },
         ],
-        API: [
+        APIs: [
           { name: 'Metabolic Atlas API',
-            link: 'swagger',
+            link: 'api/',
             img: require('../assets/logo.png'),
-            title: 'Access the integrated GEMs programatically',
-            description: 'The  API is a set of URL requests for the Metabolic Atlas that will return different .json files depending on the current request. This gives you the possibility of trying it out to see what the results would look like.' },
+            title: 'Access Metabolic Atlas programatically',
+            description: 'The API is a set of URL requests that will respond to the query parameters with JSON formatted text. Our implementation gives the possibility of trying out different queries to see what the results would look like.' },
+          { name: 'Protein Atlas Programmatic data access',
+            link: 'https://www.proteinatlas.org/about/help/dataaccess',
+            img: require('../assets/hpa.png'),
+            title: 'Access Protein Atlas programatically',
+            description: 'Download a subset of the data provided in XML, RDF or TSV format, either as individual queries or search queries. ',
+          },
         ],
       },
     };

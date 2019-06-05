@@ -26,7 +26,7 @@ export function getExpLvlLegend() {
   // const w = 150.0/(rnaExpressionLvl.length + (overExpressedColor ? 1 : 0));
   l += '<div class="has-text-centered">';
   if (notDetectedColor) {
-    l += `<ul><li><span class="boxc" style="background: ${notDetectedColor};"></span><span>NA</span></li></ul>`;
+    l += `<ul><li><span class="boxc" style="background: ${notDetectedColor};"></span><span>n/a</span></li></ul>`;
     // l += `<li><span class="boxc" style="background: ${overExpressedColor};"></span><span>Over Expressed</span></li></ul>`;
   }
   l += '</div><div class="has-text-centered"><ul class="exp-lvl-legend">'

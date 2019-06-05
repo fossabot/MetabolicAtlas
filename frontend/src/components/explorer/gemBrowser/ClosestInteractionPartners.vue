@@ -73,13 +73,13 @@
               </transition>
               <div id="graphOption">
                 <span class="button" v-bind:class="[{ 'is-active': showGraphLegend }, '']"
-                v-on:click="toggleGraphLegend"><i class="fa fa-cog"></i></span>
-                <span class="button" v-on:click="zoomGraph(true)"><i class="fa fa-search-plus"></i></span>
-                <span class="button" v-on:click="zoomGraph(false)"><i class="fa fa-search-minus"></i></span>
-                <span class="button" v-on:click="fitGraph()"><i class="fa fa-arrows-alt"></i></span>
-                <span class="button" v-on:click="resetGraph(true)"><i class="fa fa-refresh"></i></span>
-                <span class="button" v-on:click="resetGraph(false)" :disabled="reactionHL === null" :class="{'is-disabled': reactionHL === null }"><i class="fa fa-eraser"></i></span>
-                <span class="button" v-on:click="viewReaction(reactionHL)" v-show="reactionHL">
+                v-on:click="toggleGraphLegend" title="Options"><i class="fa fa-cog"></i></span>
+                <span class="button" v-on:click="zoomGraph(true)" title="Zoom In"><i class="fa fa-search-plus"></i></span>
+                <span class="button" v-on:click="zoomGraph(false)" title="Zoom Out"><i class="fa fa-search-minus"></i></span>
+                <span class="button" v-on:click="fitGraph()" title="Fit to frame"><i class="fa fa-arrows-alt"></i></span>
+                <span class="button" v-on:click="resetGraph(true)" title="Reload"><i class="fa fa-refresh"></i></span>
+                <span class="button" v-on:click="resetGraph(false)" title="Clean selection/highlight"><i class="fa fa-eraser"></i></span>
+                <span class="button" v-on:click="viewReaction(reactionHL)" v-show="reactionHL" title="Options">
                   {{ reactionHL }}
                 </span>
               </div>
@@ -99,11 +99,12 @@
                   <span>Color:</span>
                   <span class="color-span clickable"
                     v-bind:style="{ background: nodeDisplayParams.enzymeNodeColor.hex }"
-                    v-on:click="showColorPickerEnz = !showColorPickerEnz">
+                    v-on:click="toggleEnzymeColorPicker()">
                     <compact-picker v-show="showColorPickerEnz"
                     v-model="nodeDisplayParams.enzymeNodeColor" @input="updateExpAndredrawGraph(false, 'enzyme')"></compact-picker>
                   </span>
                 </div>
+                <br>
                 <span class="label">Metabolite</span>
                 <div class="comp">
                   <span>Shape:</span>
@@ -118,7 +119,7 @@
                   <span>Color:</span>
                    <span class="color-span clickable"
                     v-bind:style="{ background: nodeDisplayParams.metaboliteNodeColor.hex }"
-                    v-on:click="showColorPickerMeta = !showColorPickerMeta">
+                    v-on:click="toggleMetaboliteColorPicker()">
                     <compact-picker v-show="showColorPickerMeta"
                     v-model="nodeDisplayParams.metaboliteNodeColor" @input="updateExpAndredrawGraph(false, 'metabolite')"></compact-picker>
                   </span>
@@ -128,10 +129,11 @@
               </div>
             </div>
             <div class="column">
-              <div class="card " v-if="model.database_name === 'hmr2'">
+              <div class="card " v-if="model.database_name === 'human1'">
                 <header class="card-header">
                   <p class="card-header-title">
-                    <label class="checkbox is-unselectable">
+                    <label class="checkbox is-unselectable" 
+                    :title="`Click to ${toggleEnzymeExpLevel ? 'disable' : 'activate'} expression RNA levels`">
                       <input type="checkbox" v-model="toggleEnzymeExpLevel" :disabled="disableExpLvl"
                       @click="applyLevels('enzyme', 'HPA', 'RNA', selectedSample)">
                       Enable <a href="https://www.proteinatlas.org/" target="_blank">proteinAtlas.org</a>&nbsp;RNA levels
@@ -144,7 +146,8 @@
                   <br>
                   <div class="select is-fullwidth" :class="{ 'is-loading' : loadingHPA && toggleEnzymeExpLevel}" v-show="toggleEnzymeExpLevel && !disableExpLvl">
                     <select id="enz-select" ref="enzHPAselect" v-model="selectedSample" :disabled="!toggleEnzymeExpLevel"
-                    @change.prevent="applyLevels('enzyme', 'HPA', 'RNA', selectedSample)">
+                    @change.prevent="applyLevels('enzyme', 'HPA', 'RNA', selectedSample)"
+                    title="Select a tissue type">
                       <optgroup label="HPA - RNA levels - Tissues">
                        <!--  <option value="None">None</option> -->
                         <option v-for="tissue in tissues['HPA']" :value="tissue">
@@ -164,12 +167,7 @@
               <div class="card" v-if="compartmentList.length != 0 || subsystemList.length != 0">
                 <header class="card-header">
                   <p class="card-header-title">
-                    Highlight&nbsp;
-                    <span class="button has-margin-left" v-on:click="resetHighlight(false)"
-                    :disabled="isCompartmentSubsystemHLDisabled()"
-                    :class="{'is-disabled': isCompartmentSubsystemHLDisabled() }">
-                      <i class="fa fa-eraser"></i>
-                    </span>
+                    Highlight
                   </p>
                 </header>
                 <div class="card-content">
@@ -240,7 +238,7 @@ import { default as EventBus } from '../../../event-bus';
 import { default as transform } from '../../../data-mappers/hmr-closest-interaction-partners';
 import { default as graph } from '../../../graph-stylers/hmr-closest-interaction-partners';
 
-import { chemicalFormula, chemicalName, chemicalNameExternalLink } from '../../../helpers/chemical-formatters';
+import { chemicalName } from '../../../helpers/chemical-formatters';
 import { default as convertGraphML } from '../../../helpers/graph-ml-converter';
 
 import { getExpLvlLegend, getExpressionColor } from '../../../expression-sources/hpa';
@@ -307,17 +305,15 @@ export default {
 
       cy: null,
       tableStructure: {
-        hmr2: [
+        human1: [
           { field: 'type', colName: 'Type' },
           { field: 'name', colName: 'Name' },
-          { field: 'formula', colName: 'Formula', modifier: chemicalFormula },
-          { field: 'compartment', colName: 'Compartment' },
+          { field: 'compartment_str', colName: 'Compartment' },
         ],
-        yeast: [
+        yeast8: [
           { field: 'type', colName: 'Type' },
           { field: 'name', colName: 'Name' },
-          { field: 'formula', colName: 'Formula', modifier: chemicalFormula },
-          { field: 'compartment', colName: 'Compartment' },
+          { field: 'compartment_str', colName: 'Compartment' },
         ],
       },
 
@@ -354,15 +350,15 @@ export default {
         enzymeExpSample: false,
         enzymeNodeShape: 'rectangle',
         enzymeNodeColor: {
-          hex: '#C92F63',
+          hex: '#9F0500',
           hsl: {
-            h: 150, s: 0.5, l: 0.2, a: 1,
+            h: 1.8868, s: 1, l: 0.3118, a: 1,
           },
           hsv: {
-            h: 150, s: 0.66, v: 0.30, a: 1,
+            h: 1.8868, s: 1, v: 0.6235, a: 1,
           },
           rgba: {
-            r: 25, g: 77, b: 51, a: 1,
+            r: 159, g: 5, b: 0, a: 1,
           },
           a: 1,
         },
@@ -371,15 +367,15 @@ export default {
         metaboliteExpSample: false,
         metaboliteNodeShape: 'ellipse',
         metaboliteNodeColor: {
-          hex: '#259F64',
+          hex: '#73D8FF',
           hsl: {
-            h: 150, s: 0.5, l: 0.2, a: 1,
+            h: 196.714, s: 1, l: 0.7255, a: 1,
           },
           hsv: {
-            h: 150, s: 0.66, v: 0.30, a: 1,
+            h: 196.7142, s: 0.549, v: 1, a: 1,
           },
           rgba: {
-            r: 25, g: 77, b: 51, a: 1,
+            r: 115, g: 216, b: 255, a: 1,
           },
           a: 1,
         },
@@ -496,7 +492,6 @@ export default {
         })
         .catch((error) => {
           this.loading = false;
-          // console.log(error);
           switch (error.response.status) {
             case 406:
               this.errorMessage = messages.tooManyInteractionPartner;
@@ -552,7 +547,6 @@ export default {
           }, 0);
         })
         .catch((error) => {
-          // console.log(error);
           this.loading = false;
           switch (error.response.status) {
             case 406:
@@ -624,7 +618,6 @@ export default {
       }
       this.compartmentHL = '';
       this.subsystemHL = '';
-      this.redrawGraph();
     },
     resetGraph(reload) {
       this.reactionHL = null;
@@ -632,7 +625,9 @@ export default {
       this.selectedElmId = '';
       this.clickedElm = null;
       this.clickedElmId = '';
+      this.showGraphContextMenu = false;
       this.resetEnzymeExpression();
+      this.resetHighlight();
       if (reload) {
         this.load();
       } else {
@@ -854,7 +849,6 @@ export default {
     },
     applyLevels(componentType, expSource, expType, expSample) {
       setTimeout(() => {  // wait this.toggleEnzymeExpLevel
-        // console.log('Type Source, Type, Sample', componentType, expSource, expType, expSample);
         if (this.disableExpLvl) {
           return;
         }
@@ -1007,9 +1001,17 @@ export default {
         this.nodeDisplayParams.enzymeExpSample = false;
       });
     },
-    chemicalFormula,
+    toggleEnzymeColorPicker() {
+      this.showColorPickerMeta = false;
+      this.showColorPickerEnz = !this.showColorPickerEnz;
+      return this.showColorPickerEnz;
+    },
+    toggleMetaboliteColorPicker() {
+      this.showColorPickerEnz = false;
+      this.showColorPickerMeta = !this.showColorPickerMeta;
+      return this.showColorPickerMeta;
+    },
     chemicalName,
-    chemicalNameExternalLink,
   },
 };
 </script>

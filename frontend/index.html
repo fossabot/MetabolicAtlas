@@ -2,56 +2,16 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <!-- Matomo -->
-    <script type="text/javascript">
-      var _paq = _paq || [];
-      /* tracker methods like "setCustomDimension" should be called before "trackPageView" */
-      _paq.push(['trackPageView']);
-      _paq.push(['enableLinkTracking']);
-      (function() {
-        var u="https://sysbiowiki.se:4433/";
-        _paq.push(['setTrackerUrl', u+'piwik.php']);
-        _paq.push(['setSiteId', '12']);
-        var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
-        g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'piwik.js'; s.parentNode.insertBefore(g,s);
-      })();
-    </script>
-    <!-- End Matomo Code -->
     <meta name="viewport" content="width=device-width, initial-scale=1">
   </head>
   <body>
-
-    <div id="loading">
-      <h3>Loading Metabolic Atlas</h3>
-      <!-- source https://codepen.io/camdenfoucht/pen/BVxawq -->
-      <div class="multi-spinner-container">
-        <div class="multi-spinner">
-          <div class="multi-spinner">
-            <div class="multi-spinner">
-              <div class="multi-spinner">
-                <div class="multi-spinner">
-                  <div class="multi-spinner">
-                    <div class="multi-spinner">
-                      <div class="multi-spinner">
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <style>
-      #loading {
+      #init-loading {
         text-align: center;
       }
-      /* MULTI SPINNER */
       .multi-spinner-container {
-        width: 250px;
-        height: 250px;
+        width: 200px;
+        height: 200px;
         position: relative;
         margin: 30px auto;
       }
@@ -147,10 +107,36 @@
         }
       }
     </style>
-    <div id="app"></div>
+    <div id="app">
+      <div id="init-loading" style="display: none">
+        <h3>Loading Metabolic Atlas</h3>
+        <!-- source https://codepen.io/camdenfoucht/pen/BVxawq -->
+        <div class="multi-spinner-container">
+          <div class="multi-spinner">
+            <div class="multi-spinner">
+              <div class="multi-spinner">
+                <div class="multi-spinner">
+                  <div class="multi-spinner">
+                    <div class="multi-spinner">
+                      <div class="multi-spinner">
+                        <div class="multi-spinner">
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <noscript>
+        JavaScript is required for Metabolic Atlas to work.
+      </noscript>
+      <script>
+        document.getElementById("init-loading").style.display = "block";
+      </script>
+    </div>
     <!-- built files will be auto injected -->
-    <noscript>
-      JavaScript is disabled. Please enable it to view the website.
-    </noscript>
   </body>
 </html>

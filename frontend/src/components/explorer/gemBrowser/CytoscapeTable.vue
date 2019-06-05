@@ -49,9 +49,6 @@
               <td v-else-if="s.field === 'name'">
                 <a @click="viewReactionComponent(elm['type'], elm.id)">{{ elm[s.field] }}</a>
               </td>
-              <td v-else-if="s.field === 'compartment' && (typeof elm[s.field] !== 'string' && !(elm[s.field] instanceof String))">
-                {{ Object.keys(elm[s.field]).map(k => elm[s.field][k] === 1 ? k : `${k}*`).join(', ') }}
-              </td>
               <td v-else>
                 {{ elm[s.field] }}
               </td>
@@ -65,9 +62,6 @@
               <td v-for="s in structure" v-if="'modifier' in s" v-html="applyModifier(s, elm)"></td>
               <td v-else-if="s.field === 'name'">
                 <a @click="viewReactionComponent(elm['type'], elm.id)">{{ elm[s.field] }}</a>
-              </td>
-              <td v-else-if="s.field === 'compartment' && (typeof elm[s.field] !== 'string' && !(elm[s.field] instanceof String))">
-                {{ Object.keys(elm[s.field]).map(k => elm[s.field][k] === 1 ? k : `${k}*`).join(', ') }}
               </td>
               <td v-else>{{ elm[s.field] }}</td>
             </tr>
@@ -109,19 +103,26 @@ export default {
   },
   computed: {
     filteredElms: function f() {
-      return this.elms.filter(
-        el => el.type !== 'reactant_box' && el.type !== 'product_box');
+      return this.elms.map((e) => {
+        const v = e;
+        if (typeof v.compartment !== 'string' && !(v.compartment instanceof String)) {
+          v.compartment_str = Object.keys(v.compartment).join(', ');
+        } else {
+          v.compartment_str = v.compartment;
+        }
+        return v;
+      });
     },
     enzymeCount() { return this.elms.filter(el => el.type === 'enzyme').length; },
     metaboliteCount() { return this.elms.filter(el => el.type !== 'enzyme').length; },
     reactionCount() {
-      const countReation = {};
+      const countReation = new Set();
       for (const el of this.filteredElms) {
-        if (el.reactionid) {
-          countReation[el.reactionid] = 1;
+        for (const reactioID of el.reaction) {
+          countReation.add(reactioID);
         }
       }
-      return Object.keys(countReation).length;
+      return countReation.size;
     },
   },
   methods: {
