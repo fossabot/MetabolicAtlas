@@ -2,73 +2,79 @@
   <section class="section section-no-top extended-section">
     <div class="container">
       <h3 class="title is-size-3">GEM Comparison</h3>
-      <h4 class="title is-size-4">{{ comparison.models.A.modelId }} vs {{ comparison.models.B.modelId }}</h4>
-      <table class="is-fullwidth table is-narrow">
-        <thead>
-          <tr>
-            <th>Model</th>
-            <th>Description</th>
-            <th>Reactions</th>
-            <th>Shared reactions</th>
-            <th>Exclusive reactions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="(model, key) in comparison.models">
-            <td>{{ model.modelId }}</td>
-            <td>{{ model.modelName }}</td>
-            <td>{{ model.totalReactions }}</td>
-            <td>{{ model.sharedReactions }}%</td>
-            <td>{{ model.exclusiveReactions }}</td>
-          </tr>
-        </tbody>
-      </table>
-      If reactions modifiers are overlooked, 4619 additional reactions would be shared between the two models.<br><br>
+      <template v-for="c in comparison">
+        <h4 class="title is-size-4">{{ c.models.A.modelId }} vs. {{ c.models.B.modelId }}</h4>
+        <table class="is-fullwidth table is-narrow">
+          <thead>
+            <tr>
+              <th>Model</th>
+              <th>Description</th>
+              <th>Reactions</th>
+              <th>Shared reactions</th>
+              <th>Exclusive reactions</th>
+              <th>Exclusive reactions %</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(model, key) in c.models">
+              <td>{{ model.modelId }}</td>
+              <td>{{ model.modelName }}</td>
+              <td>{{ model.totalReactions }}</td>
+              <td>{{ model.sharedReactions }}%</td>
+              <td>{{ model.exclusiveReactions }}</td>
+              <td>{{ model.exclusivePercentage }}</td>
+            </tr>
+          </tbody>
+        </table>
+        If reactions modifiers are overlooked, 4619 additional reactions would be shared between the two models.<br><br>
 
-      <div class="columns is-variable is-8">
-        <div class="column">
-          <h5 class="title is-size-5">Subsystems by exclusive reactions</h5>
-          <table class="table is-fullwidth is-striped is-hoverable">
-            <thead>
-              <tr>
-                <th>Subsystem</th>
-                <th>Reactions</th>
-                <th>{{ comparison.models.A.modelId }}</th>
-                <th>{{ comparison.models.B.modelId }}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="subsys in comparison.subsystems">
-                <td>{{ subsys.name }}</td>
-                <td>{{ subsys.totalMissing }}</td>
-                <td>{{ subsys.missingReactionsFromA }}</td>
-                <td>{{ subsys.missingReactionsFromB }}</td>
-              </tr>
-            </tbody>
-          </table>
+        <div class="columns is-variable is-8">
+          <div class="column">
+            <h5 class="title is-size-5">Exclusive reactions by compartment</h5>
+            <table class="table is-fullwidth is-striped is-hoverable">
+              <thead>
+                <tr>
+                  <th>Compartment</th>
+                  <th>Reactions</th>
+                  <th>{{ c.models.A.modelId }}-exclusive</th>
+                  <th>{{ c.models.B.modelId }}-exclusive</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="subsys in c.compartments">
+                  <td>{{ subsys.name }}</td>
+                  <td>{{ subsys.totalMissing }}</td>
+                  <td>{{ subsys.missingReactionsFromA }}</td>
+                  <td>{{ subsys.missingReactionsFromB }}</td>
+                </tr>
+              </tbody>
+            </table>
+            <p>Note: some reactions are associated with multiple compartments.</p>
+          </div>
+
+          <div class="column">
+            <h5 class="title is-size-5">Exclusive reactions by subsystem</h5>
+            <table class="table is-fullwidth is-striped is-hoverable">
+              <thead>
+                <tr>
+                  <th>Subsystem</th>
+                  <th>Reactions</th>
+                  <th>{{ c.models.A.modelId }}-exclusive</th>
+                  <th>{{ c.models.B.modelId }}-exclusive</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="subsys in c.subsystems">
+                  <td>{{ subsys.name }}</td>
+                  <td>{{ subsys.totalMissing }}</td>
+                  <td>{{ subsys.missingReactionsFromA }}</td>
+                  <td>{{ subsys.missingReactionsFromB }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
-        <div class="column">
-          <h5 class="title is-size-5">Compartments by exclusive reactions</h5>
-          <table class="table is-fullwidth is-striped is-hoverable">
-            <thead>
-              <tr>
-                <th>Compartment</th>
-                <th>Reactions</th>
-                <th>{{ comparison.models.A.modelId }}</th>
-                <th>{{ comparison.models.B.modelId }}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="subsys in comparison.compartments">
-                <td>{{ subsys.name }}</td>
-                <td>{{ subsys.totalMissing }}</td>
-                <td>{{ subsys.missingReactionsFromA }}</td>
-                <td>{{ subsys.missingReactionsFromB }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+      </template>
     </div>
   </section>
 
@@ -80,14 +86,15 @@ export default {
   name: 'compare-models',
   data() {
     return {
-      comparison: {
+      comparison: [{
         models: {
           A: {
             modelId: 'Human1',
             modelName: 'The generic genome-scale metabolic model of Homo sapiens integrated from HMR2 and Recon3D',
-            totalReactions: 13774,
-            sharedReactions: 59.34,
-            exclusiveReactions: 5600,
+            totalReactions: 13520,
+            sharedReactions: 60.45,
+            exclusiveReactions: 5346,
+            exclusivePercentage: 39.54,
           },
           B: {
             modelId: 'HMR2',
@@ -95,63 +102,138 @@ export default {
             totalReactions: 8181,
             sharedReactions: 99.91,
             exclusiveReactions: 7,
+            exclusivePercentage: 0.08,
           },
         },
         subsystems: [
           { name: 'Transport reactions',
-            totalMissing: '1651',
+            totalMissing: 'x',
             missingReactionsFromA: '1644',
-            missingReactionsFromB: '7',
+            missingReactionsFromB: '0',
           },
           { name: 'Exchange/demand reactions',
-            totalMissing: '1456',
-            missingReactionsFromA: '1456',
-            missingReactionsFromB: '-',
+            totalMissing: 'x',
+            missingReactionsFromA: '1210',
+            missingReactionsFromB: '7',
           },
           { name: 'Drug metabolism',
-            totalMissing: '573',
+            totalMissing: 'x',
             missingReactionsFromA: '573',
             missingReactionsFromB: '-',
           },
           { name: 'Fatty acid oxidation',
-            totalMissing: '549',
-            missingReactionsFromA: '549',
+            totalMissing: 'x',
+            missingReactionsFromA: '542',
             missingReactionsFromB: '-',
           },
           { name: 'Fatty acid oxidation',
-            totalMissing: '242',
+            totalMissing: 'x',
             missingReactionsFromA: '242',
             missingReactionsFromB: '-',
           },
         ],
         compartments: [
           { name: 'Cytosol',
-            totalMissing: '1692',
-            missingReactionsFromA: '1676',
-            missingReactionsFromB: '16',
+            totalMissing: 'x',
+            missingReactionsFromA: '2990',
+            missingReactionsFromB: '0',
           },
           { name: 'Extracellular',
-            totalMissing: '372',
-            missingReactionsFromA: '359',
-            missingReactionsFromB: '13',
+            totalMissing: 'x',
+            missingReactionsFromA: '2934',
+            missingReactionsFromB: '7',
           },
           { name: 'Endoplasmic reticulum',
-            totalMissing: '226',
-            missingReactionsFromA: '225',
-            missingReactionsFromB: '1',
+            totalMissing: 'x',
+            missingReactionsFromA: '1207',
+            missingReactionsFromB: '7',
           },
           { name: 'Boundary',
-            totalMissing: '215',
-            missingReactionsFromA: '204',
-            missingReactionsFromB: '11',
+            totalMissing: 'x',
+            missingReactionsFromA: '604',
+            missingReactionsFromB: '0',
           },
           { name: 'Lysosome',
-            totalMissing: '162',
-            missingReactionsFromA: '162',
+            totalMissing: 'x',
+            missingReactionsFromA: '516',
             missingReactionsFromB: '0',
           },
         ],
       },
+      {
+        models: {
+          A: {
+            modelId: 'Human1',
+            modelName: 'The generic genome-scale metabolic model of Homo sapiens integrated from HMR2 and Recon3D',
+            totalReactions: 13520,
+            sharedReactions: 96.85,
+            exclusiveReactions: 425,
+            exclusivePercentage: 3.14,
+          },
+          B: {
+            modelId: 'Recon3D',
+            modelName: '',
+            totalReactions: 13543,
+            sharedReactions: 998.09,
+            exclusiveReactions: 258,
+            exclusivePercentage: 1.9,
+          },
+        },
+        subsystems: [
+          { name: 'Exchange/demand reactions',
+            totalMissing: 'x',
+            missingReactionsFromA: '24',
+            missingReactionsFromB: '250',
+          },
+          { name: 'Transport reactions',
+            totalMissing: 'x',
+            missingReactionsFromA: '208',
+            missingReactionsFromB: '0',
+          },
+          { name: 'Drug metabolism',
+            totalMissing: 'x',
+            missingReactionsFromA: '20',
+            missingReactionsFromB: '0',
+          },
+          { name: 'Fatty acid oxidation',
+            totalMissing: 'x',
+            missingReactionsFromA: '12',
+            missingReactionsFromB: '0',
+          },
+          { name: 'Fatty acid oxidation',
+            totalMissing: 'x',
+            missingReactionsFromA: '10',
+            missingReactionsFromB: '-',
+          },
+        ],
+        compartments: [
+          { name: 'Cytosol',
+            totalMissing: 'x',
+            missingReactionsFromA: '312',
+            missingReactionsFromB: '194',
+          },
+          { name: 'Extracellular',
+            totalMissing: 'x',
+            missingReactionsFromA: '177',
+            missingReactionsFromB: '1',
+          },
+          { name: 'Mitochondria',
+            totalMissing: 'x',
+            missingReactionsFromA: '59',
+            missingReactionsFromB: '11',
+          },
+          { name: 'Endoplasmic reticulum',
+            totalMissing: 'x',
+            missingReactionsFromA: '32',
+            missingReactionsFromB: '14',
+          },
+          { name: 'Golgi apparatus',
+            totalMissing: 'x',
+            missingReactionsFromA: '22',
+            missingReactionsFromB: '11',
+          },
+        ],
+      }],
     };
   },
 };
