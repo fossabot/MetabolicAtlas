@@ -73,11 +73,18 @@
                 <div class="has-text-centered"><u>External identifiers and aliases may be missing if they are not provided with the models.</u></div>
               </div>
             </div>
-            <template v-for="header in tabs">
+            <template v-for="(header, index) in tabs">
               <div v-show="showTab(header) && resultsCount[header] !== 0">
-                <vue-good-table
+                <vue-good-table ref="searchTables"
                   :columns="columns[header]" :rows="rows[header]"
                   :sort-options="{ enabled: true }" styleClass="vgt-table striped bordered" :paginationOptions="tablePaginationOpts">
+
+                  <div slot="table-actions">
+                    <a class="button is-primary" style="margin: 1rem 0;" @click="exportToTSV(header, index)">
+                      <span class="icon is-large"><i class="fa fa-download"></i></span>
+                      <span>Export to TSV</span>
+                    </a>
+                  </div>
                   <template slot="table-row" slot-scope="props">
                     <template v-if="props.column.field == 'model'">
                       {{ props.formattedRow[props.column.field].name }}
@@ -143,6 +150,7 @@
 
 import axios from 'axios';
 import Loader from 'components/Loader';
+import { default as FileSaver } from 'file-saver';
 import { VueGoodTable } from 'vue-good-table';
 import 'vue-good-table/dist/vue-good-table.css';
 import { chemicalFormula } from '../helpers/chemical-formatters';
@@ -716,6 +724,23 @@ export default {
           }
         }
       });
+    },
+    exportToTSV(header, index) {
+      console.log('rows', index);
+      try {
+        const rows = Array.from(this.$refs.searchTables[index].filteredRows[0].children);
+        console.log(rows);
+        const tsvContent = rows.map(e =>
+            e.join('\t')
+          ).join('\n');
+        console.log('tsvContent', tsvContent);
+        const blob = new Blob([tsvContent], {
+          type: 'data:text/tsv;charset=utf-8',
+        });
+        FileSaver.saveAs(blob, `${this.searchTerm}-${header}.tsv`);
+      } catch (e) {
+        this.errorMessage = e;
+      }
     },
     idfy,
     chemicalFormula,
