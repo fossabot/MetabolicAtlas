@@ -2,7 +2,7 @@
   <div>
     <div class="column" v-if="tissue">
       <div class="card">
-        <header class="card-header clickabled" @click.prevent="showLvlCardContent = !showLvlCardContent">
+        <header class="card-header clickable" @click.prevent="showLvlCardContent = !showLvlCardContent">
           <p class="card-header-title is-inline">
             RNA levels for&nbsp;<i class="is-capitalized">{{ tissue }}</i>
           </p>
