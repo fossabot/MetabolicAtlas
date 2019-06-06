@@ -150,32 +150,13 @@ export default {
             { name: 'formula' },
             { name: 'compartment' },
             { name: 'aliases', display: 'Synonyms' },
-            // {
-            //   name: 'external_ids',
-            //   display: 'External&nbsp;IDs',
-            //   value: [
-            //     ['HMDB', 'hmdb_id', 'hmdb_link'],
-            //     ['chebi', 'chebi_id', 'chebi_link'],
-            //     ['mnxref', 'mnxref_id', 'mnxref_link'],
-            //   ],
-            // },
           ],
           enzyme: [
             { name: 'gene_name', display: 'Gene&nbsp;name' },
             { name: 'gene_synonyms', display: 'Synonyms' },
-            // {
-            //   name: 'external_ids',
-            //   display: 'External links',
-            //   value: [
-            //     ['NCBI', 'ncbi_id', 'ncbi_link'],
-            //     ['Ensembl', 'id', 'name_link'],
-            //     ['Protein Atlas', 'hpa_id', 'hpa_link'],
-            //   ],
-            // },
           ],
           reaction: [
             { name: 'equation' },
-            // { name: 'gene_rule', display: 'GPR' },
             { name: 'subsystem', display: 'Subsystems' },
             { name: 'reactants' },
             { name: 'products' },
@@ -192,8 +173,6 @@ export default {
       showSelectionCardContent: true,
       messages,
     };
-  },
-  created() {
   },
   methods: {
     hasExternalIDs(keys) {
