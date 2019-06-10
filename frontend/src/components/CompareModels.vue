@@ -74,6 +74,7 @@
             </table>
           </div>
         </div>
+        <br>
       </template>
     </div>
   </section>
@@ -180,15 +181,15 @@ export default {
           },
         },
         subsystems: [
-          { name: 'Exchange/demand reactions',
-            totalMissing: '1665',
-            missingReactionsFromA: '24',
-            missingReactionsFromB: '250',
-          },
           { name: 'Transport reactions',
             totalMissing: '4247',
             missingReactionsFromA: '208',
             missingReactionsFromB: '0',
+          },
+          { name: 'Exchange/demand reactions',
+            totalMissing: '1665',
+            missingReactionsFromA: '24',
+            missingReactionsFromB: '250',
           },
           { name: 'N-glycan metabolism',
             totalMissing: '151',
