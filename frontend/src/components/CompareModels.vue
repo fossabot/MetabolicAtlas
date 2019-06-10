@@ -1,196 +1,241 @@
 <template>
   <section class="section section-no-top extended-section">
-    <div>
-      <div class="container">
-          <h3 class="title is-size-3">Comparing two models</h3>
-          <h6 class="subtitle is-6">{{ comparison.Summary.SharedReactions }} complete shared reactions</h6>
-          <table class="table is-narrow is-bordered">
-            <thead>
-              <tr>
-                <th></th>
-                <th>Model</th>
-                <th>Description</th>
-                <th># of reactions</th>
-                <th>Shared reactions overlap</th>
-                <th>Exclusive reactions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(model, key) in comparison.Models">
-                <td>{{ key }}</td>
-                <td>{{ model.ModelId }}</td>
-                <td>{{ model.ModelName }}</td>
-                <td>{{ model.TotalReactions }} reactions</td>
-                <td>{{ Math.round(comparison.Summary.SharedReactions / model.TotalReactions * 100) }}%</td>
-                <td>{{ key === 'A' ? comparison.Summary.ReactionsOnlyInA : comparison.Summary.ReactionsOnlyInB }} reactions</td>
-              </tr>
-            </tbody>
-          </table>
-          In addition another 4619 reactions are the same, but different modifiers are 'indicated' in the two models.</br>
-      </div>
-    </div>
-    <br><br>
-    <div>
-      <div class="container">
-        <h3 class="title is-size-3">Ranked affected parts</h3>
-        <div class="columns">
+    <div class="container">
+      <h3 class="title is-size-3">GEM Comparison</h3>
+      <template v-for="c in comparison">
+        <h4 class="title is-size-4">{{ c.models.A.modelId }} vs. {{ c.models.B.modelId }}</h4>
+        <table class="is-fullwidth table is-narrow">
+          <thead>
+            <tr>
+              <th>Model</th>
+              <th>Description</th>
+              <th>Reactions</th>
+              <th>Shared reactions</th>
+              <th>Exclusive reactions</th>
+              <th>Exclusive reactions %</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(model, key) in c.models">
+              <td>{{ model.modelId }}</td>
+              <td>{{ model.modelName }}</td>
+              <td>{{ model.totalReactions }}</td>
+              <td>{{ model.sharedReactions }}%</td>
+              <td>{{ model.exclusiveReactions }}</td>
+              <td>{{ model.exclusivePercentage }}</td>
+            </tr>
+          </tbody>
+        </table>
+        If reactions modifiers are overlooked, 4619 additional reactions would be shared between the two models.<br><br>
+
+        <div class="columns is-variable is-8">
           <div class="column">
-            <h6 class="subtitle is-6">Subsystems by missing reactions</h6>
-            <table class="table is-narrow">
+            <h5 class="title is-size-5">Exclusive reactions by compartment</h5>
+            <table class="table is-fullwidth is-striped is-hoverable">
               <thead>
                 <tr>
-                  <th>Subsystem</th>
-                  <th>reactions</th>
-                  <th><div v-bind:title="comparison.Models.A.ModelId">A</div></th>
-                  <th><div v-bind:title="comparison.Models.B.ModelId">B</div></th>
+                  <th>Compartment</th>
+                  <th>Human1 total</th>
+                  <th>{{ c.models.A.modelId }}-exclusive</th>
+                  <th>{{ c.models.B.modelId }}-exclusive</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="subsys in topAffectedSysMis">
+                <tr v-for="subsys in c.compartments">
                   <td>{{ subsys.name }}</td>
                   <td>{{ subsys.totalMissing }}</td>
-                  <td>{{ subsys.MissingReactionsFromA }}</td>
-                  <td>{{ subsys.MissingReactionsFromB }}</td>
+                  <td>{{ subsys.missingReactionsFromA }}</td>
+                  <td>{{ subsys.missingReactionsFromB }}</td>
                 </tr>
               </tbody>
             </table>
+            <p>Note: some reactions are associated with multiple compartments.</p>
           </div>
+
           <div class="column">
-            <h6 class="subtitle is-6">Subsystems by gene expression</h6>
-            <table class="table is-narrow">
+            <h5 class="title is-size-5">Exclusive reactions by subsystem</h5>
+            <table class="table is-fullwidth is-striped is-hoverable">
               <thead>
                 <tr>
                   <th>Subsystem</th>
-                  <th>reactions</th>
+                  <th>Human1 total</th>
+                  <th>{{ c.models.A.modelId }}-exclusive</th>
+                  <th>{{ c.models.B.modelId }}-exclusive</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="subsys in topAffectedSysGenEx">
-                  <td>{{ subsys.name }}</td>
-                  <td>{{ subsys.DifferentModifiers }}</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <div class="column">
-            <h6 class="subtitle is-6">Compartments by missing reactions</h6>
-            <table class="table is-narrow">
-              <thead>
-                <tr>
-                  <th>Compartments</th>
-                  <th>reactions</th>
-                  <th><div v-bind:title="comparison.Models.A.ModelId">A</div></th>
-                  <th><div v-bind:title="comparison.Models.B.ModelId">B</div></th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="subsys in topAffectedCompMis">
+                <tr v-for="subsys in c.subsystems">
                   <td>{{ subsys.name }}</td>
                   <td>{{ subsys.totalMissing }}</td>
-                  <td>{{ subsys.MissingReactionsFromA }}</td>
-                  <td>{{ subsys.MissingReactionsFromB }}</td>
+                  <td>{{ subsys.missingReactionsFromA }}</td>
+                  <td>{{ subsys.missingReactionsFromB }}</td>
                 </tr>
               </tbody>
             </table>
           </div>
         </div>
-      </div>
+        <br>
+      </template>
     </div>
   </section>
 
 </template>
 
 <script>
-import { default as compareResponse } from '../helpers/compareresp';
 
 export default {
   name: 'compare-models',
   data() {
     return {
-      comparison: {},
+      comparison: [{
+        models: {
+          A: {
+            modelId: 'Human1',
+            modelName: 'The generic genome-scale metabolic model of Homo sapiens integrated from HMR2 and Recon3D',
+            totalReactions: 13520,
+            sharedReactions: 60.45,
+            exclusiveReactions: 5346,
+            exclusivePercentage: 39.54,
+          },
+          B: {
+            modelId: 'HMR2',
+            modelName: 'Genome-scale metabolic model for the generic human cell',
+            totalReactions: 8181,
+            sharedReactions: 99.91,
+            exclusiveReactions: 7,
+            exclusivePercentage: 0.08,
+          },
+        },
+        subsystems: [
+          { name: 'Transport reactions',
+            totalMissing: '4247',
+            missingReactionsFromA: '1644',
+            missingReactionsFromB: '0',
+          },
+          { name: 'Exchange/demand reactions',
+            totalMissing: '1665',
+            missingReactionsFromA: '1210',
+            missingReactionsFromB: '7',
+          },
+          { name: 'Drug metabolism',
+            totalMissing: '573',
+            missingReactionsFromA: '573',
+            missingReactionsFromB: '-',
+          },
+          { name: 'Fatty acid oxidation',
+            totalMissing: '542',
+            missingReactionsFromA: '542',
+            missingReactionsFromB: '-',
+          },
+          { name: 'Peptide metabolism',
+            totalMissing: '242',
+            missingReactionsFromA: '242',
+            missingReactionsFromB: '-',
+          },
+        ],
+        compartments: [
+          { name: 'Cytosol',
+            totalMissing: '8322',
+            missingReactionsFromA: '2990',
+            missingReactionsFromB: '0',
+          },
+          { name: 'Extracellular',
+            totalMissing: '5131',
+            missingReactionsFromA: '2934',
+            missingReactionsFromB: '7',
+          },
+          { name: 'Boundary',
+            totalMissing: '1666',
+            missingReactionsFromA: '1207',
+            missingReactionsFromB: '7',
+          },
+          { name: 'Endoplasmic reticulum',
+            totalMissing: '1400',
+            missingReactionsFromA: '604',
+            missingReactionsFromB: '0',
+          },
+          { name: 'Mitochondria',
+            totalMissing: '1633',
+            missingReactionsFromA: '516',
+            missingReactionsFromB: '0',
+          },
+        ],
+      },
+      {
+        models: {
+          A: {
+            modelId: 'Human1',
+            modelName: 'The generic genome-scale metabolic model of Homo sapiens integrated from HMR2 and Recon3D',
+            totalReactions: 13520,
+            sharedReactions: 96.85,
+            exclusiveReactions: 425,
+            exclusivePercentage: 3.14,
+          },
+          B: {
+            modelId: 'Recon3D',
+            modelName: 'Human metabolic network reconstruction integrating pharmacogenomic associations, large-scale phenotypic data, and structural information for proteins and metabolites',
+            totalReactions: 13543,
+            sharedReactions: 98.09,
+            exclusiveReactions: 258,
+            exclusivePercentage: 1.9,
+          },
+        },
+        subsystems: [
+          { name: 'Transport reactions',
+            totalMissing: '4247',
+            missingReactionsFromA: '208',
+            missingReactionsFromB: '0',
+          },
+          { name: 'Exchange/demand reactions',
+            totalMissing: '1665',
+            missingReactionsFromA: '24',
+            missingReactionsFromB: '250',
+          },
+          { name: 'N-glycan metabolism',
+            totalMissing: '151',
+            missingReactionsFromA: '20',
+            missingReactionsFromB: '0',
+          },
+          { name: 'Bile acid biosynthesis',
+            totalMissing: '243',
+            missingReactionsFromA: '12',
+            missingReactionsFromB: '0',
+          },
+          { name: 'Bile acid recycling',
+            totalMissing: '33',
+            missingReactionsFromA: '10',
+            missingReactionsFromB: '-',
+          },
+        ],
+        compartments: [
+          { name: 'Cytosol',
+            totalMissing: '8322',
+            missingReactionsFromA: '312',
+            missingReactionsFromB: '194',
+          },
+          { name: 'Extracellular',
+            totalMissing: '5131',
+            missingReactionsFromA: '177',
+            missingReactionsFromB: '1',
+          },
+          { name: 'Mitochondria',
+            totalMissing: '1633',
+            missingReactionsFromA: '59',
+            missingReactionsFromB: '11',
+          },
+          { name: 'Endoplasmic reticulum',
+            totalMissing: '1400',
+            missingReactionsFromA: '32',
+            missingReactionsFromB: '14',
+          },
+          { name: 'Golgi apparatus',
+            totalMissing: '454',
+            missingReactionsFromA: '22',
+            missingReactionsFromB: '11',
+          },
+        ],
+      }],
     };
-  },
-  beforeMount() {
-    this.setup();
-  },
-  computed: {
-    allSubsystems() {
-      const all = {};
-      for (const rxn of this.filterableReactions) {
-        if (!(rxn.Subsystem in all)) {
-          all[rxn.Subsystem] = 0;
-        }
-        all[rxn.Subsystem] += 1;
-        // all.add(rxn.Subsystem);
-      }
-      const subsysList = [];
-      for (const subsys of Object.entries(all)) {
-        const entry = {};
-        entry.name = subsys[0];
-        entry.nr = subsys[1];
-        subsysList.push(entry);
-      }
-      function comparer(a, b) {
-        return b.nr - a.nr;
-      }
-      subsysList.sort(comparer);
-      return subsysList;
-    },
-    allCompartments() {
-      const all = new Set();
-      for (const rxn of this.filterableReactions) {
-        for (const comp of rxn.Compartments) {
-          all.add(comp);
-        }
-      }
-      return Array.from(all);
-    },
-    affectedSubsystems() {
-      const affectedSubsystems = [];
-      for (const subsys of Object.entries(this.comparison.Summary.AffectedSubsystems)) {
-        const entry = Object.assign({}, subsys[1]);
-        entry.name = subsys[0];
-        entry.totalMissing = entry.MissingReactionsFromA + entry.MissingReactionsFromB;
-        affectedSubsystems.push(entry);
-      }
-      return affectedSubsystems;
-    },
-    affectedCompartments() {
-      const affectedCompartments = [];
-      for (const comp of Object.entries(this.comparison.Summary.AffectedCompartments)) {
-        const entry = Object.assign({}, comp[1]);
-        entry.name = comp[0];
-        entry.totalMissing = entry.MissingReactionsFromA + entry.MissingReactionsFromB;
-        affectedCompartments.push(entry);
-      }
-      return affectedCompartments;
-    },
-    topAffectedSysMis() {
-      function comparer(a, b) {
-        return b.totalMissing - a.totalMissing;
-      }
-      this.affectedSubsystems.sort(comparer);
-      return this.affectedSubsystems.slice(0, 5);
-    },
-    topAffectedSysGenEx() {
-      function comparer(a, b) {
-        return b.DifferentModifiers - a.DifferentModifiers;
-      }
-      this.affectedSubsystems.sort(comparer);
-      return this.affectedSubsystems.slice(0, 5);
-    },
-    topAffectedCompMis() {
-      function comparer(a, b) {
-        return b.totalMissing - a.totalMissing;
-      }
-      this.affectedCompartments.sort(comparer);
-      return this.affectedCompartments.slice(0, 5);
-    },
-  },
-  methods: {
-    setup() {
-      this.comparison = JSON.parse(compareResponse());
-    },
   },
 };
 </script>
