@@ -718,18 +718,17 @@ def get_model(request, name):
     """
 
     try:
-        int(model_id)
+        int(name)
         is_int = True
     except ValueError:
         is_int = False
 
     if is_int:
-        model = APImodels.GEM.objects.filter(id=model_id).select_related('sample').prefetch_related('authors', 'ref')
+        model = APImodels.GEM.objects.filter(id=name).select_related('sample').prefetch_related('authors', 'ref')
     else:
-        model = APImodels.GEM.objects.filter(short_name__iexact=model_id).select_related('sample').prefetch_related('authors', 'ref')
+        model = APImodels.GEM.objects.filter(short_name__iexact=name).select_related('sample').prefetch_related('authors', 'ref')
     if not model:
         return HttpResponse(status=404)
 
-    print (model)
     serializer = APIserializer.GEMSerializer(model[0])
     return JSONResponse(serializer.data)

@@ -224,8 +224,6 @@ def get_compt_subsystem_connectivity(database, map_directory, compt_rme, rme_com
         # for each meta
         # count when the meta is reactant or product in each reaction
         # store the info for each compartment and for each subsystem where the reaction is
-        if meta[:6] == 'ENSG00':
-            continue
         result[meta] = {'compartment': {}, 'subsystem': {}}
         reactions_as_reactant = {e for e in ReactionReactant.objects.using(database).filter(reactant_id=meta).values_list('reaction_id', flat=True)}
         for r_reaction in reactions_as_reactant:
@@ -274,6 +272,10 @@ def get_compt_subsystem_connectivity(database, map_directory, compt_rme, rme_com
                     '''for cpmt in rme_compt[p_reaction]:
                         if ssub in compt_sub[cpmt]:
                             result[meta]['compartment'][cpmt]['product'] -= 1'''
+
+        if len(reactions_as_reactant) + len(reaction_as_product) == 0:
+            # skip enzymes
+            continue
 
         reactions_as_reactant.union(reaction_as_product)
         if len(reactions_as_reactant) == 1:

@@ -971,10 +971,11 @@ export default {
             this.rawElms[enzID].expressionLvl.HPA.RNA = {};
           }
 
-          const levels = array[1].split(',').map(v => Math.round((parseFloat(v + 1) + 0.00001) * 100) / 100);
           for (let j = 0; j < this.tissues.HPA.length; j += 1) {
             const tissue = this.tissues.HPA[j];
-            this.rawElms[enzID].expressionLvl.HPA.RNA[tissue] = getExpressionColor(levels[j]);
+            let level = Math.log2(parseFloat(array[1].split(',')[j]) + 1);
+            level = Math.round((level + 0.00001) * 100) / 100;
+            this.rawElms[enzID].expressionLvl.HPA.RNA[tissue] = getExpressionColor(level);
           }
         }
         this.expSourceLoaded.enzyme.HPA = {};

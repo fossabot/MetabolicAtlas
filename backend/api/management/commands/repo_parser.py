@@ -14,20 +14,6 @@ import logging
 # Yarrowia_lipolytica_W29-GEM
 # version 1.0.8
 
-parser = argparse.ArgumentParser(description='Chalmers genome scale metabolic model repository validator.')
-parser.add_argument('repo-name', help='A name of the remote repository or local directory (option --local-repo)')
-parser.add_argument('--readme-only', action='store_true', dest="readme_only", help="check the readme file only")
-parser.add_argument('--no-summary', action='store_false', dest="show_summary", help="skip the print of the summary", default=True)
-parser.add_argument('--local-repo', action='store_true', dest="parse_local", help="local repository directory", default=False)
-args = parser.parse_args()
-argv_dict = vars(args)
-
-repo_name = argv_dict['repo-name']
-readme_only = argv_dict['readme_only']
-show_summary = argv_dict['show_summary']
-parse_local_repo = argv_dict['parse_local']
-
-
 tree_rules = [
                 {     'name': 'ModelFiles',
                       'content':
@@ -112,7 +98,7 @@ def check_model_file_content(content):
     pass
 
 
-def check_model_files(model_dir, name, rule):
+def check_model_files(model_dir, name, rule, parse_local_repo):
     global error_message
     global model_files_found
     print ("Checking '%s'" % name)
@@ -163,7 +149,7 @@ def check_model_files(model_dir, name, rule):
     return True
 
 
-def check_models_dirs(model_dir, name, rule_dir):
+def check_models_dirs(model_dir, name, rule_dir, parse_local_repo):
     global warning_messages
     global error_message
     print ("Checking directory '%s'" % name)
@@ -205,12 +191,12 @@ def check_models_dirs(model_dir, name, rule_dir):
                 warning_messages.append("Warning: %s '%s' not found" % (type, name))
                 return False
         else:
-            if not check_model_files(content[name], name, rule):
+            if not check_model_files(content[name], name, rule, parse_local_repo):
                 return False
     return True
 
 
-def check_repo_content(repo_content):
+def check_repo_content(repo_content, parse_local_repo):
     global warning_messages
     global error_message
     content = {}
@@ -256,7 +242,7 @@ def check_repo_content(repo_content):
                         warning_messages.append("Warning: file '%s' is empty" % name)
                         return False
             elif type == 'dir'and rmt_name == "ModelFiles":
-                if not check_models_dirs(content[name], rmt_name, rule):
+                if not check_models_dirs(content[name], rmt_name, rule, parse_local_repo):
                     return False
     return True
 
@@ -428,7 +414,7 @@ def parse_keywords(kw_dict):
     return kw_dict
 
 
-def parse_model_table(model_array):
+def parse_model_table(model_array, readme_only):
     global table_CCTS
     global warning_messages
     global error_message
@@ -492,7 +478,7 @@ def get_json(URL):
         return False, e
 
 
-def get_gemodel(repo_name):
+def get_gemodel(repo_name, readme_only, show_summary, parse_local_repo):
     global warning_messages
     global error_message
     warning_messages = []
@@ -524,7 +510,7 @@ def get_gemodel(repo_name):
         else:
             repo_content = os.path.abspath(repo_name)
 
-        res = check_repo_content(repo_content)
+        res = check_repo_content(repo_content, parse_local_repo)
         if not res:
             error_message = "Error: invalid repository content"
             return False
@@ -569,7 +555,7 @@ def get_gemodel(repo_name):
         # print ('here3')
         return False
 
-    model_info_dict = parse_model_table(cat_dict["The repo contains"])
+    model_info_dict = parse_model_table(cat_dict["The repo contains"], readme_only)
     if not model_info_dict:
         # print ('here4')
         return False
@@ -607,7 +593,22 @@ def get_gemodel(repo_name):
 
 
 if __name__ == "__main__":
-    get_gemodel(repo_name)
+
+
+    parser = argparse.ArgumentParser(description='Chalmers genome scale metabolic model repository validator.')
+    parser.add_argument('repo-name', help='A name of the remote repository or local directory (option --local-repo)')
+    parser.add_argument('--readme-only', action='store_true', dest="readme_only", help="check the readme file only")
+    parser.add_argument('--no-summary', action='store_false', dest="show_summary", help="skip the print of the summary", default=True)
+    parser.add_argument('--local-repo', action='store_true', dest="parse_local", help="local repository directory", default=False)
+    args = parser.parse_args()
+    argv_dict = vars(args)
+
+    repo_name = argv_dict['repo-name']
+    readme_only = argv_dict['readme_only']
+    show_summary = argv_dict['show_summary']
+    parse_local_repo = argv_dict['parse_local']
+
+    get_gemodel(repo_name, readme_only, show_summary, parse_local_repo)
     for wm in warning_messages:
         print (wm)
     print (error_message)
