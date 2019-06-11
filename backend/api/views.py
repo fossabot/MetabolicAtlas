@@ -232,17 +232,9 @@ def get_enzyme_interaction_partners(request, model, id):
 @is_model_valid
 def get_interaction_partners(request, model, id, type=None):
     reactions = []
-    interactionPartners = []
+    metabolites_IP = []
+    enzymes_IP = []
     IP_dict = {}
-    # type on interaction:
-    #    REACTANT - reactant = 'converted with'
-    #    REACTANT - product = 'converted into'
-    #    PRODUCT - reactant = 'systhesised from'
-    #    PRODUCT - product = 'systhesised with
-    #    PRODUCT/REACTANT - enzyme = 'catalyze by'
-    #    ENZYME - REACTANT = ''catalyze conversion'
-    #    ENZYME - PRODUCT = ''catalyze synthesis'
-    #    ENZYME - ENZYME = 'catalyze with'
 
     if type == 'm':
         try:
@@ -264,10 +256,9 @@ def get_interaction_partners(request, model, id, type=None):
                     IP_dict[reactant.id]['reactions'].append(
                     {
                         'reaction_id': r.id,
-                        'interaction_type': 'converted with' if component_type == 'r' else 'systhesised from',
+                        'equation': r.equation,
+                        'reversible': r.is_reversible
                     })
-                    if r.is_reversible:
-                        IP_dict[reactant.id]['reactions'][-1]['interaction_type'] += ' (reversible)'
                     continue
 
                 ip = {
@@ -275,13 +266,12 @@ def get_interaction_partners(request, model, id, type=None):
                     'name': reactant.full_name,
                     'reactions': [{
                         'reaction_id': r.id,
-                        'interaction_type': 'converted with' if component_type == 'r' else 'systhesised from',
+                        'equation': r.equation,
+                        'reversible': r.is_reversible
                     }]
                 }
-                if r.is_reversible:
-                    ip['reactions'][0]['interaction_type'] += ' (reversible)'
                 IP_dict[reactant.id] = ip
-                interactionPartners.append(ip)
+                metabolites_IP.append(ip)
 
             for product in r.products.all():
                 if component_type == 'p' and product == component:
@@ -291,10 +281,9 @@ def get_interaction_partners(request, model, id, type=None):
                     IP_dict[product.id]['reactions'].append(
                     {
                         'reaction_id': r.id,
-                        'interaction_type': 'converted into' if component_type == 'r' else 'systhesised with',
+                        'equation': r.equation,
+                        'reversible': r.is_reversible
                     })
-                    if r.is_reversible:
-                        IP_dict[product.id]['reactions'][-1]['interaction_type'] += ' (reversible)'
                     continue
 
                 ip = {
@@ -302,20 +291,19 @@ def get_interaction_partners(request, model, id, type=None):
                     'name': product.full_name,
                     'reactions': [{
                         'reaction_id': r.id,
-                        'interaction_type': 'converted into' if component_type == 'r' else 'systhesised with',
-                    }]
+                        'equation': r.equation,
+                        'reversible': r.is_reversible                    }]
                 }
-                if r.is_reversible:
-                    ip['reactions'][0]['interaction_type'] += ' (reversible)'
                 IP_dict[product.id] = ip
-                interactionPartners.append(ip)
+                metabolites_IP.append(ip)
 
             for enzyme in r.modifiers.all():
                 if enzyme.id in IP_dict:
                     IP_dict[enzyme.id]['reactions'].append(
                     {
                         'reaction_id': r.id,
-                        'interaction_type': 'catalyze by',
+                        'equation': r.equation,
+                        'reversible': r.is_reversible
                     })
                     continue
 
@@ -324,11 +312,13 @@ def get_interaction_partners(request, model, id, type=None):
                     'name': enzyme.name,
                     'reactions': [{
                         'reaction_id': r.id,
-                        'interaction_type': 'catalyze by',
+                        'equation': r.equation,
+                        'reversible': r.is_reversible
                     }]
                 }
                 IP_dict[enzyme.id] = ip
-                interactionPartners.append(ip)
+                enzymes_IP.append(ip)
+
     elif type == 'e':
         try:
             component = APImodels.ReactionComponent.objects.using(model).get((Q(id__iexact=id) | Q(name__iexact=id)) & Q(component_type=type))
@@ -342,10 +332,9 @@ def get_interaction_partners(request, model, id, type=None):
                     IP_dict[reactant.id]['reactions'].append(
                     {
                         'reaction_id': r.id,
-                        'interaction_type': 'catalyse conversion',
+                        'equation': r.equation,
+                        'reversible': r.is_reversible
                     })
-                    if r.is_reversible:
-                        IP_dict[reactant.id]['reactions'][-1]['interaction_type'] += ' (reversible)'
                     continue
 
                 ip = {
@@ -353,23 +342,21 @@ def get_interaction_partners(request, model, id, type=None):
                     'name': reactant.full_name,
                     'reactions': [{
                         'reaction_id': r.id,
-                        'interaction_type': 'catalyse conversion',
+                        'equation': r.equation,
+                        'reversible': r.is_reversible
                     }]
                 }
-                if r.is_reversible:
-                    ip['reactions'][0]['interaction_type'] += ' (reversible)'
                 IP_dict[reactant.id] = ip
-                interactionPartners.append(ip)
+                metabolites_IP.append(ip)
 
             for product in r.products.all():
                 if product.id in IP_dict:
                     IP_dict[product.id]['reactions'].append(
                     {
                         'reaction_id': r.id,
-                        'interaction_type': 'catalyse synthesis',
+                        'equation': r.equation,
+                        'reversible': r.is_reversible
                     })
-                    if r.is_reversible:
-                        IP_dict[product.id]['reactions'][-1]['interaction_type'] += ' (reversible)'
                     continue
 
                 ip = {
@@ -377,13 +364,12 @@ def get_interaction_partners(request, model, id, type=None):
                     'name': product.full_name,
                     'reactions': [{
                         'reaction_id': r.id,
-                        'interaction_type': 'catalyse synthesis',
+                        'equation': r.equation,
+                        'reversible': r.is_reversible
                     }]
                 }
-                if r.is_reversible:
-                    ip['reactions'][0]['interaction_type'] += ' (reversible)'
                 IP_dict[product.id] = ip
-                interactionPartners.append(ip)
+                metabolites_IP.append(ip)
 
             for enzyme in r.modifiers.all():
                 if enzyme == component:
@@ -393,7 +379,8 @@ def get_interaction_partners(request, model, id, type=None):
                     IP_dict[enzyme.id]['reactions'].append(
                     {
                         'reaction_id': r.id,
-                        'interaction_type': 'catalyse with',
+                        'equation': r.equation,
+                        'reversible': r.is_reversible
                     })
                     continue
 
@@ -402,13 +389,23 @@ def get_interaction_partners(request, model, id, type=None):
                     'name': enzyme.name,
                     'reactions': [{
                         'reaction_id': r.id,
-                        'interaction_type': 'catalyse with',
+                        'equation': r.equation,
+                        'reversible': r.is_reversible
                     }]
                 }
                 IP_dict[enzyme.id] = ip
-                interactionPartners.append(ip)
+                enzymes_IP.append(ip)
 
-    return JSONResponse(interactionPartners)
+    ctype = 'metabolite' if component.component_type == 'm' else 'enzyme'
+    return JSONResponse({
+            'id': component.id,
+            'name': component.name,
+            'type': ctype,
+            'interaction_partners': {
+                'metabolites': metabolites_IP,
+                'enzymes': enzymes_IP
+            }
+        })
 
 
 @api_view()
