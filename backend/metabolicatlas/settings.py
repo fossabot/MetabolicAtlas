@@ -19,7 +19,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = os.getenv('DJANGO_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DJANGO_IS_DEBUG')
+DEBUG = bool(os.getenv('DJANGO_IS_DEBUG'))
 
 ALLOWED_HOSTS = [
     'localhost',
@@ -31,11 +31,11 @@ ALLOWED_HOSTS = [
 
 # Application definition
 INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
+    # 'django.contrib.admin',
+    # 'django.contrib.auth',
+    # 'django.contrib.contenttypes',
+    # 'django.contrib.sessions',
+    # 'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
     'rest_framework_swagger',
@@ -66,8 +66,8 @@ TEMPLATES = [
             'context_processors': [
                 'django.template.context_processors.debug',
                 'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
+                # 'django.contrib.auth.context_processors.auth',
+                # 'django.contrib.messages.context_processors.messages',
             ],
         },
     },
@@ -101,6 +101,14 @@ DATABASES = {
         'HOST': 'db',
         'PORT': 5432,
     },
+    'hmr2': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'hmr2',
+        'USER': os.getenv('POSTGRES_USER'),
+        'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
+        'HOST': 'db',
+        'PORT': 5432,
+    },
     'gems': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'gems',
@@ -129,11 +137,18 @@ CORS_ORIGIN_WHITELIST = (
 # SWAGGER
 SWAGGER_SETTINGS = {
     'USE_SESSION_AUTH': False,
+    'SECURITY_DEFINITIONS': {
+        'basic': {
+            'type': 'basic'
+        }
+    },
 }
 
 REST_FRAMEWORK = {
     'DEFAULT_VERSIONING_CLASS': 'rest_framework.versioning.QueryParameterVersioning',
-    'DEFAULT_AUTHENTICATION_CLASSES': []
+    'DEFAULT_AUTHENTICATION_CLASSES': [],
+    'DEFAULT_PERMISSION_CLASSES': [],
+    'UNAUTHENTICATED_USER': None,
 }
 
 # Internationalization https://docs.djangoproject.com/en/1.10/topics/i18n/
