@@ -414,10 +414,10 @@ def HPA_enzyme_info(request, ensembl_id): # ENSG00000110921
         # sub['compartments'] = list(compartments)
         sub_dict['reactions_catalysed'] = APImodels.ReactionModifier.objects.using(model).filter(Q(reaction__in=sub.reactions.all()) & Q(modifier_id=rcid)).count()
         if sub.subsystem_svg.sha:
-            sub_dict['map_url'] = "https://ftp.chalmers.se/.maps/%s/%s.svg" % (model, sub.name_id)
+            sub_dict['map_url'] = "https://ftp.metabolicatlas.org/.maps/%s/%s.svg" % (model, sub.name_id)
         else:
             sub_dict['map_url'] = ""
-        sub_dict['subsystem_url'] = "https://metabolicatlas.org/explore/gem-browser/%s/subsystem/%s" % (model, sub.name_id)
+        sub_dict['subsystem_url'] = "https://www.metabolicatlas.org/explore/gem-browser/%s/subsystem/%s" % (model, sub.name_id)
         sub_dict['model_metabolite_count'] = sub.unique_metabolite_count
         sub_dict['compartment_metabolite_count'] = sub.metabolite_count
         sub_dict['reaction_count'] = sub.reaction_count
@@ -426,7 +426,7 @@ def HPA_enzyme_info(request, ensembl_id): # ENSG00000110921
         subsystems.append(sub_dict)
 
     result = {
-        'enzyme_url': "https://metabolicatlas.org/explore/gem-browser/%s/enzyme/%s" % (model, ensembl_id),
+        'enzyme_url': "https://www.metabolicatlas.org/explore/gem-browser/%s/enzyme/%s" % (model, ensembl_id),
         'subsystems': subsystems,
         'doc': 'A subsystem can contain the same chemical metabolite that comes from different compartments.',
     }
