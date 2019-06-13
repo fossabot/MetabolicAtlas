@@ -11,5 +11,3 @@ services:
     restart: always
     build:
       dockerfile: nginx/Dockerfile-prod
-    volumes:
-      - /var/ssl:/ssl:ro
