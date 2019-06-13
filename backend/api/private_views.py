@@ -640,6 +640,35 @@ def get_hpa_rna_levels(request, model):
           'levels': levels
         })
 
+@api_view()
+@is_model_valid
+def get_related_reactions(request, model, id):
+    try:
+        rea = APImodels.Reaction.objects.using(model).get(id__iexact=id)
+        if rea.related_group == 0:
+            return HttpResponse(status=404)
+        related_reactions = APImodels.Reaction.objects.using(model).filter(
+            Q(related_group=rea.related_group) & ~Q(id=rea.id)).values('id', 'equation_wname', 'compartment')
+    except APImodels.Reaction.DoesNotExist:
+        return HttpResponse(status=404)
+    
+    return JSONResponse(related_reactions)
+
+
+@api_view()
+@is_model_valid
+def get_related_metabolites(request, model, id):
+    try:
+        met = APImodels.ReactionComponent.objects.using(model).get(id__iexact=id)
+        if met.related_compartment_group == 0:
+            return HttpResponse(status=404)
+        related_mets = APImodels.ReactionComponent.objects.using(model).filter(
+            Q(related_compartment_group=met.related_compartment_group) & ~Q(id=met.id)).values('id', 'name', 'compartment_str')
+    except APImodels.ReactionComponent.DoesNotExist:
+        return HttpResponse(status=404)
+
+    return JSONResponse(related_mets)
+
 
 @api_view()
 def search(request, model, term):

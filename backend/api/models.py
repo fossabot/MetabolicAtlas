@@ -173,6 +173,7 @@ class Reaction(models.Model):
     external_link4 = models.CharField(max_length=255, null=True)
     external_link5 = models.CharField(max_length=255, null=True)
     external_link6 = models.CharField(max_length=255, null=True)
+    related_group = models.IntegerField(default=0)
 
     metabolites = models.ManyToManyField('ReactionComponent', related_name='reactions_as_metabolite', through='ReactionMetabolite')
 
@@ -181,6 +182,9 @@ class Reaction(models.Model):
 
     class Meta:
         db_table = "reaction"
+        indexes = [
+            models.Index(fields=['related_group']),
+        ]
 
 class ReactionReference(models.Model):
     reaction = models.ForeignKey('Reaction', db_column='reaction_id', on_delete=models.CASCADE)
@@ -224,6 +228,9 @@ class ReactionComponent(models.Model):
     subsystem_metabolite = models.ManyToManyField('Subsystem', related_name='metabolites', through='SubsystemMetabolite')
     subsystem_enzyme = models.ManyToManyField('Subsystem', related_name='enzymes', through='SubsystemEnzyme')
 
+    related_compartment_group = models.IntegerField(default=0)  # only for metabolites
+    related_formula_group = models.IntegerField(default=0)  # only for metabolites
+
     compartment_enzyme = models.ManyToManyField('Compartment', related_name='enzymes', through='CompartmentEnzyme')
 
     def __str__(self):
@@ -231,6 +238,12 @@ class ReactionComponent(models.Model):
 
     class Meta:
         db_table = "reaction_component"
+        indexes = [
+            models.Index(fields=['related_compartment_group']),
+            models.Index(fields=['related_formula_group']),
+        ]
+
+
 
 '''class HumanReactionComponent(ReactionComponent):
     def __init__(self, *args, **kwargs):

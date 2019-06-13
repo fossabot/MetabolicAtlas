@@ -13,17 +13,17 @@
       </div>
       <div class="columns is-multiline metabolite-table is-variable is-8">
         <div class="column is-10-widescreen is-9-desktop is-full-tablet">
-          <table v-if="metabolite && Object.keys(metabolite).length != 0" class="table main-table is-fullwidth">
+          <table v-if="metabolite && Object.keys(metabolite).length !== 0" class="table main-table is-fullwidth">
             <tr v-for="el in mainTableKey[model.database_name]">
               <td v-if="el.display" class="td-key has-background-primary has-text-white-bis" v-html="el.display"></td>
-              <td v-else-if="el.name == 'id'" class="td-key has-background-primary has-text-white-bis">{{ model.short_name }} ID</td>
+              <td v-else-if="el.name === 'id'" class="td-key has-background-primary has-text-white-bis">{{ model.short_name }} ID</td>
               <td v-else class="td-key has-background-primary has-text-white-bis">{{ reformatTableKey(el.name) }}</td>
               <td v-if="metabolite[el.name] !== null">
                 <span v-if="el.name === 'formula'" v-html="chemicalFormula(metabolite[el.name], metabolite.charge)">
                 </span>
                 <span v-else-if="el.modifier" v-html="el.modifier(metabolite[el.name])">
                 </span>
-                <span v-else-if="el.name == 'compartment'">
+                <span v-else-if="el.name === 'compartment'">
                   <router-link :to="{ path: `/explore/gem-browser/${model.database_name}/compartment/${idfy(metabolite[el.name])}` }">{{ metabolite[el.name] }}</router-link>
                 </span>
                 <span v-else>
@@ -32,10 +32,21 @@
               </td>
               <td v-else> - </td>
             </tr>
+            <tr v-if="relatedMetabolites.length !== 0">
+              <td class="td-key has-background-primary has-text-white-bis">Related metabolite(s)</td>
+              <td>
+                <template v-for="(rm, i) in relatedMetabolites">
+                  <br v-if="i !== 0 ">
+                  <router-link :to="{ path: `/explore/gem-browser/${model.database_name}/metabolite/${rm.id}`}">
+                    {{ rm.name }}
+                  </router-link> ({{ rm.compartment_str }})
+                </template>
+              </td>
+            </tr>
           </table>
           <template v-if="hasExternalID">
             <h4 class="title is-4">External links</h4>
-            <table v-if="metabolite && Object.keys(metabolite).length != 0" id="ed-table" class="table is-fullwidth">
+            <table v-if="metabolite && Object.keys(metabolite).length !== 0" id="ed-table" class="table is-fullwidth">
               <tr v-for="el in externalIDTableKey[model.database_name]" v-if="metabolite[el.name] && metabolite[el.link]">
                 <td v-if="'display' in el" class="td-key has-background-primary has-text-white-bis" v-html="el.display"></td>
                 <td v-else class="td-key has-background-primary has-text-white-bis">{{ reformatTableKey(el.name) }}</td>
@@ -55,7 +66,8 @@
         </div>
       </div>
       <div class="columns">
-        <reactome v-show="showReactome" id="metabolite-reactome" :model="model" :metaboliteID="metaboliteID"></reactome>
+        <reactome v-show="showReactome" id="metabolite-reactome" :model="model" :metaboliteID="metaboliteID" 
+        :disableBut="this.relatedMetabolites.length == 0"></reactome>
       </div>
     </div>
   </div>
@@ -113,6 +125,7 @@ export default {
         ],
       },
       metabolite: {},
+      relatedMetabolites: [],
       errorMessage: '',
       activePanel: 'table',
       showReactome: false,
@@ -138,6 +151,9 @@ export default {
       return false;
     },
   },
+  beforeMount() {
+    this.setup();
+  },
   methods: {
     setup() {
       this.mId = this.$route.params.id;
@@ -151,10 +167,21 @@ export default {
         this.metaboliteID = this.mId;
         this.metabolite = response.data;
         this.showReactome = true;
+        this.getRelatedMetabolites();
       })
       .catch(() => {
         this.errorMessage = messages.notFoundError;
         this.showReactome = false;
+      });
+    },
+    getRelatedMetabolites() {
+      axios.get(`${this.model.database_name}/metabolite/${this.mId}/related`)
+      .then((response) => {
+        this.relatedMetabolites = response.data;
+        this.relatedMetabolites.sort((a, b) => (a.compartment_str < b.compartment_str ? -1 : 1));
+      })
+      .catch(() => {
+        this.relatedMetabolites = [];
       });
     },
     reformatTableKey(k) { return reformatTableKey(k); },
@@ -162,9 +189,6 @@ export default {
     reformatMass(s) { return addMassUnit(s); },
     idfy,
     chemicalFormula,
-  },
-  beforeMount() {
-    this.setup();
   },
 };
 </script>

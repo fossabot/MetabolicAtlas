@@ -32,6 +32,17 @@
             </td>
             <td v-else> - </td>
           </tr>
+          <tr v-if="relatedReactions.length !== 0">
+            <td class="td-key has-background-primary has-text-white-bis">Related reaction(s)</td>
+            <td>
+              <template v-for="(rr, i) in relatedReactions">
+                <br v-if="i !== 0 ">
+                <router-link :to="{ path: `/explore/gem-browser/${model.database_name}/reaction/${rr.id}`}">
+                  {{ rr.equation_wname }}
+                </router-link>  ({{ rr.compartment }})
+              </template>
+            </td>
+          </tr>
         </table>
         <template v-if="hasExternalID">
           <h4 class="title is-4">External links</h4>
@@ -122,6 +133,7 @@ export default {
         yeast8: [],
       },
       reaction: {},
+      relatedReactions: [],
       errorMessage: '',
       showLoader: true,
       mapsAvailable: {},
@@ -170,9 +182,20 @@ export default {
         this.showLoader = false;
         this.reaction = response.data.reaction;
         this.reformatRefs(response.data.pmids);
+        this.getRelatedReactions();
       })
       .catch(() => {
         this.errorMessage = messages.notFoundError;
+      });
+    },
+    getRelatedReactions() {
+      axios.get(`${this.model.database_name}/reaction/${this.rId}/related`)
+      .then((response) => {
+        this.relatedReactions = response.data;
+        this.relatedReactions.sort((a, b) => (a.compartment < b.compartment ? -1 : 1));
+      })
+      .catch(() => {
+        this.relatedReactions = [];
       });
     },
     reformatEquation() { return this.$parent.$parent.reformatChemicalReactionLink(this.reaction); },
