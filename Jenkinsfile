@@ -17,31 +17,14 @@ pipeline {
         echo 'Download source databases.'
       }
     }
-    stage('Build') {
+    stage('Build and run') {
       steps {
         sh '''
           PATH=$PATH:/usr/local/bin
           docker-compose -f docker-compose.yml -f docker-compose-prod.yml build
-        '''
-        echo 'Built new Docker images.'
-      }
-    }
-    stage('Cleanup old Docker setup') {
-      steps {
-        sh '''
-          docker stop $(docker ps -a -q) || true
-          docker rm $(docker ps -a -q) || true
-          docker volume prune --force || true
-        '''
-        echo 'Deleted old Docker containers and volumes.'
-      }
-    }
-    stage('Run') {
-      steps {
-        sh '''
-          PATH=$PATH:/usr/local/bin
           docker-compose -f docker-compose.yml -f docker-compose-prod.yml up -d
         '''
+        echo 'Built new Docker images.'
       }
     }
     stage('Import databases') {
@@ -61,7 +44,9 @@ pipeline {
     stage('Clean up') {
       steps {
         sh '''
-          docker rmi $(docker images -q) || true
+          docker container prune --force
+          docker volume prune --force
+          docker rmi $(docker images -q) --force || true
           rm *.db
         '''
         echo 'Deleted old Docker images. We are live!'

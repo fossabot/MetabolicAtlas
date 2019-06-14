@@ -28,6 +28,10 @@ services:
       - backend
     build: ./frontend
     command: npm run dev
+    volumes:
+      - ./frontend/src:/project/src
+      - ./frontend/dist:/project/dist
+      - ./frontend/test:/project/test
     networks:
       - net-tier
 

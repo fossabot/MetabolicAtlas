@@ -13,4 +13,4 @@ services:
       context: .
       dockerfile: nginx/Dockerfile-prod
     volumes:
-          - /var/ssl:/ssl:ro
+      - /var/ssl:/ssl:ro
