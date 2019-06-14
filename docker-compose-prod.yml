@@ -10,4 +10,7 @@ services:
   nginx:
     restart: always
     build:
+      context: .
       dockerfile: nginx/Dockerfile-prod
+    volumes:
+          - /var/ssl:/ssl:ro
