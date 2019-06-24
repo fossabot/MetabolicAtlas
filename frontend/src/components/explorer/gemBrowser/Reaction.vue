@@ -90,7 +90,7 @@ import $ from 'jquery';
 import Loader from 'components/Loader';
 import MapsAvailable from 'components/explorer/gemBrowser/MapsAvailable';
 import { default as EventBus } from '../../../event-bus';
-import { reformatTableKey, addMassUnit, reformatECLink, reformatCompEqString } from '../../../helpers/utils';
+import { reformatTableKey, addMassUnit, reformatECLink, reformatCompEqString, reformatChemicalReactionHTML, reformatEqSign } from '../../../helpers/utils';
 import { default as messages } from '../../../helpers/messages';
 
 export default {
@@ -198,7 +198,7 @@ export default {
         this.relatedReactions = [];
       });
     },
-    reformatEquation() { return this.$parent.$parent.reformatChemicalReactionLink(this.reaction); },
+    reformatEquation() { return reformatChemicalReactionHTML(this.reaction); },
     reformatModifiers() {
       let newGRnameArr = null;
       if (this.reaction.name_gene_rule) {
@@ -257,7 +257,7 @@ export default {
     },
     reformatCompartment() {
       const compartmentEq =
-        this.reformatCompEqString(this.reaction.compartment);
+        this.reformatCompEqString(this.reaction.compartment, this.reaction.is_reversible);
       if (this.reaction.is_transport) {
         return `${compartmentEq} (transport reaction)`;
       }
@@ -291,6 +291,8 @@ export default {
     reformatTableKey,
     reformatECLink,
     reformatCompEqString,
+    reformatChemicalReactionHTML,
+    reformatEqSign,
   },
 };
 </script>

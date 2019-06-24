@@ -30,7 +30,7 @@
           <td>
             <router-link :to="{path: `/explore/gem-browser/${model.database_name}/reaction/${r.id}` }">{{ r.id }}</router-link>
           </td>
-          <td v-html="reformatChemicalReactionHTML(r)"></td>
+          <td v-html="getReformatChemicalReactionHTML(r)"></td>
           <td>
             <template v-for="(m, index) in r.modifiers">{{ index == 0 ? '' : ', '}}<router-link :to="{ path: `/explore/gem-browser/${model.database_name}/enzyme/${m.id}` }">{{ m.name || m.id }}</router-link>
             </template>
@@ -62,7 +62,7 @@
 import $ from 'jquery';
 import { default as compare } from '../../../helpers/compare';
 import { chemicalReaction } from '../../../helpers/chemical-formatters';
-import { reformatCompEqString, idfy } from '../../../helpers/utils';
+import { reformatCompEqString, idfy, reformatChemicalReactionHTML } from '../../../helpers/utils';
 
 export default {
   name: 'reaction-table',
@@ -130,13 +130,9 @@ export default {
     },
   },
   methods: {
-    idfy,
     formatChemicalReaction(v, r) { return chemicalReaction(v, r); },
-    reformatChemicalReactionHTML(r) {
-      if (this.$parent.$parent.$parent.reformatChemicalReactionLink) {
-        return this.$parent.$parent.$parent.reformatChemicalReactionLink(r);
-      }
-      return this.$parent.$parent.$parent.$parent.reformatChemicalReactionLink(r);
+    getReformatChemicalReactionHTML(r) {
+      return reformatChemicalReactionHTML(r);
     },
     sortTable(field, pattern, order) {
       if (order) {
@@ -157,8 +153,8 @@ export default {
       }
       return true;
     },
-  },
-  updated() {
+    idfy,
+    reformatChemicalReactionHTML,
     if (this.selectedElmId) {
       // when the table is from the selectedElmId page (metabolite)
       // do not color the selectedElmId is the reaction equations

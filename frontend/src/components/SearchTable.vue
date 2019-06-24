@@ -82,6 +82,9 @@
                     <template v-if="props.column.field == 'model'">
                       {{ props.formattedRow[props.column.field].name }}
                     </template>
+                    <template v-else-if="props.column.field === 'equation'">
+                      <span v-html="reformatEqSign(props.formattedRow[props.column.field], false)"></span>
+                    </template>
                     <template v-else-if="['name', 'id'].includes(props.column.field)">
                       <router-link :to="{ path: `/explore/gem-browser/${props.row.model.id}/${header}/${props.row.id}` }">
                         {{ props.row.name || props.row.id }}
@@ -146,7 +149,7 @@ import Loader from 'components/Loader';
 import { VueGoodTable } from 'vue-good-table';
 import 'vue-good-table/dist/vue-good-table.css';
 import { chemicalFormula } from '../helpers/chemical-formatters';
-import { idfy } from '../helpers/utils';
+import { idfy, reformatEqSign } from '../helpers/utils';
 import { default as messages } from '../helpers/messages';
 
 export default {
@@ -719,6 +722,7 @@ export default {
     },
     idfy,
     chemicalFormula,
+    reformatEqSign,
   },
 };
 
