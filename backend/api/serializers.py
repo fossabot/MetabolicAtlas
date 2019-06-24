@@ -41,14 +41,42 @@ class ReactionBasicSerializer(serializers.ModelSerializer):
         return model.gene_rule_wname
 
 
+class ReactionReactantSerializer(serializers.ModelSerializer):
+    reactant = APIrcSerializer.ReactionComponentRTSerializer()
+    class Meta:
+        model = APImodels.ReactionReactant
+        fields = ('reactant', 'stoichiometry',)
+
+class ReactionProductSerializer(serializers.ModelSerializer):
+    product = APIrcSerializer.ReactionComponentRTSerializer()
+    class Meta:
+        model = APImodels.ReactionReactant
+        fields = ('product', 'stoichiometry',)
+
+
 # serializer use for reactome table
-class HmrReactionBasicRTSerializer(ReactionBasicSerializer):
+class ReactionBasicRTSerializer(serializers.ModelSerializer):
+    reactionreactant_set = ReactionReactantSerializer(many=True)
+    # reactants = serializers.SerializerMethodField('read_reaction_reactants')
+    reactionproduct_set = ReactionProductSerializer(many=True)
     modifiers = APIrcSerializer.ReactionComponentLiteSerializer(many=True)
 
-    class Meta(ReactionBasicSerializer.Meta):
+    class Meta:
         model = APImodels.Reaction
-        fields = ReactionBasicSerializer.Meta.fields + \
-            ('modifiers',)
+        fields = ('id', 'gene_rule', 'gene_rule_wname', 'compartment', 'subsystem_str',
+             'is_transport', 'is_reversible', 'reactionreactant_set', 'reactionproduct_set', 'modifiers')
+
+
+# serializer use for reaction page
+class ReactionPageSerializer(ReactionBasicRTSerializer):
+    reactionreactant_set = ReactionReactantSerializer(many=True)
+    # reactants = serializers.SerializerMethodField('read_reaction_reactants')
+    reactionproduct_set = ReactionProductSerializer(many=True)
+    modifiers = APIrcSerializer.ReactionComponentLiteSerializer(many=True)
+
+    class Meta:
+        model = APImodels.Reaction
+        fields = ReactionBasicRTSerializer.Meta.fields + ('ec', 'lower_bound', 'upper_bound', 'objective_coefficient')
 
 
 # serializer use for searchTable table
