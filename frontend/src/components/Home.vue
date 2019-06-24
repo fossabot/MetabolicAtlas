@@ -123,7 +123,9 @@ export default {
       cards: [
         { title: 'Latest news',
           text: [
-            ['2019.05.17', 'Metabolic Atlas is publicly available'],
+            ['2019.06.25', 'Metabolic Atlas is upgraded to v1.2 with Human1 updated to v1.1'],
+            ['2019.05.29', 'Metabolic Atlas is upgraded to v1.1'],
+            ['2019.05.17', 'Metabolic Atlas is publicly available as v1.0'],
             ['2019.05.02', '<i>Human1</i> is integrated, with complete maps'],
             ['2018.12.17', 'MapViewer is faster when browsing manually curated maps'],
             ['2018.12.08', 'New maps for <i>Human1</i> are being created'],
