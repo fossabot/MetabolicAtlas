@@ -37,8 +37,8 @@
           </td>
           <td v-show="showCP">{{ r.cp }}</td>
           <td v-show="showSubsystem">
-            <template v-if="r.subsystem">
-              <template v-for="(s, index) in r.subsystem.split('; ')">
+            <template v-if="r.subsystem_str">
+              <template v-for="(s, index) in r.subsystem_str.split('; ')">
               {{ index == 0 ? '' : '; '}}<router-link :to="{ path: `/explore/gem-browser/${model.database_name}/subsystem/${idfy(s)}` }">{{ s }}</router-link>
               </template>
             </template>
@@ -84,7 +84,7 @@ export default {
         name: 'cp',
       }, {
         display: 'Subsystem',
-        name: 'subsystem',
+        name: 'subsystem_str',
       }, {
         display: 'Compartment',
         name: 'compartment',
@@ -95,6 +95,14 @@ export default {
       sortPattern: '',
       reformatCompEqString,
     };
+  },
+  updated() {
+    if (this.selectedElmId) {
+      // when the table is from the selectedElmId page (metabolite)
+      // do not color the selectedElmId is the reaction equations
+      $('m').css('color', '');
+      $(`.${this.selectedElmId}`).addClass('cms');
+    }
   },
   computed: {
     transportReactionCount() {
@@ -109,18 +117,18 @@ export default {
         this.showCP = true;
         for (const reaction of this.reactions) {
           if (reaction.is_reversible) {
-            reaction.cp = 'reversible';
+            reaction.cp = 'consume/produce';
           } else {
-            const boolC = reaction.id_equation.split('=>')[0].indexOf(this.selectedElmId) !== -1;
-            const boolP = reaction.id_equation.split('=>')[1].indexOf(this.selectedElmId) !== -1;
-            reaction.cp = '';
-            if (boolC) {
+            const boolC = reaction.reactionreactant_set.filter(
+              e => e.reactant.id === this.selectedElmId);
+            if (boolC.length !== 0) {
               reaction.cp = 'consume';
-              if (boolP) {
-                reaction.cp += '/produce';
+            } else {
+              const boolP = reaction.reactionproduct_set.filter(
+                e => e.product.id === this.selectedElmId);
+              if (boolP.length !== 0) {
+                reaction.cp = 'produce';
               }
-            } else if (boolP) {
-              reaction.cp = 'produce';
             }
           }
         }
@@ -148,19 +156,13 @@ export default {
     showCol(name) {
       if (name === 'cp' && !this.showCP) {
         return false;
-      } else if (name === 'subsystem' && !this.showSubsystem) {
+      } else if (name === 'subsystem_str' && !this.showSubsystem) {
         return false;
       }
       return true;
     },
     idfy,
     reformatChemicalReactionHTML,
-    if (this.selectedElmId) {
-      // when the table is from the selectedElmId page (metabolite)
-      // do not color the selectedElmId is the reaction equations
-      $('m').css('color', '');
-      $(`.${this.selectedElmId}`).addClass('cms');
-    }
   },
 };
 
@@ -175,6 +177,7 @@ export default {
     &.cms {
       color: rgb(54, 54, 54);
       cursor: default;
+      font-weight: 600;
     }
   }
 

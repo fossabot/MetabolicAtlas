@@ -38,8 +38,8 @@
                 <template v-for="(rm, i) in relatedMetabolites">
                   <br v-if="i !== 0 ">
                   <router-link :to="{ path: `/explore/gem-browser/${model.database_name}/metabolite/${rm.id}`}">
-                    {{ rm.name }}
-                  </router-link> ({{ rm.compartment_str }})
+                    {{ rm.full_name }}
+                  </router-link> in {{ rm.compartment_str }}
                 </template>
               </td>
             </tr>

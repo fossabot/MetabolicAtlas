@@ -30,16 +30,24 @@
                 {{ reaction[el.name] }}
               </span>
             </td>
+            <td v-else-if="el.name === 'equation'">
+              <span v-html="el.modifier(reaction[el.name])">
+              </span>
+            </td>
             <td v-else> - </td>
           </tr>
           <tr v-if="relatedReactions.length !== 0">
             <td class="td-key has-background-primary has-text-white-bis">Related reaction(s)</td>
             <td>
               <template v-for="(rr, i) in relatedReactions">
-                <br v-if="i !== 0 ">
                 <router-link :to="{ path: `/explore/gem-browser/${model.database_name}/reaction/${rr.id}`}">
-                  {{ rr.equation_wname }}
-                </router-link>  ({{ rr.compartment }})
+                  {{ rr.id }}
+                </router-link>
+                <div style="margin-left: 30px">
+                  <span v-html="reformatChemicalReactionHTML(rr, true)"></span>
+                  (<span v-html="reformatEqSign(rr.compartment, rr.is_reversible)">
+                  </span>)
+                </div>
               </template>
             </td>
           </tr>
@@ -201,8 +209,8 @@ export default {
     reformatEquation() { return reformatChemicalReactionHTML(this.reaction); },
     reformatModifiers() {
       let newGRnameArr = null;
-      if (this.reaction.name_gene_rule) {
-        newGRnameArr = this.reaction.name_gene_rule.split(/ +/).map(
+      if (this.reaction.gene_rule_wname) {
+        newGRnameArr = this.reaction.gene_rule_wname.split(/ +/).map(
         e => e.replace(/^\(+|\)+$/g, '')
         );
       }
