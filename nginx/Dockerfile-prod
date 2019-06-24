@@ -6,6 +6,7 @@ RUN apt-key adv --fetch-keys http://dl.yarnpkg.com/debian/pubkey.gpg && echo "de
 
 
 FROM nginx:stable-alpine
-COPY nginx/nginx-prod.conf /etc/nginx/nginx.conf
+ARG NGINXCONF=nginx-prod.conf
+COPY nginx/$NGINXCONF /etc/nginx/nginx.conf
 COPY --from=0 /project/dist /frontend/dist
 COPY --from=0 /project/dist-html /frontend/dist-html
