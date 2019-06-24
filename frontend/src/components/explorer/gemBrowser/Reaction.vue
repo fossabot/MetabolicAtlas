@@ -177,7 +177,7 @@ export default {
       this.load();
     },
     load() {
-      axios.get(`${this.model.database_name}/reaction/${this.rId}/`)
+      axios.get(`${this.model.database_name}/get_reaction/${this.rId}/`)
       .then((response) => {
         this.showLoader = false;
         this.reaction = response.data.reaction;
@@ -189,7 +189,7 @@ export default {
       });
     },
     getRelatedReactions() {
-      axios.get(`${this.model.database_name}/reaction/${this.rId}/related`)
+      axios.get(`${this.model.database_name}/get_reaction/${this.rId}/related`)
       .then((response) => {
         this.relatedReactions = response.data;
         this.relatedReactions.sort((a, b) => (a.compartment < b.compartment ? -1 : 1));
