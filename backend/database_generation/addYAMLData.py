@@ -481,7 +481,7 @@ def load_YAML(database, yaml_file, overwrite=False, metadata_only=False, content
             rc = rc_dict[reactant[0]]
             rr = ReactionReactant.objects.using(database).filter(reaction=r, reactant=rc)
             if not rr:
-                rr = ReactionReactant(reaction=r, reactant=rc)
+                rr = ReactionReactant(reaction=r, reactant=rc, stoichiometry=reactant[1])
                 rr.save(using=database)
 
             rm = ReactionMetabolite.objects.using(database).filter(reaction=r, rc=rc)
@@ -513,7 +513,7 @@ def load_YAML(database, yaml_file, overwrite=False, metadata_only=False, content
             rc = rc_dict[product[0]]
             rr = ReactionProduct.objects.using(database).filter(reaction=r, product=rc)
             if not rr:
-                rr = ReactionProduct(reaction=r, product=rc)
+                rr = ReactionProduct(reaction=r, product=rc, stoichiometry=product[1])
                 rr.save(using=database)
 
             rm = ReactionMetabolite.objects.using(database).filter(reaction=r, rc=rc)

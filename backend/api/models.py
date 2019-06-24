@@ -147,7 +147,7 @@ class GEMAuthor(models.Model):
 
 class Reaction(models.Model):
     id = models.CharField(max_length=50, primary_key=True) # ID in the SBML/YAML model
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, null=True)
     equation = models.TextField(blank=False) # string or/and with metabolite ID (should be meta model ID, e.g M_m0125c)
     equation_wname = models.TextField(blank=False)
     ec = models.CharField(max_length=255, null=True)
@@ -201,9 +201,9 @@ class ReactionReference(models.Model):
 
 # corresponds to either metabolite or enzyme, should be Serialized with the proper serializer
 class ReactionComponent(models.Model):
-    id = models.CharField(max_length=50, primary_key=True) # ID in the SBML/YAML model
+    id = models.CharField(max_length=50, primary_key=True)  # ID in the SBML/YAML model
     name = models.CharField(max_length=255)  # gene name for enzyme, or metabolite name
-    full_name = models.CharField(max_length=255)  # metabolite name with compartment letter
+    full_name = models.CharField(max_length=255, null=True, unique=True)  # metabolite name with compartment letter
     alt_name1 = models.CharField(max_length=255, null=True)  # can be ORF ID in case of yeast, proteine name, metabolite short_name etc
     alt_name2 = models.CharField(max_length=255, null=True)  # can be ORF ID in case of yeast, proteine name, metabolite short_name etc
     aliases = models.CharField(max_length=2000, null=True)  # alias of gene name (including gene short name) or alias of metabolite name, semi-colon separated values
@@ -242,8 +242,6 @@ class ReactionComponent(models.Model):
             models.Index(fields=['related_compartment_group']),
             models.Index(fields=['related_formula_group']),
         ]
-
-
 
 '''class HumanReactionComponent(ReactionComponent):
     def __init__(self, *args, **kwargs):
@@ -427,6 +425,7 @@ class EnzymeCoFactor(models.Model):
 class ReactionReactant(models.Model):
     reaction = models.ForeignKey(Reaction, on_delete=models.CASCADE)
     reactant = models.ForeignKey(ReactionComponent, on_delete=models.CASCADE)
+    stoichiometry = models.FloatField()
 
     class Meta:
         db_table = "reaction_reactant"
@@ -435,6 +434,7 @@ class ReactionReactant(models.Model):
 class ReactionProduct(models.Model):
     reaction = models.ForeignKey(Reaction, on_delete=models.CASCADE)
     product = models.ForeignKey(ReactionComponent, on_delete=models.CASCADE)
+    stoichiometry = models.FloatField()
 
     class Meta:
         db_table = "reaction_product"
