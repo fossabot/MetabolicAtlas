@@ -58,6 +58,44 @@ def get_gemodel(request, gem_id):
     serializer = APIserializer.GEModelSerializer(model[0])
     return JSONResponse(serializer.data)
 
+
+@api_view()
+@is_model_valid
+def get_reaction(request, model, id):
+
+    try:
+        reaction = APImodels.Reaction.objects.using(model).filter(id__iexact=id) \
+            .prefetch_related('reactionreactant_set', 'reactionreactant_set__reactant',
+                              'reactionproduct_set', 'reactionproduct_set__product', 'modifiers')
+    except APImodels.Reaction.DoesNotExist:
+        return HttpResponse(status=404)
+
+    reactionserializer = APIserializer.ReactionPageSerializer(reaction[0], context={'model': model})
+
+    pmids = APImodels.ReactionReference.objects.using(model).filter(reaction_id=reaction[0].id)
+    pmidserializer = APIserializer.ReactionReferenceSerializer(pmids, many=True)
+
+    return JSONResponse({'reaction': reactionserializer.data,
+                         'pmids': pmidserializer.data})
+
+
+@api_view()
+@is_model_valid
+def get_related_reactions(request, model, id):
+    try:
+        rea = APImodels.Reaction.objects.using(model).get(id__iexact=id)
+        if rea.related_group == 0:
+            return HttpResponse(status=404)
+        related_reactions = APImodels.Reaction.objects.using(model).filter(
+            Q(related_group=rea.related_group) & ~Q(id=rea.id)) \
+            .prefetch_related('reactionreactant_set', 'reactionreactant_set__reactant',
+                                 'reactionproduct_set', 'reactionproduct_set__product', 'modifiers')
+    except APImodels.Reaction.DoesNotExist:
+        return HttpResponse(status=404)
+
+    return JSONResponse(APIserializer.ReactionBasicRTSerializer(related_reactions, many=True).data)
+
+
 @api_view()
 @is_model_valid
 def get_id(request, model, term):
@@ -639,6 +677,21 @@ def get_hpa_rna_levels(request, model):
           'tissues': tissues,
           'levels': levels
         })
+
+
+@api_view()
+@is_model_valid
+def get_related_metabolites(request, model, id):
+    try:
+        met = APImodels.ReactionComponent.objects.using(model).get(id__iexact=id)
+        if met.related_compartment_group == 0:
+            return HttpResponse(status=404)
+        related_mets = APImodels.ReactionComponent.objects.using(model).filter(
+            Q(related_compartment_group=met.related_compartment_group) & ~Q(id=met.id)).values('id', 'full_name', 'compartment_str')
+    except APImodels.ReactionComponent.DoesNotExist:
+        return HttpResponse(status=404)
+
+    return JSONResponse(related_mets)
 
 
 @api_view()

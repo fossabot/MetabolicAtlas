@@ -71,7 +71,7 @@ def componentDBserializerSelector(database, type, serializer_type=None, api_vers
             if serializer_type == 'lite':
                 return APIserializer.HmrReactionLiteSerializer
             if serializer_type == 'table':
-                return APIserializer.HmrReactionBasicRTSerializer
+                return APIserializer.ReactionBasicRTSerializer
             if serializer_type == 'search':
                 return APIserializer.ReactionSearchSerializer
             return APIserializer.HmrReactionSerializer
@@ -108,7 +108,7 @@ def componentDBserializerSelector(database, type, serializer_type=None, api_vers
             if serializer_type == 'lite':
                 return APIserializer.ReactionLiteSerializer
             if serializer_type == 'table':
-                return APIserializer.HmrReactionBasicRTSerializer
+                return APIserializer.ReactionBasicRTSerializer
             if serializer_type == 'search':
                 return APIserializer.ReactionSearchSerializer
             return APIserializer.ReactionSerializer
@@ -413,17 +413,24 @@ def get_metabolite_reactions(request, model, id, all_compartment=False, api=True
 
     reactions = APImodels.Reaction.objects.none()
     for c in component:
-        reactions_as_met = c.reactions_as_metabolite.using(model). \
-            prefetch_related('reactants', 'products', 'modifiers').distinct()
-        # reactions_as_products = c.reactions_as_product.using(model). \
-        # prefetch_related('reactants', 'products', 'modifiers').distinct()
+        if api:
+            reactions_as_met = c.reactions_as_metabolite.using(model). \
+                prefetch_related('reactants', 'products', 'modifiers').distinct()
+        else:
+            reactions_as_met = c.reactions_as_metabolite.using(model). \
+                prefetch_related('reactionreactant_set', 'reactionreactant_set__reactant',
+                                 'reactionproduct_set', 'reactionproduct_set__product', 'modifiers').distinct()
         reactions |= reactions_as_met
 
     reactions = reactions.distinct()
     if not api:
         reactions = reactions[:200]
+        ReactionSerializerClass= componentDBserializerSelector(model, 'reaction', serializer_type='table', api_version=request.version)
+    else:
+        ReactionSerializerClass= componentDBserializerSelector(model, 'reaction', serializer_type='basic', api_version=request.version)
 
-    ReactionSerializerClass= componentDBserializerSelector(model, 'reaction', serializer_type='table', api_version=request.version)
+
+    
     serializer = ReactionSerializerClass(reactions, many=True, context={'model': model})
 
     return JSONResponse(serializer.data)

@@ -48,6 +48,12 @@ class ReactionComponentLiteSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'full_name')
 
 
+class ReactionComponentRTSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = APImodels.ReactionComponent
+        fields = ('id', 'name', 'full_name', 'compartment_str')
+
+
 class ReactionComponentSerializer(ReactionComponentBasicSerializer):
     class Meta(ReactionComponentBasicSerializer.Meta):
         model = APImodels.ReactionComponent
@@ -374,7 +380,6 @@ class HmrEnzymeReactionComponentInteractionPartnerSerializer(serializers.ModelSe
 
 
 class HmrMetaboliteReactionComponentLiteSerializer(serializers.ModelSerializer):
-    model_name = serializers.SerializerMethodField('read_model_name')
     aliases = serializers.SerializerMethodField('read_aliases')
     inchi =  serializers.SerializerMethodField('read_inchi')
     hmdb_id =  serializers.SerializerMethodField('read_hmdb')
@@ -384,10 +389,7 @@ class HmrMetaboliteReactionComponentLiteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = APImodels.ReactionComponent
-        fields = ('id', 'name', 'model_name', 'aliases', 'inchi', 'hmdb_id', 'chebi_id', 'mnxref_id', 'compartment',  'is_currency')
-
-    def read_model_name(self, model):
-        return model.alt_name1
+        fields = ('id', 'name', 'full_name', 'aliases', 'inchi', 'hmdb_id', 'chebi_id', 'mnxref_id', 'compartment')
 
     def read_aliases(self, model):
         return model.aliases

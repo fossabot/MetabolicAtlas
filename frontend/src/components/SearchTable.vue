@@ -82,13 +82,16 @@
                     <template v-if="props.column.field == 'model'">
                       {{ props.formattedRow[props.column.field].name }}
                     </template>
+                    <template v-else-if="props.column.field === 'equation'">
+                      <span v-html="reformatEqSign(props.formattedRow[props.column.field], false)"></span>
+                    </template>
                     <template v-else-if="['name', 'id'].includes(props.column.field)">
                       <router-link :to="{ path: `/explore/gem-browser/${props.row.model.id}/${header}/${props.row.id}` }">
                         {{ props.row.name || props.row.id }}
                       </router-link>
                     </template>
-                    <template v-else-if="props.column.field == 'subsystem'">
-                      <template v-if="props.formattedRow[props.column.field].length == 0">
+                    <template v-else-if="props.column.field === 'subsystem'">
+                      <template v-if="props.formattedRow[props.column.field].length === 0">
                         {{ "" }}
                       </template>
                       <template v-else v-for="(sub, i) in props.formattedRow[props.column.field]">
@@ -96,8 +99,8 @@
                         <router-link :to="{ path: `/explore/gem-browser/${props.row.model.id}/subsystem/${idfy(sub)}` }"> {{ sub }}</router-link>
                       </template>
                     </template>
-                    <template v-else-if="props.column.field == 'compartment'">
-                      <template v-if="props.formattedRow[props.column.field].length == 0">
+                    <template v-else-if="props.column.field === 'compartment'">
+                      <template v-if="props.formattedRow[props.column.field].length === 0">
                         {{ "" }}
                       </template>
                       <template v-else v-if="['subsystem', 'enzyme'].includes(header)">
@@ -106,9 +109,9 @@
                           <router-link :to="{ path: `/explore/gem-browser/${props.row.model.id}/compartment/${idfy(comp)}` }"> {{ comp }}</router-link>
                         </template>
                       </template>
-                      <template v-else-if="header == 'reaction'">
+                      <template v-else-if="header === 'reaction'">
                         <template v-for="(RP, i) in props.formattedRow[props.column.field].split(' => ')">
-                          <template v-if="i != 0"> => </template>
+                          <template v-if="i != 0"> &#8658; </template>
                             <template v-for="(compo, j) in RP.split(' + ')">
                               <template v-if="j != 0"> + </template>
                               <router-link :to="{ path: `/explore/gem-browser/${props.row.model.id}/compartment/${idfy(compo)}` }"> {{ compo }}</router-link>
@@ -146,7 +149,7 @@ import Loader from 'components/Loader';
 import { VueGoodTable } from 'vue-good-table';
 import 'vue-good-table/dist/vue-good-table.css';
 import { chemicalFormula } from '../helpers/chemical-formatters';
-import { idfy } from '../helpers/utils';
+import { idfy, reformatEqSign } from '../helpers/utils';
 import { default as messages } from '../helpers/messages';
 
 export default {
@@ -719,6 +722,7 @@ export default {
     },
     idfy,
     chemicalFormula,
+    reformatEqSign,
   },
 };
 

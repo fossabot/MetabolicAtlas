@@ -100,9 +100,6 @@ export default {
       currentShowComponent: '',
 
       compartments: {},
-      compartmentStats: {},
-      compartmentLetters: {},
-
       errorMessage: '',
     };
   },
@@ -170,23 +167,6 @@ export default {
         this.currentShowComponent = '';
       }
     },
-    loadCompartmentData(model) {
-      axios.get(`${model.database_name}/compartments/`)
-      .then((response) => {
-        this.compartmentStats = {};
-        this.compartmentLetters = {};
-        for (const c of response.data) {
-          this.compartmentLetters[c.letter_code] = c.name_id;
-          this.compartmentStats[c.name_id] = c;
-        }
-      })
-      .catch((error) => {
-        switch (error.response.status) {
-          default:
-            this.errorMessage = messages.unknownError;
-        }
-      });
-    },
     getModelList() {
       // get integrated models list
       axios.get('models/')
@@ -217,7 +197,6 @@ export default {
     },
     selectModel(model) {
       if (!this.model || model.database_name !== this.model.database_name) {
-        this.loadCompartmentData(model);
         this.model = model;
         EventBus.$emit('modelSelected', this.model);
       }
@@ -229,53 +208,6 @@ export default {
     displayViewer() {
       this.extendWindow = true;
       this.currentShowComponent = 'MapViewer';
-    },
-    getCompartmentNameFromLetter(l) {
-      return this.compartmentLetters[l];
-    },
-    formatSpan(currentVal, index, array, elements, addComp) {
-      const regex = /([0-9]+ )?(.+)\[([a-z]{1,3})\]/g;
-      const match = regex.exec(currentVal);
-      if (!addComp) {
-        return `${match[1] ? match[1] : ''}<m class="${elements[index]}">${match[2]}</m>`;
-      }
-      return `${match[1] ? match[1] : ''}<m class="${elements[index]}">${match[2]}</m>
-        <span class="sc" title="${this.compartmentLetters[match[3]]}">${match[3]}</span>`;
-    },
-    reformatChemicalReactionLink(reaction) {
-      if (reaction === null) {
-        return '';
-      }
-      const addComp = reaction.is_transport || reaction.compartment.includes('=>');
-      let eqArr = null;
-      if (reaction.is_reversible) {
-        eqArr = reaction.equation.split(' &#8660; ');
-      } else {
-        eqArr = reaction.equation.split(' &#8658; ');
-      }
-      if (eqArr.length === 1) {
-        eqArr = reaction.equation.split(' => ');
-      }
-      const idEqArr = reaction.id_equation.split(' => ');
-      let reactants = '';
-      let products = '';
-      if (idEqArr[0]) {
-        const idReactants = idEqArr[0].split(' + ');
-        reactants = eqArr[0].split(' + ').map(
-          (x, i, a) => this.formatSpan(x, i, a, idReactants, addComp)
-        ).join(' + ');
-      }
-      if (idEqArr[1]) {
-        const idProducts = idEqArr[1].split(' + ');
-        products = eqArr[1].split(' + ').map(
-          (x, i, a) => this.formatSpan(x, i, a, idProducts, addComp)
-        ).join(' + ');
-      }
-
-      if (reaction.is_reversible) {
-        return `${reactants} &#8660; ${products}`;
-      }
-      return `${reactants} &#8658; ${products}`;
     },
   },
 };

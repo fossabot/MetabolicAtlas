@@ -30,7 +30,26 @@
                 {{ reaction[el.name] }}
               </span>
             </td>
+            <td v-else-if="el.name === 'equation'">
+              <span v-html="el.modifier(reaction[el.name])">
+              </span>
+            </td>
             <td v-else> - </td>
+          </tr>
+          <tr v-if="relatedReactions.length !== 0">
+            <td class="td-key has-background-primary has-text-white-bis">Related reaction(s)</td>
+            <td>
+              <template v-for="(rr, i) in relatedReactions">
+                <router-link :to="{ path: `/explore/gem-browser/${model.database_name}/reaction/${rr.id}`}">
+                  {{ rr.id }}
+                </router-link>
+                <div style="margin-left: 30px">
+                  <span v-html="reformatChemicalReactionHTML(rr, true)"></span>
+                  (<span v-html="reformatEqSign(rr.compartment, rr.is_reversible)">
+                  </span>)
+                </div>
+              </template>
+            </td>
           </tr>
         </table>
         <template v-if="hasExternalID">
@@ -79,7 +98,7 @@ import $ from 'jquery';
 import Loader from 'components/Loader';
 import MapsAvailable from 'components/explorer/gemBrowser/MapsAvailable';
 import { default as EventBus } from '../../../event-bus';
-import { reformatTableKey, addMassUnit, reformatECLink, reformatCompEqString } from '../../../helpers/utils';
+import { reformatTableKey, addMassUnit, reformatECLink, reformatCompEqString, reformatChemicalReactionHTML, reformatEqSign } from '../../../helpers/utils';
 import { default as messages } from '../../../helpers/messages';
 
 export default {
@@ -122,6 +141,7 @@ export default {
         yeast8: [],
       },
       reaction: {},
+      relatedReactions: [],
       errorMessage: '',
       showLoader: true,
       mapsAvailable: {},
@@ -165,21 +185,32 @@ export default {
       this.load();
     },
     load() {
-      axios.get(`${this.model.database_name}/reaction/${this.rId}/`)
+      axios.get(`${this.model.database_name}/get_reaction/${this.rId}/`)
       .then((response) => {
         this.showLoader = false;
         this.reaction = response.data.reaction;
         this.reformatRefs(response.data.pmids);
+        this.getRelatedReactions();
       })
       .catch(() => {
         this.errorMessage = messages.notFoundError;
       });
     },
-    reformatEquation() { return this.$parent.$parent.reformatChemicalReactionLink(this.reaction); },
+    getRelatedReactions() {
+      axios.get(`${this.model.database_name}/get_reaction/${this.rId}/related`)
+      .then((response) => {
+        this.relatedReactions = response.data;
+        this.relatedReactions.sort((a, b) => (a.compartment < b.compartment ? -1 : 1));
+      })
+      .catch(() => {
+        this.relatedReactions = [];
+      });
+    },
+    reformatEquation() { return reformatChemicalReactionHTML(this.reaction); },
     reformatModifiers() {
       let newGRnameArr = null;
-      if (this.reaction.name_gene_rule) {
-        newGRnameArr = this.reaction.name_gene_rule.split(/ +/).map(
+      if (this.reaction.gene_rule_wname) {
+        newGRnameArr = this.reaction.gene_rule_wname.split(/ +/).map(
         e => e.replace(/^\(+|\)+$/g, '')
         );
       }
@@ -234,7 +265,7 @@ export default {
     },
     reformatCompartment() {
       const compartmentEq =
-        this.reformatCompEqString(this.reaction.compartment);
+        this.reformatCompEqString(this.reaction.compartment, this.reaction.is_reversible);
       if (this.reaction.is_transport) {
         return `${compartmentEq} (transport reaction)`;
       }
@@ -268,6 +299,8 @@ export default {
     reformatTableKey,
     reformatECLink,
     reformatCompEqString,
+    reformatChemicalReactionHTML,
+    reformatEqSign,
   },
 };
 </script>
