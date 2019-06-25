@@ -90,7 +90,7 @@ export default {
       comparison: [{
         models: {
           A: {
-            modelId: 'Human1',
+            modelId: 'HumanGEM v1.0.2',
             modelName: 'The generic genome-scale metabolic model of Homo sapiens integrated from HMR2 and Recon3D',
             totalReactions: 13520,
             sharedReactions: 60.45,
@@ -164,7 +164,7 @@ export default {
       {
         models: {
           A: {
-            modelId: 'Human1',
+            modelId: 'HumanGEM v1.0.2',
             modelName: 'The generic genome-scale metabolic model of Homo sapiens integrated from HMR2 and Recon3D',
             totalReactions: 13520,
             sharedReactions: 96.85,
