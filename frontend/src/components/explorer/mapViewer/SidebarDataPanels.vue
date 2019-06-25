@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div id="sidebar_mapviewer">
     <div class="column" v-if="tissue">
       <div class="card">
         <header class="card-header clickable" @click.prevent="showLvlCardContent = !showLvlCardContent">
@@ -153,6 +153,7 @@ export default {
           ],
           enzyme: [
             { name: 'gene_name', display: 'Gene&nbsp;name' },
+            { name: 'description', display: 'Description' },
             { name: 'gene_synonyms', display: 'Synonyms' },
           ],
           reaction: [
@@ -163,9 +164,24 @@ export default {
           ],
         },
         yeast8: {
-          metabolite: [],
-          enzyme: [],
-          reaction: [],
+          metabolite: [
+            { name: 'name' },
+            { name: 'model_name', display: 'Model&nbsp;name' },
+            { name: 'formula' },
+            { name: 'compartment' },
+            { name: 'aliases', display: 'Synonyms' },
+          ],
+          enzyme: [
+            { name: 'gene_name', display: 'Gene&nbsp;name' },
+            { name: 'description', display: 'Description' },
+            { name: 'gene_synonyms', display: 'Synonyms' },
+          ],
+          reaction: [
+            { name: 'equation' },
+            { name: 'subsystem', display: 'Subsystems' },
+            { name: 'reactants' },
+            { name: 'products' },
+          ],
         },
       },
       showLvlCardContent: true,
@@ -209,4 +225,10 @@ export default {
 };
 </script>
 
-<style lang="scss"></style>
+<style lang="scss">
+  #sidebar_mapviewer {
+    .content p:not(:last-child) {
+      margin-bottom: 0.3em;
+    }
+  }
+</style>

@@ -48,9 +48,6 @@ export function reformatCompEqString(value, reversible) {
 }
 
 export function reformatEqSign(equation, reversible) {
-  if (!equation.includes(' => ')) {
-    return equation;
-  }
   if (reversible) {
     return equation.replace(' => ', ' &#8660; ');
   }
