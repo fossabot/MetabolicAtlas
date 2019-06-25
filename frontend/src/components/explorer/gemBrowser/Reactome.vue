@@ -3,7 +3,7 @@
     <h4 class="title is-4">Reactions</h4>
     <div class="container">
       <p class="control field">
-        <button class="button" @click="toggleExpandAllCompartment">
+        <button class="button" :disabled="disableBut" @click="toggleExpandAllCompartment">
           {{ !expandAllCompartment ? "Expand to all compartments" : "Restrict to current compartment" }}
         </button>
       </p>
@@ -34,7 +34,7 @@ export default {
     ReactionTable,
     Loader,
   },
-  props: ['model', 'metaboliteID'],
+  props: ['model', 'metaboliteID', 'disableBut'],
   data() {
     return {
       errorMessage: '',
@@ -90,6 +90,9 @@ export default {
         });
     },
     toggleExpandAllCompartment() {
+      if (this.disableBut) {
+        return;
+      }
       this.expandAllCompartment = !this.expandAllCompartment;
       this.loadReactions(this.ID);
     },

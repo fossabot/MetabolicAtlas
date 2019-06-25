@@ -25,6 +25,7 @@ ALLOWED_HOSTS = [
     'icsb.chalmers.se',
     'metabolicatlas.sysbio.chalmers.se',
     'metabolicatlas.org',
+    'www.metabolicatlas.org',
 ]
 
 # Application definition
@@ -44,6 +45,11 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_BROWSER_XSS_FILTER = True
+CSRF_COOKIE_SECURE = True
+X_FRAME_OPTIONS = 'DENY'
 
 ROOT_URLCONF = 'metabolicatlas.urls'
 
@@ -110,6 +116,7 @@ CORS_ORIGIN_WHITELIST = (
     'http://localhost',
     'https://icsb.chalmers.se',
     'https://metabolicatlas.org',
+    'https://www.metabolicatlas.org',
 )
 
 # SWAGGER

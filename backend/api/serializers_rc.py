@@ -48,6 +48,12 @@ class ReactionComponentLiteSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'full_name')
 
 
+class ReactionComponentRTSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = APImodels.ReactionComponent
+        fields = ('id', 'name', 'full_name', 'compartment_str')
+
+
 class ReactionComponentSerializer(ReactionComponentBasicSerializer):
     class Meta(ReactionComponentBasicSerializer.Meta):
         model = APImodels.ReactionComponent
@@ -245,7 +251,7 @@ class MetaboliteReactionComponentSerializer(ReactionComponentSerializer):
 
 class HmrEnzymeReactionComponentLiteSerializer(serializers.ModelSerializer):
     gene_name = serializers.SerializerMethodField('read_gene_name')
-    short_name = serializers.SerializerMethodField('read_short_name')
+    description = serializers.SerializerMethodField('read_description')
     gene_synonyms = serializers.SerializerMethodField('read_gene_synonyms')
     ec =  serializers.SerializerMethodField('read_ec')
     hpa_id = serializers.SerializerMethodField('read_hpa')
@@ -254,12 +260,12 @@ class HmrEnzymeReactionComponentLiteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = APImodels.ReactionComponent
-        fields = ('id', 'gene_name', 'short_name', 'gene_synonyms', 'ec', 'hpa_id', 'uniprot_id', 'ncbi_id',)
+        fields = ('id', 'gene_name', 'description', 'gene_synonyms', 'ec', 'hpa_id', 'uniprot_id', 'ncbi_id',)
 
     def read_gene_name(self, model):
         return model.name if model.name else None
 
-    def read_short_name(self, model):
+    def read_description(self, model):
         return model.alt_name1
 
     def read_gene_synonyms(self, model):
@@ -269,18 +275,18 @@ class HmrEnzymeReactionComponentLiteSerializer(serializers.ModelSerializer):
         return model.enzyme.ec if hasattr(model, 'enzyme') else None
 
     def read_hpa(self, model):
-        return model.external_id1
+        return model.external_id3
 
     def read_uniprot(self, model):
         return model.external_id2
 
     def read_ncbi(self, model):
-        return model.external_id3
+        return model.external_id1
 
 
 class HmrEnzymeReactionComponentSerializer(serializers.ModelSerializer):
     gene_name = serializers.SerializerMethodField('read_gene_name')
-    prot_name = serializers.SerializerMethodField('read_prot_name')
+    description = serializers.SerializerMethodField('read_description')
     gene_synonyms = serializers.SerializerMethodField('read_gene_synonyms')
     function =  serializers.SerializerMethodField('read_function')
     ec =  serializers.SerializerMethodField('read_ec')
@@ -293,18 +299,17 @@ class HmrEnzymeReactionComponentSerializer(serializers.ModelSerializer):
     ncbi_id = serializers.SerializerMethodField('read_ncbi')
     ncbi_link =  serializers.SerializerMethodField('read_ncbi_link')
     ensembl_link =  serializers.SerializerMethodField('read_ensembl_link')
-    name_link =  serializers.SerializerMethodField('read_name_link')
 
     class Meta:
         model = APImodels.ReactionComponent
-        fields = ('id', 'gene_name', 'prot_name', 'gene_synonyms') + \
+        fields = ('id', 'gene_name', 'description', 'gene_synonyms') + \
         ('function', 'ec', 'catalytic_activity', 'cofactor', 'hpa_id', 'hpa_link') + \
-        ('uniprot_id', 'uniprot_link', 'ncbi_id', 'ncbi_link', 'ensembl_link', 'name_link')
+        ('uniprot_id', 'uniprot_link', 'ncbi_id', 'ncbi_link', 'ensembl_link',)
 
     def read_gene_name(self, model):
         return model.name if model.name else None
 
-    def read_prot_name(self, model):
+    def read_description(self, model):
         return model.alt_name1
 
     def read_gene_synonyms(self, model):
@@ -329,27 +334,24 @@ class HmrEnzymeReactionComponentSerializer(serializers.ModelSerializer):
         return model.enzyme.external_link2 if hasattr(model, 'enzyme') else None
 
     def read_hpa(self, model):
-        return model.external_id1
-
-    def read_hpa_link(self, model):
-        return model.enzyme.external_link1 if hasattr(model, 'enzyme') else None
-
-    def read_ncbi(self, model):
         return model.external_id3
 
-    def read_ncbi_link(self, model):
+    def read_hpa_link(self, model):
         return model.enzyme.external_link3 if hasattr(model, 'enzyme') else None
 
-    def read_ensembl_link(self, model):
-        return model.enzyme.name_link if hasattr(model, 'enzyme') else None
+    def read_ncbi(self, model):
+        return model.external_id1
 
-    def read_name_link(self, model):
+    def read_ncbi_link(self, model):
+        return model.enzyme.external_link1 if hasattr(model, 'enzyme') else None
+
+    def read_ensembl_link(self, model):
         return model.enzyme.name_link if hasattr(model, 'enzyme') else None
 
 
 class HmrEnzymeReactionComponentInteractionPartnerSerializer(serializers.ModelSerializer):
     gene_name = serializers.SerializerMethodField('read_gene_name')
-    function =  serializers.SerializerMethodField('read_function')
+    function = serializers.SerializerMethodField('read_function')
     catalytic_activity = serializers.SerializerMethodField('read_catalytic_activity')
     compartment = serializers.SerializerMethodField('read_compartment')
 
@@ -374,7 +376,6 @@ class HmrEnzymeReactionComponentInteractionPartnerSerializer(serializers.ModelSe
 
 
 class HmrMetaboliteReactionComponentLiteSerializer(serializers.ModelSerializer):
-    model_name = serializers.SerializerMethodField('read_model_name')
     aliases = serializers.SerializerMethodField('read_aliases')
     inchi =  serializers.SerializerMethodField('read_inchi')
     hmdb_id =  serializers.SerializerMethodField('read_hmdb')
@@ -384,10 +385,7 @@ class HmrMetaboliteReactionComponentLiteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = APImodels.ReactionComponent
-        fields = ('id', 'name', 'model_name', 'aliases', 'inchi', 'hmdb_id', 'chebi_id', 'mnxref_id', 'compartment',  'is_currency')
-
-    def read_model_name(self, model):
-        return model.alt_name1
+        fields = ('id', 'name', 'full_name', 'aliases', 'inchi', 'hmdb_id', 'chebi_id', 'mnxref_id', 'compartment')
 
     def read_aliases(self, model):
         return model.aliases

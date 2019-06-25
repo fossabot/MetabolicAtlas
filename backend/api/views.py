@@ -71,7 +71,7 @@ def componentDBserializerSelector(database, type, serializer_type=None, api_vers
             if serializer_type == 'lite':
                 return APIserializer.HmrReactionLiteSerializer
             if serializer_type == 'table':
-                return APIserializer.HmrReactionBasicRTSerializer
+                return APIserializer.ReactionBasicRTSerializer
             if serializer_type == 'search':
                 return APIserializer.ReactionSearchSerializer
             return APIserializer.HmrReactionSerializer
@@ -108,7 +108,7 @@ def componentDBserializerSelector(database, type, serializer_type=None, api_vers
             if serializer_type == 'lite':
                 return APIserializer.ReactionLiteSerializer
             if serializer_type == 'table':
-                return APIserializer.HmrReactionBasicRTSerializer
+                return APIserializer.ReactionBasicRTSerializer
             if serializer_type == 'search':
                 return APIserializer.ReactionSearchSerializer
             return APIserializer.ReactionSerializer
@@ -231,25 +231,81 @@ def get_enzyme_interaction_partners(request, model, id):
 @api_view()
 @is_model_valid
 def get_interaction_partners(request, model, id, type=None):
-
-
     reactions = []
-    if type == 'm':
-        try:
-            component = APImodels.ReactionComponent.objects.using(model).get((Q(id__iexact=id) | Q(full_name__iexact=id)) & Q(component_type=type))
-        except APImodels.ReactionComponent.DoesNotExist:
-            return HttpResponse(status=404)
-        reactions = component.reactions_as_metabolite.prefetch_related('reactants', 'products', 'modifiers').all()
-    elif type == 'e':
-        try:
-            component = APImodels.ReactionComponent.objects.using(model).get((Q(id__iexact=id) | Q(name__iexact=id)) & Q(component_type=type))
-        except APImodels.ReactionComponent.DoesNotExist:
-            return HttpResponse(status=404)
-        reactions = component.reactions_as_modifier.prefetch_related('reactants', 'products', 'modifiers').all()
+    metabolites_IP = []
+    enzymes_IP = []
+    IP_dict = {}
 
-    InteractionPartnerSerializerClass = componentDBserializerSelector(model, 'interaction partner', serializer_type="lite", api_version=request.version)
-    serializer = InteractionPartnerSerializerClass(reactions, many=True)
-    return JSONResponse(serializer.data)
+    try:
+        component = APImodels.ReactionComponent.objects.using(model).get(Q(id__iexact=id) | Q(full_name__iexact=id))
+    except APImodels.ReactionComponent.DoesNotExist:
+        return HttpResponse(status=404)
+    type = component.component_type
+    if type == 'e':
+        reactions = component.reactions_as_modifier.prefetch_related('reactants', 'products', 'modifiers').all()
+    elif type == 'm':
+        reactions = component.reactions_as_metabolite.prefetch_related('reactants', 'products', 'modifiers').all()
+
+    for r in reactions:
+        for el in chain(r.reactants.all(), r.products.all()):
+            if type == 'm' and el.id == component.id:
+                continue
+
+            if el.id in IP_dict:
+                # this interaction is already known, just add the reaction
+                IP_dict[el.id]['reactions'].append({
+                    'reaction_id': r.id,
+                    'equation': r.equation,
+                    'reversible': r.is_reversible
+                })
+                continue
+
+            ip = {
+                'id': el.id,
+                'name': el.full_name,
+                'reactions': [{
+                    'reaction_id': r.id,
+                    'equation': r.equation,
+                    'reversible': r.is_reversible
+                }]
+            }
+            IP_dict[el.id] = ip
+            metabolites_IP.append(ip)
+
+        for enzyme in r.modifiers.all():
+            if type == 'e' and enzyme.id == component.id:
+                continue
+
+            if enzyme.id in IP_dict:
+                # this interaction is already known, just add the reaction
+                IP_dict[enzyme.id]['reactions'].append({
+                    'reaction_id': r.id,
+                    'equation': r.equation,
+                    'reversible': r.is_reversible
+                })
+                continue
+
+            ip = {
+                'id': enzyme.id,
+                'name': enzyme.name,
+                'reactions': [{
+                    'reaction_id': r.id,
+                    'equation': r.equation,
+                    'reversible': r.is_reversible
+                }]
+            }
+            IP_dict[enzyme.id] = ip
+            enzymes_IP.append(ip)
+
+    return JSONResponse({
+        'id': component.id,
+        'name': component.name,
+        'type': 'metabolite' if type == 'm' else 'enzyme',
+        'interaction_partners': {
+            'metabolites': metabolites_IP,
+            'enzymes': enzymes_IP
+        }
+    })
 
 
 @api_view()
@@ -357,17 +413,24 @@ def get_metabolite_reactions(request, model, id, all_compartment=False, api=True
 
     reactions = APImodels.Reaction.objects.none()
     for c in component:
-        reactions_as_met = c.reactions_as_metabolite.using(model). \
-            prefetch_related('reactants', 'products', 'modifiers').distinct()
-        # reactions_as_products = c.reactions_as_product.using(model). \
-        # prefetch_related('reactants', 'products', 'modifiers').distinct()
+        if api:
+            reactions_as_met = c.reactions_as_metabolite.using(model). \
+                prefetch_related('reactants', 'products', 'modifiers').distinct()
+        else:
+            reactions_as_met = c.reactions_as_metabolite.using(model). \
+                prefetch_related('reactionreactant_set', 'reactionreactant_set__reactant',
+                                 'reactionproduct_set', 'reactionproduct_set__product', 'modifiers').distinct()
         reactions |= reactions_as_met
 
     reactions = reactions.distinct()
     if not api:
         reactions = reactions[:200]
+        ReactionSerializerClass= componentDBserializerSelector(model, 'reaction', serializer_type='table', api_version=request.version)
+    else:
+        ReactionSerializerClass= componentDBserializerSelector(model, 'reaction', serializer_type='basic', api_version=request.version)
 
-    ReactionSerializerClass= componentDBserializerSelector(model, 'reaction', serializer_type='table', api_version=request.version)
+
+    
     serializer = ReactionSerializerClass(reactions, many=True, context={'model': model})
 
     return JSONResponse(serializer.data)

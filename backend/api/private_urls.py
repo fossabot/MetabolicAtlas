@@ -20,6 +20,9 @@ urlpatterns = [
     url(r'^(?P<model>[^/]+)/json/compartment/(?P<component_name_id>[^/]+)/duplicate/?$', private_views.get_db_json, {'ctype': 'compartment', 'dup_meta': True}),
     url(r'^(?P<model>[^/]+)/json/subsystem/(?P<component_name_id>[^/]+)/duplicate/?$', private_views.get_db_json, {'ctype': 'subsystem', 'dup_meta': True}),
 
+    url(r'^(?P<model>[^/]+)/get_reaction/(?P<id>[^/]+)/?$', private_views.get_reaction),
+    url(r'^(?P<model>[^/]+)/get_reaction/(?P<id>[^/]+)/related/?$', private_views.get_related_reactions),
+
     url(r'^(?P<model>[^/]+)/reaction_components/(?P<id>[^/]+)/with_interaction_partners/?$', private_views.get_component_with_interaction_partners),
     url(r'^(?P<model>[^/]+)/viewer/?$', private_views.get_data_viewer),
     url(r'^(?P<model>[^/]+)/gem_browser_tiles/?$', private_views.get_tiles_data),
@@ -30,6 +33,7 @@ urlpatterns = [
 
     url(r'^(?P<model>[^/]+)/enzyme/(?P<id>[^/]+)/get_reactions/?$', views.get_enzyme_reactions, {'api': False}),
 
+    url(r'^(?P<model>[^/]+)/metabolite/(?P<id>[^/]+)/related/?$', private_views.get_related_metabolites),
     url(r'^(?P<model>[^/]+)/metabolite/(?P<id>[^/]+)/get_reactions/?$', views.get_metabolite_reactions, {'all_compartment': False, 'api': False }),
     url(r'^(?P<model>[^/]+)/metabolite/(?P<id>[^/]+)/get_reactions/all_compartments/?$', views.get_metabolite_reactions_all_compartment, {'api': False}),
 
