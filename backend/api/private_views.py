@@ -11,6 +11,7 @@ import api.serializers_rc as APIrcSerializer
 from api.views import is_model_valid
 from api.views import componentDBserializerSelector
 from functools import reduce
+import re
 
 import logging
 
@@ -58,12 +59,51 @@ def get_gemodel(request, gem_id):
     serializer = APIserializer.GEModelSerializer(model[0])
     return JSONResponse(serializer.data)
 
+
+@api_view()
+@is_model_valid
+def get_reaction(request, model, id):
+
+    try:
+        reaction = APImodels.Reaction.objects.using(model).filter(id__iexact=id) \
+            .prefetch_related('reactionreactant_set', 'reactionreactant_set__reactant',
+                              'reactionproduct_set', 'reactionproduct_set__product', 'modifiers')
+    except APImodels.Reaction.DoesNotExist:
+        return HttpResponse(status=404)
+
+    reactionserializer = APIserializer.ReactionPageSerializer(reaction[0], context={'model': model})
+
+    pmids = APImodels.ReactionReference.objects.using(model).filter(reaction_id=reaction[0].id)
+    pmidserializer = APIserializer.ReactionReferenceSerializer(pmids, many=True)
+
+    return JSONResponse({'reaction': reactionserializer.data,
+                         'pmids': pmidserializer.data})
+
+
+@api_view()
+@is_model_valid
+def get_related_reactions(request, model, id):
+    try:
+        rea = APImodels.Reaction.objects.using(model).get(id__iexact=id)
+        if rea.related_group == 0:
+            return HttpResponse(status=404)
+        related_reactions = APImodels.Reaction.objects.using(model).filter(
+            Q(related_group=rea.related_group) & ~Q(id=rea.id)) \
+            .prefetch_related('reactionreactant_set', 'reactionreactant_set__reactant',
+                                 'reactionproduct_set', 'reactionproduct_set__product', 'modifiers')
+    except APImodels.Reaction.DoesNotExist:
+        return HttpResponse(status=404)
+
+    return JSONResponse(APIserializer.ReactionBasicRTSerializer(related_reactions, many=True).data)
+
+
 @api_view()
 @is_model_valid
 def get_id(request, model, term):
     if not term:
         return JSONResponse([])
 
+    synonym_regex = r"(?:^" + re.escape(term) + r"(?:;|$)" + r")|(?:; " + re.escape(term) + r"(?:;|$))"
     query = Q()
     reaction_query = Q()
     query |= Q(id__iexact=term)
@@ -79,6 +119,7 @@ def get_id(request, model, term):
     query |= Q(full_name__iexact=term)
     query |= Q(alt_name1__iexact=term)
     query |= Q(alt_name2__iexact=term)
+    query |= Q(aliases__iregex=synonym_regex)
     query |= Q(external_id1__iexact=term)
     query |= Q(external_id2__iexact=term)
     query |= Q(external_id3__iexact=term)
@@ -414,10 +455,10 @@ def HPA_enzyme_info(request, ensembl_id): # ENSG00000110921
         # sub['compartments'] = list(compartments)
         sub_dict['reactions_catalysed'] = APImodels.ReactionModifier.objects.using(model).filter(Q(reaction__in=sub.reactions.all()) & Q(modifier_id=rcid)).count()
         if sub.subsystem_svg.sha:
-            sub_dict['map_url'] = "https://ftp.chalmers.se/.maps/%s/%s.svg" % (model, sub.name_id)
+            sub_dict['map_url'] = "https://ftp.metabolicatlas.org/.maps/%s/%s.svg" % (model, sub.name_id)
         else:
             sub_dict['map_url'] = ""
-        sub_dict['subsystem_url'] = "https://metabolicatlas.org/explore/gem-browser/%s/subsystem/%s" % (model, sub.name_id)
+        sub_dict['subsystem_url'] = "https://www.metabolicatlas.org/explore/gem-browser/%s/subsystem/%s" % (model, sub.name_id)
         sub_dict['model_metabolite_count'] = sub.unique_metabolite_count
         sub_dict['compartment_metabolite_count'] = sub.metabolite_count
         sub_dict['reaction_count'] = sub.reaction_count
@@ -426,7 +467,7 @@ def HPA_enzyme_info(request, ensembl_id): # ENSG00000110921
         subsystems.append(sub_dict)
 
     result = {
-        'enzyme_url': "https://metabolicatlas.org/explore/gem-browser/%s/enzyme/%s" % (model, ensembl_id),
+        'enzyme_url': "https://www.metabolicatlas.org/explore/gem-browser/%s/enzyme/%s" % (model, ensembl_id),
         'subsystems': subsystems,
         'doc': 'A subsystem can contain the same chemical metabolite that comes from different compartments.',
     }
@@ -642,6 +683,21 @@ def get_hpa_rna_levels(request, model):
 
 
 @api_view()
+@is_model_valid
+def get_related_metabolites(request, model, id):
+    try:
+        met = APImodels.ReactionComponent.objects.using(model).get(id__iexact=id)
+        if met.related_compartment_group == 0:
+            return HttpResponse(status=404)
+        related_mets = APImodels.ReactionComponent.objects.using(model).filter(
+            Q(related_compartment_group=met.related_compartment_group) & ~Q(id=met.id)).values('id', 'full_name', 'compartment_str')
+    except APImodels.ReactionComponent.DoesNotExist:
+        return HttpResponse(status=404)
+
+    return JSONResponse(related_mets)
+
+
+@api_view()
 def search(request, model, term):
     """
         Searches for the term in metabolites, enzymes, reactions, subsystems and compartments.
@@ -828,6 +884,7 @@ def search(request, model, term):
                          for l in d.values()])).prefetch_related('subsystem')[:limit]
 
         else:
+            synonym_regex = r"(?:^" + re.escape(term) + r"(?:;|$)" + r")|(?:; " + re.escape(term) + r"(?:;|$))"
             compartments = APImodels.Compartment.objects.using(model).filter(name__icontains=term)[:limit]
 
             subsystems = APImodels.Subsystem.objects.using(model).prefetch_related('compartment').filter(
@@ -844,7 +901,7 @@ def search(request, model, term):
                 Q(full_name__icontains=term) |
                 Q(alt_name1__icontains=term) |
                 Q(alt_name2__icontains=term) |
-                Q(aliases__icontains=term) |
+                Q(aliases__iregex=synonym_regex) |
                 Q(external_id1__iexact=term) |
                 Q(external_id2__iexact=term) |
                 Q(external_id3__iexact=term) |
@@ -885,7 +942,7 @@ def search(request, model, term):
                 Q(name__icontains=term) |
                 Q(alt_name1__icontains=term) |
                 Q(alt_name2__icontains=term) |
-                Q(aliases__icontains=term) |
+                Q(aliases__iregex=synonym_regex) |
                 Q(external_id1__iexact=term) |
                 Q(external_id2__iexact=term) |
                 Q(external_id3__iexact=term) |

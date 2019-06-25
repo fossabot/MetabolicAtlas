@@ -98,7 +98,7 @@ export default {
       mainTableKey: {
         human1: [
           { name: 'enzymeName', display: 'Gene&nbsp;name' },
-          { name: 'prot_name', display: 'Protein&nbsp;name' },
+          { name: 'description', display: 'Description' },
           { name: 'gene_synonyms', display: 'Synonyms' },
           { name: 'function' },
           { name: 'id' },
@@ -113,7 +113,7 @@ export default {
       },
       externalIDTableKey: {
         human1: [
-          { name: 'id', display: 'Ensembl', link: 'name_link' },
+          { name: 'id', display: 'Ensembl', link: 'ensembl_link' },
           { name: 'hpa_id', display: 'Protein Atlas', link: 'hpa_link' },
           { name: 'uniprot_id', display: 'Uniprot', link: 'uniprot_link' },
           { name: 'ncbi_id', display: 'NCBI', link: 'ncbi_link' },

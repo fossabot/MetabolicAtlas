@@ -27,11 +27,15 @@ def populate_database(database, yaml_file, overwrite=False, metadata_only=False,
 
             python manage.py addMapsInformation %s ['compartment'|'subsystem'] [SVG file directory] database_generation/%s/[metadatafile].tsv
 
+        Add related metabolites and reactions with:
+
+            python manage.py addRelatedComponent %s
+
         if applicable, Add HPA tissue/enzyme RNA levels with:
 
             python manage.py addHPAexpression %s
 
-        """ % (database, database, database, database, database, database))
+        """ % (database, database, database, database, database))
 
 
 class Command(BaseCommand):
