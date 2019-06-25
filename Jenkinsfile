@@ -13,6 +13,8 @@ pipeline {
     stage('Build') {
       steps {
         sh '''
+          docker stop $(docker ps -a -q) || true
+          docker volume prune --force || true
           PATH=$PATH:/usr/local/bin
           docker-compose -f docker-compose.yml -f docker-compose-prod.yml build
         '''
@@ -58,7 +60,8 @@ pipeline {
     stage('Clean up') {
       steps {
         sh '''
-          docker rmi $(docker images -q) || true
+          docker rm $(docker ps -a -q) || true
+          docker rmi $(docker images -q) --force || true
           rm *.db
         '''
         echo 'Deleted old Docker images. We are live!'
