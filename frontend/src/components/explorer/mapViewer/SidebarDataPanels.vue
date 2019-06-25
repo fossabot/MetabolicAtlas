@@ -164,9 +164,24 @@ export default {
           ],
         },
         yeast8: {
-          metabolite: [],
-          enzyme: [],
-          reaction: [],
+          metabolite: [
+            { name: 'name' },
+            { name: 'model_name', display: 'Model&nbsp;name' },
+            { name: 'formula' },
+            { name: 'compartment' },
+            { name: 'aliases', display: 'Synonyms' },
+          ],
+          enzyme: [
+            { name: 'gene_name', display: 'Gene&nbsp;name' },
+            { name: 'description', display: 'Description' },
+            { name: 'gene_synonyms', display: 'Synonyms' },
+          ],
+          reaction: [
+            { name: 'equation' },
+            { name: 'subsystem', display: 'Subsystems' },
+            { name: 'reactants' },
+            { name: 'products' },
+          ],
         },
       },
       showLvlCardContent: true,
