@@ -11,6 +11,7 @@ import api.serializers_rc as APIrcSerializer
 from api.views import is_model_valid
 from api.views import componentDBserializerSelector
 from functools import reduce
+import re
 
 import logging
 
@@ -102,6 +103,7 @@ def get_id(request, model, term):
     if not term:
         return JSONResponse([])
 
+    synonym_regex = r"(?:^" + re.escape(term) + r"(?:;|$)" + r")|(?:; " + re.escape(term) + r"(?:;|$))"
     query = Q()
     reaction_query = Q()
     query |= Q(id__iexact=term)
@@ -117,6 +119,7 @@ def get_id(request, model, term):
     query |= Q(full_name__iexact=term)
     query |= Q(alt_name1__iexact=term)
     query |= Q(alt_name2__iexact=term)
+    query |= Q(aliases__iregex=synonym_regex)
     query |= Q(external_id1__iexact=term)
     query |= Q(external_id2__iexact=term)
     query |= Q(external_id3__iexact=term)
@@ -881,6 +884,7 @@ def search(request, model, term):
                          for l in d.values()])).prefetch_related('subsystem')[:limit]
 
         else:
+            synonym_regex = r"(?:^" + re.escape(term) + r"(?:;|$)" + r")|(?:; " + re.escape(term) + r"(?:;|$))"
             compartments = APImodels.Compartment.objects.using(model).filter(name__icontains=term)[:limit]
 
             subsystems = APImodels.Subsystem.objects.using(model).prefetch_related('compartment').filter(
@@ -897,7 +901,7 @@ def search(request, model, term):
                 Q(full_name__icontains=term) |
                 Q(alt_name1__icontains=term) |
                 Q(alt_name2__icontains=term) |
-                Q(aliases__icontains=term) |
+                Q(aliases__iregex=synonym_regex) |
                 Q(external_id1__iexact=term) |
                 Q(external_id2__iexact=term) |
                 Q(external_id3__iexact=term) |
@@ -938,7 +942,7 @@ def search(request, model, term):
                 Q(name__icontains=term) |
                 Q(alt_name1__icontains=term) |
                 Q(alt_name2__icontains=term) |
-                Q(aliases__icontains=term) |
+                Q(aliases__iregex=synonym_regex) |
                 Q(external_id1__iexact=term) |
                 Q(external_id2__iexact=term) |
                 Q(external_id3__iexact=term) |
