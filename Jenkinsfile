@@ -32,6 +32,7 @@ pipeline {
       steps {
         sh '''
           docker stop $(docker ps -a -q) || true
+          docker rm $(docker ps -a -q) || true
           docker volume prune --force || true
         '''
         echo 'Stopped active Docker containers and deleted Docker volumes.'
@@ -63,7 +64,6 @@ pipeline {
     stage('Clean up') {
       steps {
         sh '''
-          docker rm $(docker ps -a -q) || true
           docker rmi $(docker images -q) --force || true
           rm *.db
         '''
