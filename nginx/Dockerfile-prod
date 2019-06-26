@@ -10,11 +10,12 @@ RUN apt-key adv --fetch-keys http://dl.yarnpkg.com/debian/pubkey.gpg && \
   yarn && \
   npm run build
 
+
 FROM python:3.6-slim-stretch AS backend
 ENV PYTHONUNBUFFERED 1
 
-WORKDIR /project/
-ADD . .
+WORKDIR /project
+COPY backend .
 
 RUN pip install -r requirements.txt && \
   python manage.py collectstatic --noinput
@@ -22,7 +23,9 @@ RUN pip install -r requirements.txt && \
 
 FROM nginx:stable-alpine
 ARG NGINXCONF=nginx-prod.conf
+
 COPY nginx/$NGINXCONF /etc/nginx/nginx.conf
-COPY --from=frontend /project/dist-html /frontend/dist-html
+
+COPY --from=frontend /project/dist-html   /frontend/dist-html
 COPY --from=frontend /project/dist/static /static
-COPY --from=backend /project/static /static
+COPY --from=backend  /project/static      /static

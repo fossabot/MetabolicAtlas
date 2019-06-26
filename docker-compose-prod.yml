@@ -13,5 +13,7 @@ services:
     build:
       context: .
       dockerfile: nginx/Dockerfile-prod
+    env_file:
+      - postgres.env
     volumes:
       - /var/ssl:/ssl:ro
