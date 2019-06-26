@@ -16,7 +16,7 @@ ENV PYTHONUNBUFFERED 1
 
 WORKDIR /project
 COPY backend .
-
+ARG DJANGO_KEY=mockkeyforbuildonly
 RUN pip install -r requirements.txt && \
   python manage.py collectstatic --noinput
 
