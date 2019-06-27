@@ -176,6 +176,7 @@ class Reaction(models.Model):
     related_group = models.IntegerField(default=0)
 
     metabolites = models.ManyToManyField('ReactionComponent', related_name='reactions_as_metabolite', through='ReactionMetabolite')
+    main_metabolites = models.ManyToManyField('ReactionComponent', related_name='reactions_as_main', through='ReactionMainMetabolite')
 
     def __str__(self):
         return "<Reaction: {0} {1}>".format(self.id, self.modifiers)
@@ -197,6 +198,13 @@ class ReactionReference(models.Model):
         db_table = "reaction_reference"
         unique_together = (('reaction', 'pmid'),)
 
+
+class ReactionMainMetabolite(models.Model):
+    reaction = models.ForeignKey('Reaction', db_column='reaction_id', on_delete=models.CASCADE)
+    rc = models.ForeignKey('ReactionComponent', db_column='rc_id', on_delete=models.CASCADE)
+    class Meta:
+        db_table = "reaction_main_metabolite"
+        unique_together = (('reaction', 'rc'),)
 
 
 # corresponds to either metabolite or enzyme, should be Serialized with the proper serializer
