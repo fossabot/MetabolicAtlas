@@ -279,7 +279,7 @@ def get_db_json(request, model, component_name_id=None, ctype=None, dup_meta=Fal
             reactions_id = APImodels.ReactionCompartment.objects.using(model). \
                 filter(compartment=compartment).values_list('reaction', flat=True)
             reactions = APImodels.Reaction.objects.using(model).filter(id__in=reactions_id). \
-                prefetch_related('reactants', 'products', 'modifiers')
+                prefetch_related('reactants', 'products', 'modifiers', 'reactionmainmetabolite_set')
         else:
             try:
                 subsystem = APImodels.Subsystem.objects.using(model).get(name_id__iexact=component_name_id)
@@ -289,9 +289,9 @@ def get_db_json(request, model, component_name_id=None, ctype=None, dup_meta=Fal
             reactions_id = APImodels.SubsystemReaction.objects.using(model). \
                 filter(subsystem=subsystem).values_list('reaction', flat=True)
             reactions = APImodels.Reaction.objects.using(model).filter(id__in=reactions_id). \
-                prefetch_related('reactants', 'products', 'modifiers')
+                prefetch_related('reactants', 'products', 'modifiers', 'reactionmainmetabolite_set')
     else:
-        reactions = APImodels.Reaction.objects.using(model).all().prefetch_related('reactants', 'products', 'modifiers')
+        reactions = APImodels.Reaction.objects.using(model).all().prefetch_related('reactants', 'products', 'modifiers', 'reactionmainmetabolite_set')
 
     nodes = {}
     links = {}
@@ -302,8 +302,8 @@ def get_db_json(request, model, component_name_id=None, ctype=None, dup_meta=Fal
     duplicateMetabolite = dup_meta
     duplicatedId = {}
 
-    duplicateMetaName = {'ATP', 'ADP', 'Pi', 'PPi', 'H2O', 'O2', 'PI pool', 'H+', \
-     'NADP', 'NADP+', 'NADH', 'NAD+', 'CoA', 'NADPH', 'acetyl-CoA', 'FAD', 'FADH'}
+    # duplicateMetaName = {'ATP', 'ADP', 'Pi', 'PPi', 'H2O', 'O2', 'PI pool', 'H+', \
+    #  'NADP', 'NADP+', 'NADH', 'NAD+', 'CoA', 'NADPH', 'acetyl-CoA', 'FAD', 'FADH'}
 
     for r in reactions:
         reaction = {
@@ -312,9 +312,14 @@ def get_db_json(request, model, component_name_id=None, ctype=None, dup_meta=Fal
             'n': r.id,
         }
         nodes[r.id] = reaction;
+        main_metabolites = {el.rc_id for el in r.reactionmainmetabolite_set.all()}
+        # print(main_metabolite)
 
         for m in r.reactants.all():
-            duplicateCurrentMeta = m.name in duplicateMetaName
+            # duplicateCurrentMeta = m.name in duplicateMetaName
+
+            # if m.id not in main_metabolites:
+            #     continue
 
             doMeta = True;
             metabolite = None;
@@ -322,7 +327,7 @@ def get_db_json(request, model, component_name_id=None, ctype=None, dup_meta=Fal
             if duplicateMetabolite:
                 if mid not in nodes:
                     duplicatedId[mid] = 0
-                elif duplicateCurrentMeta:
+                elif mid in main_metabolites:
                     duplicatedId[m.id] += 1
                     mid = "%s-%s" % (m.id, duplicatedId[m.id])
                 else:
@@ -349,7 +354,10 @@ def get_db_json(request, model, component_name_id=None, ctype=None, dup_meta=Fal
             linksList.append(rel)
 
         for m in r.products.all():
-            duplicateCurrentMeta = m.name in duplicateMetaName
+            # duplicateCurrentMeta = m.name in duplicateMetaName
+
+            # if m.id not in main_metabolites:
+            #     continue
 
             doMeta = True;
             metabolite = None
@@ -357,7 +365,7 @@ def get_db_json(request, model, component_name_id=None, ctype=None, dup_meta=Fal
             if duplicateMetabolite:
                 if mid not in nodes:
                     duplicatedId[mid] = 0
-                elif duplicateCurrentMeta:
+                elif mid in main_metabolites:
                     duplicatedId[m.id] += 1
                     mid = "%s-%s" % (m.id, duplicatedId[m.id])
                 else:
