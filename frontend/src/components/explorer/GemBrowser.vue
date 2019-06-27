@@ -18,7 +18,7 @@
         <div class="columns is-centered">
           <div class="column is-10 is-size-5 has-text-centered">
             Use the search field above to look for your constituent of interest.<br>
-            Below are some random constituents of {{ model.short_name }}.<br><br>
+            A selection of <b>random</b> constituents of {{ model.short_name }} is shown below.<br><br>
           </div>
         </div>
         <div id="gem-browser-tiles" class="tile is-ancestor is-size-5" v-if="starredComponents">
