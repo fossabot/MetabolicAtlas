@@ -80,7 +80,7 @@
           </sidebar-data-panels>
         </div>
         <div v-show="showOverviewScreen" class="column">
-          <p class="is-size-5">Load a map from the menu</p>
+          <p class="is-size-5 has-text-centered" style="padding: 10%;">Choose a compartment or subsystem map from the menu on the left</p>
         </div>
         <div id="graphframe" v-show="!showOverviewScreen" class="column is-unselectable">
           <div class="is-fullheight">
