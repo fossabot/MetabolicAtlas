@@ -26,6 +26,6 @@ ARG NGINXCONF=nginx-prod.conf
 
 COPY nginx/$NGINXCONF /etc/nginx/nginx.conf
 
-COPY --from=frontend /project/dist-html   /frontend/dist-html
-COPY --from=frontend /project/dist/static /static
-COPY --from=backend  /project/static      /static
+COPY --from=frontend /project/dist-html/* /content/
+COPY --from=frontend /project/dist        /content/static
+COPY --from=backend  /project/static      /content/static
