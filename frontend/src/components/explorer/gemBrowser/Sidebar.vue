@@ -2,13 +2,10 @@
   <div v-if="selectedElm && ['enzyme', 'metabolite', 'reaction'].includes(selectedElm.type)" class="card">
     <header class="card-header">
       <p class="card-header-title">
-        <span v-if="selectedElm.type === 'reaction'">
-          Reaction ID: {{ selectedElm.id }}
-        </span>
-        <span v-else class="is-capitalized">
+        <span class="is-capitalized">
           {{ selectedElm.type }}
           <router-link :to="{ path: `/explore/gem-browser/${this.model.database_name}/${selectedElm.type}/${this.selectedElm.real_id || this.selectedElm.id}` }">
-            {{ selectedElm.name }}
+            {{ selectedElm.name || selectedElm.id }}
           </router-link>
         </span>
       </p>
