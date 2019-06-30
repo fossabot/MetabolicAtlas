@@ -207,12 +207,14 @@
         </div>
         <div id="cip-table">
           <cytoscape-table
-            :structure="tableStructure[model.database_name]"
-            :elms="elms"
+            :reactions="reactions"
             :selected-elm-id="clickedElmId"
+            :selected-reaction-id="reactionHL"
+            :is-graph-visible="showNetworkGraph"
             :filename="filename"
             :sheetname="componentName"
             @highlight="highlightNode($event)"
+            @HLreaction="highlightReaction($event)"
           ></cytoscape-table>
         </div>
       </div>
@@ -269,6 +271,7 @@ export default {
 
       rawRels: {},
       rawElms: {},
+      reactions: [],
 
       id: '',
       selectedElmId: '',
@@ -304,18 +307,6 @@ export default {
       disableExpLvl: false,
 
       cy: null,
-      tableStructure: {
-        human1: [
-          { field: 'type', colName: 'Type' },
-          { field: 'name', colName: 'Name' },
-          { field: 'compartment_str', colName: 'Compartment' },
-        ],
-        yeast8: [
-          { field: 'type', colName: 'Type' },
-          { field: 'name', colName: 'Name' },
-          { field: 'compartment_str', colName: 'Compartment' },
-        ],
-      },
 
       showMenuExport: false,
       showMenuExpression: false,
@@ -446,7 +437,7 @@ export default {
           this.loading = false;
           this.showGraphContextMenu = false;
           const component = response.data.component;
-          const reactions = response.data.reactions;
+          this.reactions = response.data.reactions;
 
           this.componentName = component.name || component.gene_name || component.id;
           this.id = component.id;
@@ -463,7 +454,7 @@ export default {
           }
 
           [this.rawElms, this.rawRels, this.compartmentList, this.subsystemList] =
-            transform(component, reactions, null, null, null, null);
+            transform(component, this.reactions, null, null, null, null);
           if (this.compartmentList.length === 1) {
             this.compartmentHL = '';
             this.disableCompartmentHL = true;
@@ -514,6 +505,7 @@ export default {
 
           const component = response.data.component;
           const reactions = response.data.reactions;
+          this.reactions = this.reactions.concat(reactions);
           [this.rawElms, this.rawRels, this.compartmentList, this.subsystemList] =
             transform(component, reactions, this.rawElms, this.rawRels,
              this.compartmentList, this.subsystemList);
