@@ -82,9 +82,7 @@ def componentDBserializerSelector(database, type, serializer_type=None, api_vers
                 return APIserializer.SubsystemSearchSerializer
             return APIserializer.HmrSubsystemSerializer
         elif type == 'interaction partner':
-            if serializer_type == 'lite':
-                return APIserializer.HmrInteractionPartnerLiteSerializer
-            return APIserializer.HmrInteractionPartnerSerializer
+            return APIserializer.InteractionPartnerSerializer
     else:
         if type == 'reaction component':
             if serializer_type in ['lite', 'basic']:
@@ -119,8 +117,6 @@ def componentDBserializerSelector(database, type, serializer_type=None, api_vers
                 return APIserializer.SubsystemSearchSerializer
             return APIserializer.SubsystemSerializer
         elif type == 'interaction partner':
-            if serializer_type == 'lite':
-                return APIserializer.InteractionPartnerLiteSerializer
             return APIserializer.InteractionPartnerSerializer
 
 
