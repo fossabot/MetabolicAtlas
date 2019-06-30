@@ -557,8 +557,10 @@ export default {
         (this.compartmentList.length < 2 && this.subsystemList.length === 0));
     },
     highlightReaction(rid) {
-      if (rid && this.cy) {
+      if (this.cy) {
+        this.clickedElmId = '';
         this.reactionHL = rid;
+        this.clickedElm = { id: rid, type: 'reaction' };
         this.redrawGraph();
         this.showGraphContextMenu = false;
       }
@@ -642,13 +644,14 @@ export default {
       }, 300);
     },
     highlightNode(elmId) {
-      if (!this.showNetworkGraph) {
-        return;
-      }
+      this.showGraphContextMenu = false;
+      this.reactionHL = null;
+      this.clickedElmId = elmId;
       this.cy.nodes().deselect();
       const node = this.cy.getElementById(elmId);
       node.json({ selected: true });
       node.trigger('tap');
+      this.redrawGraph();
     },
     generateGraph(callback) {
       this.showNetworkGraph = true;
