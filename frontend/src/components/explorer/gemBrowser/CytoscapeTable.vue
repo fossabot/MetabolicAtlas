@@ -11,7 +11,7 @@
       <div class="column is-2" style="padding-bottom: 0">
         <div class="columns">
           <div class="column">
-            <a @click="exportToTSV" class="button is-primary is-pulled-right">
+            <a @click="exportToTSV()" class="button is-primary is-pulled-right">
               Export to TSV
             </a>
           </div>

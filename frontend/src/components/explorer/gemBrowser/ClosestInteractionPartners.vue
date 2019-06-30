@@ -10,7 +10,7 @@
       <div v-show="!errorMessage">
         <div class="container columns">
           <div class="column is-8">
-            <h3 class="title is-3 is-marginless">{{ messages.interPartName }} for {{ title }}</h3>
+            <h3 class="title is-3 is-marginless" v-html="`${messages.interPartName} for ${title}`"></h3>
           </div>
           <div class="column">
             <div class="dropdown" id="dropdownMenuExport">
@@ -79,9 +79,6 @@
                 <span class="button" v-on:click="fitGraph()" title="Fit to frame"><i class="fa fa-arrows-alt"></i></span>
                 <span class="button" v-on:click="resetGraph(true)" title="Reload"><i class="fa fa-refresh"></i></span>
                 <span class="button" v-on:click="resetGraph(false)" title="Clean selection/highlight"><i class="fa fa-eraser"></i></span>
-                <span class="button" v-on:click="viewReaction(reactionHL)" v-show="reactionHL" title="Options">
-                  {{ reactionHL }}
-                </span>
               </div>
               <div v-show="showGraphLegend" id="contextGraphLegend" ref="contextGraphLegend">
                 <button class="delete" v-on:click="toggleGraphLegend"></button>
@@ -560,7 +557,7 @@ export default {
         (this.compartmentList.length < 2 && this.subsystemList.length === 0));
     },
     highlightReaction(rid) {
-      if (rid) {
+      if (rid && this.cy) {
         this.reactionHL = rid;
         this.redrawGraph();
         this.showGraphContextMenu = false;
