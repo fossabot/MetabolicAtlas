@@ -15,7 +15,7 @@
             </a>
           </div>
           <div class="column has-text-justified">
-            <b>{{ elem.title }}</b><br>
+            <a :href="elem.link" target="_blank"><b>{{ elem.title }}</b></a><br>
             {{ elem.description }}<br>
             <a :href="elem.citation_url" target="_blank" v-html="elem.citation"></a>
           </div>
