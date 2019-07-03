@@ -81,7 +81,7 @@ export default {
           { name: 'YSeq Browser',
             link: 'http://www.sysbio.se/Yseq/',
             img: require('../assets/YseqLogo.png'),
-            title: 'Genome and trascriptome (RNAseq and Microarray) browser of Saccharomyces cerevisiae',
+            title: 'Genome and transcriptome (RNAseq and Microarray) browser of Saccharomyces cerevisiae',
             description: 'Yseq provides a useful and comprehensive comparison between the two platforms (RNA-seq and microrrays) for gene expression analysis and addresses the contribution of the different steps involved in the analysis of RNA-seq data',
             citation: 'Nookaew, I., Papini, M., Pornputtapong, N., Scalcinati, G., Fagerberg, L., Uhlén, M., & Nielsen, J. (2012). <i>A comprehensive comparison of RNA-Seq-based transcriptome analysis from reads to differential gene expression and cross-comparison with microarrays: a case study in Saccharomyces cerevisiae</i>. Nucleic acids research, 40(20), 10084-10097',
             citation_url: 'https://academic.oup.com/nar/article/40/20/10084/2414805' },
