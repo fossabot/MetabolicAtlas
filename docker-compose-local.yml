@@ -34,6 +34,8 @@ services:
       - ./frontend/public:/project/public
     networks:
       - net-tier
-
+    ports:
+      - "81:81"
+      
 volumes:
   voldb:
