@@ -28,11 +28,10 @@ services:
     depends_on:
       - backend
     build: ./frontend
-    command: npm run dev
+    command: npm run serve
     volumes:
       - ./frontend/src:/project/src
-      - ./frontend/dist:/project/dist
-      - ./frontend/test:/project/test
+      - ./frontend/public:/project/public
     networks:
       - net-tier
 

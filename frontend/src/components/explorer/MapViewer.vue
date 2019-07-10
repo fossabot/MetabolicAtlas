@@ -133,9 +133,9 @@
 <script>
 import $ from 'jquery';
 import axios from 'axios';
-import SidebarDataPanels from 'components/explorer/mapViewer/SidebarDataPanels';
-import Svgmap from 'components/explorer/mapViewer/Svgmap';
-import D3dforce from 'components/explorer/mapViewer/D3dforce';
+import SidebarDataPanels from '@/components/explorer/mapViewer/SidebarDataPanels';
+import Svgmap from '@/components/explorer/mapViewer/Svgmap';
+import D3dforce from '@/components/explorer/mapViewer/D3dforce';
 import { default as EventBus } from '../../event-bus';
 import { default as messages } from '../../helpers/messages';
 

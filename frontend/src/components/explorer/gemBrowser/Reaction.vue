@@ -95,8 +95,8 @@
 <script>
 import axios from 'axios';
 import $ from 'jquery';
-import Loader from 'components/Loader';
-import MapsAvailable from 'components/explorer/gemBrowser/MapsAvailable';
+import Loader from '@/components/Loader';
+import MapsAvailable from '@/components/explorer/gemBrowser/MapsAvailable';
 import { default as EventBus } from '../../../event-bus';
 import { reformatTableKey, addMassUnit, reformatECLink, reformatCompEqString, reformatChemicalReactionHTML, reformatEqSign } from '../../../helpers/utils';
 import { default as messages } from '../../../helpers/messages';

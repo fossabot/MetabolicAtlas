@@ -209,7 +209,7 @@ $warning: #FFC67D;
 $danger: #F46036;
 $info: $link;
 
-$body-size: 14px !default
+$body-size: 14px !default;
 
 $desktop: 1192px !default;
 $widescreen: 1384px !default;

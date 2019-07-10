@@ -48,7 +48,7 @@
 <script>
 import axios from 'axios';
 import $ from 'jquery';
-import Loader from 'components/Loader';
+import Loader from '@/components/Loader';
 import _ from 'lodash';
 import { chemicalFormula, chemicalReaction } from '../../../helpers/chemical-formatters';
 import { default as EventBus } from '../../../event-bus';

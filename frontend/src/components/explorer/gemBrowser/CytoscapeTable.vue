@@ -75,7 +75,7 @@
 <script>
 
 import { default as FileSaver } from 'file-saver';
-import CytoscapeTableSearch from 'components/explorer/gemBrowser/CytoscapeTableSearch';
+import CytoscapeTableSearch from '@/components/explorer/gemBrowser/CytoscapeTableSearch';
 import { default as compare } from '../../../helpers/compare';
 import { default as EventBus } from '../../../event-bus';
 

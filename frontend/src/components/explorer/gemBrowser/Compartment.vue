@@ -54,8 +54,8 @@
 
 <script>
 import axios from 'axios';
-import Loader from 'components/Loader';
-import MapsAvailable from 'components/explorer/gemBrowser/MapsAvailable';
+import Loader from '@/components/Loader';
+import MapsAvailable from '@/components/explorer/gemBrowser/MapsAvailable';
 import { reformatTableKey } from '../../../helpers/utils';
 import { default as messages } from '../../../helpers/messages';
 

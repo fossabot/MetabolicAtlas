@@ -68,8 +68,8 @@
 <script>
 import axios from 'axios';
 import $ from 'jquery';
-import GemBrowser from 'components/explorer/GemBrowser';
-import MapViewer from 'components/explorer/MapViewer';
+import GemBrowser from '@/components/explorer/GemBrowser';
+import MapViewer from '@/components/explorer/MapViewer';
 import { idfy } from '../helpers/utils';
 import { default as EventBus } from '../event-bus';
 import { default as messages } from '../helpers/messages';

@@ -33,7 +33,7 @@ import axios from 'axios';
 import $ from 'jquery';
 import JQPanZoom from 'jquery.panzoom';
 import JQMouseWheel from 'jquery-mousewheel';
-import Loader from 'components/Loader';
+import Loader from '@/components/Loader';
 import { default as EventBus } from '../../../event-bus';
 import { getExpressionColor } from '../../../expression-sources/hpa';
 import { default as messages } from '../../../helpers/messages';

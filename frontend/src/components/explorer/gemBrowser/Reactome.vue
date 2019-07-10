@@ -25,8 +25,8 @@
 <script>
 
 import axios from 'axios';
-import Loader from 'components/Loader';
-import ReactionTable from 'components/explorer/gemBrowser/ReactionTable';
+import Loader from '@/components/Loader';
+import ReactionTable from '@/components/explorer/gemBrowser/ReactionTable';
 
 export default {
   name: 'reactome',
