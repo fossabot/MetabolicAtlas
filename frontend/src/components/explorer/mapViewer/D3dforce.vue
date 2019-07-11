@@ -1,6 +1,6 @@
 <template>
   <div ref="graphParent">
-    <div id="3d-graph"></div>
+    <div id="graph3D"></div>
   </div>
 </template>
 
@@ -124,7 +124,7 @@ export default {
     },
     constructGraph() {
       /* eslint-disable no-param-reassign */
-      this.graph = forceGraph3D()(document.getElementById('3d-graph'))
+      this.graph = forceGraph3D()(document.getElementById('graph3D'))
         .showNavInfo(false)
         .nodeLabel('n')
         .linkSource('s')
@@ -334,7 +334,7 @@ export default {
 
 <style lang="scss">
 
-#graph {
+#graph3D {
  height: 100%;
  width: 100%;
  overflow: hidden;
