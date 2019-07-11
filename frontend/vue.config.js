@@ -1,7 +1,10 @@
 // vue.config.js
+
+const IS_DEV = process.env.NODE_ENV === 'development';
+
 module.exports = {
   productionSourceMap: false,
-  lintOnSave: process.env.NODE_ENV === 'production' ? false : true,
+  lintOnSave: IS_DEV,
   css: {
     loaderOptions: {
       sass: {
@@ -12,7 +15,7 @@ module.exports = {
   },
   pluginOptions: {
     webpackBundleAnalyzer: {
-      analyzerMode: process.env.NODE_ENV === 'development' ? 'server' : 'disabled',
+      analyzerMode: IS_DEV ? 'server' : 'disabled',
       // Using the same host name as the container name
       analyzerHost: 'frontend',
       analyzerPort: 81,

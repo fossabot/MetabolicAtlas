@@ -94,7 +94,7 @@ export default {
       currentSearchMatch: 0,
       totalSearchMatch: 0,
 
-      svgMapURL: `${window.location.origin}/svgs`, // SEDME
+      svgMapURL: process.env.NODE_ENV === 'production' ? 'https://ftp.metabolicatlas.org/.maps' : 'http://localhost/svgs',
       defaultEnzymeColor: '#feb',
     };
   },

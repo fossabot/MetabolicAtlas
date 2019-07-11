@@ -14,7 +14,7 @@ Vue.use(VueLodash, lodash);
 
 Vue.use(VueMatomo, {
   host: 'https://sysbiowiki.se:4433/',
-  siteId: 12,
+  siteId: 14,
   router,
 });
 
