@@ -2,7 +2,7 @@ FROM node:lts-slim AS frontend
 WORKDIR /project
 COPY frontend .
 
-RUN npm install &&S npm run build
+RUN npm install && npm run build
 
 
 FROM python:3.6-slim-stretch AS backend
@@ -20,6 +20,5 @@ ARG NGINXCONF=nginx-prod.conf
 
 COPY nginx/$NGINXCONF /etc/nginx/nginx.conf
 
-COPY --from=frontend /project/dist/index.html /content/
-COPY --from=frontend /project/dist            /content/static
+COPY --from=frontend /project/dist            /content
 COPY --from=backend  /project/static          /content/static
