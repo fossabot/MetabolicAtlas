@@ -332,12 +332,12 @@ export default {
 };
 </script>
 
-// <style lang="scss">
-//
-// #3d-graph {
-//   height: 100%;
-//   width: 100%;
-//   overflow: hidden;
-// }
-//
-// </style>
+<style lang="scss">
+
+#graph {
+ height: 100%;
+ width: 100%;
+ overflow: hidden;
+}
+
+</style>
