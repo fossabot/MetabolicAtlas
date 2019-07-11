@@ -78,14 +78,14 @@
 
 <script>
 import axios from 'axios';
-import GemSearch from 'components/explorer/gemBrowser/GemSearch';
-import ClosestInteractionPartners from 'components/explorer/gemBrowser/ClosestInteractionPartners';
-import Enzyme from 'components/explorer/gemBrowser/Enzyme';
-import Metabolite from 'components/explorer/gemBrowser/Metabolite';
-import Reaction from 'components/explorer/gemBrowser/Reaction';
-import Subsystem from 'components/explorer/gemBrowser/Subsystem';
-import Compartment from 'components/explorer/gemBrowser/Compartment';
-import Tile from 'components/explorer/gemBrowser/Tile';
+import GemSearch from '@/components/explorer/gemBrowser/GemSearch';
+import ClosestInteractionPartners from '@/components/explorer/gemBrowser/ClosestInteractionPartners';
+import Enzyme from '@/components/explorer/gemBrowser/Enzyme';
+import Metabolite from '@/components/explorer/gemBrowser/Metabolite';
+import Reaction from '@/components/explorer/gemBrowser/Reaction';
+import Subsystem from '@/components/explorer/gemBrowser/Subsystem';
+import Compartment from '@/components/explorer/gemBrowser/Compartment';
+import Tile from '@/components/explorer/gemBrowser/Tile';
 import { default as messages } from '../../helpers/messages';
 import { default as EventBus } from '../../event-bus';
 import { idfy } from '../../helpers/utils';

@@ -132,7 +132,7 @@
               <div class="card " v-if="model.database_name === 'human1'">
                 <header class="card-header">
                   <p class="card-header-title">
-                    <label class="checkbox is-unselectable" 
+                    <label class="checkbox is-unselectable"
                     :title="`Click to ${toggleEnzymeExpLevel ? 'disable' : 'activate'} expression RNA levels`">
                       <input type="checkbox" v-model="toggleEnzymeExpLevel" :disabled="disableExpLvl"
                       @click="applyLevels('enzyme', 'HPA', 'RNA', selectedSample)">
@@ -229,9 +229,9 @@ import cola from 'cytoscape-cola';
 import { Compact } from 'vue-color';
 import { default as FileSaver } from 'file-saver';
 
-import Sidebar from 'components/explorer/gemBrowser/Sidebar';
-import CytoscapeTable from 'components/explorer/gemBrowser/CytoscapeTable';
-import Loader from 'components/Loader';
+import Sidebar from '@/components/explorer/gemBrowser/Sidebar';
+import CytoscapeTable from '@/components/explorer/gemBrowser/CytoscapeTable';
+import Loader from '@/components/Loader';
 
 import { default as EventBus } from '../../../event-bus';
 

@@ -5,10 +5,6 @@ pipeline {
       steps {
         sh '''cp /var/lib/jenkins/postgres.env .'''
         echo 'Copied PostgreSQL and Django environment.'
-        sh '''
-          sed -i "s/svgMapURL:.*/svgMapURL: 'https:\\/\\/ftp.metabolicatlas.org\\/.maps',/g"  frontend/src/components/explorer/mapViewer/Svgmap.vue
-        '''
-        echo 'Updated SVG URL for production.'
         withCredentials([string(credentialsId: '	f8066a74-2a9c-4510-8bd5-7edb569fff14', variable: 'human1db'), string(credentialsId: '7650c2ee-c69d-4499-a180-b089acfd1afc', variable: 'yeast8db'), string(credentialsId: '	5013ec59-acd1-4b13-a0c2-90904f2aceb1', variable: 'gemsdb')]) {
           sh '''
             wget $human1db -O human1.db
@@ -16,7 +12,7 @@ pipeline {
             wget $yeast8db -O yeast8.db
           '''
         }
-        echo 'Download source databases.'
+        echo 'Downloaded source databases.'
       }
     }
     stage('Build') {
