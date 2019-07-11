@@ -1,6 +1,7 @@
 // vue.config.js
 module.exports = {
   productionSourceMap: false,
+  lintOnSave: 'default',
   css: {
     loaderOptions: {
       sass: {
