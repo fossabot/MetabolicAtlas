@@ -30,6 +30,9 @@
     "vue-cookie": "^1.1.4",
     "vue-matomo": "^3"
   },
+  "dependenciesComments": {
+    "rollup": "The two rollup packages below were added as a temp fix, please remove"
+  },
   "devDependencies": {
     "@vue/cli-plugin-babel": "^3.9.0",
     "@vue/cli-plugin-eslint": "^3.9.0",
@@ -42,7 +45,6 @@
     "sass-loader": "^7.1.0",
     "vue-cli-plugin-webpack-bundle-analyzer": "^1.4.0",
     "vue-template-compiler": "^2.6.10",
-
     "rollup-plugin-commonjs": "^10.0.1",
     "rollup-plugin-vue": "^5.0.1"
   }
