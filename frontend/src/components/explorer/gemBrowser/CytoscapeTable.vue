@@ -21,11 +21,17 @@
     <div class="columns">
       <div class="column">
         <div class="field">
-          <span class="tag" v-show="filteredReactions.length">
+          <span class="tag">
              # Reaction(s): {{ filteredReactions.length }}
+          </span>
+          <span>
+            &nbsp;
           </span>
           <span class="tag">
             # Unique Metabolite(s): {{ metaboliteCount }}
+          </span>
+          <span v-show="enzymeCount">
+            &nbsp;
           </span>
           <span class="tag" v-show="enzymeCount">
              # Unique Enzyme(s): {{ enzymeCount }}
