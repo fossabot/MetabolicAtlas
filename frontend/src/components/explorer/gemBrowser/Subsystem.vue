@@ -90,9 +90,9 @@
 
 <script>
 import axios from 'axios';
-import Loader from 'components/Loader';
-import MapsAvailable from 'components/explorer/gemBrowser/MapsAvailable';
-import ReactionTable from 'components/explorer/gemBrowser/ReactionTable';
+import Loader from '@/components/Loader';
+import MapsAvailable from '@/components/explorer/gemBrowser/MapsAvailable';
+import ReactionTable from '@/components/explorer/gemBrowser/ReactionTable';
 import { reformatTableKey, idfy } from '../../../helpers/utils';
 import { default as messages } from '../../../helpers/messages';
 

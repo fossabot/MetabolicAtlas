@@ -168,7 +168,7 @@ import axios from 'axios';
 import $ from 'jquery';
 import { VueGoodTable } from 'vue-good-table';
 import 'vue-good-table/dist/vue-good-table.css';
-import Loader from 'components/Loader';
+import Loader from '@/components/Loader';
 import { default as EventBus } from '../event-bus';
 import { default as messages } from '../helpers/messages';
 

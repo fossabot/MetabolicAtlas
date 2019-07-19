@@ -66,7 +66,7 @@
         </div>
       </div>
       <div class="columns">
-        <reactome v-show="showReactome" id="metabolite-reactome" :model="model" :metaboliteID="metaboliteID" 
+        <reactome v-show="showReactome" id="metabolite-reactome" :model="model" :metaboliteID="metaboliteID"
         :disableBut="this.relatedMetabolites.length == 0"></reactome>
       </div>
     </div>
@@ -75,7 +75,7 @@
 
 <script>
 import axios from 'axios';
-import Reactome from 'components/explorer/gemBrowser/Reactome';
+import Reactome from '@/components/explorer/gemBrowser/Reactome';
 import { chemicalFormula } from '../../../helpers/chemical-formatters';
 import { reformatTableKey, reformatStringToLink, addMassUnit, idfy } from '../../../helpers/utils';
 import { default as messages } from '../../../helpers/messages';

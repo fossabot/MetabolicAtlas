@@ -145,7 +145,7 @@
 <script>
 
 import axios from 'axios';
-import Loader from 'components/Loader';
+import Loader from '@/components/Loader';
 import { VueGoodTable } from 'vue-good-table';
 import 'vue-good-table/dist/vue-good-table.css';
 import { chemicalFormula } from '../helpers/chemical-formatters';
