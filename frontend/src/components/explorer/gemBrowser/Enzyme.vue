@@ -74,8 +74,8 @@
 
 <script>
 import axios from 'axios';
-import ReactionTable from 'components/explorer/gemBrowser/ReactionTable';
-import Loader from 'components/Loader';
+import ReactionTable from '@/components/explorer/gemBrowser/ReactionTable';
+import Loader from '@/components/Loader';
 import { reformatTableKey } from '../../../helpers/utils';
 import { default as messages } from '../../../helpers/messages';
 

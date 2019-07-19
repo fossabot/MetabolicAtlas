@@ -64,24 +64,24 @@
             </tr>
           </table>
         </template>
-        <template v-if="formattedRef.length != 0">
-          <h4 class="title is-size-4">References</h4>
+        <template v-if="formattedRef.length !== 0">
+          <h4 class="title is-size-4">PMID References</h4>
           <table class="main-table table">
             <tr v-for="oneRef in formattedRef">
-              <td v-if="oneRef.title" class="td-key has-background-primary has-text-white-bis" title="PMID">{{ oneRef.pmid }}</td>
-              <a :href="oneRef.link" target="_blank">
+              <td v-if="oneRef.title" class="td-key has-background-primary has-text-white-bis">{{ oneRef.pmid }}</td>
                 <td>
-                  <template v-for="author in oneRef.authors">
-                    {{ author }},
-                  </template>
-                  {{ oneRef.year }}. <i>{{ oneRef.title }}</i>
-                  {{ oneRef.journal }}
+                  <a :href="oneRef.link" target="_blank">
+                    <template v-for="author in oneRef.authors">
+                      {{ author }},
+                    </template>
+                    {{ oneRef.year }}. <i>{{ oneRef.title }}</i>
+                    {{ oneRef.journal }}
+                  </a>
                 </td>
-              </a>
             </tr>
           </table>
         </template>
-        <template v-else>
+        <template v-else-if="this.reaction.pmids && this.reaction.pmids.length === 0">
           <p>No PMID references found</p>
         </template>
       </div>
@@ -95,8 +95,8 @@
 <script>
 import axios from 'axios';
 import $ from 'jquery';
-import Loader from 'components/Loader';
-import MapsAvailable from 'components/explorer/gemBrowser/MapsAvailable';
+import Loader from '@/components/Loader';
+import MapsAvailable from '@/components/explorer/gemBrowser/MapsAvailable';
 import { default as EventBus } from '../../../event-bus';
 import { reformatTableKey, addMassUnit, reformatECLink, reformatCompEqString, reformatChemicalReactionHTML, reformatEqSign } from '../../../helpers/utils';
 import { default as messages } from '../../../helpers/messages';
@@ -273,25 +273,35 @@ export default {
     },
     reformatReversible() { return this.reaction.is_reversible ? 'Yes' : 'No'; },
     reformatRefs(refs) {
-      for (const i of refs) {
-        axios.get(`https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed&retmode=json&id=${i.pmid}`)
-        .then((response) => {
-          const details = response.data.result[i.pmid];
-          const newRef = {};
-          newRef.pmid = i.pmid;
-          newRef.link = `https://www.ncbi.nlm.nih.gov/pubmed/${i.pmid}`;
-          if (details.pubdate) {
-            newRef.year = details.pubdate.substring(0, 4);
+      const queryIDs = `(EXT_ID:"${refs.map(e => e.pmid).join('"+OR+EXT_ID:"')}")`;
+      axios.get(`https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=${queryIDs}&resultType=core&format=json`)
+      .then((response) => {
+        for (const details of response.data.resultList.result) {
+          try {
+            const newRef = {};
+            newRef.pmid = details.id;
+            newRef.link = details.fullTextUrlList.fullTextUrl.filter(e => e.documentStyle === 'html' && e.site === 'Europe_PMC');
+            if (newRef.link.length === 0) {
+              newRef.link = details.fullTextUrlList.fullTextUrl.filter(
+                e => e.documentStyle === 'doi' || e.documentStyle === 'abs')[0].url;
+            } else {
+              newRef.link = newRef.link[0].url;
+            }
+            if (details.pubYear) {
+              newRef.year = details.pubYear;
+            }
+            newRef.authors = details.authorList.author.map(e => e.fullName);
+            newRef.journal = details.journalInfo.journal.title;
+            newRef.title = details.title;
+            this.formattedRef.push(newRef);
+          } catch (e) {
+            // pass
           }
-          newRef.authors = details.authors.map(e => (e.authtype === 'Author' ? e.name : null));
-          newRef.journal = details.fulljournalname;
-          newRef.title = details.title;
-          this.formattedRef.push(newRef);
-        })
-        .catch(() => {
-          this.errorMessage = messages.notFoundError;
-        });
-      }
+        }
+      })
+      .catch(() => {
+        this.errorMessage = messages.notFoundError;
+      });
     },
     viewReactionOnMap(reactionID) {
       EventBus.$emit('viewReactionOnMap', reactionID);

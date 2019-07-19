@@ -33,7 +33,7 @@ import axios from 'axios';
 import $ from 'jquery';
 import JQPanZoom from 'jquery.panzoom';
 import JQMouseWheel from 'jquery-mousewheel';
-import Loader from 'components/Loader';
+import Loader from '@/components/Loader';
 import { default as EventBus } from '../../../event-bus';
 import { getExpressionColor } from '../../../expression-sources/hpa';
 import { default as messages } from '../../../helpers/messages';
@@ -94,7 +94,7 @@ export default {
       currentSearchMatch: 0,
       totalSearchMatch: 0,
 
-      svgMapURL: `${window.location.origin}/svgs`, // SEDME
+      svgMapURL: process.env.NODE_ENV === 'production' ? 'https://ftp.metabolicatlas.org/.maps' : 'http://localhost/svgs',
       defaultEnzymeColor: '#feb',
     };
   },
