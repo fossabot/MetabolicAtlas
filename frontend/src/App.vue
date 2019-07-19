@@ -417,6 +417,16 @@ m, .clickable {
   }
 }
 
+#cytoTable .tag {
+  height: 1.4rem;
+  margin: 2px 3px;
+  user-select: none;
+  &.hl {
+    background: $primary;
+    color: whitesmoke;
+  }
+}
+
 #mapViewer {
   #menu {
     width: auto;

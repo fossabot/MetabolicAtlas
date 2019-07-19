@@ -37,12 +37,12 @@ export default function (c, reactions, relms, rrels, rcomp, rsub) {
         type: 'metabolite',
         name: m.name,
         formula: m.formula,
-        compartment: m.compartment,
+        compartment: m.compartment_str,
         subsystem: new Set(),
         reaction: new Set([r.id]),
       };
-      compartmentSet.add(m.compartment);
-      reactionComp.add(m.compartment);
+      compartmentSet.add(m.compartment_str);
+      reactionComp.add(m.compartment_str);
       if (r.subsystem) {
         metabolite.subsystem.add(...r.subsystem);
       }

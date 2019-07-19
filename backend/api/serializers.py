@@ -163,30 +163,31 @@ class HmrReactionSerializer(ReactionBasicSerializer):
 
 # =========================================================================================
 
+# # not used?
+# class InteractionPartnerSerializer(serializers.ModelSerializer):
+#     modifiers = APIrcSerializer.ReactionComponentSerializer(many=True, read_only=True)
+#     products = APIrcSerializer.ReactionComponentSerializer(many=True, read_only=True)
+#     reactants = APIrcSerializer.ReactionComponentSerializer(many=True, read_only=True)
+
+#     class Meta:
+#         model = APImodels.Reaction
+#         fields = ('id', 'is_reversible', 'modifiers', 'products', 'reactants')
+
+# # not used?
+# class HmrInteractionPartnerLiteSerializer(serializers.ModelSerializer):
+#     modifiers = APIrcSerializer.ReactionComponentLiteSerializer(many=True, read_only=True)
+#     products = APIrcSerializer.ReactionComponentLiteSerializer(many=True, read_only=True)
+#     reactants = APIrcSerializer.ReactionComponentLiteSerializer(many=True, read_only=True)
+
+#     class Meta:
+#         model = APImodels.Reaction
+#         fields = ('id', 'is_reversible', 'modifiers', 'products', 'reactants')
+
+
 class InteractionPartnerSerializer(serializers.ModelSerializer):
-    modifiers = APIrcSerializer.ReactionComponentSerializer(many=True, read_only=True)
-    products = APIrcSerializer.ReactionComponentSerializer(many=True, read_only=True)
-    reactants = APIrcSerializer.ReactionComponentSerializer(many=True, read_only=True)
-
-    class Meta:
-        model = APImodels.Reaction
-        fields = ('id', 'is_reversible', 'modifiers', 'products', 'reactants')
-
-
-class HmrInteractionPartnerLiteSerializer(serializers.ModelSerializer):
-    modifiers = APIrcSerializer.ReactionComponentLiteSerializer(many=True, read_only=True)
-    products = APIrcSerializer.ReactionComponentLiteSerializer(many=True, read_only=True)
-    reactants = APIrcSerializer.ReactionComponentLiteSerializer(many=True, read_only=True)
-
-    class Meta:
-        model = APImodels.Reaction
-        fields = ('id', 'is_reversible', 'modifiers', 'products', 'reactants')
-
-
-class HmrInteractionPartnerSerializer(serializers.ModelSerializer):
-    modifiers = APIrcSerializer.HmrEnzymeReactionComponentInteractionPartnerSerializer(many=True, read_only=True)
-    products = APIrcSerializer.HmrMetaboliteReactionComponentInteractionPartnerSerializer(many=True, read_only=True)
-    reactants = APIrcSerializer.HmrMetaboliteReactionComponentInteractionPartnerSerializer(many=True, read_only=True)
+    modifiers = APIrcSerializer.EnzymeReactionComponentInteractionPartnerSerializer(many=True, read_only=True)
+    products = APIrcSerializer.MetaboliteReactionComponentInteractionPartnerSerializer(many=True, read_only=True)
+    reactants = APIrcSerializer.MetaboliteReactionComponentInteractionPartnerSerializer(many=True, read_only=True)
     subsystem = serializers.SlugRelatedField(
         many=True,
         read_only=True,
@@ -195,7 +196,7 @@ class HmrInteractionPartnerSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = APImodels.Reaction
-        fields = ('id', 'is_reversible', 'modifiers', 'products', 'reactants', 'subsystem')
+        fields = ('id', 'is_reversible', 'modifiers', 'products', 'reactants', 'subsystem', 'compartment')
 
 
 # =========================================================================================

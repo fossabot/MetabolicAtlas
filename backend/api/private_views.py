@@ -585,7 +585,7 @@ def get_component_with_interaction_partners(request, model, id):
     reactions_count = component.reactions_as_metabolite.count() + \
         component.reactions_as_modifier.count()
 
-    if reactions_count > 100:
+    if reactions_count > 200:
         return HttpResponse(status=406)
 
     reactions = list(chain(

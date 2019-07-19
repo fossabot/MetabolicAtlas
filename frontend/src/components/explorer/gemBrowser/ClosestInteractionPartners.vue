@@ -10,7 +10,7 @@
       <div v-show="!errorMessage">
         <div class="container columns">
           <div class="column is-8">
-            <h3 class="title is-3 is-marginless">{{ messages.interPartName }} for {{ title }}</h3>
+            <h3 class="title is-3 is-marginless" v-html="`${messages.interPartName} for ${title}`"></h3>
           </div>
           <div class="column">
             <div class="dropdown" id="dropdownMenuExport">
@@ -79,9 +79,6 @@
                 <span class="button" v-on:click="fitGraph()" title="Fit to frame"><i class="fa fa-arrows-alt"></i></span>
                 <span class="button" v-on:click="resetGraph(true)" title="Reload"><i class="fa fa-refresh"></i></span>
                 <span class="button" v-on:click="resetGraph(false)" title="Clean selection/highlight"><i class="fa fa-eraser"></i></span>
-                <span class="button" v-on:click="viewReaction(reactionHL)" v-show="reactionHL" title="Options">
-                  {{ reactionHL }}
-                </span>
               </div>
               <div v-show="showGraphLegend" id="contextGraphLegend" ref="contextGraphLegend">
                 <button class="delete" v-on:click="toggleGraphLegend"></button>
@@ -207,12 +204,14 @@
         </div>
         <div id="cip-table">
           <cytoscape-table
-            :structure="tableStructure[model.database_name]"
-            :elms="elms"
+            :reactions="reactions"
             :selected-elm-id="clickedElmId"
+            :selected-reaction-id="reactionHL"
+            :is-graph-visible="showNetworkGraph"
             :filename="filename"
             :sheetname="componentName"
             @highlight="highlightNode($event)"
+            @HLreaction="highlightReaction($event)"
           ></cytoscape-table>
         </div>
       </div>
@@ -269,6 +268,7 @@ export default {
 
       rawRels: {},
       rawElms: {},
+      reactions: [],
 
       id: '',
       selectedElmId: '',
@@ -304,18 +304,6 @@ export default {
       disableExpLvl: false,
 
       cy: null,
-      tableStructure: {
-        human1: [
-          { field: 'type', colName: 'Type' },
-          { field: 'name', colName: 'Name' },
-          { field: 'compartment_str', colName: 'Compartment' },
-        ],
-        yeast8: [
-          { field: 'type', colName: 'Type' },
-          { field: 'name', colName: 'Name' },
-          { field: 'compartment_str', colName: 'Compartment' },
-        ],
-      },
 
       showMenuExport: false,
       showMenuExpression: false,
@@ -446,7 +434,7 @@ export default {
           this.loading = false;
           this.showGraphContextMenu = false;
           const component = response.data.component;
-          const reactions = response.data.reactions;
+          this.reactions = response.data.reactions;
 
           this.componentName = component.name || component.gene_name || component.id;
           this.id = component.id;
@@ -463,7 +451,7 @@ export default {
           }
 
           [this.rawElms, this.rawRels, this.compartmentList, this.subsystemList] =
-            transform(component, reactions, null, null, null, null);
+            transform(component, this.reactions, null, null, null, null);
           if (this.compartmentList.length === 1) {
             this.compartmentHL = '';
             this.disableCompartmentHL = true;
@@ -514,6 +502,7 @@ export default {
 
           const component = response.data.component;
           const reactions = response.data.reactions;
+          this.reactions = this.reactions.concat(reactions);
           [this.rawElms, this.rawRels, this.compartmentList, this.subsystemList] =
             transform(component, reactions, this.rawElms, this.rawRels,
              this.compartmentList, this.subsystemList);
@@ -568,8 +557,10 @@ export default {
         (this.compartmentList.length < 2 && this.subsystemList.length === 0));
     },
     highlightReaction(rid) {
-      if (rid) {
+      if (this.cy) {
+        this.clickedElmId = '';
         this.reactionHL = rid;
+        this.clickedElm = { id: rid, type: 'reaction' };
         this.redrawGraph();
         this.showGraphContextMenu = false;
       }
@@ -653,13 +644,14 @@ export default {
       }, 300);
     },
     highlightNode(elmId) {
-      if (!this.showNetworkGraph) {
-        return;
-      }
+      this.showGraphContextMenu = false;
+      this.reactionHL = null;
+      this.clickedElmId = elmId;
       this.cy.nodes().deselect();
       const node = this.cy.getElementById(elmId);
       node.json({ selected: true });
       node.trigger('tap');
+      this.redrawGraph();
     },
     generateGraph(callback) {
       this.showNetworkGraph = true;
