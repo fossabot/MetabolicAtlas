@@ -91,7 +91,7 @@
           <ul>
             <li>Load interaction partners: reload the interaction partners graph with the clicked node as the new central node.</li>
             <li>Expand interaction partners: add additional interaction partner nodes for the clicked node to the graph. Expanded interactions are represented with dashed lines.</li>
-            <li>Highlight reaction: some nodes may be involve in many different reactions. Select a reaction from the list to show the other interaction partners associated with the selected reaction (other interaction partners will be grayed-out). The highlighted reaction ID will be shown on the top of the graph. The directionality of each edge is indicated as a triangle, or diamonds in case of a reversible reaction. To remove the highlight, click on the "eraser" button at the top of the graph.</li>
+            <li>Highlight reaction: some nodes may be involve in many different reactions. Select a reaction from the list to show the other interaction partners associated with the selected reaction (other interaction partners will be grayed-out). The directionality of each edge is indicated as a triangle, or diamonds in case of a reversible reaction. To remove the highlight, click on the "eraser" button at the top of the graph.</li>
           </ul>
           Clicking on a node also shows a link on the right sidebar to quickly access the <a href="#GEM Browser">GEM browser</a> page for that node.
           The top-left buttons allow users to (from left to right): customize the graph node's shape and colors, zoom in, zoom out, reset the display, reload the graph (remove expanded interaction partners), and remove any highlighting. The nodes can also be moved around the graph by the user.
@@ -102,8 +102,8 @@
           <h6 class="has-text-grey">Highlights</h6>
           Nodes may belong to multiple compartments and/or subsystems. The filter box allows users to highlight (label color) the nodes belonging to a given subsystem or compartment. The two filters are additive. Enzymes may catalyze multiple reactions in differents compartments / subsystems - such enzymes are highlighted in orange.
 
-          <h6 class="has-text-grey">Nodes table</h6>
-          All the metabolite and enzyme nodes are listed in this table along with their compartment localization. For enzymes, the compartment is determined based on the localization of the metabolites of reactions catalyzed by the enzyme; it does not describe the <i>in vivo</i> localization of the enzyme in the cell compartment. Selecting a row in the table will select the corresponding node on the graph, and vice versa. The search bar above the table can be used to filter out rows to find a given component.
+          <h6 class="has-text-grey">Reactions table</h6>
+          Information of the reactions are listed in this table. Selecting a label of metabolite or enzyme in the table will select the corresponding node on the graph, and vice versa. Selecting a reaction ID label highlight the reaction on the graph. The search bar above the table can be used to filter out rows to find a given component. The table can be exported via the "Export to TSV" button.
 
           <hr>
           <h3 id="Map Viewer">Map Viewer</h3>
