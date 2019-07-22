@@ -30,11 +30,11 @@
           <span class="tag">
             # Unique Metabolite(s): {{ metaboliteCount }}
           </span>
-          <span v-show="enzymeCount">
+          <span v-show="geneCount">
             &nbsp;
           </span>
-          <span class="tag" v-show="enzymeCount">
-             # Unique Enzyme(s): {{ enzymeCount }}
+          <span class="tag" v-show="geneCount">
+             # Unique Gene(s): {{ geneCount }}
           </span>
           <span class="is-pulled-right" v-show="isGraphVisible">
              Click on a <span class="tag is-rounded"><span class="is-size-6">label</span></span> to highlight the corresponding element on the graph
@@ -63,9 +63,9 @@
                  {{ r.id }}
                 </template>
               </td>
-              <td v-else-if="['reactants', 'products', 'modifiers'].includes(s.field)">
+              <td v-else-if="['reactants', 'products', 'genes'].includes(s.field)">
                 <template v-for="el in r[s.field]">
-                  <span class="tag is-rounded clickable is-medium" :title="s.field !== 'modifiers' ? `${el.id} - ${el.compartment_str}` : el.id"
+                  <span class="tag is-rounded clickable is-medium" :title="s.field !== 'genes' ? `${el.id} - ${el.compartment_str}` : el.id"
                     @click="highlight(el.id)" :class="[{ 'hl': isSelected(el.id) }, '']">
                     <span class="">{{ el.name || el.id }}</span>
                   </span>
@@ -85,9 +85,9 @@
                   <span class="is-size-6">{{ r.id }}</span>
                 </span>
               </td>
-              <td v-else-if="['reactants', 'products', 'modifiers'].includes(s.field)">
+              <td v-else-if="['reactants', 'products', 'genes'].includes(s.field)">
                 <template v-for="el in r[s.field]">
-                  <span class="tag is-rounded clickable" :title="s.field !== 'modifiers' ? `${el.id} - ${el.compartment_str}` : el.id"
+                  <span class="tag is-rounded clickable" :title="s.field !== 'genes' ? `${el.id} - ${el.compartment_str}` : el.id"
                     @click="highlight(el.id)" :class="[{ 'hl': isSelected(el.id) }, '']">
                     <span class="is-size-6">{{ el.name || el.id }}</span>
                   </span>&nbsp;
@@ -125,7 +125,7 @@ export default {
         { field: 'id', display: 'Reaction ID' },
         { field: 'reactants', display: 'Reactants' },
         { field: 'products', display: 'Products' },
-        { field: 'modifiers', display: 'Enzymes' },
+        { field: 'genes', display: 'Genes' },
         { field: 'compartment', display: 'Compartment', modifier: this.reformatEqSign },
       ],
       sortedReactions: [],
@@ -146,12 +146,12 @@ export default {
     filteredReactions: function f() {
       return this.reactions.map(e => e);
     },
-    enzymeCount() {
-      const enzymes = new Set();
+    geneCount() {
+      const genes = new Set();
       for (const r of this.reactions) {
-        r.modifiers.forEach((e) => { enzymes.add(e.id); });
+        r.genes.forEach((e) => { genes.add(e.id); });
       }
-      return enzymes.size;
+      return genes.size;
     },
     metaboliteCount() {
       const metabolites = new Set();
@@ -208,7 +208,7 @@ export default {
           let matches = false;
           for (const s of this.columns) {
             const val = elm[s.field];
-            if (typeof val === 'object' && ['reactants', 'products', 'modifiers'].includes(s.field)) {
+            if (typeof val === 'object' && ['reactants', 'products', 'genes'].includes(s.field)) {
               let match = false;
               for (const el of val) {
                 for (const k of Object.keys(el)) {
@@ -253,7 +253,7 @@ export default {
           d.id,
           d.reactants.map(e => e.name || e.id).join('; '),
           d.products.map(e => e.name || e.id).join('; '),
-          d.modifiers.map(e => e.name || e.id).join('; '),
+          d.genes.map(e => e.name || e.id).join('; '),
           d.compartment,
         ].join('\t')
         ).join('\n');

@@ -67,7 +67,7 @@ def get_reaction(request, model, id):
     try:
         reaction = APImodels.Reaction.objects.using(model).filter(id__iexact=id) \
             .prefetch_related('reactionreactant_set', 'reactionreactant_set__reactant',
-                              'reactionproduct_set', 'reactionproduct_set__product', 'modifiers')
+                              'reactionproduct_set', 'reactionproduct_set__product', 'genes')
     except APImodels.Reaction.DoesNotExist:
         return HttpResponse(status=404)
 
@@ -90,7 +90,7 @@ def get_related_reactions(request, model, id):
         related_reactions = APImodels.Reaction.objects.using(model).filter(
             Q(related_group=rea.related_group) & ~Q(id=rea.id)) \
             .prefetch_related('reactionreactant_set', 'reactionreactant_set__reactant',
-                                 'reactionproduct_set', 'reactionproduct_set__product', 'modifiers')
+                                 'reactionproduct_set', 'reactionproduct_set__product', 'genes')
     except APImodels.Reaction.DoesNotExist:
         return HttpResponse(status=404)
 
@@ -279,7 +279,7 @@ def get_db_json(request, model, component_name_id=None, ctype=None, dup_meta=Fal
             reactions_id = APImodels.ReactionCompartment.objects.using(model). \
                 filter(compartment=compartment).values_list('reaction', flat=True)
             reactions = APImodels.Reaction.objects.using(model).filter(id__in=reactions_id). \
-                prefetch_related('reactants', 'products', 'modifiers')
+                prefetch_related('reactants', 'products', 'genes')
         else:
             try:
                 subsystem = APImodels.Subsystem.objects.using(model).get(name_id__iexact=component_name_id)
@@ -289,15 +289,15 @@ def get_db_json(request, model, component_name_id=None, ctype=None, dup_meta=Fal
             reactions_id = APImodels.SubsystemReaction.objects.using(model). \
                 filter(subsystem=subsystem).values_list('reaction', flat=True)
             reactions = APImodels.Reaction.objects.using(model).filter(id__in=reactions_id). \
-                prefetch_related('reactants', 'products', 'modifiers')
+                prefetch_related('reactants', 'products', 'genes')
     else:
-        reactions = APImodels.Reaction.objects.using(model).all().prefetch_related('reactants', 'products', 'modifiers')
+        reactions = APImodels.Reaction.objects.using(model).all().prefetch_related('reactants', 'products', 'genes')
 
     nodes = {}
     links = {}
     linksList = []
 
-    duplicateEnzyme = True
+    duplicateGene = True
     duplicatedEnz= {}
     duplicateMetabolite = dup_meta
     duplicatedId = {}
@@ -383,7 +383,7 @@ def get_db_json(request, model, component_name_id=None, ctype=None, dup_meta=Fal
             # links[rel['id']] = rel
             linksList.append(rel)
 
-        for e in r.modifiers.all():
+        for e in r.genes.all():
             eid = "%s-0" % (e.id)
             if eid in nodes:
                 duplicatedEnz[eid] += 1;
@@ -392,12 +392,12 @@ def get_db_json(request, model, component_name_id=None, ctype=None, dup_meta=Fal
                 duplicatedEnz[eid] = 0;
                 # eid = "%s-%s" % (eid, duplicatedEnz[eid])
 
-            enzyme = {
+            gene = {
               'id': eid,
               'g': 'e',
               'n': e.name or e.alt_name1 or e.id,
             }
-            nodes[eid] = enzyme;
+            nodes[eid] = gene;
 
             rel = {
               #'id': eid + "-" + r.id,
@@ -421,13 +421,13 @@ def get_db_json(request, model, component_name_id=None, ctype=None, dup_meta=Fal
 #####################################################################################
 
 @api_view()
-def HPA_all_enzymes(request):
+def HPA_all_genes(request):
     model = "human1"
-    result = APImodels.SubsystemEnzyme.objects.using(model).values_list('rc__id', 'subsystem__name','subsystem__name_id')
+    result = APImodels.SubsystemGene.objects.using(model).values_list('rc__id', 'subsystem__name','subsystem__name_id')
     return JSONResponse(result)
 
 @api_view()
-def HPA_enzyme_info(request, ensembl_id): # ENSG00000110921
+def HPA_gene_info(request, ensembl_id): # ENSG00000110921
     model = "human1"
 
     # l = logging.getLogger('django.db.backends')
@@ -441,9 +441,9 @@ def HPA_enzyme_info(request, ensembl_id): # ENSG00000110921
         return HttpResponse(status=404)
 
     subs = APImodels.Subsystem.objects.using(model).filter(
-            Q(id__in=APImodels.SubsystemEnzyme.objects.using(model).filter(rc_id=rcid).values('subsystem_id')) &
+            Q(id__in=APImodels.SubsystemGene.objects.using(model).filter(rc_id=rcid).values('subsystem_id')) &
             ~Q(system='Collection of reactions')
-        ).select_related('subsystem_svg').prefetch_related('reactions', 'compartment', 'enzymes')
+        ).select_related('subsystem_svg').prefetch_related('reactions', 'compartment', 'genes')
 
     subsystems = []
     for sub in subs.all():
@@ -451,9 +451,9 @@ def HPA_enzyme_info(request, ensembl_id): # ENSG00000110921
         # get the reactions
         sub_dict['name'] = sub.name
         sub_dict['compartments'] = sub.compartment.values_list('name', flat=True)
-        sub_dict['enzymes'] = sub.enzymes.all().values_list('id', flat=True)
+        sub_dict['genes'] = sub.genes.all().values_list('id', flat=True)
         # sub['compartments'] = list(compartments)
-        sub_dict['reactions_catalysed'] = APImodels.ReactionModifier.objects.using(model).filter(Q(reaction__in=sub.reactions.all()) & Q(modifier_id=rcid)).count()
+        sub_dict['reactions_catalysed'] = APImodels.ReactionGene.objects.using(model).filter(Q(reaction__in=sub.reactions.all()) & Q(gene_id=rcid)).count()
         if sub.subsystem_svg.sha:
             sub_dict['map_url'] = "https://ftp.metabolicatlas.org/.maps/%s/%s.svg" % (model, sub.name_id)
         else:
@@ -462,12 +462,12 @@ def HPA_enzyme_info(request, ensembl_id): # ENSG00000110921
         sub_dict['model_metabolite_count'] = sub.unique_metabolite_count
         sub_dict['compartment_metabolite_count'] = sub.metabolite_count
         sub_dict['reaction_count'] = sub.reaction_count
-        sub_dict['enzyme_count'] = sub.enzyme_count
+        sub_dict['gene_count'] = sub.gene_count
 
         subsystems.append(sub_dict)
 
     result = {
-        'enzyme_url': "https://www.metabolicatlas.org/explore/gem-browser/%s/enzyme/%s" % (model, ensembl_id),
+        'gene_url': "https://www.metabolicatlas.org/explore/gem-browser/%s/gene/%s" % (model, ensembl_id),
         'subsystems': subsystems,
         'doc': 'A subsystem can contain the same chemical metabolite that comes from different compartments.',
     }
@@ -559,8 +559,8 @@ def get_tiles_data(request, model):
     subsystems = APImodels.Subsystem.objects.using(model).all().order_by('?')[:2]
     reactions = APImodels.Reaction.objects.using(model).all().order_by('?')[:2]
     metabolites = APImodels.ReactionComponent.objects.using(model).filter(component_type='m').order_by('?')[:2]
-    enzymes = APImodels.ReactionComponent.objects.using(model).filter(component_type='e').order_by('?')[:2]
-    res = APImodels.GemBrowserTile(compartments, subsystems, reactions, metabolites, enzymes)
+    genes = APImodels.ReactionComponent.objects.using(model).filter(component_type='e').order_by('?')[:2]
+    res = APImodels.GemBrowserTile(compartments, subsystems, reactions, metabolites, genes)
     return JSONResponse(APIserializer.GemBrowserTileSerializer(res).data)
 
 
@@ -577,27 +577,28 @@ def get_component_with_interaction_partners(request, model, id):
         return HttpResponse(status=404)
 
     if (component.component_type == 'e'):
-        RCSerializerClass = componentDBserializerSelector(model, 'enzyme')
+        RCSerializerClass = componentDBserializerSelector(model, 'gene')
     else:
         RCSerializerClass = componentDBserializerSelector(model, 'metabolite')
 
     component_serializer = RCSerializerClass(component, context={'model': model})
     reactions_count = component.reactions_as_metabolite.count() + \
-        component.reactions_as_modifier.count()
+        component.reactions_as_gene.count()
 
     if reactions_count > 200:
         return HttpResponse(status=406)
 
     reactions = list(chain(
         component.reactions_as_metabolite. \
-        prefetch_related('reactants', 'products', 'modifiers', 'reactants__metabolite', \
-            'products__metabolite', 'modifiers__enzyme', \
-            'reactants__compartment', 'products__compartment', 'modifiers__compartment').all(),
-        component.reactions_as_modifier. \
-        prefetch_related('reactants', 'products', 'modifiers', 'reactants__metabolite', \
-            'products__metabolite', 'modifiers__enzyme', \
-            'reactants__compartment', 'products__compartment', 'modifiers__compartment').all()
+        prefetch_related('reactants', 'products', 'genes', 'reactants__metabolite', \
+            'products__metabolite', 'genes__gene', \
+            'reactants__compartment', 'products__compartment', 'genes__compartment').all(),
+        component.reactions_as_gene. \
+        prefetch_related('reactants', 'products', 'genes', 'reactants__metabolite', \
+            'products__metabolite', 'genes__gene', \
+            'reactants__compartment', 'products__compartment', 'genes__compartment').all()
     ))
+
     InteractionPartnerSerializerClass = componentDBserializerSelector(model, 'interaction partner')
     reactions_serializer = InteractionPartnerSerializerClass(reactions, many=True)
 
@@ -626,15 +627,15 @@ def get_hpa_rna_levels_map(request, model, map_type, dim, name_id):
                 compartment = APImodels.CompartmentSvg.objects.using(model).get(name_id__iexact=name_id)
             except APImodels.CompartmentSvg.DoesNotExist:
                 return HttpResponse(status=404)
-            levels = APImodels.HpaEnzymeLevel.objects.using(model). \
-                filter(rc__in=APImodels.CompartmentSvgEnzyme.objects.filter(compartmentsvg=compartment).values('rc')).values_list('rc_id', 'levels')
+            levels = APImodels.HpaProteinLevel.objects.using(model). \
+                filter(rc__in=APImodels.CompartmentSvgGene.objects.filter(compartmentsvg=compartment).values('rc')).values_list('rc_id', 'levels')
         elif dim == "3d":
             try:
                 compartment = APImodels.Compartment.objects.using(model).get(name_id__iexact=name_id)
             except APImodels.Compartment.DoesNotExist:
                 return HttpResponse(status=404)
-            levels = APImodels.HpaEnzymeLevel.objects.using(model). \
-                filter(rc__in=APImodels.CompartmentEnzyme.objects.filter(compartment=compartment).values('rc')).values_list('rc_id', 'levels')
+            levels = APImodels.HpaProteinLevel.objects.using(model). \
+                filter(rc__in=APImodels.CompartmentGene.objects.filter(compartment=compartment).values('rc')).values_list('rc_id', 'levels')
         else:
             return HttpResponse(status=404)
     elif map_type == "subsystem":
@@ -643,15 +644,15 @@ def get_hpa_rna_levels_map(request, model, map_type, dim, name_id):
                 subsystem = APImodels.SubsystemSvg.objects.using(model).get(name_id__iexact=name_id)
             except APImodels.SubsystemSvg.DoesNotExist:
                 return HttpResponse(status=404)
-            levels = APImodels.HpaEnzymeLevel.objects.using(model). \
-                filter(rc__in=APImodels.SubsystemSvgEnzyme.objects.filter(subsystemsvg=subsystem).values('rc')).values_list('rc_id', 'levels')
+            levels = APImodels.HpaProteinLevel.objects.using(model). \
+                filter(rc__in=APImodels.SubsystemSvgGene.objects.filter(subsystemsvg=subsystem).values('rc')).values_list('rc_id', 'levels')
         elif dim == "3d":
             try:
                 subsystem = APImodels.Subsystem.objects.using(model).get(name_id__iexact=name_id)
             except APImodels.Subsystem.DoesNotExist:
                 return HttpResponse(status=404)
-            levels = APImodels.HpaEnzymeLevel.objects.using(model). \
-                filter(rc__in=APImodels.SubsystemEnzyme.objects.filter(subsystem=subsystem).values('rc')).values_list('rc_id', 'levels')
+            levels = APImodels.HpaProteinLevel.objects.using(model). \
+                filter(rc__in=APImodels.SubsystemGene.objects.filter(subsystem=subsystem).values('rc')).values_list('rc_id', 'levels')
         else:
             return HttpResponse(status=404)
     else:
@@ -672,7 +673,7 @@ def get_hpa_rna_levels(request, model):
     if not ensemblIDs:
         return HttpResponse(status=404)
 
-    levels = APImodels.HpaEnzymeLevel.objects.using(model).filter(rc__in=ensemblIDs).values_list('rc_id', 'levels')
+    levels = APImodels.HpaProteinLevel.objects.using(model).filter(rc__in=ensemblIDs).values_list('rc_id', 'levels')
     tissues = APImodels.HpaTissue.objects.using(model).all().values_list('tissue', flat=True)
 
     return JSONResponse(
@@ -700,7 +701,7 @@ def get_related_metabolites(request, model, id):
 @api_view()
 def search(request, model, term):
     """
-        Searches for the term in metabolites, enzymes, reactions, subsystems and compartments.
+        Searches for the term in metabolites, genes, reactions, subsystems and compartments.
         Current search rules:
 
         =: exact match, case insensitive
@@ -726,9 +727,9 @@ def search(request, model, term):
             ~aliases
             =external_idX
             ~formula
-        enzyme:
+        gene:
             same as metabolite, but name instead of full_name
-            (enzymes do not have formula)
+            (genes do not have formula)
     """
 
     # l = logging.getLogger('django.db.backends')
@@ -782,7 +783,7 @@ def search(request, model, term):
 
         reactions = APImodels.Reaction.objects.using(model).none()
         metabolites = APImodels.ReactionComponent.objects.using(model).none()
-        enzymes = APImodels.ReactionComponent.objects.using(model).none()
+        genes = APImodels.ReactionComponent.objects.using(model).none()
         compartments = APImodels.Compartment.objects.using(model).none()
         subsystems = APImodels.Subsystem.objects.using(model).none()
 
@@ -936,7 +937,7 @@ def search(request, model, term):
                     Q(metabolites__in=exact_metabolites) & ~Q(id__in=reactions.values_list('id', flat=True)))[:(limit - reactions.count())]
                 reactions = list(chain(reactions, reactions_mets))
 
-            enzymes = APImodels.ReactionComponent.objects.using(model).select_related('enzyme').prefetch_related('subsystem_enzyme', 'compartment_enzyme').filter(
+            genes = APImodels.ReactionComponent.objects.using(model).select_related('gene').prefetch_related('subsystem_gene', 'compartment_gene').filter(
                 Q(component_type__exact='e') &
                 (Q(id__iexact=term) |
                 Q(name__icontains=term) |
@@ -953,22 +954,22 @@ def search(request, model, term):
                 Q(external_id8__iexact=term))
             )[:limit]
 
-        if (metabolites.count() + enzymes.count() + compartments.count() + subsystems.count() + len(reactions)) != 0:
+        if (metabolites.count() + genes.count() + compartments.count() + subsystems.count() + len(reactions)) != 0:
             match_found = True
 
         MetaboliteSerializerClass = componentDBserializerSelector(model, 'metabolite', serializer_type='lite' if quickSearch else 'search', api_version=request.version)
-        EnzymeSerializerClass = componentDBserializerSelector(model, 'enzyme', serializer_type='lite' if quickSearch else 'search', api_version=request.version)
+        GeneSerializerClass = componentDBserializerSelector(model, 'gene', serializer_type='lite' if quickSearch else 'search', api_version=request.version)
         ReactionSerializerClass= componentDBserializerSelector(model, 'reaction', serializer_type='basic' if quickSearch else 'search', api_version=request.version)
         SubsystemSerializerClass = componentDBserializerSelector(model, 'subsystem', serializer_type='lite' if quickSearch else 'search', api_version=request.version)
 
         metaboliteSerializer = MetaboliteSerializerClass(metabolites, many=True)
-        enzymeSerializer = EnzymeSerializerClass(enzymes, many=True)
+        geneSerializer = GeneSerializerClass(genes, many=True)
         compartmentSerializer = APIserializer.CompartmentSerializer(compartments, many=True)
         subsystemSerializer = SubsystemSerializerClass(subsystems, many=True, context={'model': model})
         reactionSerializer = ReactionSerializerClass(reactions, many=True, context={'model': model})
 
         results[model]['metabolite'] = metaboliteSerializer.data
-        results[model]['enzyme'] = enzymeSerializer.data
+        results[model]['gene'] = geneSerializer.data
         results[model]['compartment'] = compartmentSerializer.data
         results[model]['subsystem'] = subsystemSerializer.data
         results[model]['reaction'] = reactionSerializer.data

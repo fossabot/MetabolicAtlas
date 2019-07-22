@@ -82,11 +82,11 @@
               </div>
               <div v-show="showGraphLegend" id="contextGraphLegend" ref="contextGraphLegend">
                 <button class="delete" v-on:click="toggleGraphLegend"></button>
-                <span class="label">Enzyme</span>
+                <span class="label">Gene</span>
                 <div class="comp">
                   <span>Shape:</span>
                   <div class="select">
-                    <select v-model="nodeDisplayParams.enzymeNodeShape"
+                    <select v-model="nodeDisplayParams.geneNodeShape"
                     v-on:change="redrawGraph()">
                       <option v-for="shape in availableNodeShape">
                       {{ shape }}
@@ -95,10 +95,10 @@
                   </div>
                   <span>Color:</span>
                   <span class="color-span clickable"
-                    v-bind:style="{ background: nodeDisplayParams.enzymeNodeColor.hex }"
-                    v-on:click="toggleEnzymeColorPicker()">
+                    v-bind:style="{ background: nodeDisplayParams.geneNodeColor.hex }"
+                    v-on:click="toggleGeneColorPicker()">
                     <compact-picker v-show="showColorPickerEnz"
-                    v-model="nodeDisplayParams.enzymeNodeColor" @input="updateExpAndredrawGraph(false, 'enzyme')"></compact-picker>
+                    v-model="nodeDisplayParams.geneNodeColor" @input="updateExpAndredrawGraph(false, 'gene')"></compact-picker>
                   </span>
                 </div>
                 <br>
@@ -130,20 +130,20 @@
                 <header class="card-header">
                   <p class="card-header-title">
                     <label class="checkbox is-unselectable"
-                    :title="`Click to ${toggleEnzymeExpLevel ? 'disable' : 'activate'} expression RNA levels`">
-                      <input type="checkbox" v-model="toggleEnzymeExpLevel" :disabled="disableExpLvl"
-                      @click="applyLevels('enzyme', 'HPA', 'RNA', selectedSample)">
+                    :title="`Click to ${toggleGeneExpLevel ? 'disable' : 'activate'} expression RNA levels`">
+                      <input type="checkbox" v-model="toggleGeneExpLevel" :disabled="disableExpLvl"
+                      @click="applyLevels('gene', 'HPA', 'RNA', selectedSample)">
                       Enable <a href="https://www.proteinatlas.org/" target="_blank">proteinAtlas.org</a>&nbsp;RNA levels
                     </label>
                   </p>
                 </header>
-                <div class="card-content" v-show="toggleEnzymeExpLevel">
-                  <div id="graphLegend" v-show="(toggleMetaboliteExpLevel || toggleEnzymeExpLevel) && !disableExpLvl" v-html="legend">
+                <div class="card-content" v-show="toggleGeneExpLevel">
+                  <div id="graphLegend" v-show="(toggleMetaboliteExpLevel || toggleGeneExpLevel) && !disableExpLvl" v-html="legend">
                   </div>
                   <br>
-                  <div class="select is-fullwidth" :class="{ 'is-loading' : loadingHPA && toggleEnzymeExpLevel}" v-show="toggleEnzymeExpLevel && !disableExpLvl">
-                    <select id="enz-select" ref="enzHPAselect" v-model="selectedSample" :disabled="!toggleEnzymeExpLevel"
-                    @change.prevent="applyLevels('enzyme', 'HPA', 'RNA', selectedSample)"
+                  <div class="select is-fullwidth" :class="{ 'is-loading' : loadingHPA && toggleGeneExpLevel}" v-show="toggleGeneExpLevel && !disableExpLvl">
+                    <select id="enz-select" ref="enzHPAselect" v-model="selectedSample" :disabled="!toggleGeneExpLevel"
+                    @change.prevent="applyLevels('gene', 'HPA', 'RNA', selectedSample)"
                     title="Select a tissue type">
                       <optgroup label="HPA - RNA levels - Tissues">
                        <!--  <option value="None">None</option> -->
@@ -298,7 +298,7 @@ export default {
 
       // keep track of exp lvl source already loaded
       expSourceLoaded: {
-        enzyme: {},
+        gene: {},
         metabolite: {},
       },
       disableExpLvl: false,
@@ -307,7 +307,7 @@ export default {
 
       showMenuExport: false,
       showMenuExpression: false,
-      toggleEnzymeExpLevel: false,
+      toggleGeneExpLevel: false,
       toggleMetaboliteExpLevel: false,
 
       showGraphLegend: false,
@@ -333,11 +333,11 @@ export default {
       ],
 
       nodeDisplayParams: {
-        enzymeExpSource: false,
-        enzymeExpType: false,
-        enzymeExpSample: false,
-        enzymeNodeShape: 'rectangle',
-        enzymeNodeColor: {
+        geneExpSource: false,
+        geneExpType: false,
+        geneExpSample: false,
+        geneNodeShape: 'rectangle',
+        geneNodeColor: {
           hex: '#9F0500',
           hsl: {
             h: 1.8868, s: 1, l: 0.3118, a: 1,
@@ -417,7 +417,7 @@ export default {
       this.$router.push(`/explore/gem-browser/${this.model.database_name}/interaction/${this.clickedElmId}`);
     },
     loadHPATissue() {
-      axios.get(`${this.model.database_name}/enzyme/hpa_tissue/`)
+      axios.get(`${this.model.database_name}/gene/hpa_tissue/`)
         .then((response) => {
           Vue.set(this.tissues, 'HPA', response.data);
         })
@@ -436,18 +436,17 @@ export default {
           const component = response.data.component;
           this.reactions = response.data.reactions;
 
-          this.componentName = component.name || component.gene_name || component.id;
+          this.componentName = component.name || component.id;
           this.id = component.id;
-          if ('gene_name' in component) {
-            // this.title = `${this.chemicalName(this.componentName)}`;
+          if ('formula' in component) {
+            this.title = `${this.chemicalName(this.componentName)}`;
+            component.type = 'metabolite';
+          } else {
             this.title = this.componentName;
             if (component.uniprot != null) {
               this.title = `${this.title} (<a href="${component.uniprot_link}" target="_blank">${component.uniprot}</a>)`;
             }
-            component.type = 'enzyme';
-          } else {
-            this.title = `${this.chemicalName(this.componentName)}`;
-            component.type = 'metabolite';
+            component.type = 'gene';
           }
 
           [this.rawElms, this.rawRels, this.compartmentList, this.subsystemList] =
@@ -471,7 +470,7 @@ export default {
           this.showNetworkGraph = true;
           this.errorMessage = '';
 
-          this.resetEnzymeExpression();
+          this.resetGeneExpression();
 
           // The set time out wrapper enforces this happens last.
           setTimeout(() => {
@@ -528,7 +527,7 @@ export default {
           this.showNetworkGraph = true;
           this.errorMessage = '';
 
-          this.resetEnzymeExpression();
+          this.resetGeneExpression();
 
           // The set time out wrapper enforces this happens last.
           setTimeout(() => {
@@ -584,18 +583,18 @@ export default {
       const option = document.getElementById('enz-select')
       .getElementsByTagName('optgroup')[0].childNodes[0];
       option.selected = 'selected';
-      this.nodeDisplayParams.enzymeExpSample = option.label;
+      this.nodeDisplayParams.geneExpSample = option.label;
     },
     updateExpAndredrawGraph(usingExpressionLevel, nodeType, expSource, expType, expSample) {
       setTimeout(() => {
         if ((expSource && expType) && !expSample) {
           // fix option selection! because of optgroup?
-          if (this.toggleEnzymeExpLevel) {
+          if (this.toggleGeneExpLevel) {
             this.fixEnzSelectOption();
           }
         }
         if (!usingExpressionLevel) {
-          if ((nodeType === 'enzyme' && this.toggleEnzymeExpLevel) ||
+          if ((nodeType === 'gene' && this.toggleGeneExpLevel) ||
             (nodeType === 'metabolite' && this.toggleMetaboliteExpLevel)) {
             return;
           }
@@ -617,7 +616,7 @@ export default {
       this.clickedElm = null;
       this.clickedElmId = '';
       this.showGraphContextMenu = false;
-      this.resetEnzymeExpression();
+      this.resetGeneExpression();
       this.resetHighlight();
       if (reload) {
         this.load();
@@ -657,7 +656,7 @@ export default {
       this.showNetworkGraph = true;
       this.errorMessage = null;
 
-      this.resetEnzymeExpression();
+      this.resetGeneExpression();
 
       // The set time out wrapper enforces this happens last.
       setTimeout(() => {
@@ -728,7 +727,7 @@ export default {
             if (node.data().id === id) {
               return 10000;
             }
-            if (node.data().type === 'enzyme') {
+            if (node.data().type === 'gene') {
               return 100;
             }
             return 200;
@@ -840,18 +839,18 @@ export default {
       document.body.removeChild(a);
     },
     applyLevels(componentType, expSource, expType, expSample) {
-      setTimeout(() => {  // wait this.toggleEnzymeExpLevel
+      setTimeout(() => {  // wait this.toggleGeneExpLevel
         if (this.disableExpLvl) {
           return;
         }
         this.expSource = expSource;
         this.expType = expType;
         this.expSample = expSample;
-        if (componentType === 'enzyme') {
-          if (this.toggleEnzymeExpLevel) {
-            if (this.nodeDisplayParams.enzymeExpSource !== expSource) {
-              this.nodeDisplayParams.enzymeExpSource = expSource;
-              this.nodeDisplayParams.enzymeExpType = expType;
+        if (componentType === 'gene') {
+          if (this.toggleGeneExpLevel) {
+            if (this.nodeDisplayParams.geneExpSource !== expSource) {
+              this.nodeDisplayParams.geneExpSource = expSource;
+              this.nodeDisplayParams.geneExpType = expType;
               // check if this source for ths type of component have been already loaded
               if (!Object.keys(this.expSourceLoaded[componentType]).length === 0 ||
                 !this.expSourceLoaded[componentType][expSource]) {
@@ -864,21 +863,21 @@ export default {
               } else {
                 this.updateExpAndredrawGraph(true, componentType, expSource, expType, expSample);
               }
-            } else if (this.nodeDisplayParams.enzymeExpType !== expType) {
-              this.nodeDisplayParams.enzymeExpType = expType;
+            } else if (this.nodeDisplayParams.geneExpType !== expType) {
+              this.nodeDisplayParams.geneExpType = expType;
               if (!this.expSourceLoaded.componentType.expSource.expType) {
                 // sources that load only one specific exp type
                 this.updateExpAndredrawGraph(true, componentType, expSource, expType, expSample);
               }
-            } else if (this.nodeDisplayParams.enzymeExpSample !== expSample) {
+            } else if (this.nodeDisplayParams.geneExpSample !== expSample) {
               this.updateExpAndredrawGraph(true, componentType, expSource, expType, expSample);
             }
-            this.nodeDisplayParams.enzymeExpSample = expSample;
+            this.nodeDisplayParams.geneExpSample = expSample;
           } else {
-            // disable expression lvl for enzyme
-            this.nodeDisplayParams.enzymeExpSource = false;
-            this.nodeDisplayParams.enzymeExpType = false;
-            this.nodeDisplayParams.enzymeExpSample = false;
+            // disable expression lvl for gene
+            this.nodeDisplayParams.geneExpSource = false;
+            this.nodeDisplayParams.geneExpType = false;
+            this.nodeDisplayParams.geneExpSample = false;
             this.updateExpAndredrawGraph(true, componentType, expSource, expType, expSample);
           }
         } else if (this.toggleMetaboliteExpLevel) {
@@ -930,19 +929,19 @@ export default {
         jquery(`#${id}`).offset().top - (container.offset().top + container.scrollTop())
       );
     },
-    resetEnzymeExpression() {
-      this.toggleEnzymeExpLevel = false;
-      this.nodeDisplayParams.enzymeExpSource = false;
-      this.nodeDisplayParams.enzymeExpType = false;
-      this.nodeDisplayParams.enzymeExpSample = false;
-      this.expSourceLoaded.enzyme = {};
+    resetGeneExpression() {
+      this.toggleGeneExpLevel = false;
+      this.nodeDisplayParams.geneExpSource = false;
+      this.nodeDisplayParams.geneExpType = false;
+      this.nodeDisplayParams.geneExpSample = false;
+      this.expSourceLoaded.gene = {};
     },
     getHPAexpression(rawElms) {
       this.loadingHPA = true;
-      const enzymes = Object.keys(rawElms).filter(el => rawElms[el].type === 'enzyme');
-      const enzymeIDs = enzymes.map(k => rawElms[k].id);
+      const genes = Object.keys(rawElms).filter(el => rawElms[el].type === 'gene');
+      const geneIDs = genes.map(k => rawElms[k].id);
 
-      axios.post(`${this.model.database_name}/enzyme/hpa_rna_levels/`, { data: enzymeIDs })
+      axios.post(`${this.model.database_name}/gene/hpa_rna_levels/`, { data: geneIDs })
       .then((response) => {
         const matLevels = response.data.levels;
         for (let i = 0; i < matLevels.length; i += 1) {
@@ -970,15 +969,15 @@ export default {
             this.rawElms[enzID].expressionLvl.HPA.RNA[tissue] = getExpressionColor(level);
           }
         }
-        this.expSourceLoaded.enzyme.HPA = {};
-        this.expSourceLoaded.enzyme.HPA.RNA = true;
+        this.expSourceLoaded.gene.HPA = {};
+        this.expSourceLoaded.gene.HPA.RNA = true;
         this.legend = getExpLvlLegend();
         this.disableExpLvl = false;
         this.loadingHPA = false;
         setTimeout(() => {
           // if ((expSource && expType) && !expSample) {
             // fix option selection! because of optgroup?
-            // if (this.toggleEnzymeExpLevel) {
+            // if (this.toggleGeneExpLevel) {
           this.fixEnzSelectOption();
             // }
           //  }
@@ -987,14 +986,14 @@ export default {
       })
       .catch(() => {
         this.loadingHPA = false;
-        this.toggleEnzymeExpLevel = false;
+        this.toggleGeneExpLevel = false;
         this.disableExpLvl = true;
-        this.nodeDisplayParams.enzymeExpSource = false;
-        this.nodeDisplayParams.enzymeExpType = false;
-        this.nodeDisplayParams.enzymeExpSample = false;
+        this.nodeDisplayParams.geneExpSource = false;
+        this.nodeDisplayParams.geneExpType = false;
+        this.nodeDisplayParams.geneExpSample = false;
       });
     },
-    toggleEnzymeColorPicker() {
+    toggleGeneColorPicker() {
       this.showColorPickerMeta = false;
       this.showColorPickerEnz = !this.showColorPickerEnz;
       return this.showColorPickerEnz;

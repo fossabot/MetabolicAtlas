@@ -70,7 +70,7 @@ export default {
   data() {
     return {
       errorMessage: '',
-      resultsOrder: ['metabolite', 'enzyme', 'reaction', 'subsystem', 'compartment'],
+      resultsOrder: ['metabolite', 'gene', 'reaction', 'subsystem', 'compartment'],
       searchResults: [],
       searchTermString: '',
       showSearchCharAlert: false,
@@ -81,14 +81,14 @@ export default {
 
       itemKeys: {
         human1: {
-          enzyme: ['id', 'gene_name'],
+          gene: ['id', 'name'],
           reaction: ['id', 'equation'],
           metabolite: ['id', 'name', 'compartment'],
           subsystem: ['name', 'system'],
           compartment: ['name'],
         },
         yeast8: {
-          enzyme: ['id', 'gene_name'],
+          gene: ['id', 'name'],
           reaction: ['id', 'equation'],
           metabolite: ['id', 'name', 'compartment'],
           subsystem: ['name', 'system'],
@@ -117,7 +117,7 @@ export default {
       .then((response) => {
         const localResults = {
           metabolite: [],
-          enzyme: [],
+          gene: [],
           reaction: [],
           subsystem: [],
           compartment: [],
@@ -125,7 +125,7 @@ export default {
 
         for (const model of Object.keys(response.data)) {
           const resultsModel = response.data[model];
-          for (const resultType of ['metabolite', 'enzyme', 'reaction', 'subsystem', 'compartment']) {
+          for (const resultType of ['metabolite', 'gene', 'reaction', 'subsystem', 'compartment']) {
             if (resultsModel[resultType]) {
               localResults[resultType] = localResults[resultType].concat(
                 resultsModel[resultType].map(

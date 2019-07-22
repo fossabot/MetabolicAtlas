@@ -51,7 +51,7 @@
                   <li>Formula</li>
                   <li>External identifiers</li>
                 </ul>
-                <span>Enzymes by:</span>
+                <span>Genes by:</span>
                 <ul>
                   <li>ID</li>
                   <li>Name or aliases</li>
@@ -103,7 +103,7 @@
                       <template v-if="props.formattedRow[props.column.field].length === 0">
                         {{ "" }}
                       </template>
-                      <template v-else v-if="['subsystem', 'enzyme'].includes(header)">
+                      <template v-else v-if="['subsystem', 'gene'].includes(header)">
                         <template v-for="(comp, i) in props.formattedRow[props.column.field]">
                           <template v-if="i != 0">; </template>
                           <router-link :to="{ path: `/explore/gem-browser/${props.row.model.id}/compartment/${idfy(comp)}` }"> {{ comp }}</router-link>
@@ -175,7 +175,7 @@ export default {
       },
       tabs: [
         'metabolite',
-        'enzyme',
+        'gene',
         'reaction',
         'subsystem',
         'compartment',
@@ -223,7 +223,7 @@ export default {
             sortable: true,
           },
         ],
-        enzyme: [
+        gene: [
           { label: 'Model',
             field: 'model',
             filterOptions: {
@@ -340,8 +340,8 @@ export default {
             },
             sortable: true,
           }, {
-            label: 'Enzymes',
-            field: 'enzyme_count',
+            label: 'Genes',
+            field: 'gene_count',
             filterOptions: {
               enabled: false,
             },
@@ -384,8 +384,8 @@ export default {
             sortable: true,
           },
           {
-            label: 'Enzymes',
-            field: 'enzymeCount',
+            label: 'Genes',
+            field: 'geneCount',
             filterOptions: {
               enabled: false,
             },
@@ -417,7 +417,7 @@ export default {
       loading: false,
       rows: {
         metabolite: [],
-        enzyme: [],
+        gene: [],
         reaction: [],
         subsystem: [],
         compartment: [],
@@ -454,7 +454,7 @@ export default {
           model: {},
           compartment: {},
         },
-        enzyme: {
+        gene: {
           model: {},
           compartment: {},
         },
@@ -474,7 +474,7 @@ export default {
 
       const rows = {
         metabolite: [],
-        enzyme: [],
+        gene: [],
         reaction: [],
         subsystem: [],
         compartment: [],
@@ -506,7 +506,7 @@ export default {
               subsystem: el.subsystem,
               compartment: el.compartment,
             });
-          } else if (componentType === 'enzyme') {
+          } else if (componentType === 'gene') {
             for (const field of Object.keys(filterTypeDropdown[componentType])) {
               if (field === 'model') {
                 filterTypeDropdown[componentType][field][el[field].id] = el[field].name;
@@ -523,7 +523,7 @@ export default {
             rows[componentType].push({
               id: el.id,
               model: el.model,
-              name: el.gene_name,
+              name: el.name,
               subsystem: el.subsystem,
               compartment: el.compartment,
             });
@@ -576,7 +576,7 @@ export default {
               name: el.name,
               compartment: el.compartment,
               metabolite_count: el.metabolite_count,
-              enzyme_count: el.enzyme_count,
+              gene_count: el.gene_count,
               reaction_count: el.reaction_count,
             });
           } else if (componentType === 'compartment') {
@@ -592,7 +592,7 @@ export default {
               model: el.model,
               name: el.name,
               metaboliteCount: el.metabolite_count,
-              enzymeCount: el.enzyme_count,
+              geneCount: el.gene_count,
               reactionCount: el.reaction_count,
               subsystemCount: el.subsystem_count,
             });
@@ -628,10 +628,10 @@ export default {
       this.columns.metabolite[4].filterOptions.filterDropdownItems =
           filterTypeDropdown.metabolite.compartment;
 
-      this.columns.enzyme[0].filterOptions.filterDropdownItems =
-          filterTypeDropdown.enzyme.model;
-      this.columns.enzyme[3].filterOptions.filterDropdownItems =
-          filterTypeDropdown.enzyme.compartment;
+      this.columns.gene[0].filterOptions.filterDropdownItems =
+          filterTypeDropdown.gene.model;
+      this.columns.gene[3].filterOptions.filterDropdownItems =
+          filterTypeDropdown.gene.compartment;
 
       this.columns.reaction[0].filterOptions.filterDropdownItems =
           filterTypeDropdown.reaction.model;
@@ -681,7 +681,7 @@ export default {
       .then((response) => {
         const localResults = {
           metabolite: [],
-          enzyme: [],
+          gene: [],
           reaction: [],
           subsystem: [],
           compartment: [],
@@ -689,7 +689,7 @@ export default {
 
         for (const model of Object.keys(response.data)) {
           const resultsModel = response.data[model];
-          for (const resultType of ['metabolite', 'enzyme', 'reaction', 'subsystem', 'compartment']) {
+          for (const resultType of ['metabolite', 'gene', 'reaction', 'subsystem', 'compartment']) {
             if (resultsModel[resultType]) {
               localResults[resultType] = localResults[resultType].concat(
                 resultsModel[resultType].map(

@@ -59,12 +59,12 @@ class ReactionBasicRTSerializer(serializers.ModelSerializer):
     reactionreactant_set = ReactionReactantSerializer(many=True)
     # reactants = serializers.SerializerMethodField('read_reaction_reactants')
     reactionproduct_set = ReactionProductSerializer(many=True)
-    modifiers = APIrcSerializer.ReactionComponentLiteSerializer(many=True)
+    genes = APIrcSerializer.ReactionComponentLiteSerializer(many=True)
 
     class Meta:
         model = APImodels.Reaction
         fields = ('id', 'gene_rule', 'gene_rule_wname', 'compartment', 'subsystem_str',
-             'is_transport', 'is_reversible', 'reactionreactant_set', 'reactionproduct_set', 'modifiers')
+             'is_transport', 'is_reversible', 'reactionreactant_set', 'reactionproduct_set', 'genes')
 
 
 # serializer use for reaction page
@@ -72,7 +72,7 @@ class ReactionPageSerializer(ReactionBasicRTSerializer):
     reactionreactant_set = ReactionReactantSerializer(many=True)
     # reactants = serializers.SerializerMethodField('read_reaction_reactants')
     reactionproduct_set = ReactionProductSerializer(many=True)
-    modifiers = APIrcSerializer.ReactionComponentLiteSerializer(many=True)
+    genes = APIrcSerializer.ReactionComponentLiteSerializer(many=True)
 
     class Meta:
         model = APImodels.Reaction
@@ -95,12 +95,12 @@ class ReactionSearchSerializer(serializers.ModelSerializer):
 class ReactionLiteSerializer(ReactionBasicSerializer):
     reactants = APIrcSerializer.ReactionComponentLiteSerializer(many=True)
     products = APIrcSerializer.ReactionComponentLiteSerializer(many=True)
-    modifiers = APIrcSerializer.ReactionComponentLiteSerializer(many=True)
+    genes = APIrcSerializer.ReactionComponentLiteSerializer(many=True)
 
     class Meta(ReactionBasicSerializer.Meta):
         model = APImodels.Reaction
         fields = ReactionBasicSerializer.Meta.fields + \
-            ('reactants', 'products', 'modifiers')
+            ('reactants', 'products', 'genes')
 
 
 class HmrReactionLiteSerializer(ReactionLiteSerializer):
@@ -123,7 +123,7 @@ class HmrReactionLiteSerializer(ReactionLiteSerializer):
 class ReactionSerializer(ReactionBasicSerializer):
     reactants = APIrcSerializer.MetaboliteReactionComponentSerializer(many=True)
     products = APIrcSerializer.MetaboliteReactionComponentSerializer(many=True)
-    modifiers = APIrcSerializer.EnzymeReactionComponentSerializer(many=True)
+    genes = APIrcSerializer.GeneReactionComponentSerializer(many=True)
     subsystem = serializers.SlugRelatedField(
         many=True,
         read_only=True,
@@ -133,7 +133,7 @@ class ReactionSerializer(ReactionBasicSerializer):
     class Meta(ReactionBasicSerializer.Meta):
         model = APImodels.Reaction
         fields = ReactionBasicSerializer.Meta.fields + \
-            ('reactants', 'products', 'modifiers', 'external_id1', 'external_link1', 'external_id2', 'external_link2',
+            ('reactants', 'products', 'genes', 'external_id1', 'external_link1', 'external_id2', 'external_link2',
                 'external_id3', 'external_link3', 'external_id4', 'external_link4', 'external_id5', 'external_link5',
                 'external_id6', 'external_link6',)
 
@@ -141,7 +141,7 @@ class ReactionSerializer(ReactionBasicSerializer):
 class HmrReactionSerializer(ReactionBasicSerializer):
     reactants = APIrcSerializer.HmrMetaboliteReactionComponentSerializer(many=True)
     products = APIrcSerializer.HmrMetaboliteReactionComponentSerializer(many=True)
-    modifiers = APIrcSerializer.HmrEnzymeReactionComponentSerializer(many=True)
+    genes = APIrcSerializer.HmrGeneReactionComponentSerializer(many=True)
     subsystem = serializers.SlugRelatedField(
         many=True,
         read_only=True,
@@ -153,7 +153,7 @@ class HmrReactionSerializer(ReactionBasicSerializer):
     class Meta(ReactionBasicSerializer.Meta):
         model = APImodels.Reaction
         fields = ReactionBasicSerializer.Meta.fields + \
-            ('reactants', 'products', 'modifiers', 'mnxref_id', 'mnxref_link')
+            ('reactants', 'products', 'genes', 'mnxref_id', 'mnxref_link')
 
     def read_mnxref(self, model):
         return model.external_id1
@@ -165,27 +165,27 @@ class HmrReactionSerializer(ReactionBasicSerializer):
 
 # # not used?
 # class InteractionPartnerSerializer(serializers.ModelSerializer):
-#     modifiers = APIrcSerializer.ReactionComponentSerializer(many=True, read_only=True)
+#     genes = APIrcSerializer.ReactionComponentSerializer(many=True, read_only=True)
 #     products = APIrcSerializer.ReactionComponentSerializer(many=True, read_only=True)
 #     reactants = APIrcSerializer.ReactionComponentSerializer(many=True, read_only=True)
 
 #     class Meta:
 #         model = APImodels.Reaction
-#         fields = ('id', 'is_reversible', 'modifiers', 'products', 'reactants')
+#         fields = ('id', 'is_reversible', 'genes', 'products', 'reactants')
 
 # # not used?
 # class HmrInteractionPartnerLiteSerializer(serializers.ModelSerializer):
-#     modifiers = APIrcSerializer.ReactionComponentLiteSerializer(many=True, read_only=True)
+#     genes = APIrcSerializer.ReactionComponentLiteSerializer(many=True, read_only=True)
 #     products = APIrcSerializer.ReactionComponentLiteSerializer(many=True, read_only=True)
 #     reactants = APIrcSerializer.ReactionComponentLiteSerializer(many=True, read_only=True)
 
 #     class Meta:
 #         model = APImodels.Reaction
-#         fields = ('id', 'is_reversible', 'modifiers', 'products', 'reactants')
+#         fields = ('id', 'is_reversible', 'genes', 'products', 'reactants')
 
 
 class InteractionPartnerSerializer(serializers.ModelSerializer):
-    modifiers = APIrcSerializer.EnzymeReactionComponentInteractionPartnerSerializer(many=True, read_only=True)
+    genes = APIrcSerializer.GeneReactionComponentInteractionPartnerSerializer(many=True, read_only=True)
     products = APIrcSerializer.MetaboliteReactionComponentInteractionPartnerSerializer(many=True, read_only=True)
     reactants = APIrcSerializer.MetaboliteReactionComponentInteractionPartnerSerializer(many=True, read_only=True)
     subsystem = serializers.SlugRelatedField(
@@ -196,7 +196,7 @@ class InteractionPartnerSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = APImodels.Reaction
-        fields = ('id', 'is_reversible', 'modifiers', 'products', 'reactants', 'subsystem', 'compartment')
+        fields = ('id', 'is_reversible', 'genes', 'products', 'reactants', 'subsystem', 'compartment')
 
 
 # =========================================================================================
@@ -204,7 +204,7 @@ class InteractionPartnerSerializer(serializers.ModelSerializer):
 class CompartmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = APImodels.Compartment
-        fields = ('name', 'name_id', 'letter_code', 'metabolite_count', 'enzyme_count', 'reaction_count', 'subsystem_count')
+        fields = ('name', 'name_id', 'letter_code', 'metabolite_count', 'gene_count', 'reaction_count', 'subsystem_count')
 
 class CompartmentMapViewerSerializer(serializers.ModelSerializer):
     compartment_svg = serializers.SlugRelatedField(
@@ -213,7 +213,7 @@ class CompartmentMapViewerSerializer(serializers.ModelSerializer):
     )
     class Meta:
         model = APImodels.Compartment
-        fields = ('name', 'name_id', 'letter_code', 'compartment_svg', 'metabolite_count', 'enzyme_count', 'reaction_count', 'subsystem_count')
+        fields = ('name', 'name_id', 'letter_code', 'compartment_svg', 'metabolite_count', 'gene_count', 'reaction_count', 'subsystem_count')
 
 
 class GemBrowserTileCompartmentSerializer(serializers.ModelSerializer):
@@ -221,7 +221,7 @@ class GemBrowserTileCompartmentSerializer(serializers.ModelSerializer):
     subsystems = serializers.SerializerMethodField('fetch_subsystems')
     class Meta:
         model = APImodels.Compartment
-        fields = ('name', 'id', 'metabolite_count', 'enzyme_count', 'reaction_count', 'subsystem_count', 'subsystems')
+        fields = ('name', 'id', 'metabolite_count', 'gene_count', 'reaction_count', 'subsystem_count', 'subsystems')
 
     def fetch_subsystems(self, model):
         return model.subsystem.order_by('-reaction_count').values_list('name', flat=True)[:15]
@@ -240,7 +240,7 @@ class CompartmentSvgSerializer(serializers.ModelSerializer):
     class Meta:
         model = APImodels.CompartmentSvg
         fields = ('name', 'name_id', 'compartment', 'filename', 'letter_code', 'subsystem', 'metabolite_count',
-         'unique_metabolite_count', 'enzyme_count', 'reaction_count', 'subsystem_count', 'sha')
+         'unique_metabolite_count', 'gene_count', 'reaction_count', 'subsystem_count', 'sha')
 
 
 class SubsystemLiteSerializer(serializers.ModelSerializer):
@@ -262,7 +262,7 @@ class SubsystemSearchSerializer(serializers.ModelSerializer):
      )
     class Meta:
         model = APImodels.Subsystem
-        fields = ('name', 'name_id', 'compartment', 'reaction_count', 'metabolite_count', 'enzyme_count')
+        fields = ('name', 'name_id', 'compartment', 'reaction_count', 'metabolite_count', 'gene_count')
 
 
 class SubsystemSerializer(serializers.ModelSerializer):
@@ -270,7 +270,7 @@ class SubsystemSerializer(serializers.ModelSerializer):
         model = APImodels.Subsystem
         fields = SubsystemLiteSerializer.Meta.fields + \
             ('system', 'external_id1', 'external_link1', 'external_id2', 'external_link2', 'external_id3', 'external_link3', 'external_id4', 'external_link4',
-              'metabolite_count', 'unique_metabolite_count', 'enzyme_count', 'reaction_count', 'compartment_count')
+              'metabolite_count', 'unique_metabolite_count', 'gene_count', 'reaction_count', 'compartment_count')
 
 class SubsystemMapViewerSerializer(serializers.ModelSerializer):
     subsystem_svg = serializers.SlugRelatedField(
@@ -281,14 +281,14 @@ class SubsystemMapViewerSerializer(serializers.ModelSerializer):
         model = APImodels.Subsystem
         fields = SubsystemLiteSerializer.Meta.fields + \
             ('system', 'subsystem_svg', 'external_id1', 'external_link1', 'external_id2', 'external_link2', 'external_id3', 'external_link3',
-              'external_id4', 'external_link4', 'metabolite_count', 'unique_metabolite_count', 'enzyme_count', 'reaction_count', 'compartment_count')
+              'external_id4', 'external_link4', 'metabolite_count', 'unique_metabolite_count', 'gene_count', 'reaction_count', 'compartment_count')
 
 
 class GemBrowserTileSubsystemSerializer(serializers.ModelSerializer):
     id = serializers.SerializerMethodField('fetch_id')
     class Meta:
         model = APImodels.Subsystem
-        fields = ('id', 'name', 'metabolite_count', 'enzyme_count', 'reaction_count', 'compartment_count')
+        fields = ('id', 'name', 'metabolite_count', 'gene_count', 'reaction_count', 'compartment_count')
 
     def fetch_id(self, model):
         return model.name_id
@@ -298,14 +298,14 @@ class HmrSubsystemSerializer(serializers.ModelSerializer):
     class Meta:
         model = APImodels.Subsystem
         fields = SubsystemLiteSerializer.Meta.fields + \
-            ('system', 'external_id', 'external_link', 'metabolite_count', 'unique_metabolite_count', 'enzyme_count', 'reaction_count', 'compartment_count')
+            ('system', 'external_id', 'external_link', 'metabolite_count', 'unique_metabolite_count', 'gene_count', 'reaction_count', 'compartment_count')
 
 
 class SubsystemSvgSerializer(serializers.ModelSerializer):
     subsystem = serializers.SlugRelatedField(slug_field='name_id', queryset=APImodels.Compartment.objects.all())
     class Meta:
         model = APImodels.SubsystemSvg
-        fields = ('name', 'name_id', 'subsystem', 'filename', 'metabolite_count', 'unique_metabolite_count', 'enzyme_count',
+        fields = ('name', 'name_id', 'subsystem', 'filename', 'metabolite_count', 'unique_metabolite_count', 'gene_count',
             'reaction_count', 'compartment_count', 'sha')
 
 
@@ -314,7 +314,7 @@ class GemBrowserTileSerializer(serializers.Serializer):
     subsystems = GemBrowserTileSubsystemSerializer(many=True)
     reactions = APIrcSerializer.GemBrowserTileReactionSerializer(many=True)
     metabolites = APIrcSerializer.GemBrowserTileMetaboliteSerializer(many=True)
-    enzymes = APIrcSerializer.GemBrowserTileEnzymeSerializer(many=True)
+    genes = APIrcSerializer.GemBrowserTileGeneSerializer(many=True)
 
 
 # =======================================================================================
@@ -352,7 +352,7 @@ class GEModelSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = APImodels.GEModel
-        fields = ('id', 'gemodelset', 'sample', 'tag', 'description', 'condition', 'reaction_count', 'metabolite_count', 'enzyme_count', 'files', 'ref', 'maintained', 'repo_url', 'last_update')
+        fields = ('id', 'gemodelset', 'sample', 'tag', 'description', 'condition', 'reaction_count', 'metabolite_count', 'gene_count', 'files', 'ref', 'maintained', 'repo_url', 'last_update')
 
 
 class GEModelListSerializer(serializers.ModelSerializer):
@@ -374,7 +374,7 @@ class GEModelListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = APImodels.GEModel
-        fields = ('id', 'set_name', 'sample', 'tag', 'condition', 'reaction_count', 'metabolite_count', 'enzyme_count', 'maintained', 'year', 'last_update')
+        fields = ('id', 'set_name', 'sample', 'tag', 'condition', 'reaction_count', 'metabolite_count', 'gene_count', 'maintained', 'year', 'last_update')
 
 
 class AuthorSerializer(serializers.ModelSerializer):
@@ -395,7 +395,7 @@ class GEMSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = APImodels.GEM
-        fields = ('short_name', 'full_name', 'database_name', 'description', 'version', 'link', 'authors', 'condition', 'date', 'sample', 'ref', 'metabolite_count', 'enzyme_count', 'reaction_count',)
+        fields = ('short_name', 'full_name', 'database_name', 'description', 'version', 'link', 'authors', 'condition', 'date', 'sample', 'ref', 'metabolite_count', 'gene_count', 'reaction_count',)
 
 
 # class GEMSerializer(serializers.ModelSerializer):
