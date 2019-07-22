@@ -4,7 +4,7 @@
       <div id="search-table">
         <div class="columns">
           <div class="column has-text-centered">
-            <h3 class="title is-3">Global search all integrated GEMs <span v-if="searchTerm"> for <i>{{ searchTerm }}</i></span></h3>
+            <h3 class="title is-3">Global search all integrated GEMs <span v-if="searchedTerm"> for <i>{{ searchedTerm }}</i></span></h3>
           </div>
         </div>
         <div class="columns is-centered">
@@ -39,7 +39,7 @@
           <loader v-show="loading && searchTerm !== ''"></loader>
           <div v-show="!loading">
             <div v-if="Object.keys(searchResults).length === 0" class="column is-offset-3 is-6">
-              <div v-if="searchTerm.length > 1" class=" has-text-centered notification">
+              <div class=" has-text-centered notification">
                 {{ messages.searchNoResult }}
               </div>
               <div class="content">
@@ -48,7 +48,7 @@
                 <ul>
                   <li>ID</li>
                   <li>Name or aliases</li>
-                  <li>Formula</li>
+                  <li>Formula (without charge)</li>
                   <li>External identifiers</li>
                 </ul>
                 <span>Genes by:</span>
@@ -84,6 +84,9 @@
                     </template>
                     <template v-else-if="props.column.field === 'equation'">
                       <span v-html="reformatEqSign(props.formattedRow[props.column.field], false)"></span>
+                    </template>
+                    <template v-else-if="props.column.field === 'formula'">
+                      <span v-html="formulaFormater(props.row[props.column.field], props.row.charge)"></span>
                     </template>
                     <template v-else-if="['name', 'id'].includes(props.column.field)">
                       <router-link :to="{ path: `/explore/gem-browser/${props.row.model.id}/${header}/${props.row.id}` }">
@@ -411,6 +414,7 @@ export default {
       },
       resultsCount: {},
       searchTerm: '',
+      searchedTerm: '',
       searchResults: [],
       showSearchCharAlert: false,
       showTabType: '',
@@ -426,17 +430,19 @@ export default {
   },
   beforeRouteEnter(to, from, next) {
     next((vm) => {
+      vm.searchedTerm = to.query.term;
       vm.validateSearch(to.query.term);
       next();
     });
   },
   beforeRouteUpdate(to, from, next) {
+    this.searchedTerm = to.query.term;
     this.validateSearch(to.query.term);
     next();
   },
   methods: {
-    formulaFormater(s) {
-      return chemicalFormula(s);
+    formulaFormater(formula, charge) {
+      return chemicalFormula(formula, charge);
     },
     countResults() {
       for (const key of this.tabs) {
@@ -503,6 +509,7 @@ export default {
               model: el.model,
               name: el.name,
               formula: el.formula,
+              charge: el.charge,
               subsystem: el.subsystem,
               compartment: el.compartment,
             });

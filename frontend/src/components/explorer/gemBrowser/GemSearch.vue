@@ -26,7 +26,7 @@
         <div class="resList" v-show="!showLoader">
           <template v-if="searchResults.length !== 0" v-for="(k, i1) in resultsOrder">
             <div v-for="(r, i2) in searchResults[k]" class="searchResultSection">
-              <hr class="is-marginless" v-if="i2 != 0">
+              <hr class="is-marginless" v-if="i2 !== 0">
               <div class="clickable" @mousedown.prevent="goToTab(k, r.id || r.name_id || r.name)">
                  <b class="is-capitalized">{{ k }}: </b><label class="clickable" v-html="formatSearchResultLabel(k, r, searchTermString)"></label>
               </div>

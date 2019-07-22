@@ -93,13 +93,19 @@ class MetaboliteReactionComponentSearchSerializer(serializers.ModelSerializer):
         slug_field='name',
         source='subsystem_metabolite'
     )
+    charge = serializers.SerializerMethodField('read_charge')
 
     class Meta:
         model = APImodels.ReactionComponent
-        fields = ('id', 'name', 'formula', 'subsystem', 'compartment')
+        fields = ('id', 'name', 'formula', 'charge', 'subsystem', 'compartment')
 
     def read_compartment(self, model):
         return model.compartment_str
+
+    def read_charge(self, model):
+        if not hasattr(model, 'metabolite'): # fixme
+            return 0
+        return model.metabolite.charge
 
 
 class GeneReactionComponentSerializer(ReactionComponentSerializer):
