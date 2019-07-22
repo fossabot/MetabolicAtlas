@@ -3,19 +3,19 @@ import cytoscape from 'cytoscape';
 export default function (
   componentID, elms, rels, nodeDisplayParams, reactionHL, compartmentHL, subsystemHL) {
   const elmsjson = [];
-  const enzExpSource = nodeDisplayParams.enzymeExpSource;
-  const enzExpType = nodeDisplayParams.enzymeExpType;
-  const enzSample = nodeDisplayParams.enzymeExpSample;
+  const enzExpSource = nodeDisplayParams.geneExpSource;
+  const enzExpType = nodeDisplayParams.geneExpType;
+  const enzSample = nodeDisplayParams.geneExpSample;
   for (const id of Object.keys(elms)) {
     const elm = elms[id];
-    if (elm.type === 'enzyme') {
+    if (elm.type === 'gene') {
       if (!elm.expressionLvl) {
         elm.expressionLvl = {};
         elm.expressionLvl.false = {};
         elm.expressionLvl.false.false = {};
-        elm.expressionLvl.false.false.false = nodeDisplayParams.enzymeNodeColor.hex;
+        elm.expressionLvl.false.false.false = nodeDisplayParams.geneNodeColor.hex;
       } else {
-        elm.expressionLvl.false.false.false = nodeDisplayParams.enzymeNodeColor.hex;
+        elm.expressionLvl.false.false.false = nodeDisplayParams.geneNodeColor.hex;
       }
       elmsjson.push({
         group: 'nodes',
@@ -85,7 +85,7 @@ export default function (
       'border-width': '1px',
       'border-color': function f(e) {
         if (e.data().id === componentID) {
-          return 'white';
+          return 'whitesmoke';
         }
         return 'black';
       },
@@ -117,9 +117,9 @@ export default function (
         return 0.6;
       },
     })
-    .selector('node[type="enzyme"]')
+    .selector('node[type="gene"]')
     .css({
-      shape: nodeDisplayParams.enzymeNodeShape,
+      shape: nodeDisplayParams.geneNodeShape,
       'background-color': function f(e) {
         if (!e.data('color')[enzExpSource]) {
           return 'whitesmoke';

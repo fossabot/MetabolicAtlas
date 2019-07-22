@@ -127,11 +127,11 @@ def build_ftp_path_and_dl(liste_dico_data, FTP_root, model_set, root_path, model
                 # parse the file
                 count_file = "%s.cnt" % os.path.splitext(output_file_path)[0]
                 if os.path.isfile(count_file):
-                    (GEM['reaction_count'], GEM['metabolite_count'], GEM['enzyme_count']) = read_count_file(count_file)
+                    (GEM['reaction_count'], GEM['metabolite_count'], GEM['gene_count']) = read_count_file(count_file)
                 elif os.path.isfile(output_file_path):
                     print ("Parsing xml %s" % output_file_path)
-                    (GEM['reaction_count'], GEM['metabolite_count'], GEM['enzyme_count']) = parse_xml(output_file_path)
-                    write_count_file(GEM['reaction_count'], GEM['metabolite_count'], GEM['enzyme_count'], count_file)
+                    (GEM['reaction_count'], GEM['metabolite_count'], GEM['gene_count']) = parse_xml(output_file_path)
+                    write_count_file(GEM['reaction_count'], GEM['metabolite_count'], GEM['gene_count'], count_file)
                 else:
                     print ("Error: cannot find file %s" % output_file_path)
                     exit()
@@ -145,14 +145,14 @@ def build_ftp_path_and_dl(liste_dico_data, FTP_root, model_set, root_path, model
                     GEM['metabolite_count'] = dic['metabolite_count']
                 else:
                     GEM['metabolite_count'] = 0
-                if 'enzyme_count' in dic:
-                    GEM['enzyme_count'] = dic['enzyme_count']
+                if 'gene_count' in dic:
+                    GEM['gene_count'] = dic['gene_count']
                 else:
-                    GEM['enzyme_count'] = 0
+                    GEM['gene_count'] = 0
 
-            if GEM['metabolite_count'] == '*' and GEM['enzyme_count'] == '*' and GEM['reaction_count'] == '*':
+            if GEM['metabolite_count'] == '*' and GEM['gene_count'] == '*' and GEM['reaction_count'] == '*':
                 GEM['metabolite_count'] = None
-                GEM['enzyme_count'] = None
+                GEM['gene_count'] = None
                 GEM['reaction_count'] = None
 
             if output_file_path.endswith('.xml'):
@@ -229,11 +229,11 @@ def build_ftp_path_and_dl(liste_dico_data, FTP_root, model_set, root_path, model
     return model_data_list
 
 
-def write_count_file(reaction_count, metabolite_count, enzyme_count, output_file):
+def write_count_file(reaction_count, metabolite_count, gene_count, output_file):
     with open(output_file, 'w') as fw:
         fw.write('reaction_count\t%s\n' % reaction_count)
         fw.write('metabolite_count\t%s\n' % metabolite_count)
-        fw.write('enzyme_count\t%s\n' % enzyme_count)
+        fw.write('gene_count\t%s\n' % gene_count)
 
 
 def read_count_file(count_file):
@@ -244,7 +244,7 @@ def read_count_file(count_file):
                 continue
             linearr = line.split('\t')
             dic[linearr[0]] = int(linearr[1])
-        return dic['reaction_count'], dic['metabolite_count'], dic['enzyme_count']
+        return dic['reaction_count'], dic['metabolite_count'], dic['gene_count']
 
 
 def parse_info_file(info_file):
@@ -498,7 +498,7 @@ def insert_gems(model_set_data, model_data_list):
                                 Q(sample=gs) &
                                 Q(tag=model_dict['tag']) &
                                 Q(reaction_count=model_dict['reaction_count']) &
-                                Q(enzyme_count=model_dict['enzyme_count']) &
+                                Q(gene_count=model_dict['gene_count']) &
                                 Q(metabolite_count=model_dict['metabolite_count']))
             # print ("g1 %s" % g)
         except GEModel.DoesNotExist:

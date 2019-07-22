@@ -449,7 +449,7 @@ export default {
       }
     },
     getHPATissue(model) {
-      axios.get(`${model.database_name}/enzyme/hpa_tissue/`)
+      axios.get(`${model.database_name}/gene/hpa_tissue/`)
         .then((response) => {
           this.HPATissue = response.data;
         })
