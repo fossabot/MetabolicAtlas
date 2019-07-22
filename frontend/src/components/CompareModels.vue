@@ -26,7 +26,7 @@
             </tr>
           </tbody>
         </table>
-        If reactions modifiers are overlooked, 4619 additional reactions would be shared between the two models.<br><br>
+        If reactions genes are overlooked, 4619 additional reactions would be shared between the two models.<br><br>
 
         <div class="columns is-variable is-8">
           <div class="column">

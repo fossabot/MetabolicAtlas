@@ -31,7 +31,7 @@ def populate_database(database, yaml_file, overwrite=False, metadata_only=False,
 
             python manage.py addRelatedComponent %s
 
-        if applicable, Add HPA tissue/enzyme RNA levels with:
+        if applicable, Add HPA tissue-protein RNA levels with:
 
             python manage.py addHPAexpression %s
 

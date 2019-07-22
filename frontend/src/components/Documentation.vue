@@ -49,7 +49,7 @@
 
           <hr>
           <h3 id="GEM Browser">GEM Browser</h3>
-          The <i>GEM Browser</i> is a set of dedicated pages for different components of the model; reactions, metabolites, enzymes/genes, subsystems, and compartments.
+          The <i>GEM Browser</i> is a set of dedicated pages for different components of the model; reactions, metabolites, genes, subsystems, and compartments.
 
           <h5>Reaction page</h5>
           This page shows information about the current selected reaction. If available, a list of references (PMIDs) is also shown in the Reference table below.<br>
@@ -64,30 +64,30 @@
           Lists all the reactions involving the current metabolite as a reactant or a product. The current metabolite is denoted with a black text color in the reaction equations. Since metabolites are specific to a cell compartment, only reactions involving the metabolite in its specific compartment are displayed. To remove this restriction and display additional reactions involving the metabolite in any compartment, click the <i>Expand to all compartments</i> button.<br>
           Note that the number of reactions is limited to 200; to retrieve all the reactions we invite users to use the <a href="#API">API</a>.
 
-          <h5>Enzyme page</h5>
-          Shows information about the current selected enzyme/gene. The top table contains basic information extracted from the GEM. If provided, several additional identifiers from external databases will be shown in the external IDs table.<br>On the right side of the page, users can access the <a href="#Interaction Partners">Interaction Partners</a> tool for this enzyme/gene.
+          <h5>Gene page</h5>
+          Shows information about the current selected gene. The top table contains basic information extracted from the GEM. If provided, several additional identifiers from external databases will be shown in the external IDs table.<br>On the right side of the page, users can access the <a href="#Interaction Partners">Interaction Partners</a> tool for this gene.
 
           <h6 class="has-text-grey">Reactions table</h6>
-          Lists all the reactions catalyzed by the current enzyme.<br>
+          Lists all the reactions catalyzed by the enzyme encoded by the current gene.<br>
           Note that the number of reactions is limited to 200; to retrieve all the reactions we invite users to use the <a href="#API">API</a>.
 
           <h5>Subsystem page</h5>
           This page shows information on the current selected metabolic subsystem. Subsystems correspond to a set of reactions that share a similar metabolic function. Unlike a metabolic pathway, the reactions comprising a subsystem are not necessarily linked into a completely connected network.<br>
-          A list of metabolites and enzymes contained within the current subsystem are shown in the table, but are restricted to a maximum of 1000 for each category. Use the <a href="#API">API</a> to retrieve the complete set of metabolites and enzymes for the selected subsystem.<br>
+          A list of metabolites and genes contained within the current subsystem are shown in the table, but are restricted to a maximum of 1000 for each category. Use the <a href="#API">API</a> to retrieve the complete set of metabolites and genes for the selected subsystem.<br>
 
           <h6 class="has-text-grey">Reactions table</h6>
           Shows all the reactions that belong to the current subsystem. Note that in some GEMs, a given reaction can be associated with multiple subsystems.
           The number of reactions shown is limited to 1000; to retrieve all associated reactions we invite users to use the <a href="#API">API</a>.
 
           <h5>Compartment page</h5>
-          Shows information on the current selected compartment. The full list of metabolites, enzymes and reactions is available through the <a href="#API">API</a>.
+          Shows information on the current selected compartment. The full list of metabolites, genes and reactions is available through the <a href="#API">API</a>.
 
           <h5 id="GEM Browser Search">Search</h5>
-          Search for any term in metabolites, enzymes, reactions, subsystems, or compartments information.<br>
+          Search for any term in metabolites, genes, reactions, subsystems, or compartments information.<br>
           The search is restricted to the selected GEM and limited to 50 results per type. Alternatively, users can click on the banner under the search input field to run a <i>Global Search</i>, where the term is searched among all the integrated models' components and is unrestricted. To learn more about the search term possiblities, go to the <a href="#Global Search">Global Search</a> section of this page.
 
           <h5 id="Interaction Partners">Interaction Partners</h5>
-          For a given metabolite or enzyme, this page shows the other metabolites and enzymes with which it interacts via shared reaction(s). The selected metabolite or enzyme is centered on the graph. Connectivity is computed from reaction equations that involve this metabolite or enzyme. For medium-sized networks of interaction partners, the user is prompted before generating the graph. For very large networks (e.g. for H<sub>2</sub>O) the graph will not be generated. Users can click on a node to display a context menu with 3 options:<br>
+          For a given metabolite or gene, this page shows the other metabolites and genes with which it interacts via shared reaction(s). The selected metabolite or gene is centered on the graph. Connectivity is determined based on the reactions with which this metabolite or gene is associated. For medium-sized networks of interaction partners, the user is prompted before generating the graph. For very large networks (e.g. for H<sub>2</sub>O) the graph will not be generated. Users can click on a node to display a context menu with 3 options:<br>
           <ul>
             <li>Load interaction partners: reload the interaction partners graph with the clicked node as the new central node.</li>
             <li>Expand interaction partners: add additional interaction partner nodes for the clicked node to the graph. Expanded interactions are represented with dashed lines.</li>
@@ -100,10 +100,10 @@
           Clicking the <i>Export graph</i> button will display two options: GraphML or PNG. The first is a Cytoscape compatible GraphML format; currently, the colors are not exported in this format.
 
           <h6 class="has-text-grey">Highlights</h6>
-          Nodes may belong to multiple compartments and/or subsystems. The filter box allows users to highlight (label color) the nodes belonging to a given subsystem or compartment. The two filters are additive. Enzymes may catalyze multiple reactions in differents compartments / subsystems - such enzymes are highlighted in orange.
+          Nodes may belong to multiple compartments and/or subsystems. The filter box allows users to highlight (label color) the nodes belonging to a given subsystem or compartment. The two filters are additive. Enzymes may catalyze reactions in differents compartments / subsystems - genes that encode such enzymes are highlighted in orange.
 
           <h6 class="has-text-grey">Reactions table</h6>
-          Information of the reactions are listed in this table. Selecting a label of metabolite or enzyme in the table will select the corresponding node on the graph, and vice versa. Selecting a reaction ID label highlight the reaction on the graph. The search bar above the table can be used to filter out rows to find a given component. The table can be exported via the "Export to TSV" button.
+          Information of the reactions are listed in this table. Selecting a label of metabolite or gene in the table will select the corresponding node on the graph, and vice versa. Selecting a reaction ID label highlight the reaction on the graph. The search bar above the table can be used to filter out rows to find a given component. The table can be exported via the "Export to TSV" button.
 
           <hr>
           <h3 id="Map Viewer">Map Viewer</h3>
@@ -112,10 +112,10 @@
 
           <h5 id="2D Viewer">2D Viewer</h5>
           2D SVG maps are provided for integrated GEMs. They represent either a cell compartment or a subsystem/pathway. While a very high percentage of the reactions in the model are represented on the 2D maps, some may be unavailable.<br>
-          Three buttons on the top left of the UI allow users to zoom in, zoom out and show/hide the genes/enzymes on the current map.<br>
+          Three buttons on the top left of the UI allow users to zoom in, zoom out and show/hide the genes on the current map.<br>
           Users can interact with the maps by clicking and dragging the mouse to pan the view or using the mouse wheel to zoom in/out.<br>
           A search function is available for 2D maps using the search bar. The window will zoom and center on each component found. Click the 'highlight' button to color all found components on the maps in red. To remove the highlight, simply clear the search bar.<br>
-          The SVGs are interactive; click on a node (metabolite, reaction, enzyme) or a subsystem to load some of its information in the sidebar. Additonal information on the corresponding selected element can be accessed by clicking the <i>GEM browser</i> button.<br>
+          The SVGs are interactive; click on a node (metabolite, reaction, gene) or a subsystem to load some of its information in the sidebar. Additonal information on the corresponding selected element can be accessed by clicking the <i>GEM browser</i> button.<br>
 
           <h5 id="3D Viewer">3D Viewer</h5>
           3D renderings of the metabolic network are automatically generated from the GEM data. This 3D graph contains all the reactions in the model, grouped by cellular compartment or subsystem.<br>
@@ -126,8 +126,8 @@
           <h3 id="HPA RNA levels">RNA levels</h3>
           <div class="columns is-marginless">
             <div class="column is-paddingless">
-            RNA expression levels for enzymes from <a href="http://proteinatlas.org" target="_blank">The Human Protein Atlas</a> can be loaded using the corresponding sidebar button. Once selected, the RNA levels corresponding to the chosen tissue will be overlaid on the selected map. To clear the RNA levels, use the <i>Clear selection</i> button. RNA levels are available for both the 2D and 3D viewers.<br>
-            Expression levels from the Human Protein Atlas can be loaded in the <i>Interaction Partners</i> graph using the panel on the right, and in the <i>Map Viewer</i> using the corresponding sidebar button. Doing so will update the enzyme's node color according to the legend. Some enzymes may not have RNA levels available - in such case their color corresponds to the n/a color.
+            RNA expression levels for genes from <a href="http://proteinatlas.org" target="_blank">The Human Protein Atlas</a> can be loaded using the corresponding sidebar button. Once selected, the RNA levels corresponding to the chosen tissue will be overlaid on the selected map. To clear the RNA levels, use the <i>Clear selection</i> button. RNA levels are available for both the 2D and 3D viewers.<br>
+            Expression levels from the Human Protein Atlas can be loaded in the <i>Interaction Partners</i> graph using the panel on the right, and in the <i>Map Viewer</i> using the corresponding sidebar button. Doing so will update the gene's node color according to the legend. Some genes may not have RNA levels available - in such case their color corresponds to the n/a color.
             </div>
             <div class="column" v-html="getExpLvlLegend()" style="padding-right: 0">
             </div>

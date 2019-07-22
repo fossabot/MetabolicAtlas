@@ -1,5 +1,5 @@
 <template>
-  <div v-if="selectedElm && ['enzyme', 'metabolite', 'reaction'].includes(selectedElm.type)" class="card">
+  <div v-if="selectedElm && ['gene', 'metabolite', 'reaction'].includes(selectedElm.type)" class="card">
     <header class="card-header">
       <p class="card-header-title">
         <span class="is-capitalized">

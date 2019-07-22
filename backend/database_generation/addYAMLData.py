@@ -219,7 +219,7 @@ def make_rxn_dict(info):
     return d
 
 
-def get_modifiersID_from_GRrule(gr_rule):
+def get_genesID_from_GRrule(gr_rule):
     if not gr_rule:
         return []
     # FIXME, this do not work if gene ID contains parenthesis, but is it the case?
@@ -247,7 +247,7 @@ def insert_subsystem_stats(database):
         uniqueMetQuerySet = ReactionComponent.objects.using(database).distinct(). \
             filter(component_type='m', id__in=smsQuerySet).values_list('name', flat=True)
 
-        sesQuerySet = SubsystemEnzyme.objects.using(database). \
+        sesQuerySet = SubsystemGene.objects.using(database). \
             filter(subsystem_id=subsystem).values_list('rc_id', flat=True)
         srsQuerySet = SubsystemReaction.objects.using(database). \
             filter(subsystem_id=subsystem).values_list('reaction_id', flat=True)
@@ -277,20 +277,20 @@ def insert_subsystem_stats(database):
             print (s.name)
             print ("comt_sub: ", len(subCompartQuerySet))
             print ("Metabolite: ", set(compartment_meta))
-            print ("Enzyme: ", set(compartment_enz))
+            print ("Gene: ", set(compartment_enz))
             print ("Reaction: ", set(compartment_react))
             exit(1)
 
         # print ("SS:", s.name)
         # print ("Metabolites: ", smsQuerySet.count())
         # print ("Unique metabolites: ", uniqueMetQuerySet.count())
-        # print ("Enzymes: ", sesQuerySet.count())
+        # print ("Genes: ", sesQuerySet.count())
         # print ("Reactions: ", srsQuerySet.count())
         # print ("Compartment: ", len(set(compartment_meta)))
 
         Subsystem.objects.using(database). \
             filter(id=subsystem.id).update(reaction_count=srsQuerySet.count(), compartment_count=len(set(compartment_meta)), \
-             metabolite_count=smsQuerySet.count(), unique_metabolite_count=uniqueMetQuerySet.count(), enzyme_count=sesQuerySet.count())
+             metabolite_count=smsQuerySet.count(), unique_metabolite_count=uniqueMetQuerySet.count(), gene_count=sesQuerySet.count())
 
 
 def insert_compartment_stats(database):
@@ -302,7 +302,7 @@ def insert_compartment_stats(database):
         sesRC = ReactionComponentCompartment.objects.using(database). \
             filter(compartment_id=compartment).values_list('rc_id', flat=True)
 
-        sesQuerySet = CompartmentEnzyme.objects.using(database). \
+        sesQuerySet = CompartmentGene.objects.using(database). \
             filter(compartment_id=compartment).values_list('rc_id', flat=True)
 
         smsQuerySet = ReactionComponent.objects.using(database). \
@@ -317,14 +317,14 @@ def insert_compartment_stats(database):
         # print ("C:", compartment.name)
         # print ("Metabolites: ", smsQuerySet.count())
         # print ("Unique metabolites: ", uniqueMetQuerySet.count())
-        # print ("Enzymes: ", sesQuerySet.count())
+        # print ("Genes: ", sesQuerySet.count())
         # print ("Reactions: ", srsQuerySet.count())
         # print ("Compartment: ", subCompartQuerySet.count())
 
         # update the stats
         Compartment.objects.using(database). \
             filter(id=compartment.id).update(reaction_count=srsQuerySet.count(), subsystem_count=subCompartQuerySet.count(), \
-             metabolite_count=smsQuerySet.count(), unique_metabolite_count=uniqueMetQuerySet.count(), enzyme_count=sesQuerySet.count())
+             metabolite_count=smsQuerySet.count(), unique_metabolite_count=uniqueMetQuerySet.count(), gene_count=sesQuerySet.count())
 
 """
     read YAML model files and insert the strict minimum information
@@ -389,22 +389,22 @@ def load_YAML(database, yaml_file, overwrite=False, metadata_only=False, content
         GEM.objects.filter(id=gem.id).update(metabolite_count=len(unique_metabolite))
 
     if not metadata_only:
-        print("Inserting enzymes (rc)...")
+        print("Inserting genes (rc)...")
         for el in genes[1]:
             id_string, id_value = el[0]
             rc = ReactionComponent.objects.using(database).filter(id__iexact=id_value)
             if not rc:
                 # name should be provide in the annotation file
-                # the is no compartment localization for enzyme
+                # the is no compartment localization for gene
                 rc = ReactionComponent(id=id_value, name='', component_type='e')
                 rc.save(using=database)
             else:
                 rc = rc[0]
             rc_dict[id_value] = rc
 
-    # update enzyme count
+    # update gene count
     if not content_only:
-        GEM.objects.filter(id=gem.id).update(enzyme_count=len(genes[1]))
+        GEM.objects.filter(id=gem.id).update(gene_count=len(genes[1]))
 
     if overwrite and not metadata_only:
         Reaction.objects.using(database).all().delete()
@@ -540,23 +540,23 @@ def load_YAML(database, yaml_file, overwrite=False, metadata_only=False, content
                 rcompt = ReactionCompartment(reaction=r, compartment=rc.compartment)
                 rcompt.save(using=database)
 
-        # add the relationship between enzymes and compartments as based on the compartment list the above uses...
+        # add the relationship between genes and compartments as based on the compartment list the above uses...
         # unique list of compartments for this reaction...
-        modifiers = get_modifiersID_from_GRrule(gr_rule)
-        if modifiers:
-            # add reaction/modifiers relationship
-            for m in modifiers:
+        genes = get_genesID_from_GRrule(gr_rule)
+        if genes:
+            # add reaction/genes relationship
+            for m in genes:
                 rc = rc_dict[m]
-                rm = ReactionModifier.objects.using(database).filter(reaction=r, modifier=rc)
+                rm = ReactionGene.objects.using(database).filter(reaction=r, gene=rc)
                 if not rm:
-                    rm = ReactionModifier(reaction=r, modifier=rc)
+                    rm = ReactionGene(reaction=r, gene=rc)
                     rm.save(using=database)
 
-                # save subsystem/modifiers relationship
+                # save subsystem/genes relationship
                 for sub in subsystems_list:
-                    se = SubsystemEnzyme.objects.using(database).filter(rc=rc, subsystem=sub)
+                    se = SubsystemGene.objects.using(database).filter(rc=rc, subsystem=sub)
                     if not se:
-                        se = SubsystemEnzyme(rc=rc, subsystem=sub)
+                        se = SubsystemGene(rc=rc, subsystem=sub)
                         se.save(using=database)
 
                 for sub in subsystems_list:
@@ -565,14 +565,14 @@ def load_YAML(database, yaml_file, overwrite=False, metadata_only=False, content
                         sm = SubsystemReactionComponent(rc=rc, subsystem=sub)
                         sm.save(using=database)
 
-            # add compartment/modifiers relationship
+            # add compartment/genes relationship
             r_compts = ReactionCompartment.objects.select_related('compartment').using(database).filter(reaction=r)
-            for m in modifiers:
+            for m in genes:
                 rc = rc_dict[m]
                 for r_compt in r_compts:
-                    rccompt = CompartmentEnzyme.objects.using(database).filter(compartment=r_compt.compartment, rc=rc)
+                    rccompt = CompartmentGene.objects.using(database).filter(compartment=r_compt.compartment, rc=rc)
                     if not rccompt:
-                        rccompt = CompartmentEnzyme(compartment=r_compt.compartment, rc=rc)
+                        rccompt = CompartmentGene(compartment=r_compt.compartment, rc=rc)
                         rccompt.save(using=database)
 
         # save the connection subsystem / compartement base on the reaction

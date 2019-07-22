@@ -57,7 +57,7 @@
             </div>
           </footer>
         </div>
-        <div class="card" v-else-if="selectionData.data && ['metabolite', 'enzyme', 'reaction'].includes(selectionData.type)">
+        <div class="card" v-else-if="selectionData.data && ['metabolite', 'gene', 'reaction'].includes(selectionData.type)">
           <header class="card-header clickable" v-if="!selectionData.error" @click.prevent="showSelectionCardContent = !showSelectionCardContent">
             <p class="card-header-title is-inline is-capitalized">
               {{ selectionData.type }}: <i>{{ selectionData.data.id }}</i>
@@ -151,8 +151,8 @@ export default {
             { name: 'compartment' },
             { name: 'aliases', display: 'Synonyms' },
           ],
-          enzyme: [
-            { name: 'gene_name', display: 'Gene&nbsp;name' },
+          gene: [
+            { name: 'name', display: 'Gene&nbsp;name' },
             { name: 'description', display: 'Description' },
             { name: 'gene_synonyms', display: 'Synonyms' },
           ],
@@ -171,8 +171,8 @@ export default {
             { name: 'compartment' },
             { name: 'aliases', display: 'Synonyms' },
           ],
-          enzyme: [
-            { name: 'gene_name', display: 'Gene&nbsp;name' },
+          gene: [
+            { name: 'name', display: 'Gene&nbsp;name' },
             { name: 'description', display: 'Description' },
             { name: 'gene_synonyms', display: 'Synonyms' },
           ],

@@ -3,8 +3,8 @@ from django.core.management.base import BaseCommand
 import sys
 
 def compare(type, db1, db2):
-    if type == "enzyme":
-        model = Enzyme
+    if type == "gene":
+        model = Gene
         unique_field = 'reaction_component'
     if type == "metabolite":
         model = Metabolite
@@ -54,49 +54,49 @@ def compare_model(Model, unique_field, db1, db2):
                     diff[key] = {'added': added, 'modified': modified, 'deleted': deleted}
 
                 print ("==========================================")
-                print ("enzyme id %s (%s) is different across dbs" % (getattr(e1, unique_field), e1.id))
+                print ("gene id %s (%s) is different across dbs" % (getattr(e1, unique_field), e1.id))
                 print ("field '%s' (%s) : '%s'" % (key, db1, v))
                 print ("field '%s' (%s) : '%s'" % (key, db2, e2_dict[key]))
         return diff
 
-    enzyme_db1 = {}
+    gene_db1 = {}
     e1 = Model.objects.using(db1).select_related('reaction_component').all()
     for el1 in e1:
         unique_fieldv1 = getattr(el1, unique_field)
-        if unique_fieldv1 in enzyme_db1:
+        if unique_fieldv1 in gene_db1:
             print ("Error: field %s %s should be unique" % (unique_field, unique_fieldv1))
             exit(1)
-        enzyme_db1[unique_fieldv1] = el1
-    total_db1 = len(enzyme_db1)
+        gene_db1[unique_fieldv1] = el1
+    total_db1 = len(gene_db1)
 
-    enzyme_db2 = {}
+    gene_db2 = {}
     e2 = Model.objects.using(db2).select_related('reaction_component').all()
     for el2 in e2:
         unique_fieldv2 = getattr(el2, unique_field)
-        if unique_fieldv2 in enzyme_db2:
+        if unique_fieldv2 in gene_db2:
             print ("Error: field %s %s should be unique" % (unique_field, unique_fieldv2))
             exit(1)
-        enzyme_db2[unique_fieldv2] = el2
-        if unique_fieldv2 not in enzyme_db1:
+        gene_db2[unique_fieldv2] = el2
+        if unique_fieldv2 not in gene_db1:
             missing_in_db1 += 1
             missing_id_db1.append(unique_fieldv2)
-            print ("enzyme id %s (%s) not in database '%s'" % (unique_fieldv2, el2.id, db1))
+            print ("gene id %s (%s) not in database '%s'" % (unique_fieldv2, el2.id, db1))
             continue
 
-        el1 = enzyme_db1[unique_fieldv2]
+        el1 = gene_db1[unique_fieldv2]
         if el2 != el1:
             modified += 1
             diff = compare_object(el1, el2, db1, db2, diff)
 
-    total_db2 = len(enzyme_db2)
+    total_db2 = len(gene_db2)
 
-    for k in enzyme_db1:
-        el1 = enzyme_db1[k]
+    for k in gene_db1:
+        el1 = gene_db1[k]
         unique_fieldv1 = getattr(el1, unique_field)
-        if unique_fieldv1 not in enzyme_db2:
+        if unique_fieldv1 not in gene_db2:
             missing_in_db2 += 1
             missing_id_db2.append(unique_fieldv1)
-            print ("enzyme id %s (%s) not in database '%s'" % (unique_fieldv1, el1.id, db2))
+            print ("gene id %s (%s) not in database '%s'" % (unique_fieldv1, el1.id, db2))
             continue
 
     return total_db1, total_db2, missing_in_db1, missing_id_db1, missing_in_db2, missing_id_db2, modified, diff
@@ -115,10 +115,10 @@ class Command(BaseCommand):
 
     db1 = sys.argv[2]
     db2 = sys.argv[3]
-    enz_total_db1, enz_total_db2, enz_missing_in_db1, enz_missing_id_db1, enz_missing_in_db2, enz_missing_id_db2, enz_modified, enz_diff = compare("enzyme", db1, db2)
+    enz_total_db1, enz_total_db2, enz_missing_in_db1, enz_missing_id_db1, enz_missing_in_db2, enz_missing_id_db2, enz_modified, enz_diff = compare("gene", db1, db2)
     # met_total_db1, met_total_db2, met_missing_in_db1, met_missing_in_db2, met_modified, met_diff = compare("metabolite", db1, db2)
 
-    print ("Compare enzyme: ===========================================")
+    print ("Compare gene: ===========================================")
     print ("DB1:", db1)
     print ("DB2:", db2)
     print ("total_db1", enz_total_db1)
@@ -153,4 +153,3 @@ class Command(BaseCommand):
 if __name__ == "__main__":
     db1 = sys.argv[1]
     db2 = sys.argv[2]
-    compare_enzyme(db1, db2)

@@ -71,7 +71,7 @@ class GEModel(models.Model):
     condition = models.CharField(max_length=200, null=True)
     reaction_count = models.IntegerField(default=0, blank=True, null=True)
     metabolite_count = models.IntegerField(default=0, blank=True, null=True)
-    enzyme_count = models.IntegerField(default=0, blank=True, null=True)
+    gene_count = models.IntegerField(default=0, blank=True, null=True)
     files = models.ManyToManyField(GEModelFile, related_name='gemodel')
     maintained = models.BooleanField(default=False)
     ref = models.ManyToManyField(GEModelReference, related_name='gemodel', blank=True)
@@ -83,7 +83,7 @@ class GEModel(models.Model):
             raise AttributeError("Model set must be specified")
         if not self.sample:
             raise AttributeError("Model sample must be specified")
-        if self.reaction_count == 0 and self.metabolite_count == 0 and self.enzyme_count == 0:
+        if self.reaction_count == 0 and self.metabolite_count == 0 and self.gene_count == 0:
             raise AttributeError("component count cannot be all 0")
         super(GEModel, self).save(*args, **kwargs)
 
@@ -117,7 +117,7 @@ class GEM(models.Model):
     condition = models.CharField(max_length=200, null=True)
     reaction_count = models.IntegerField(default=0)
     metabolite_count = models.IntegerField(default=0)
-    enzyme_count = models.IntegerField(default=0)
+    gene_count = models.IntegerField(default=0)
     date = models.DateField()
     link = models.CharField(max_length=255, null=True)
     ref = models.ManyToManyField(GEModelReference, related_name='gem', blank=True)
@@ -178,7 +178,7 @@ class Reaction(models.Model):
     metabolites = models.ManyToManyField('ReactionComponent', related_name='reactions_as_metabolite', through='ReactionMetabolite')
 
     def __str__(self):
-        return "<Reaction: {0} {1}>".format(self.id, self.modifiers)
+        return "<Reaction: {0} {1}>".format(self.id)
 
     class Meta:
         db_table = "reaction"
@@ -197,12 +197,10 @@ class ReactionReference(models.Model):
         db_table = "reaction_reference"
         unique_together = (('reaction', 'pmid'),)
 
-
-
-# corresponds to either metabolite or enzyme, should be Serialized with the proper serializer
+# corresponds to either metabolite or gene, should be Serialized with the proper serializer
 class ReactionComponent(models.Model):
     id = models.CharField(max_length=50, primary_key=True)  # ID in the SBML/YAML model
-    name = models.CharField(max_length=255)  # gene name for enzyme, or metabolite name
+    name = models.CharField(max_length=255)  # gene name for gene, or metabolite name
     full_name = models.CharField(max_length=255, null=True, unique=True)  # metabolite name with compartment letter
     alt_name1 = models.CharField(max_length=255, null=True)  # can be ORF ID in case of yeast, proteine name, metabolite short_name etc
     alt_name2 = models.CharField(max_length=255, null=True)  # can be ORF ID in case of yeast, proteine name, metabolite short_name etc
@@ -215,7 +213,7 @@ class ReactionComponent(models.Model):
     external_id6 = models.CharField(max_length=50, null=True)
     external_id7 = models.CharField(max_length=50, null=True)
     external_id8 = models.CharField(max_length=50, null=True)
-    component_type = models.CharField(max_length=1, db_index=True)  # 'm' or 'e' for metabolite or enzyme
+    component_type = models.CharField(max_length=1, db_index=True)  # 'm' or 'e' for metabolite or gene
     formula = models.CharField(max_length=255, null=True)  # only metabolites have this! should be in metabolite table but will simplify the queries if here
     compartment_str = models.CharField(max_length=255, null=True)
     compartment = models.ForeignKey('Compartment', db_column='compartment', null=True, on_delete=models.CASCADE)
@@ -223,15 +221,15 @@ class ReactionComponent(models.Model):
 
     reactions_as_reactant = models.ManyToManyField(Reaction, related_name='reactants', through='ReactionReactant')
     reactions_as_product = models.ManyToManyField(Reaction, related_name='products', through='ReactionProduct')
-    reactions_as_modifier = models.ManyToManyField(Reaction, related_name='modifiers', through='ReactionModifier')
+    reactions_as_gene = models.ManyToManyField(Reaction, related_name='genes', through='ReactionGene')
 
     subsystem_metabolite = models.ManyToManyField('Subsystem', related_name='metabolites', through='SubsystemMetabolite')
-    subsystem_enzyme = models.ManyToManyField('Subsystem', related_name='enzymes', through='SubsystemEnzyme')
+    subsystem_gene = models.ManyToManyField('Subsystem', related_name='genes', through='SubsystemGene')
 
     related_compartment_group = models.IntegerField(default=0)  # only for metabolites
     related_formula_group = models.IntegerField(default=0)  # only for metabolites
 
-    compartment_enzyme = models.ManyToManyField('Compartment', related_name='enzymes', through='CompartmentEnzyme')
+    compartment_gene = models.ManyToManyField('Compartment', related_name='genes', through='CompartmentGene')
 
     def __str__(self):
         return "<ReactionComponent: {0}>".format(self.id)
@@ -242,11 +240,6 @@ class ReactionComponent(models.Model):
             models.Index(fields=['related_compartment_group']),
             models.Index(fields=['related_formula_group']),
         ]
-
-'''class HumanReactionComponent(ReactionComponent):
-    def __init__(self, *args, **kwargs):
-        super(models.Model, self).__init__(self, *args, **kwargs)
-        self.gene_name2 = self.name'''
 
 class Metabolite(models.Model):
     rc = models.OneToOneField(
@@ -274,9 +267,9 @@ class Metabolite(models.Model):
     class Meta:
         db_table = "metabolite"
 
-class Enzyme(models.Model):
+class Gene(models.Model):
     rc = models.OneToOneField('ReactionComponent',
-        related_name='enzyme', db_column='rc', on_delete=models.CASCADE)
+        related_name='gene', db_column='rc', on_delete=models.CASCADE)
     function1 = models.CharField(max_length=3000, null=True)
     function2 = models.CharField(max_length=3000, null=True)
     ec = models.CharField(max_length=255, null=True)
@@ -293,7 +286,7 @@ class Enzyme(models.Model):
     external_link8 = models.CharField(max_length=255, null=True)
 
     class Meta:
-        db_table = "enzyme"
+        db_table = "gene"
 
 '''
 class CoFactor(models.Model):
@@ -321,7 +314,7 @@ class Subsystem(models.Model):
     reaction_count = models.IntegerField(default=0)
     metabolite_count = models.IntegerField(default=0)
     unique_metabolite_count = models.IntegerField(default=0)
-    enzyme_count = models.IntegerField(default=0)
+    gene_count = models.IntegerField(default=0)
     compartment_count = models.IntegerField(default=0)
 
     compounds = models.ManyToManyField('ReactionComponent', related_name='subsystems', through='SubsystemReactionComponent')
@@ -337,7 +330,7 @@ class SubsystemSvg(models.Model):
     reaction_count = models.IntegerField(default=0)
     metabolite_count = models.IntegerField(default=0)
     unique_metabolite_count = models.IntegerField(default=0)
-    enzyme_count = models.IntegerField(default=0)
+    gene_count = models.IntegerField(default=0)
     compartment_count = models.IntegerField(default=0)
     sha = models.CharField(max_length=256, unique=True, null=True)
     # min_zoom_level = models.FloatField(default=0)
@@ -358,7 +351,7 @@ class Compartment(models.Model):
     subsystem_count = models.IntegerField(default=0)
     metabolite_count = models.IntegerField(default=0)
     unique_metabolite_count = models.IntegerField(default=0)  # = metabolite_count
-    enzyme_count = models.IntegerField(default=0)
+    gene_count = models.IntegerField(default=0)
 
     def __str__(self):
         return self.name
@@ -377,7 +370,7 @@ class CompartmentSvg(models.Model):
     subsystem_count = models.IntegerField(default=0)
     metabolite_count = models.IntegerField(default=0)
     unique_metabolite_count = models.IntegerField(default=0)
-    enzyme_count = models.IntegerField(default=0)
+    gene_count = models.IntegerField(default=0)
     sha = models.CharField(max_length=256, unique=True, null=True)
     # min_zoom_level = models.FloatField(default=0)
     # max_zoom_level = models.FloatField(default=0)
@@ -390,36 +383,36 @@ class CompartmentSvg(models.Model):
 class MetaboliteReaction(object):
     def __init__(self, reaction, role):
         self.reaction_id = reaction.id
-        self.enzyme_role = role
+        self.gene_role = role
         self.reactants = reaction.reactants
         self.products = reaction.products
-        self.modifiers = reaction.modifiers
+        self.genes = reaction.genes
 
 class ConnectedMetabolites(object):
-    def __init__(self, enzyme, compartment, reactions):
-        self.enzyme = enzyme
+    def __init__(self, gene, compartment, reactions):
+        self.gene = gene
         self.compartment = compartment
         self.reactions = reactions
 
 class GemBrowserTile(object):
-    def __init__(self, compartments, subsystems, reactions, metabolites, enzymes):
+    def __init__(self, compartments, subsystems, reactions, metabolites, genes):
         self.compartments = compartments
         self.subsystems = subsystems
         self.reactions = reactions
         self.metabolites = metabolites
-        self.enzymes = enzymes
+        self.genes = genes
 
 #
 # Relationships
 #
 
 '''
-class EnzymeCoFactor(models.Model):
-    enzyme = models.ForeignKey(ReactionComponent, on_delete=models.CASCADE)
+class GeneCoFactor(models.Model):
+    gene = models.ForeignKey(ReactionComponent, on_delete=models.CASCADE)
     cofactor = models.ForeignKey(CoFactor, on_delete=models.CASCADE)
 
     class Meta:
-        db_table = "enzyme_cofactor"
+        db_table = "gene_cofactor"
 '''
 
 class ReactionReactant(models.Model):
@@ -441,13 +434,13 @@ class ReactionProduct(models.Model):
         unique_together = (('reaction', 'product'),)
 
 
-class ReactionModifier(models.Model):
+class ReactionGene(models.Model):
     reaction = models.ForeignKey(Reaction, on_delete=models.CASCADE)
-    modifier = models.ForeignKey(ReactionComponent, on_delete=models.CASCADE)
+    gene = models.ForeignKey(ReactionComponent, on_delete=models.CASCADE)
 
     class Meta:
-        db_table = "reaction_modifier"
-        unique_together = (('reaction', 'modifier'),)
+        db_table = "reaction_gene"
+        unique_together = (('reaction', 'gene'),)
 
 class ReactionMetabolite(models.Model):
     reaction = models.ForeignKey(Reaction, on_delete=models.CASCADE)
@@ -466,12 +459,12 @@ class CurrencyMetaboliteCompartment(models.Model):
         unique_together = (('rc', 'compartment'),)
 
 
-class CompartmentEnzyme(models.Model):
+class CompartmentGene(models.Model):
     compartment = models.ForeignKey(Compartment, on_delete=models.CASCADE)
     rc = models.ForeignKey(ReactionComponent, on_delete=models.CASCADE)
 
     class Meta:
-        db_table = "compartment_enzyme"
+        db_table = "compartment_gene"
         unique_together = (('compartment', 'rc'),)
 
 
@@ -491,12 +484,12 @@ class SubsystemMetabolite(models.Model):
         db_table = "subsystem_metabolite"
         unique_together = (('rc', 'subsystem'),)
 
-class SubsystemEnzyme(models.Model):
+class SubsystemGene(models.Model):
     rc = models.ForeignKey(ReactionComponent, on_delete=models.CASCADE)
     subsystem = models.ForeignKey(Subsystem, on_delete=models.CASCADE)
 
     class Meta:
-        db_table = "subsystem_enzyme"
+        db_table = "subsystem_gene"
         unique_together = (('rc', 'subsystem'),)
 
 class SubsystemReactionComponent(models.Model):
@@ -530,12 +523,12 @@ class ReactionComponentCompartment(models.Model):
         db_table = "rc_compartment"
         unique_together = (('rc', 'compartment'),)
 
-class CompartmentSvgEnzyme(models.Model):
+class CompartmentSvgGene(models.Model):
     compartmentsvg = models.ForeignKey(CompartmentSvg, on_delete=models.CASCADE)
     rc = models.ForeignKey(ReactionComponent, on_delete=models.CASCADE)
 
     class Meta:
-        db_table = "compartmentsvg_enzyme"
+        db_table = "compartmentsvg_gene"
         unique_together = (('compartmentsvg', 'rc'),)
 
 class ReactionCompartmentSvg(models.Model):
@@ -570,12 +563,12 @@ class ReactionComponentSubsystemSvg(models.Model):
         db_table = "rc_subsystemsvg"
         unique_together = (('rc', 'subsystemsvg'),)
 
-class SubsystemSvgEnzyme(models.Model):
+class SubsystemSvgGene(models.Model):
     subsystemsvg = models.ForeignKey(SubsystemSvg, on_delete=models.CASCADE)
     rc = models.ForeignKey(ReactionComponent, on_delete=models.CASCADE)
 
     class Meta:
-        db_table = "subsystemsvg_enzyme"
+        db_table = "subsystemsvg_gene"
         unique_together = (('subsystemsvg', 'rc'),)
 
 # relation subsystem / compartment in SVGs was previously found in TilesSubsystems
@@ -598,9 +591,9 @@ class HpaTissue(models.Model):
     class Meta:
         db_table = "hpa_tissue"
 
-class HpaEnzymeLevel(models.Model):
+class HpaProteinLevel(models.Model):
     rc = models.OneToOneField(ReactionComponent, on_delete=models.CASCADE, primary_key=True)
     levels = models.CharField(max_length=1000)
 
     class Meta:
-        db_table = "hpa_enzyme_level"
+        db_table = "hpa_protein_level"

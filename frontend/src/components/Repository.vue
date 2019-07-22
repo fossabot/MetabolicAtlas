@@ -27,7 +27,7 @@
                   <div class="column">
                     Reactions: {{ model.reaction_count }}<br>
                     Metabolites: {{ model.metabolite_count }}<br>
-                    Enzymes: {{ model.enzyme_count }}<br>
+                    Genes: {{ model.gene_count }}<br>
                   </div>
                   <div class="column">
                     Date: {{ model.date || "n/a" }}<br>
@@ -92,7 +92,7 @@
               <table class="table main-table">
                 <tbody>
                   <tr v-for="field in model_fields">
-                    <template v-if="['reaction_count', 'metabolite_count', 'enzyme_count'].includes(field.name)">
+                    <template v-if="['reaction_count', 'metabolite_count', 'gene_count'].includes(field.name)">
                       <td v-html="field.display" class="td-key has-background-primary has-text-white-bis"></td>
                       <td>{{ selectedModel[field.name] !== null ? selectedModel[field.name] : '-' }}</td>
                     </template>
@@ -264,7 +264,7 @@ export default {
         { name: 'cell_line', display: 'Cell&nbsp;line' },
         { name: 'reaction_count', display: 'Reactions' },
         { name: 'metabolite_count', display: 'Metabolites' },
-        { name: 'enzyme_count', display: 'Enzymes/genes' },
+        { name: 'gene_count', display: 'Genes' },
         { name: 'year', display: 'Year' },
         { name: 'maintained', display: 'Maintained' },
       ],
@@ -368,8 +368,8 @@ export default {
           const gemex = $.extend(gem, sample);
           gemex.tissue = [gemex.tissue, gemex.cell_type, gemex.cell_line].filter(e => e).join(' ‒ ') || '-';
           delete gemex.cell_type;
-          gemex.stats = `reactions:&nbsp;${gem.reaction_count}<br>metabolites:&nbsp;${gemex.metabolite_count}<br>enzymes:&nbsp;${gemex.enzyme_count}`;
-          delete gemex.reaction_count; delete gemex.enzyme_count; delete gemex.metabolite_count;
+          gemex.stats = `reactions:&nbsp;${gem.reaction_count}<br>metabolites:&nbsp;${gemex.metabolite_count}<br>genes:&nbsp;${gemex.gene_count}`;
+          delete gemex.reaction_count; delete gemex.gene_count; delete gemex.metabolite_count;
           gemex.maintained = gem.maintained ? 'Yes' : 'No';
           gemex.organ_system = gemex.organ_system || '-';
           gemex.condition = gemex.condition || '-';

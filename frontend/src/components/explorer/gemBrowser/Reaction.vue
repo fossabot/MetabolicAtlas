@@ -118,7 +118,7 @@ export default {
           { name: 'equation', modifier: this.reformatEquation },
           { name: 'is_reversible', display: 'Reversible', isComposite: true, modifier: this.reformatReversible },
           { name: 'quantitative', isComposite: true, modifier: this.reformatQuant },
-          { name: 'gene_rule', isComposite: true, display: 'Enzymes', modifier: this.reformatModifiers },
+          { name: 'gene_rule', isComposite: true, display: 'Genes', modifier: this.reformatGenes },
           { name: 'ec', display: 'EC', modifier: this.reformatECLink },
           { name: 'compartment', isComposite: true, modifier: this.reformatCompartment },
           { name: 'subsystem', display: 'Subsystem', modifier: this.reformatSubsystemList },
@@ -128,7 +128,7 @@ export default {
           { name: 'equation', modifier: this.reformatEquation },
           { name: 'is_reversible', display: 'Reversible', isComposite: true, modifier: this.reformatReversible },
           { name: 'quantitative', isComposite: true, modifier: this.reformatQuant },
-          { name: 'gene_rule', isComposite: true, display: 'Enzymes', modifier: this.reformatModifiers },
+          { name: 'gene_rule', isComposite: true, display: 'Genes', modifier: this.reformatGenes },
           { name: 'ec', display: 'EC', modifier: this.reformatECLink },
           { name: 'compartment', isComposite: true, modifier: this.reformatCompartment },
           { name: 'subsystem', display: 'Subsystem', modifier: this.reformatSubsystemList },
@@ -150,7 +150,7 @@ export default {
   },
   created() {
     $('body').on('click', 'a.e', function f() {
-      EventBus.$emit('GBnavigateTo', 'enzyme', $(this).attr('name'));
+      EventBus.$emit('GBnavigateTo', 'gene', $(this).attr('name'));
     });
     $('body').on('click', 'a.s', function f() {
       EventBus.$emit('GBnavigateTo', 'subsystem', $(this).attr('name'));
@@ -189,7 +189,9 @@ export default {
       .then((response) => {
         this.showLoader = false;
         this.reaction = response.data.reaction;
-        this.reformatRefs(response.data.pmids);
+        if (response.data.pmids.length !== 0) {
+          this.reformatRefs(response.data.pmids);
+        }
         this.getRelatedReactions();
       })
       .catch(() => {
@@ -207,7 +209,7 @@ export default {
       });
     },
     reformatEquation() { return reformatChemicalReactionHTML(this.reaction); },
-    reformatModifiers() {
+    reformatGenes() {
       let newGRnameArr = null;
       if (this.reaction.gene_rule_wname) {
         newGRnameArr = this.reaction.gene_rule_wname.split(/ +/).map(

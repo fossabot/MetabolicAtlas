@@ -176,7 +176,7 @@ def main():
                 'condition': None,
                 'reaction_count': 0,
                 'metabolite_count': 0,
-                'enzyme_count': 0,
+                'gene_count': 0,
                 'files': None,
                 'maintained': True,
                 'reference': None,  # should be None, reference will be the set reference
@@ -208,7 +208,7 @@ def main():
                 elif keys[j].lower() == 'metabolites':
                     model['metabolite_count'] = int(col)
                 elif keys[j].lower() == 'genes':
-                    model['enzyme_count'] = int(col)
+                    model['gene_count'] = int(col)
                 elif keys[j].lower() == 'strain':
                     model['label'] = col
                 elif keys[j].lower() == 'condition': #TESTME
