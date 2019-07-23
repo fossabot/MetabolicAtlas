@@ -50,6 +50,7 @@ import axios from 'axios';
 import $ from 'jquery';
 import Loader from '@/components/Loader';
 import _ from 'lodash';
+import { sortResults } from '../../../helpers/utils';
 import { chemicalFormula, chemicalReaction } from '../../../helpers/chemical-formatters';
 import { default as EventBus } from '../../../event-bus';
 import { default as messages } from '../../../helpers/messages';
@@ -150,36 +151,7 @@ export default {
         // sort result by exact matched first, then by alpha order
         for (const k of Object.keys(localResults)) {
           if (localResults[k].length) {
-            localResults[k].sort((a, b) => {
-              let matchSizeDiffA = 100;
-              let matchedStringA = '';
-              for (const field of Object.keys(a)) {
-                if (a[field] && (typeof a[field] === 'string' || a[field] instanceof String) &&
-                    a[field].toLowerCase().includes(this.searchTermString.toLowerCase())) {
-                  const diff = a[field].length - this.searchTermString.length;
-                  if (diff < matchSizeDiffA) {
-                    matchSizeDiffA = diff;
-                    matchedStringA = a[field];
-                  }
-                }
-              }
-              let matchSizeDiffB = 100;
-              let matchedStringB = '';
-              for (const field of Object.keys(b)) {
-                if (b[field] && (typeof b[field] === 'string' || b[field] instanceof String) &&
-                    b[field].toLowerCase().includes(this.searchTermString.toLowerCase())) {
-                  const diff = b[field].length - this.searchTermString.length;
-                  if (diff < matchSizeDiffB) {
-                    matchSizeDiffB = diff;
-                    matchedStringB = b[field];
-                  }
-                }
-              }
-              if (matchSizeDiffA === matchSizeDiffB) {
-                return matchedStringA.localeCompare(matchedStringB);
-              }
-              return matchSizeDiffA < matchSizeDiffB ? -1 : 1;
-            });
+            localResults[k].sort((a, b) => this.sortResults(a, b, this.searchTermString));
           }
         }
         this.$refs.searchResults.scrollTop = 0;
@@ -226,6 +198,7 @@ export default {
       return s;
     },
     chemicalFormula,
+    sortResults,
   },
 };
 </script>

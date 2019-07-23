@@ -152,7 +152,7 @@ import Loader from '@/components/Loader';
 import { VueGoodTable } from 'vue-good-table';
 import 'vue-good-table/dist/vue-good-table.css';
 import { chemicalFormula } from '../helpers/chemical-formatters';
-import { idfy, reformatEqSign } from '../helpers/utils';
+import { idfy, reformatEqSign, sortResults } from '../helpers/utils';
 import { default as messages } from '../helpers/messages';
 
 export default {
@@ -489,6 +489,9 @@ export default {
       // store choice only once in a dict
       for (const componentType of Object.keys(this.searchResults)) {
         const compoList = this.searchResults[componentType];
+        // sort
+        compoList.sort((a, b) => this.sortResults(a, b, this.searchedTerm));
+
         for (const el of compoList) { // e.g. results list for metabolites
           if (componentType === 'metabolite') {
             for (const field of Object.keys(filterTypeDropdown[componentType])) {
@@ -730,6 +733,7 @@ export default {
     idfy,
     chemicalFormula,
     reformatEqSign,
+    sortResults,
   },
 };
 
