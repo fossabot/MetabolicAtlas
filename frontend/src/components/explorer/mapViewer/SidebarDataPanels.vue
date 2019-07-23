@@ -24,7 +24,7 @@
           </p>
         </header>
         <footer class="card-footer">
-          <router-link class="is-paddingless is-info is-outlined card-footer-item has-text-centered" :to="{ path: `/explore/gem-browser/${model.database_name}/${mapType}/${ mapsData.compartments[mapName] ? mapsData.compartments[mapName].model_id : mapsData.subsystems[mapName] ? mapsData.subsystems[mapName].model_id : '' }`}">
+          <router-link class="is-paddingless is-info is-outlined card-footer-item has-text-centered" :to="{ path: `/explore/gem-browser/${model.database_name}/${mapType}/${ mapsData.compartments[mapName] ? mapsData.compartments[mapName].id : mapsData.subsystems[mapName] ? mapsData.subsystems[mapName].id : '' }`}">
             <span class="icon is-large"><i class="fa fa-database fa-lg"></i></span>
             <span>{{ messages.gemBrowserName }}</span>
           </router-link>

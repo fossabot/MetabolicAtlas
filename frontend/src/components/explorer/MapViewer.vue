@@ -174,6 +174,10 @@ export default {
         compartments: {},
         subsystems: {},
       },
+      compartmentMapping: {
+        dim2D: {},
+        dim3D: {},
+      },
 
       selectionData: {
         type: '',
@@ -333,11 +337,12 @@ export default {
       }
 
       if (!this.checkValidRequest(this.currentDisplayedType, this.currentDisplayedName)) {
-        this.handleLoadComplete(false, messages.mapNotFound, 'info');
+        this.showMessage(messages.mapNotFound, 'info');
         this.show3D = !this.show3D;
         this.show2D = !this.show2D;
         return;
       }
+
       if (this.show3D) {
         this.URLID = null;
         EventBus.$emit('show3Dnetwork', this.requestedType, this.requestedName);
@@ -350,17 +355,9 @@ export default {
     handleLoadComplete(isSuccess, errorMessage, messageType) {
       if (!isSuccess) {
         this.selectionData.data = null;
-        this.loadErrorMesssage = errorMessage;
-        this.loadErrorTypeMesssage = messageType;
-        if (!this.loadErrorMesssage) {
-          this.loadErrorMesssage = messages.unknownError;
-        }
-        this.showLoader = false;
+        this.showMessage(errorMessage, messageType);
         this.currentDisplayedType = '';
         this.currentDisplayedName = '';
-        setTimeout(() => {
-          this.loadErrorMesssage = '';
-        }, 3000);
         return;
       }
       this.showOverviewScreen = false;
@@ -375,33 +372,46 @@ export default {
         this.loadHPARNAlevels(this.loadedTissue);
       }
     },
+    showMessage(errorMessage, messageType) {
+      this.loadErrorMesssage = errorMessage;
+      this.loadErrorTypeMesssage = messageType;
+      if (!this.loadErrorMesssage) {
+        this.loadErrorMesssage = messages.unknownError;
+      }
+      this.showLoader = false;
+      setTimeout(() => {
+        this.loadErrorMesssage = '';
+      }, 3000);
+    },
     getSubComptData(model) {
       axios.get(`${model.database_name}/viewer/`)
       .then((response) => {
         this.mapsData3D.compartments = {};
         for (const c of response.data.compartment) {
           this.mapsData3D.compartments[c.name_id] = c;
-          this.mapsData3D.compartments[c.name_id].model_id = c.name_id;
+          this.mapsData3D.compartments[c.name_id].id = c.name_id;
           this.mapsData3D.compartments[c.name_id].alternateDim = c.compartment_svg;
+          this.compartmentMapping.dim2D[c.compartment_svg] = c.name_id;
         }
         this.mapsData2D.compartments = {};
         for (const c of response.data.compartmentsvg) {
           this.mapsData2D.compartments[c.name_id] = c;
-          this.mapsData2D.compartments[c.name_id].model_id = c.compartment;
+          this.mapsData2D.compartments[c.name_id].id = c.compartment;
           this.mapsData2D.compartments[c.name_id].alternateDim = c.compartment;
+          this.compartmentMapping.dim3D[c.compartment] = c.name_id;
         }
         this.has2DCompartmentMaps = Object.keys(this.mapsData2D.compartments).length !== 0;
         // this.mapsData2D.compartments.sort();
         this.mapsData3D.subsystems = {};
         for (const s of response.data.subsystem) {
           this.mapsData3D.subsystems[s.name_id] = s;
-          this.mapsData3D.subsystems[s.name_id].model_id = s.name_id;
+          this.mapsData3D.subsystems[s.name_id].id = s.name_id;
           this.mapsData3D.subsystems[s.name_id].alternateDim = s.subsystem_svg;
         }
         this.mapsData2D.subsystems = {};
         for (const s of response.data.subsystemsvg) {
           this.mapsData2D.subsystems[s.name_id] = s;
-          this.mapsData2D.subsystems[s.name_id].model_id = s.subsystem;
+          this.mapsData2D.subsystems[s.name_id].id = s.subsystem;
           this.mapsData2D.subsystems[s.name_id].alternateDim = s.subsystem;
         }
         this.has2DSubsystemMaps = Object.keys(this.mapsData2D.subsystems).length !== 0;
@@ -477,12 +487,18 @@ export default {
       this.requestedName = displayName;
       if (this.show2D) {
         if (displayType === 'compartment') {
+          if (displayName in this.compartmentMapping.dim3D) {
+            this.requestedName = this.compartmentMapping.dim3D[displayName];
+          }
           return this.requestedName in this.mapsData2D.compartments;
         }
         return this.requestedName in this.mapsData2D.subsystems &&
          this.mapsData2D.subsystems[this.requestedName].sha;
       }
       if (displayType === 'compartment') {
+        if (displayName in this.compartmentMapping.dim2D) {
+          this.requestedName = this.compartmentMapping.dim2D[displayName];
+        }
         return this.requestedName in this.mapsData3D.compartments;
       }
       return this.requestedName in this.mapsData3D.subsystems;
