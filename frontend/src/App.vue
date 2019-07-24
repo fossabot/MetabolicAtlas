@@ -495,6 +495,10 @@ m, .clickable {
   }
 }
 
+.box.selectedBoxModel {
+  box-shadow: 0 2px 3px gray, 0 0 0 1px $primary;
+}
+
 #gem-browser-tiles {
   .tile.is-child {
     &:hover {

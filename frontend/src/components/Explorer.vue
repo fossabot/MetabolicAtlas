@@ -6,58 +6,53 @@
           <component v-bind:is="currentShowComponent" :model="model"></component>
         </keep-alive>
       </template>
-      <template v-else>
-        <div>
-          <div class="columns has-text-centered">
-            <div class="column">
-              <h4 v-if="model" class="is-size-4 has-text-weight-bold">Explore a model: <i>{{ model.short_name }} v{{ model.version }}</i></h4>
-              <p class="has-text-weight-bold">
-                Select a model and start browsing or navigate on the maps
-              </p>
+      <template v-if="model" v-else>
+        <div class="columns has-text-centered">
+          <div class="column">
+            <h4 class="is-size-3 has-text-weight-bold">Explore a model</h4>
+          </div>
+        </div>
+        <div class="columns">
+          <div class="column">
+            <p class="has-text-weight-bold is-size-5">
+              Select a model:
+            </p>
+          </div>
+        </div>
+        <div class="columns is-centered">
+          <div class="column is-three-fifths-desktop is-three-quarters-tablet is-fullwidth-mobile">
+            <div :class="cmodel.database_name === model.database_name ? 'selectedBoxModel' : ''" class="box has-text-centered clickable" 
+            v-for="cmodel, k in Object.values(models).sort((a, b) => (a.short_name.toLowerCase() < b.short_name.toLowerCase() ? -1 : 1))" 
+            @mousedown.prevent="selectModel(cmodel); showModelList = false" 
+            :title="`Select ${cmodel.short_name} as model to explore`"
+            v-html="getModelDescription(cmodel)">
             </div>
           </div>
-          <div class="columns is-centered">
-            <div class="column is-three-fifths-desktop is-three-quarters-tablet is-fullwidth-mobile has-text-centered">
-              <div class="dropdown" :class="{'is-active' : showModelList}" >
-                <div class="dropdown-trigger">
-                  <button v-if="model" class="button is-medium is-fullwidth" aria-haspopup="true" aria-controls="dropdown-menu" @click="showModelList = true" @blur="showModelList = false"
-                    title="Click to view the list of integrated models">
-                    <span>Model: <span class="tag is-primary has-text-weight-bold is-medium">{{ model.short_name }} v{{ model.version }}</span></span>
-                    <span class="icon is-small">
-                      <i class="fa fa-angle-down" aria-hidden="true"></i>
-                    </span>
-                  </button>
-                </div>
-                <div class="dropdown-menu" id="dropdown-menu" role="menu" ref="dropdownmenu">
-                  <div class="dropdown-content">
-                   <a class="dropdown-item has-text-centered is-size-6"
-                      v-for="model, k in models"
-                      @mousedown.prevent="selectModel(model); showModelList = false" v-html="getModelDescription(model)">
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </div>
+        </div>
+        <div class="columns">
+          <div class="column">
+            <p class="has-text-weight-bold is-size-5">
+              Select a tool:
+            </p>
           </div>
-          <br>
-          <div id="toolsSelect" class="columns is-multiline">
-            <template v-if="model" v-for="tool in explorerTools">
-              <div class="column is-12-tablet is-half-desktop">
-                <router-link :to="{ path: `${tool.url}/${model.database_name }` }" :title="`Click to access the ${tool.name} for ${model.short_name} model`">
-                  <div class="card card-fullheight card-selectable has-text-justified">
-                    <header class="card-header">
-                      <p class="card-header-title is-size-5">{{ tool.name }}</p>
-                    </header>
-                    <div class="card-content">
-                      <div class="content">
-                          <img :src="tool.img" />
-                      </div>
+        </div>
+        <div id="toolsSelect" class="columns is-multiline">
+          <template v-for="tool, i in explorerTools">
+            <div class="column is-5" :class="i === 0 ? 'is-offset-1' : ''">
+              <router-link :to="{ path: `${tool.url}/${model.database_name }` }" :title="`Click to access the ${tool.name} for ${model.short_name} model`">
+                <div class="card card-fullheight card-selectable has-text-justified">
+                  <header class="card-header">
+                    <p class="card-header-title is-size-5">{{ tool.name }}</p>
+                  </header>
+                  <div class="card-content">
+                    <div class="content">
+                        <img :src="tool.img" />
                     </div>
                   </div>
-              </router-link>
-              </div>
-            </template>
-          </div>
+                </div>
+            </router-link>
+            </div>
+          </template>
         </div>
       </template>
       </div>
@@ -188,7 +183,7 @@ export default {
         });
     },
     getModelDescription(model) {
-      return `<div>${model.short_name} v${model.version} - ${model.full_name}<div>
+      return `<div><span class="has-text-primary has-text-weight-bold">${model.short_name} v${model.version}</span> - ${model.full_name}<div>
       <div class="has-text-grey">
         ${model.reaction_count} reactions -
         ${model.metabolite_count} metabolites -
@@ -215,9 +210,4 @@ export default {
 </script>
 
 <style lang="scss">
-
-.dropdown, .dropdown-trigger, #dropdown-menu {
-  width: 100%;
-}
-
 </style>
