@@ -63,6 +63,9 @@
         <div v-if="GEMS.length != 0">
           <vue-good-table
             :columns="columns" :rows="GEMS"
+            :search-options="{
+              enabled: true
+            }"
             :sort-options="{ enabled: true }" styleClass="vgt-table striped bordered" :paginationOptions="tablePaginationOpts"
             @on-row-click="getModel">
           </vue-good-table>
