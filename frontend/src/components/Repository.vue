@@ -126,7 +126,7 @@
                   <tr v-if="selectedModel.link">
                     <td class="td-key has-background-primary has-text-white-bis">URL</td>
                     <td>
-                      {{ selectedModel.link }}
+                      <a :href="selectedModel.link" target="_blank">{{ selectedModel.link }}</a>
                     </td>
                   </tr>
                   <tr v-if="selectedModel.ref && selectedModel.ref.length !== 0">

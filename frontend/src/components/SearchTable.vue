@@ -39,7 +39,7 @@
           <loader v-show="loading && searchTerm !== ''"></loader>
           <div v-show="!loading">
             <div v-if="Object.keys(searchResults).length === 0" class="column is-offset-3 is-6">
-              <div class=" has-text-centered notification">
+              <div v-if="searchedTerm" class=" has-text-centered notification">
                 {{ messages.searchNoResult }}
               </div>
               <div class="content">
