@@ -150,8 +150,8 @@
           <h5 id="Integrated models">Integrated GEMs</h5>
           Currently, Metabolic Atlas contains two integrated models, <i>YeastGEM</i> and <i>HumanGEM</i>.
 
-          <h5 id="Repository">Repository</h5>
-          The Repository lists all models constructed by the SysBio research group; this includes older models that may no longer be maintained (for example HMR2), and others that were recently published. The more recent GEMs can also be found in the <a href="https://www.github.com/SysBioChalmers/" target="_blank">SysBioChalmers organization GitHub</a>.<br>
+          <h5 id="Repository">GEM Repository</h5>
+          The repository lists all models constructed by the SysBio research group; this includes older models that may no longer be maintained (for example HMR2), and others that were recently published. The more recent GEMs can also be found in the <a href="https://www.github.com/SysBioChalmers/" target="_blank">SysBioChalmers organization GitHub</a>.<br>
           Click on a row in the table to show more information about a GEM. Users can download models in various file formats (when available).
 
           <h5 id="Comparison">Comparison</h5>

@@ -4,7 +4,8 @@
       <div id="search-table">
         <div class="columns">
           <div class="column has-text-centered">
-            <h3 class="title is-3">Global search all integrated GEMs <span v-if="searchedTerm"> for <i>{{ searchedTerm }}</i></span></h3>
+            <h3 class="title is-3">Search within all integrated GEMs</h3>
+            <h4 class="title is-4 is-marginless">for reactions, metabolites, genes, subsystems and compartments.</h4>
           </div>
         </div>
         <div class="columns is-centered">
@@ -12,7 +13,7 @@
             <div id="input-wrapper">
               <p class="control has-icons-right has-icons-left">
                 <input id="search" class="input" type="text" v-model="searchTerm"
-                  placeholder="Search by metabolite (uracil), gene (SULT1A3), or reaction (ATP => cAMP + PPi) or subsystem" v-on:keyup.enter="updateSearch()">
+                  placeholder="Example: uracil, SULT1A3, ATP => cAMP + PPi, Acyl-CoA hydrolysis" v-on:keyup.enter="updateSearch()">
                 <span class="has-text-danger icon is-small is-right" v-show="this.showSearchCharAlert" style="width: 200px">
                   Type at least 2 characters
                 </span>
@@ -39,8 +40,8 @@
           <loader v-show="loading && searchTerm !== ''"></loader>
           <div v-show="!loading">
             <div v-if="Object.keys(searchResults).length === 0" class="column is-offset-3 is-6">
-              <div v-if="searchedTerm" class=" has-text-centered notification">
-                {{ messages.searchNoResult }}
+              <div v-if="searchedTerm" class="has-text-centered notification">
+                {{ messages.searchNoResult }} for <i>{{ searchedTerm }}</i>
               </div>
               <div class="content">
                 <div class="has-text-centered">Search using the following parameters:</div>

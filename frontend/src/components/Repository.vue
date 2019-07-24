@@ -57,8 +57,9 @@
             </div>
           </div>
         </div>
-        <h2 class="title is-2">Repository</h2>
-        <p class="is-size-5">While we do not provide support for these models, we are making them available to download. For support, the authors should be contacted. They are listed in the <i>References</i> section of each model. Click on any row to view more. To download multiple models at once use the <router-link :to=" { path: '/documentation', hash: 'FTP-download'} ">FTP server</router-link>.</p><br>
+        <h2 class="title is-2">GEM Repository</h2>
+        <p class="is-size-5">
+          While we do not provide support for these models, we are making them available to download. For support, the authors should be contacted. They are listed in the <i>References</i> section of each model. Click on a row to display more information. To download multiple models at once use the <router-link :to=" { path: '/documentation', hash: 'FTP-download'} ">FTP server</router-link>.</p><br>
         <loader v-show="showLoader"></loader>
         <div v-if="GEMS.length != 0">
           <vue-good-table
