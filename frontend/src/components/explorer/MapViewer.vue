@@ -56,9 +56,10 @@
                   </div>
                 </ul>
               </li>
-              <li :class="{'clickable' : true, 'disable' : !currentDisplayedName || HPATissue.length === 0 }" >RNA levels from <i style="color: lightblue">proteinAtlas.org</i>
+              <li :class="{'clickable' : true, 'disable' : disabledRNAlvl }"
+                :title="getRNATitle()">RNA levels from <i style="color: lightblue">proteinAtlas.org</i>
                 <span v-show="HPATissue.length !== 0">&nbsp;&#9656;</span>
-                <ul class="vhs l1">
+                <ul class="vhs l1" title="">
                   <li v-show="HPATissue.length !== 0" @click="loadHPARNAlevels('None')"  class="has-background-grey-dark clickable"><i>Clear selection</i></li>
                   <li v-for="tissue in HPATissue" class="clickable is-capitalized" @click="loadHPARNAlevels(tissue)"
                     :class="{'has-text-warning': tissue === loadedTissue }">
@@ -211,6 +212,9 @@ export default {
       const altID = this.mapsData3D.subsystems[this.currentDisplayedName].alternateDim;
       return !(altID in this.mapsData2D.subsystems && this.mapsData2D.subsystems[altID].sha);
     },
+    disabledRNAlvl() {
+      return !this.currentDisplayedName || this.HPATissue.length === 0;
+    },
   },
   watch: {
     /* eslint-disable quote-props */
@@ -289,6 +293,9 @@ export default {
     // menu
     const self = this;
     $('#menu').on('mouseenter', 'ul.l0 > li:has(ul)', function f() {
+      if ($(this).hasClass('disable')) {
+        return;
+      }
       $('#menu ul.l1, #menu ul.l2').hide();
       $(this).find('ul').first().show();
       self.isHoverMenuItem = true;
@@ -517,6 +524,12 @@ export default {
         this.$router.push(`/explore/map-viewer/${this.model.database_name}/`);
         // keep the loaded 2D map, and data info in the 'back', to quickly reload it
       }
+    },
+    getRNATitle() {
+      if (this.HPATissue.length === 0) {
+        return `RNA expression levels not available for ${this.model.name}`;
+      }
+      return this.disabledRNAlvl ? 'Load a map to enable RNA expression levels' : 'Select a tissue from the list to color genes according their expression levels in that tissue';
     },
   },
 };
