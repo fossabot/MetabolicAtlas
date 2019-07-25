@@ -557,9 +557,11 @@ export default {
     position: absolute;
     top: 7.25rem;
     left: 2.25rem;
-    span:not(:last-child) {
-      display: inline-block;
-      margin-right: 5px;
+    span {
+      display: block;
+      &:not(:last-child) {
+        margin-bottom: 5px;
+      }
     }
   }
 

@@ -1,6 +1,26 @@
 <template>
   <div ref="graphParent">
     <div id="graph3D"></div>
+    <div id="forceOption" class="overlay">
+      <span class="button"
+      v-on:click="showGraphOption = !showGraphOption" title="Options"><i class="fa fa-cog"></i>
+      </span>
+      <div v-show="showGraphOption" id="contextGraphOption" ref="contextGraphOption">
+        <button class="delete" v-on:click="showGraphOption = !showGraphOption"></button>
+        <div class="comp">
+          <label class="checkbox">
+            <input type="checkbox" @click="changeBackgroundColor()">
+            Use white background color
+          </label>
+        </div>
+        <div class="comp">
+          <label class="checkbox">
+            <input type="checkbox" @click="changeNodeShapeText()">
+            Show nodes as text
+          </label>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -10,6 +30,9 @@ import axios from 'axios';
 import forceGraph3D from '3d-force-graph';
 import { default as EventBus } from '../../../event-bus';
 import { getExpressionColor } from '../../../expression-sources/hpa';
+import SpriteText from '../../../helpers/spriteText';
+
+const THREE = require('three');  // eslint-disable-line import/no-extraneous-dependencies
 
 export default {
   name: 'd3dforce',
@@ -35,6 +58,9 @@ export default {
       geneRNAlevels: {},
       HPARNAlevelsHistory: {},
       defaultGeneColor: '#feb',
+      showNodeAsText: false,
+      showGraphOption: false,
+      useWhiteBackground: false,
       tissue: 'None',
       focusOnID: null,
     };
@@ -137,26 +163,35 @@ export default {
         .nodeResolution(12)
         .warmupTicks(100)
         .cooldownTicks(0)
+        .backgroundColor(this.useWhiteBackground ? '#FDFDFD' : '#000022')
         .onNodeClick((n) => {
           this.selectElement(n);
         })
-        .nodeColor((n) => {
-          if (n.id === this.selectElementIDfull) {
-            return 'red';
+        .nodeThreeObject(node => {
+          if (!this.showNodeAsText) {
+            return;
           }
-          if (n.g === 'e') {
-            if (this.tissue === 'None') {
-              return this.defaultGeneColor;
+          // use a sphere as a drag handle
+          const obj = new THREE.Mesh(
+            new THREE.SphereGeometry(10),
+            new THREE.MeshBasicMaterial({ depthWrite: false, transparent: true, opacity: 0 })
+          );
+          // add text sprite as child
+          const sprite = new SpriteText(node.n);
+          sprite.color = this.getNodeColor(node);
+          sprite.textHeight = 8;
+          obj.add(sprite);
+          return obj;
+        })
+        .nodeColor((n) => this.getNodeColor(n))
+        .onNodeHover((n, prevN) => { 
+          if (n != null) {
+            if (this.showNodeAsText) {
+              document.getElementsByClassName('scene-tooltip')[0].style.display = 'none';
+            } else if (this.useWhiteBackground) {
+              document.getElementsByClassName('scene-tooltip')[0].style.color = '#333333';
             }
-            const partialID = n.id.split('-')[0];
-            if (this.geneRNAlevels[partialID] !== undefined) {
-              return getExpressionColor(this.geneRNAlevels[partialID]);
-            }
-            return 'whitesmoke';
-          } else if (n.g === 'r') {
-            return '#fff';
           }
-          return '#9df';
         })
         .onEngineStop(() => {
           if (this.graph === null
@@ -181,6 +216,16 @@ export default {
           }
         });
     },
+    changeNodeShapeText() {
+      this.showNodeAsText = !this.showNodeAsText;
+      this.graph.graphData(this.network);
+    },
+    changeBackgroundColor() {
+      this.useWhiteBackground = !this.useWhiteBackground;
+      if (this.graph) {
+        this.graph.scene().background = new THREE.Color( this.useWhiteBackground ? '#FDFDFD' : '#000022');
+      }
+    },
     updateGraphBounds() {
       setTimeout(() => {
         if (this.$refs.graphParent.offsetParent) {
@@ -191,6 +236,24 @@ export default {
           }
         }
       }, 0);
+    },
+    getNodeColor(n) {
+      if (n.id === this.selectElementIDfull) {
+        return 'red';
+      }
+      if (n.g === 'e') {
+        if (this.tissue === 'None') {
+          return this.defaultGeneColor;
+        }
+        const partialID = n.id.split('-')[0];
+        if (this.geneRNAlevels[partialID] !== undefined) {
+          return getExpressionColor(this.geneRNAlevels[partialID]);
+        }
+        return 'whitesmoke';
+      } else if (n.g === 'r') {
+        return '#fff';
+      }
+      return '#9df';
     },
     getElementIdAndType(element) {
       if (element.g === 'r') {
@@ -339,5 +402,41 @@ export default {
  width: 100%;
  overflow: hidden;
 }
+
+#forceOption {
+  position: absolute;
+  top: 7.25rem;
+  left: 2.25rem;
+  span {
+    display: block;
+  }
+}
+
+#contextGraphOption {
+    position: absolute;
+    background: white;
+    top: 9px;
+    left: 47px;
+    width: 300px;
+    height: auto;
+    padding: 15px;
+    border: 1px solid black;
+    border-radius: 2px;
+    z-index: 30;
+
+    div.comp {
+      margin-left: 20px;
+      display: block;
+      &:not(:last-child) {
+        margin-bottom: 20px;
+      }
+    }
+
+    .delete {
+      position: absolute;
+      right: 10px;
+      top: 10px;
+    }
+  }
 
 </style>

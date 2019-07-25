@@ -173,7 +173,7 @@ export default {
       if (this.isGraphVisible) {
         this.$emit('highlight', sameID ? '' : elmId);
       } else {
-        this.selectedElmId = sameID ? '' : elmId;
+        this.selectedElmId = sameID ? '' : elmId; // avoid mutate prop
       }
     },
     HLreaction(rID) {
