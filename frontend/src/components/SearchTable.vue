@@ -3,9 +3,10 @@
     <div class="container">
       <div id="search-table">
         <div class="columns">
-          <div class="column has-text-centered">
+          <div class="column has-text-centered content">
+            <br>
             <h3 class="title is-3">Search within all integrated GEMs</h3>
-            <h4 class="title is-4 is-marginless">for reactions, metabolites, genes, subsystems and compartments.</h4>
+            <h4 class="subtitle is-4 has-text-weight-normal">for reactions, metabolites, genes, subsystems and compartments</h4>
           </div>
         </div>
         <div class="columns is-centered">

@@ -529,7 +529,7 @@ export default {
       if (this.HPATissue.length === 0) {
         return `RNA expression levels not available for ${this.model.name}`;
       }
-      return this.disabledRNAlvl ? 'Load a map to enable RNA expression levels' : 'Select a tissue from the list to color genes according their expression levels in that tissue';
+      return this.disabledRNAlvl ? 'RNA expression levels disabled, select a map first' : 'Select a tissue from the list to color genes according their expression levels in that tissue';
     },
   },
 };
