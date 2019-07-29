@@ -85,7 +85,7 @@ export default function (
       'border-width': '1px',
       'border-color': function f(e) {
         if (e.data().id === componentID) {
-          return 'whitesmoke';
+          return 'lightgray';
         }
         return 'black';
       },
