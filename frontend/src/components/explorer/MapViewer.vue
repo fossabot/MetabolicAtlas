@@ -18,14 +18,14 @@
               <li :title="`Select a ${show2D ? '2D' : '3D'} compartment network to show`">Compartments<span>&nbsp;&#9656;</span>
                 <ul class="vhs l1" title="">
                   <li @click="showMap()" class="has-background-grey-dark clickable"><i>Clear selection</i></li>
-                  <div v-show="!has2DCompartmentMaps || show3D">
+                  <div v-if="!has2DCompartmentMaps || show3D">
                     <li v-for="cKey in Object.keys(mapsData3D.compartments).sort()" class="clickable"
                       :class="{'has-text-warning': cKey === currentDisplayedName }"
                       @click="showMap(mapsData3D.compartments[cKey].name_id)">
                       {{ mapsData3D.compartments[cKey].name }} {{ mapsData3D.compartments[cKey].reaction_count != 0 ? `(${mapsData3D.compartments[cKey].reaction_count})` : '' }}
                     </li>
                   </div>
-                  <div v-show="has2DCompartmentMaps && show2D">
+                  <div v-else>
                     <li v-for="cKey in Object.keys(mapsData2D.compartments).sort()" class="clickable"
                       :class="{ 'disable' : !mapsData2D.compartments[cKey].sha, 'has-text-warning': cKey === currentDisplayedName }"
                       @click="showMap(mapsData2D.compartments[cKey].name_id)">
@@ -37,14 +37,14 @@
               <li :title="`Select a ${show2D ? '2D' : '3D'} subsystem network to show`">Subsystems<span>&nbsp;&#9656;</span>
                 <ul class="vhs l1" title="">
                   <li @click="showMap()" class="has-background-grey-dark clickable"><i>Clear selection</i></li>
-                  <div v-show="!has2DSubsystemMaps || show3D">
+                  <div v-if="!has2DSubsystemMaps || show3D">
                     <li v-for="sKey in Object.keys(mapsData3D.subsystems).sort()" class="clickable"
                       :class="{'has-text-warning': sKey === currentDisplayedName }"
                       @click="showMap(mapsData3D.subsystems[sKey].name_id, 'subsystem')">
                         {{ mapsData3D.subsystems[sKey].name }} {{ mapsData3D.subsystems[sKey].reaction_count != 0 ? `(${mapsData3D.subsystems[sKey].reaction_count})` : '' }}
                     </li>
                   </div>
-                  <div v-show="has2DSubsystemMaps && mapsData2D.subsystems">
+                  <div v-else>
                     <li v-for="sKey in Object.keys(mapsData2D.subsystems).sort()" class="clickable"
                       :class="{'has-text-warning': sKey === currentDisplayedName }"
                       v-if="mapsData2D.subsystems[sKey].name_id && mapsData2D.subsystems[sKey].sha" @click="showMap(mapsData2D.subsystems[sKey].name_id, 'subsystem')">

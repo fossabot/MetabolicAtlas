@@ -40,7 +40,7 @@
       <div class="column">
         <div class="card" v-if="selectionData.data && mapType !== 'subsystem' && selectionData.type == 'subsystem'">
           <header class="card-header">
-            <p class="card-header-title is-capitalized is-inline">
+            <p class="card-header-title is-capitalized is-inline is-unselectable">
               {{ selectionData.type }}: <i>{{ selectionData.data.id }}</i>
             </p>
           </header>
@@ -59,7 +59,7 @@
         </div>
         <div class="card" v-else-if="selectionData.data && ['metabolite', 'gene', 'reaction'].includes(selectionData.type)">
           <header class="card-header clickable" v-if="!selectionData.error" @click.prevent="showSelectionCardContent = !showSelectionCardContent">
-            <p class="card-header-title is-inline is-capitalized">
+            <p class="card-header-title is-inline is-capitalized is-unselectable">
               {{ selectionData.type }}: <i>{{ selectionData.data.id }}</i>
             </p>
             <a href="#" class="card-header-icon" aria-label="more options">
