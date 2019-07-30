@@ -24,7 +24,7 @@
           </p>
         </header>
         <footer class="card-footer">
-          <router-link class="is-paddingless is-info is-outlined card-footer-item has-text-centered" :to="{ path: `/explore/gem-browser/${model.database_name}/${mapType}/${ mapsData.compartments[mapName] ? mapsData.compartments[mapName].model_id : mapsData.subsystems[mapName] ? mapsData.subsystems[mapName].model_id : '' }`}">
+          <router-link class="is-paddingless is-info is-outlined card-footer-item has-text-centered" :to="{ path: `/explore/gem-browser/${model.database_name}/${mapType}/${ mapsData.compartments[mapName] ? mapsData.compartments[mapName].id : mapsData.subsystems[mapName] ? mapsData.subsystems[mapName].id : '' }`}">
             <span class="icon is-large"><i class="fa fa-database fa-lg"></i></span>
             <span>{{ messages.gemBrowserName }}</span>
           </router-link>
@@ -40,7 +40,7 @@
       <div class="column">
         <div class="card" v-if="selectionData.data && mapType !== 'subsystem' && selectionData.type == 'subsystem'">
           <header class="card-header">
-            <p class="card-header-title is-capitalized is-inline">
+            <p class="card-header-title is-capitalized is-inline is-unselectable">
               {{ selectionData.type }}: <i>{{ selectionData.data.id }}</i>
             </p>
           </header>
@@ -59,7 +59,7 @@
         </div>
         <div class="card" v-else-if="selectionData.data && ['metabolite', 'gene', 'reaction'].includes(selectionData.type)">
           <header class="card-header clickable" v-if="!selectionData.error" @click.prevent="showSelectionCardContent = !showSelectionCardContent">
-            <p class="card-header-title is-inline is-capitalized">
+            <p class="card-header-title is-inline is-capitalized is-unselectable">
               {{ selectionData.type }}: <i>{{ selectionData.data.id }}</i>
             </p>
             <a href="#" class="card-header-icon" aria-label="more options">

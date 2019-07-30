@@ -126,3 +126,34 @@ export function reformatChemicalReactionHTML(reaction, noMtag = false) {
   }
   return `${reactants} &#8658; ${products}`;
 }
+
+export function sortResults(a, b, searchTermString) {
+  let matchSizeDiffA = 100;
+  let matchedStringA = '';
+  for (const field of Object.keys(a)) {
+    if (a[field] && (typeof a[field] === 'string' || a[field] instanceof String) &&
+        a[field].toLowerCase().includes(searchTermString.toLowerCase())) {
+      const diff = a[field].length - searchTermString.length;
+      if (diff < matchSizeDiffA) {
+        matchSizeDiffA = diff;
+        matchedStringA = a[field];
+      }
+    }
+  }
+  let matchSizeDiffB = 100;
+  let matchedStringB = '';
+  for (const field of Object.keys(b)) {
+    if (b[field] && (typeof b[field] === 'string' || b[field] instanceof String) &&
+        b[field].toLowerCase().includes(searchTermString.toLowerCase())) {
+      const diff = b[field].length - searchTermString.length;
+      if (diff < matchSizeDiffB) {
+        matchSizeDiffB = diff;
+        matchedStringB = b[field];
+      }
+    }
+  }
+  if (matchSizeDiffA === matchSizeDiffB) {
+    return matchedStringA.localeCompare(matchedStringB);
+  }
+  return matchSizeDiffA < matchSizeDiffB ? -1 : 1;
+}
