@@ -121,7 +121,7 @@ export default {
           { name: 'gene_rule', isComposite: true, display: 'Genes', modifier: this.reformatGenes },
           { name: 'ec', display: 'EC', modifier: this.reformatECLink },
           { name: 'compartment', isComposite: true, modifier: this.reformatCompartment },
-          { name: 'subsystem', display: 'Subsystem', modifier: this.reformatSubsystemList },
+          { name: 'subsystem_str', display: 'Subsystem', modifier: this.reformatSubsystemList },
         ],
         yeast8: [
           { name: 'id' },
@@ -131,11 +131,14 @@ export default {
           { name: 'gene_rule', isComposite: true, display: 'Genes', modifier: this.reformatGenes },
           { name: 'ec', display: 'EC', modifier: this.reformatECLink },
           { name: 'compartment', isComposite: true, modifier: this.reformatCompartment },
-          { name: 'subsystem', display: 'Subsystem', modifier: this.reformatSubsystemList },
+          { name: 'subsystem_str', display: 'Subsystem', modifier: this.reformatSubsystemList },
         ],
       },
       externalIDTableKey: {
         human1: [
+          { name: 'kegg_id', display: 'KEGG', link: 'kegg_link' },
+          { name: 'bigg_id', display: 'BiGG', link: 'bigg_link' },
+          { name: 'reactome_id', display: 'Reactome', link: 'reactome_link' },
           { name: 'mnxref_id', display: 'Mnxref', link: 'mnxref_link' },
         ],
         yeast8: [],
