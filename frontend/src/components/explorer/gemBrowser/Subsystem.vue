@@ -133,7 +133,7 @@ export default {
   watch: {
     /* eslint-disable quote-props */
     '$route': function watchSetup() {
-      if (this.$route.path.includes('/subsystem/')) {
+      if (this.$route.path.includes('/gem-browser/') && this.$route.path.includes('/subsystem/')) {
         if (this.sName !== this.$route.params.id) {
           this.setup();
         }

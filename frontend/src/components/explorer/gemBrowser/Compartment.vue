@@ -81,7 +81,7 @@ export default {
   watch: {
     /* eslint-disable quote-props */
     '$route': function watchSetup() {
-      if (this.$route.path.includes('/compartment/')) {
+      if (this.$route.path.includes('/gem-browser/') && this.$route.path.includes('/compartment/')) {
         if (this.cName !== this.$route.params.id) {
           this.setup();
         }
