@@ -1,10 +1,10 @@
 import tools
 import sys
 
-reaction_file_asso = sys.argv[1]
-metabolite_file_asso = sys.argv[2]
-REA_annotation_file = sys.argv[3]
-MET_annotation_file = sys.argv[4]
+reaction_file_asso = sys.argv[1]  # TSV from https://github.com/SysBioChalmers/HMA_Sandbox/tree/master/Hao
+metabolite_file_asso = sys.argv[2]  # TSV from https://github.com/SysBioChalmers/HMA_Sandbox/tree/master/Hao
+REA_annotation_file = sys.argv[3]  # formated as annotation/human1/example/REACTIONS.tsv
+MET_annotation_file = sys.argv[4] # formated as annotation/human1/example/METABOLITES.tsv
 
 rea_dict = tools.file_to_dicts_values(reaction_file_asso)
 met_dict = tools.file_to_dicts_values(metabolite_file_asso)

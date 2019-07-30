@@ -147,7 +147,6 @@ def get_reaction(request, model, id):
         return HttpResponse(status=404)
 
     ReactionSerializerClass = componentDBserializerSelector(model, 'reaction', serializer_type=None, api_version=request.version)
-    print(ReactionSerializerClass)
     reactionserializer = ReactionSerializerClass(reaction, context={'model': model})
 
     pmids = APImodels.ReactionReference.objects.using(model).filter(reaction_id=reaction.id)

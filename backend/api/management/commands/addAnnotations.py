@@ -100,7 +100,6 @@ def get_mapping_model_annotation_dict(ctype):
 
     annfile_model_map_dict = {}
     for model_field, (model_table, file_column) in d[ctype].items():
-        # model_table, file_columns = v
         annfile_model_map_dict[file_column] = [model_field, model_table]
 
     return annfile_model_map_dict
@@ -167,7 +166,7 @@ def update_metabolite(database, row_ann_dict, mapping_model_annotation_dict):
         return
 
     # select only the first external ID or external link
-    reaction_component_dict, metabolite_dict = reformat_external_ids(reaction_component_dict, metabolite_dict, 8) # 8 external IDs for reaction
+    reaction_component_dict, metabolite_dict = reformat_external_ids(reaction_component_dict, metabolite_dict, 8) # 8 external IDs for metabolite
 
     if 'aliases' in reaction_component_dict:
         reaction_component_dict['aliases'] = reformat_list(reaction_component_dict['aliases'])
@@ -205,7 +204,7 @@ def update_gene(database, row_ann_dict, mapping_model_annotation_dict):
             gene_dict[model_field] = value
 
     # select only the first external ID or external link
-    reaction_component_dict, gene_dict = reformat_external_ids(reaction_component_dict, gene_dict, 8) # 8 external IDs for reaction
+    reaction_component_dict, gene_dict = reformat_external_ids(reaction_component_dict, gene_dict, 8) # 8 external IDs for gene
 
     if 'aliases' in reaction_component_dict:
         reaction_component_dict['aliases'] = reformat_list(reaction_component_dict['aliases'])
