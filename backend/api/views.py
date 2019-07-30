@@ -146,14 +146,17 @@ def get_reaction(request, model, id):
     except APImodels.Reaction.DoesNotExist:
         return HttpResponse(status=404)
 
-    ReactionSerializerClass = componentDBserializerSelector(model, 'reaction', serializer_type='lite', api_version=request.version)
+    ReactionSerializerClass = componentDBserializerSelector(model, 'reaction', serializer_type=None, api_version=request.version)
+    print(ReactionSerializerClass)
     reactionserializer = ReactionSerializerClass(reaction, context={'model': model})
 
     pmids = APImodels.ReactionReference.objects.using(model).filter(reaction_id=reaction.id)
     pmidserializer = APIserializer.ReactionReferenceSerializer(pmids, many=True)
 
-    return JSONResponse({'reaction': reactionserializer.data,
-                         'pmids': pmidserializer.data})
+    result = reactionserializer.data.copy()
+    result.update({'pmids': pmidserializer.data})
+
+    return JSONResponse(result)
 
 
 @api_view()

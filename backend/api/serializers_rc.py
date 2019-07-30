@@ -127,8 +127,8 @@ class GeneReactionComponentSerializer(ReactionComponentSerializer):
     class Meta(ReactionComponentSerializer.Meta):
         model = APImodels.ReactionComponent
         fields = ReactionComponentSerializer.Meta.fields + \
-            ('function1', 'function2', 'ec', 'catalytic_activity', 'cofactor', 'name_link', 'external_link1', 'external_link2', 'external_link3', 'external_link4',
-                'external_link5', 'external_link6', 'external_link7', 'external_link8',)
+            ('function1', 'function2', 'ec', 'catalytic_activity', 'cofactor', 'name_link', 'external_link1', 'external_link2',
+             'external_link3', 'external_link4', 'external_link5', 'external_link6', 'external_link7', 'external_link8',)
 
     def read_function1(self, model):
         return model.gene.function1 if hasattr(model, 'gene') else None
@@ -178,8 +178,8 @@ class MetaboliteReactionComponentSerializer(ReactionComponentSerializer):
     function1 = serializers.SerializerMethodField('read_function1')
     function2 = serializers.SerializerMethodField('read_function2')
     charge = serializers.SerializerMethodField('read_charge')
-    mass =  serializers.SerializerMethodField('read_mass')
-    mass_avg =  serializers.SerializerMethodField('read_mass_avg')
+    # mass =  serializers.SerializerMethodField('read_mass')
+    # mass_avg =  serializers.SerializerMethodField('read_mass_avg')
     inchi =  serializers.SerializerMethodField('read_inchi')
     name_link =  serializers.SerializerMethodField('read_name_link')
     external_link1 = serializers.SerializerMethodField('read_external_link1')
@@ -194,8 +194,8 @@ class MetaboliteReactionComponentSerializer(ReactionComponentSerializer):
     class Meta(ReactionComponentSerializer.Meta):
         model = APImodels.ReactionComponent
         fields = ReactionComponentSerializer.Meta.fields + \
-            ('description', 'function1', 'function2',  'charge', 'mass', 'mass_avg', 'inchi', 'name_link', 'external_link1', 'external_link2', 'external_link3', 'external_link4',
-                'external_link5', 'external_link6', 'external_link7', 'external_link8',)
+            ('description', 'function1', 'function2',  'charge', 'inchi', 'name_link', 'external_link1', 'external_link2',
+             'external_link3', 'external_link4', 'external_link5', 'external_link6', 'external_link7', 'external_link8',)
 
     def read_description(self, model):
         return model.metabolite.description if hasattr(model, 'metabolite') else None
@@ -361,14 +361,20 @@ class GeneReactionComponentInteractionPartnerSerializer(serializers.ModelSeriali
 class HmrMetaboliteReactionComponentLiteSerializer(serializers.ModelSerializer):
     aliases = serializers.SerializerMethodField('read_aliases')
     inchi =  serializers.SerializerMethodField('read_inchi')
+    compartment = serializers.SerializerMethodField('read_compartment')
+    kegg_id =  serializers.SerializerMethodField('read_kegg')
+    bigg_id =  serializers.SerializerMethodField('read_bigg')
     hmdb_id =  serializers.SerializerMethodField('read_hmdb')
     chebi_id = serializers.SerializerMethodField('read_chebi')
+    pubchem_id = serializers.SerializerMethodField('read_pubchem')
+    lipidmaps_id = serializers.SerializerMethodField('read_lipidmaps')
     mnxref_id = serializers.SerializerMethodField('read_mnxref')
-    compartment = serializers.SerializerMethodField('read_compartment')
+
 
     class Meta:
         model = APImodels.ReactionComponent
-        fields = ('id', 'name', 'full_name', 'aliases', 'inchi', 'hmdb_id', 'chebi_id', 'mnxref_id', 'compartment')
+        fields = ('id', 'name', 'full_name', 'aliases', 'inchi', 'compartment', 'kegg_id',
+         'bigg_id', 'hmdb_id', 'chebi_id', 'pubchem_id', 'lipidmaps_id', 'mnxref_id',)
 
     def read_aliases(self, model):
         return model.aliases
@@ -376,17 +382,29 @@ class HmrMetaboliteReactionComponentLiteSerializer(serializers.ModelSerializer):
     def read_inchi(self, model):
         return model.metabolite.inchi if hasattr(model, 'metabolite') else None
 
-    def read_hmdb(self, model):
-        return model.external_id1
-
-    def read_chebi(self, model):
-        return model.external_id2
-
-    def read_mnxref(self, model):
-        return model.external_id3
-
     def read_compartment(self, model):
         return model.compartment_str
+
+    def read_kegg(self, model):
+        return model.external_id1
+
+    def read_bigg(self, model):
+        return model.external_id2
+
+    def read_hmdb(self, model):
+        return model.external_id3
+
+    def read_chebi(self, model):
+        return model.external_id4
+
+    def read_pubchem(self, model):
+        return model.external_id5
+
+    def read_lipidmaps(self, model):
+        return model.external_id6
+
+    def read_mnxref(self, model):
+        return model.external_id7
 
 
 class HmrMetaboliteReactionComponentSerializer(serializers.ModelSerializer):
@@ -396,22 +414,31 @@ class HmrMetaboliteReactionComponentSerializer(serializers.ModelSerializer):
     function = serializers.SerializerMethodField('read_function')
     formula = serializers.SerializerMethodField('read_formula')
     charge = serializers.SerializerMethodField('read_charge')
-    mass =  serializers.SerializerMethodField('read_mass')
-    mass_avg =  serializers.SerializerMethodField('read_mass_avg')
-    inchi =  serializers.SerializerMethodField('read_inchi')
-    hmdb_id =  serializers.SerializerMethodField('read_hmdb')
+    # mass = serializers.SerializerMethodField('read_mass')
+    # mass_avg = serializers.SerializerMethodField('read_mass_avg')
+    inchi = serializers.SerializerMethodField('read_inchi')
+    compartment = serializers.SerializerMethodField('read_compartment')
+
+    kegg_id =  serializers.SerializerMethodField('read_kegg')
+    kegg_link = serializers.SerializerMethodField('read_kegg_link')
+    bigg_id =  serializers.SerializerMethodField('read_bigg')
+    bigg_link = serializers.SerializerMethodField('read_bigg_link')
+    hmdb_id = serializers.SerializerMethodField('read_hmdb')
     hmdb_link = serializers.SerializerMethodField('read_hmdb_link')
     chebi_id = serializers.SerializerMethodField('read_chebi')
     chebi_link = serializers.SerializerMethodField('read_chebi_link')
+    pubchem_id = serializers.SerializerMethodField('read_pubchem')
+    pubchem_link = serializers.SerializerMethodField('read_pubchem_link')
+    lipidmaps_id = serializers.SerializerMethodField('read_lipidmaps')
+    lipidmaps_link = serializers.SerializerMethodField('read_lipidmaps_link')
     mnxref_id = serializers.SerializerMethodField('read_mnxref')
     mnxref_link = serializers.SerializerMethodField('read_mnxref_link')
-    compartment = serializers.SerializerMethodField('read_compartment')
 
     class Meta:
         model = APImodels.ReactionComponent
-        fields = ('id', 'name', 'alt_name', 'aliases') + \
-        ('description', 'function', 'formula', 'charge', 'mass', 'mass_avg', 'inchi') + \
-        ('hmdb_id', 'hmdb_link', 'chebi_id', 'chebi_link', 'mnxref_id', 'mnxref_link', 'compartment')
+        fields = ('id', 'name', 'alt_name', 'aliases', 'description', 'function', 'formula', 'charge', 'inchi', 'compartment',
+        'kegg_id', 'kegg_link', 'bigg_id', 'bigg_link', 'hmdb_id', 'hmdb_link', 'chebi_id', 'chebi_link', 'pubchem_id', 'pubchem_link',
+            'lipidmaps_id', 'lipidmaps_link', 'mnxref_id', 'mnxref_link',)
 
     def read_alt_name(self, model):
         return model.alt_name1
@@ -440,26 +467,50 @@ class HmrMetaboliteReactionComponentSerializer(serializers.ModelSerializer):
     def read_inchi(self, model):
         return model.metabolite.inchi if hasattr(model, 'metabolite') else None
 
-    def read_hmdb(self, model):
-        return model.external_id1
-
-    def read_hmdb_link(self, model):
-        return model.metabolite.external_link1 if hasattr(model, 'metabolite') else None
-
-    def read_chebi(self, model):
-        return model.external_id2
-
-    def read_chebi_link(self, model):
-        return model.metabolite.external_link2 if hasattr(model, 'metabolite') else None
-
-    def read_mnxref(self, model):
-        return model.external_id3
-
-    def read_mnxref_link(self, model):
-        return model.metabolite.external_link3 if hasattr(model, 'metabolite') else None
-
     def read_compartment(self, model):
         return model.compartment_str
+
+    def read_kegg(self, model):
+        return model.external_id1
+
+    def read_kegg_link(self, model):
+        return model.metabolite.external_link1 if hasattr(model, 'metabolite') else None
+
+    def read_bigg(self, model):
+        return model.external_id2
+
+    def read_bigg_link(self, model):
+        return model.metabolite.external_link2 if hasattr(model, 'metabolite') else None
+
+    def read_hmdb(self, model):
+        return model.external_id3
+
+    def read_hmdb_link(self, model):
+        return model.metabolite.external_link3 if hasattr(model, 'metabolite') else None
+
+    def read_chebi(self, model):
+        return model.external_id4
+
+    def read_chebi_link(self, model):
+        return model.metabolite.external_link4 if hasattr(model, 'metabolite') else None
+
+    def read_pubchem(self, model):
+        return model.external_id5
+
+    def read_pubchem_link(self, model):
+        return model.metabolite.external_link5 if hasattr(model, 'metabolite') else None
+
+    def read_lipidmaps(self, model):
+        return model.external_id6
+
+    def read_lipidmaps_link(self, model):
+        return model.metabolite.external_link6 if hasattr(model, 'metabolite') else None
+
+    def read_mnxref(self, model):
+        return model.external_id7
+
+    def read_mnxref_link(self, model):
+        return model.metabolite.external_link7 if hasattr(model, 'metabolite') else None
 
 
 class MetaboliteReactionComponentInteractionPartnerSerializer(serializers.ModelSerializer):
