@@ -161,12 +161,12 @@ class Reaction(models.Model):
     compartment = models.CharField(max_length=255)
     is_transport = models.BooleanField(default=False)
     is_reversible = models.BooleanField(default=False)
-    external_id1 = models.CharField(max_length=50, null=True) # e.g. MNXref, KEGG
-    external_id2 = models.CharField(max_length=50, null=True)
-    external_id3 = models.CharField(max_length=50, null=True)
-    external_id4 = models.CharField(max_length=50, null=True)
-    external_id5 = models.CharField(max_length=50, null=True)
-    external_id6 = models.CharField(max_length=50, null=True)
+    external_id1 = models.CharField(max_length=100, null=True) # e.g. MNXref, KEGG
+    external_id2 = models.CharField(max_length=100, null=True)
+    external_id3 = models.CharField(max_length=100, null=True)
+    external_id4 = models.CharField(max_length=100, null=True)
+    external_id5 = models.CharField(max_length=100, null=True)
+    external_id6 = models.CharField(max_length=100, null=True)
     external_link1 = models.CharField(max_length=255, null=True)
     external_link2 = models.CharField(max_length=255, null=True)
     external_link3 = models.CharField(max_length=255, null=True)
@@ -205,14 +205,14 @@ class ReactionComponent(models.Model):
     alt_name1 = models.CharField(max_length=255, null=True)  # can be ORF ID in case of yeast, proteine name, metabolite short_name etc
     alt_name2 = models.CharField(max_length=255, null=True)  # can be ORF ID in case of yeast, proteine name, metabolite short_name etc
     aliases = models.CharField(max_length=2000, null=True)  # alias of gene name (including gene short name) or alias of metabolite name, semi-colon separated values
-    external_id1 = models.CharField(max_length=50, null=True)  # e.g. MNXref, HMDB, chebi or kegg or uniprot or ensembl, etc need to be specify in the serializer
-    external_id2 = models.CharField(max_length=50, null=True)
-    external_id3 = models.CharField(max_length=50, null=True)
-    external_id4 = models.CharField(max_length=50, null=True)
-    external_id5 = models.CharField(max_length=50, null=True)
-    external_id6 = models.CharField(max_length=50, null=True)
-    external_id7 = models.CharField(max_length=50, null=True)
-    external_id8 = models.CharField(max_length=50, null=True)
+    external_id1 = models.CharField(max_length=100, null=True)  # e.g. MNXref, HMDB, chebi or kegg or uniprot or ensembl, etc need to be specify in the serializer
+    external_id2 = models.CharField(max_length=100, null=True)
+    external_id3 = models.CharField(max_length=100, null=True)
+    external_id4 = models.CharField(max_length=100, null=True)
+    external_id5 = models.CharField(max_length=100, null=True)
+    external_id6 = models.CharField(max_length=100, null=True)
+    external_id7 = models.CharField(max_length=100, null=True)
+    external_id8 = models.CharField(max_length=100, null=True)
     component_type = models.CharField(max_length=1, db_index=True)  # 'm' or 'e' for metabolite or gene
     formula = models.CharField(max_length=255, null=True)  # only metabolites have this! should be in metabolite table but will simplify the queries if here
     compartment_str = models.CharField(max_length=255, null=True)
@@ -301,10 +301,10 @@ class Subsystem(models.Model):
     name_id = models.CharField(max_length=100, unique=True) # use to request the subsystem by url
     system = models.CharField(max_length=100)
     subsystem_svg = models.ForeignKey('SubsystemSvg', on_delete=models.CASCADE, null=True, related_name='+')
-    external_id1 = models.CharField(max_length=50, null=True)
-    external_id2 = models.CharField(max_length=50, null=True)
-    external_id3 = models.CharField(max_length=50, null=True)
-    external_id4 = models.CharField(max_length=50, null=True)
+    external_id1 = models.CharField(max_length=100, null=True)
+    external_id2 = models.CharField(max_length=100, null=True)
+    external_id3 = models.CharField(max_length=100, null=True)
+    external_id4 = models.CharField(max_length=100, null=True)
     external_link1 = models.CharField(max_length=255, null=True)
     external_link2 = models.CharField(max_length=255, null=True)
     external_link3 = models.CharField(max_length=255, null=True)

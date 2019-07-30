@@ -17,17 +17,17 @@
 # name           | 255      | name of the reaction
 # ec             | 255      | EC code, semicolon separated values
 # pmid           | 255      | PMID, semicolon separated values
-# external_id1   | 50       | another identifier from an external database or another model
+# external_id1   | 100       | another identifier from an external database or another model
 # external_link1 | 255      | full URL to associate with the 'external_id1' column
-# external_id2   | 50       | another identifier from an external database or another model
+# external_id2   | 100       | another identifier from an external database or another model
 # external_link2 | 255      | full URL to associate with the 'external_id2' column
-# external_id3   | 50       | another identifier from an external database or another model
+# external_id3   | 100       | another identifier from an external database or another model
 # external_link3 | 255      | full URL to associate with the 'external_id3' column
-# external_id4   | 50       | another identifier from an external database or another model
+# external_id4   | 100       | another identifier from an external database or another model
 # external_link4 | 255      | full URL to associate with the 'external_id4' column
-# external_id5   | 50       | another identifier from an external database or another model
+# external_id5   | 100       | another identifier from an external database or another model
 # external_link5 | 255      | full URL to associate with the 'external_id5' column
-# external_id6   | 50       | another identifier from an external database or another model
+# external_id6   | 100       | another identifier from an external database or another model
 # external_link6 | 255      | full URL to associate with the 'external_id6' column
 #
 # In this line specify the name of external databases used for each external_id column:				[external_id1]		[external_id2]		[external_id3]		[external_id4]		[external_id5]		[external_id6]	
