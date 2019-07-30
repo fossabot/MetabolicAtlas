@@ -51,16 +51,16 @@
             </td>
           </tr>
           <tr>
-            <td class="td-key has-background-primary has-text-white-bis">Enzymes</td>
+            <td class="td-key has-background-primary has-text-white-bis">Genes</td>
             <td>
-              <div v-html="enzymesListHtml"></div>
-              <div v-if="!this.showFullEnzyme && this.enzymes.length > this.displayedEnzyme">
+              <div v-html="genesListHtml"></div>
+              <div v-if="!this.showFullGene && this.genes.length > this.displayedGene">
                 <br>
-                <button class="is-small button" @click="showFullEnzyme=true">
-                  ... and {{ this.enzymes.length - this.displayedEnzyme}} more
+                <button class="is-small button" @click="showFullGene=true">
+                  ... and {{ this.genes.length - this.displayedGene}} more
                 </button>
-                <span v-show="this.enzymes.length == this.limitEnzyme" class="tag is-medium is-warning is-pulled-right">
-                  The number of enzymes displayed is limited to {{ this.limitEnzyme }}.
+                <span v-show="this.genes.length == this.limitGene" class="tag is-medium is-warning is-pulled-right">
+                  The number of genes displayed is limited to {{ this.limitGene }}.
                 </span>
               </div>
             </td>
@@ -90,9 +90,9 @@
 
 <script>
 import axios from 'axios';
-import Loader from 'components/Loader';
-import MapsAvailable from 'components/explorer/gemBrowser/MapsAvailable';
-import ReactionTable from 'components/explorer/gemBrowser/ReactionTable';
+import Loader from '@/components/Loader';
+import MapsAvailable from '@/components/explorer/gemBrowser/MapsAvailable';
+import ReactionTable from '@/components/explorer/gemBrowser/ReactionTable';
 import { reformatTableKey, idfy } from '../../../helpers/utils';
 import { default as messages } from '../../../helpers/messages';
 
@@ -112,7 +112,7 @@ export default {
       showReactionLoader: true,
       info: {},
       metabolites: [],
-      enzymes: [],
+      genes: [],
       reactions: [],
       errorMessage: '',
       mainTableKey: {
@@ -121,11 +121,11 @@ export default {
         ],
       },
       showFullMetabolite: false,
-      showFullEnzyme: false,
+      showFullGene: false,
       displayedMetabolite: 40,
-      displayedEnzyme: 40,
+      displayedGene: 40,
       limitMetabolite: 0,
-      limitEnzyme: 0,
+      limitGene: 0,
       limitReaction: 0,
       idfy,
     };
@@ -133,7 +133,7 @@ export default {
   watch: {
     /* eslint-disable quote-props */
     '$route': function watchSetup() {
-      if (this.$route.path.includes('/subsystem/')) {
+      if (this.$route.path.includes('/gem-browser/') && this.$route.path.includes('/subsystem/')) {
         if (this.sName !== this.$route.params.id) {
           this.setup();
         }
@@ -156,13 +156,13 @@ export default {
       l.push('</span>');
       return l.join('');
     },
-    enzymesListHtml() {
+    genesListHtml() {
       const l = ['<span class="tags">'];
-      this.enzymes.sort((a, b) => (a.name < b.name ? -1 : 1));
+      this.genes.sort((a, b) => (a.name < b.name ? -1 : 1));
       let i = 0;
-      for (const e of this.enzymes) {
-        if ((!this.showFullEnzyme && i === this.displayedEnzyme) ||
-          i === this.limitEnzyme) {
+      for (const e of this.genes) {
+        if ((!this.showFullGene && i === this.displayedGene) ||
+          i === this.limitGene) {
           break;
         }
         i += 1;
@@ -184,9 +184,9 @@ export default {
       .then((response) => {
         this.info = response.data.info;
         this.metabolites = response.data.metabolites;
-        this.enzymes = response.data.enzymes;
+        this.genes = response.data.genes;
         this.limitMetabolite = response.data.limit;
-        this.limitEnzyme = response.data.limit;
+        this.limitGene = response.data.limit;
         this.showLoader = false;
       })
       .catch(() => {

@@ -1,0 +1,42 @@
+version: '3'
+
+services:
+
+  db:
+    volumes:
+      - voldb:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  nginx:
+    build:
+      context: nginx
+      dockerfile: Dockerfile
+    depends_on:
+      - backend
+      - frontend
+    volumes:
+      - ./nginx/svgs:/svgs
+
+  backend:
+    command: bash -c "python manage.py collectstatic --noinput && python manage.py runserver 0.0.0.0:8000"
+    volumes:
+      - ./backend:/project
+      - ./utils/annotation:/project/annotation
+
+  frontend:
+    container_name: frontend
+    depends_on:
+      - backend
+    build: ./frontend
+    command: npm run serve
+    volumes:
+      - ./frontend/src:/project/src
+      - ./frontend/public:/project/public
+    networks:
+      - net-tier
+    ports:
+      - "81:81"
+      
+volumes:
+  voldb:

@@ -9,24 +9,24 @@
       <div class="container columns">
         <div class="column">
           <h3 class="title is-3">
-          Enzyme {{ enzyme.enzymeName }}
+          Gene {{ gene.geneName }}
           </h3>
         </div>
       </div>
       <div class="columns">
         <div class="column">
           <div class="columns is-multiline is-variable is-8">
-            <div id="enzyme-details" class="reaction-table column is-10-widescreen is-9-desktop is-full-tablet">
-              <table v-if="enzyme && Object.keys(enzyme).length != 0" class="table main-table is-fullwidth">
+            <div id="gene-details" class="reaction-table column is-10-widescreen is-9-desktop is-full-tablet">
+              <table v-if="gene && Object.keys(gene).length != 0" class="table main-table is-fullwidth">
                 <tr v-for="el in mainTableKey[model.database_name]">
                   <td v-if="'display' in el" class="td-key has-background-primary has-text-white-bis" v-html="el.display"></td>
                   <td v-else-if="el.name == 'id'" class="td-key has-background-primary has-text-white-bis">{{ model.short_name }} ID</td>
                   <td v-else class="td-key has-background-primary has-text-white-bis">{{ reformatTableKey(el.name) }}</td>
-                  <td v-if="enzyme[el.name]">
-                    <span v-if="'modifier' in el" v-html="el.modifier(enzyme)">
+                  <td v-if="gene[el.name]">
+                    <span v-if="'modifier' in el" v-html="el.modifier(gene)">
                     </span>
                     <span v-else>
-                      {{ enzyme[el.name] }}
+                      {{ gene[el.name] }}
                     </span>
                   </td>
                   <td v-else> - </td>
@@ -34,12 +34,12 @@
               </table>
               <template v-if="hasExternalID">
                 <h4 class="title is-4">External links</h4>
-                <table v-if="enzyme && Object.keys(enzyme).length != 0" id="ed-table" class="table is-fullwidth">
-                  <tr v-for="el in externalIDTableKey[model.database_name]" v-if="enzyme[el.name] && enzyme[el.link]">
+                <table v-if="gene && Object.keys(gene).length != 0" id="ed-table" class="table is-fullwidth">
+                  <tr v-for="el in externalIDTableKey[model.database_name]" v-if="gene[el.name] && gene[el.link]">
                     <td v-if="'display' in el" class="td-key has-background-primary has-text-white-bis" v-html="el.display"></td>
                     <td v-else class="td-key has-background-primary has-text-white-bis">{{ reformatTableKey(el.name) }}</td>
                     <td>
-                      <a :href="`${enzyme[el.link]}`" target="_blank">{{ enzyme[el.name] }}</a>
+                      <a :href="`${gene[el.link]}`" target="_blank">{{ gene[el.name] }}</a>
                     </td>
                   </tr>
                 </table>
@@ -47,7 +47,7 @@
             </div>
             <div class="column is-2-widescreen is-3-desktop is-full-tablet has-text-centered">
               <router-link class="button is-info is-fullwidth is-outlined"
-                :to="{ path: `/explore/gem-browser/${model.database_name}/interaction/${enzyme.id}` }">
+                :to="{ path: `/explore/gem-browser/${model.database_name}/interaction/${gene.id}` }">
                 <span class="icon"><i class="fa fa-connectdevelop fa-lg"></i></span>&nbsp;
                 <span>{{ messages.interPartName }}</span>
               </router-link>
@@ -74,13 +74,13 @@
 
 <script>
 import axios from 'axios';
-import ReactionTable from 'components/explorer/gemBrowser/ReactionTable';
-import Loader from 'components/Loader';
+import ReactionTable from '@/components/explorer/gemBrowser/ReactionTable';
+import Loader from '@/components/Loader';
 import { reformatTableKey } from '../../../helpers/utils';
 import { default as messages } from '../../../helpers/messages';
 
 export default {
-  name: 'enzyme',
+  name: 'gene',
   components: {
     ReactionTable,
     Loader,
@@ -93,18 +93,18 @@ export default {
       showReactionLoader: true,
       errorMessage: null,
       eId: '',
-      enzyme: {},
-      enzymeName: '',
+      gene: {},
+      geneName: '',
       mainTableKey: {
         human1: [
-          { name: 'enzymeName', display: 'Gene&nbsp;name' },
-          { name: 'prot_name', display: 'Protein&nbsp;name' },
+          { name: 'geneName', display: 'Gene&nbsp;name' },
+          { name: 'description', display: 'Description' },
           { name: 'gene_synonyms', display: 'Synonyms' },
           { name: 'function' },
           { name: 'id' },
         ],
         yeast8: [
-          { name: 'enzymeName', display: 'Gene&nbsp;name' },
+          { name: 'geneName', display: 'Gene&nbsp;name' },
           { name: 'prot_name', display: 'Protein&nbsp;name' },
           { name: 'gene_synonyms', display: 'Synonyms' },
           { name: 'function' },
@@ -113,7 +113,7 @@ export default {
       },
       externalIDTableKey: {
         human1: [
-          { name: 'id', display: 'Ensembl', link: 'name_link' },
+          { name: 'id', display: 'Ensembl', link: 'ensembl_link' },
           { name: 'hpa_id', display: 'Protein Atlas', link: 'hpa_link' },
           { name: 'uniprot_id', display: 'Uniprot', link: 'uniprot_link' },
           { name: 'ncbi_id', display: 'NCBI', link: 'ncbi_link' },
@@ -127,7 +127,7 @@ export default {
   watch: {
     /* eslint-disable quote-props */
     '$route': function watchSetup() {
-      if (this.$route.path.includes('/enzyme/')) {
+      if (this.$route.path.includes('/gene/')) {
         if (this.eId !== this.$route.params.id) {
           this.setup();
         }
@@ -137,7 +137,7 @@ export default {
   computed: {
     hasExternalID() {
       for (const item of this.externalIDTableKey[this.model.database_name]) {
-        if (this.enzyme[item.name] && this.enzyme[item.link]) {
+        if (this.gene[item.name] && this.gene[item.link]) {
           return true;
         }
       }
@@ -155,15 +155,15 @@ export default {
     reformatTableKey(k) { return reformatTableKey(k); },
     load() {
       this.showLoader = true;
-      // const enzymeId = this.eid;
-      axios.get(`${this.model.database_name}/enzyme/${this.eId}/`)
+      // const geneId = this.eid;
+      axios.get(`${this.model.database_name}/gene/${this.eId}/`)
         .then((response) => {
           this.showLoader = false;
           this.errorMessage = null;
           this.eId = response.data.id;
-          this.enzymeName = response.data.gene_name || response.data.id;
-          this.enzyme = response.data;
-          this.enzyme.enzymeName = this.enzymeName;
+          this.geneName = response.data.name || response.data.id;
+          this.gene = response.data;
+          this.gene.geneName = this.geneName;
         })
         .catch((error) => {
           this.showLoader = false;
@@ -180,7 +180,7 @@ export default {
     loadReactions() {
       // this.reactions = [];
       this.showReactionLoader = true;
-      axios.get(`${this.model.database_name}/enzyme/${this.eId}/get_reactions`)
+      axios.get(`${this.model.database_name}/gene/${this.eId}/get_reactions`)
         .then((response) => {
           this.reactions = response.data;
           this.showReactionLoader = false;

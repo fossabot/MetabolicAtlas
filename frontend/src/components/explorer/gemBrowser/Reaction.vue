@@ -30,7 +30,26 @@
                 {{ reaction[el.name] }}
               </span>
             </td>
+            <td v-else-if="el.name === 'equation'">
+              <span v-html="el.modifier(reaction[el.name])">
+              </span>
+            </td>
             <td v-else> - </td>
+          </tr>
+          <tr v-if="relatedReactions.length !== 0">
+            <td class="td-key has-background-primary has-text-white-bis">Related reaction(s)</td>
+            <td>
+              <template v-for="(rr, i) in relatedReactions">
+                <router-link :to="{ path: `/explore/gem-browser/${model.database_name}/reaction/${rr.id}`}">
+                  {{ rr.id }}
+                </router-link>
+                <div style="margin-left: 30px">
+                  <span v-html="reformatChemicalReactionHTML(rr, true)"></span>
+                  (<span v-html="reformatEqSign(rr.compartment, rr.is_reversible)">
+                  </span>)
+                </div>
+              </template>
+            </td>
           </tr>
         </table>
         <template v-if="hasExternalID">
@@ -45,24 +64,24 @@
             </tr>
           </table>
         </template>
-        <template v-if="formattedRef.length != 0">
-          <h4 class="title is-size-4">References</h4>
+        <template v-if="formattedRef.length !== 0">
+          <h4 class="title is-size-4">PMID References</h4>
           <table class="main-table table">
             <tr v-for="oneRef in formattedRef">
-              <td v-if="oneRef.title" class="td-key has-background-primary has-text-white-bis" title="PMID">{{ oneRef.pmid }}</td>
-              <a :href="oneRef.link" target="_blank">
+              <td v-if="oneRef.title" class="td-key has-background-primary has-text-white-bis">{{ oneRef.pmid }}</td>
                 <td>
-                  <template v-for="author in oneRef.authors">
-                    {{ author }},
-                  </template>
-                  {{ oneRef.year }}. <i>{{ oneRef.title }}</i>
-                  {{ oneRef.journal }}
+                  <a :href="oneRef.link" target="_blank">
+                    <template v-for="author in oneRef.authors">
+                      {{ author }},
+                    </template>
+                    {{ oneRef.year }}. <i>{{ oneRef.title }}</i>
+                    {{ oneRef.journal }}
+                  </a>
                 </td>
-              </a>
             </tr>
           </table>
         </template>
-        <template v-else>
+        <template v-else-if="this.reaction.pmids && this.reaction.pmids.length === 0">
           <p>No PMID references found</p>
         </template>
       </div>
@@ -76,10 +95,10 @@
 <script>
 import axios from 'axios';
 import $ from 'jquery';
-import Loader from 'components/Loader';
-import MapsAvailable from 'components/explorer/gemBrowser/MapsAvailable';
+import Loader from '@/components/Loader';
+import MapsAvailable from '@/components/explorer/gemBrowser/MapsAvailable';
 import { default as EventBus } from '../../../event-bus';
-import { reformatTableKey, addMassUnit, reformatECLink, reformatCompEqString } from '../../../helpers/utils';
+import { reformatTableKey, addMassUnit, reformatECLink, reformatCompEqString, reformatChemicalReactionHTML, reformatEqSign } from '../../../helpers/utils';
 import { default as messages } from '../../../helpers/messages';
 
 export default {
@@ -99,7 +118,7 @@ export default {
           { name: 'equation', modifier: this.reformatEquation },
           { name: 'is_reversible', display: 'Reversible', isComposite: true, modifier: this.reformatReversible },
           { name: 'quantitative', isComposite: true, modifier: this.reformatQuant },
-          { name: 'gene_rule', isComposite: true, display: 'Enzymes', modifier: this.reformatModifiers },
+          { name: 'gene_rule', isComposite: true, display: 'Genes', modifier: this.reformatGenes },
           { name: 'ec', display: 'EC', modifier: this.reformatECLink },
           { name: 'compartment', isComposite: true, modifier: this.reformatCompartment },
           { name: 'subsystem', display: 'Subsystem', modifier: this.reformatSubsystemList },
@@ -109,7 +128,7 @@ export default {
           { name: 'equation', modifier: this.reformatEquation },
           { name: 'is_reversible', display: 'Reversible', isComposite: true, modifier: this.reformatReversible },
           { name: 'quantitative', isComposite: true, modifier: this.reformatQuant },
-          { name: 'gene_rule', isComposite: true, display: 'Enzymes', modifier: this.reformatModifiers },
+          { name: 'gene_rule', isComposite: true, display: 'Genes', modifier: this.reformatGenes },
           { name: 'ec', display: 'EC', modifier: this.reformatECLink },
           { name: 'compartment', isComposite: true, modifier: this.reformatCompartment },
           { name: 'subsystem', display: 'Subsystem', modifier: this.reformatSubsystemList },
@@ -122,6 +141,7 @@ export default {
         yeast8: [],
       },
       reaction: {},
+      relatedReactions: [],
       errorMessage: '',
       showLoader: true,
       mapsAvailable: {},
@@ -130,7 +150,7 @@ export default {
   },
   created() {
     $('body').on('click', 'a.e', function f() {
-      EventBus.$emit('GBnavigateTo', 'enzyme', $(this).attr('name'));
+      EventBus.$emit('GBnavigateTo', 'gene', $(this).attr('name'));
     });
     $('body').on('click', 'a.s', function f() {
       EventBus.$emit('GBnavigateTo', 'subsystem', $(this).attr('name'));
@@ -165,21 +185,34 @@ export default {
       this.load();
     },
     load() {
-      axios.get(`${this.model.database_name}/reaction/${this.rId}/`)
+      axios.get(`${this.model.database_name}/get_reaction/${this.rId}/`)
       .then((response) => {
         this.showLoader = false;
         this.reaction = response.data.reaction;
-        this.reformatRefs(response.data.pmids);
+        if (response.data.pmids.length !== 0) {
+          this.reformatRefs(response.data.pmids);
+        }
+        this.getRelatedReactions();
       })
       .catch(() => {
         this.errorMessage = messages.notFoundError;
       });
     },
-    reformatEquation() { return this.$parent.$parent.reformatChemicalReactionLink(this.reaction); },
-    reformatModifiers() {
+    getRelatedReactions() {
+      axios.get(`${this.model.database_name}/get_reaction/${this.rId}/related`)
+      .then((response) => {
+        this.relatedReactions = response.data;
+        this.relatedReactions.sort((a, b) => (a.compartment < b.compartment ? -1 : 1));
+      })
+      .catch(() => {
+        this.relatedReactions = [];
+      });
+    },
+    reformatEquation() { return reformatChemicalReactionHTML(this.reaction); },
+    reformatGenes() {
       let newGRnameArr = null;
-      if (this.reaction.name_gene_rule) {
-        newGRnameArr = this.reaction.name_gene_rule.split(/ +/).map(
+      if (this.reaction.gene_rule_wname) {
+        newGRnameArr = this.reaction.gene_rule_wname.split(/ +/).map(
         e => e.replace(/^\(+|\)+$/g, '')
         );
       }
@@ -234,7 +267,7 @@ export default {
     },
     reformatCompartment() {
       const compartmentEq =
-        this.reformatCompEqString(this.reaction.compartment);
+        this.reformatCompEqString(this.reaction.compartment, this.reaction.is_reversible);
       if (this.reaction.is_transport) {
         return `${compartmentEq} (transport reaction)`;
       }
@@ -242,25 +275,35 @@ export default {
     },
     reformatReversible() { return this.reaction.is_reversible ? 'Yes' : 'No'; },
     reformatRefs(refs) {
-      for (const i of refs) {
-        axios.get(`https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed&retmode=json&id=${i.pmid}`)
-        .then((response) => {
-          const details = response.data.result[i.pmid];
-          const newRef = {};
-          newRef.pmid = i.pmid;
-          newRef.link = `https://www.ncbi.nlm.nih.gov/pubmed/${i.pmid}`;
-          if (details.pubdate) {
-            newRef.year = details.pubdate.substring(0, 4);
+      const queryIDs = `(EXT_ID:"${refs.map(e => e.pmid).join('"+OR+EXT_ID:"')}")`;
+      axios.get(`https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=${queryIDs}&resultType=core&format=json`)
+      .then((response) => {
+        for (const details of response.data.resultList.result) {
+          try {
+            const newRef = {};
+            newRef.pmid = details.id;
+            newRef.link = details.fullTextUrlList.fullTextUrl.filter(e => e.documentStyle === 'html' && e.site === 'Europe_PMC');
+            if (newRef.link.length === 0) {
+              newRef.link = details.fullTextUrlList.fullTextUrl.filter(
+                e => e.documentStyle === 'doi' || e.documentStyle === 'abs')[0].url;
+            } else {
+              newRef.link = newRef.link[0].url;
+            }
+            if (details.pubYear) {
+              newRef.year = details.pubYear;
+            }
+            newRef.authors = details.authorList.author.map(e => e.fullName);
+            newRef.journal = details.journalInfo.journal.title;
+            newRef.title = details.title;
+            this.formattedRef.push(newRef);
+          } catch (e) {
+            // pass
           }
-          newRef.authors = details.authors.map(e => (e.authtype === 'Author' ? e.name : null));
-          newRef.journal = details.fulljournalname;
-          newRef.title = details.title;
-          this.formattedRef.push(newRef);
-        })
-        .catch(() => {
-          this.errorMessage = messages.notFoundError;
-        });
-      }
+        }
+      })
+      .catch(() => {
+        this.errorMessage = messages.notFoundError;
+      });
     },
     viewReactionOnMap(reactionID) {
       EventBus.$emit('viewReactionOnMap', reactionID);
@@ -268,6 +311,8 @@ export default {
     reformatTableKey,
     reformatECLink,
     reformatCompEqString,
+    reformatChemicalReactionHTML,
+    reformatEqSign,
   },
 };
 </script>

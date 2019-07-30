@@ -10,12 +10,12 @@ urlpatterns = [
     url(r'^(?P<model>[^/]+)/reaction/(?P<id>[^/]+)/?$', views.get_reaction),
     url(r'^(?P<model>[^/]+)/reaction/(?P<id>[^/]+)/reactants/?$', views.get_reaction_reactants),
     url(r'^(?P<model>[^/]+)/reaction/(?P<id>[^/]+)/products/?$', views.get_reaction_products),
-    url(r'^(?P<model>[^/]+)/reaction/(?P<id>[^/]+)/modifiers/?$', views.get_reaction_modifiers),
+    url(r'^(?P<model>[^/]+)/reaction/(?P<id>[^/]+)/genes/?$', views.get_reaction_genes),
 
-    url(r'^(?P<model>[^/]+)/enzymes/?$', views.get_enzymes),
-    url(r'^(?P<model>[^/]+)/enzyme/(?P<id>[^/]+)/?$', views.get_enzyme),
-    url(r'^(?P<model>[^/]+)/enzyme/(?P<id>[^/]+)/interaction_partners/?$', views.get_enzyme_interaction_partners),
-    url(r'^(?P<model>[^/]+)/enzyme/(?P<id>[^/]+)/reactions/?$', views.get_enzyme_reactions),
+    url(r'^(?P<model>[^/]+)/genes/?$', views.get_genes),
+    url(r'^(?P<model>[^/]+)/gene/(?P<id>[^/]+)/?$', views.get_gene),
+    url(r'^(?P<model>[^/]+)/gene/(?P<id>[^/]+)/interaction_partners/?$', views.get_gene_interaction_partners),
+    url(r'^(?P<model>[^/]+)/gene/(?P<id>[^/]+)/reactions/?$', views.get_gene_reactions),
 
     url(r'^(?P<model>[^/]+)/metabolites/?$', views.get_metabolites),
     url(r'^(?P<model>[^/]+)/metabolite/(?P<id>[^/]+)/?$', views.get_metabolite),

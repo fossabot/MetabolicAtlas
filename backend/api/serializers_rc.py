@@ -17,14 +17,14 @@ class MetaboliteSearchSerializer(serializers.ModelSerializer):
         model = APImodels.Metabolite
         fields = ('kegg', 'hmdb', 'hmdb_name', 'mass')
 
-class EnzymeSerializer(serializers.ModelSerializer):
+class GeneSerializer(serializers.ModelSerializer):
     class Meta:
-        model = APImodels.Enzyme
+        model = APImodels.Gene
         fields = ('function', 'catalytic_activity', 'ensembl_link', 'uniprot_acc', 'ncbi')
 
-class EnzymeSearchSerializer(serializers.ModelSerializer):
+class GeneSearchSerializer(serializers.ModelSerializer):
     class Meta:
-        model = APImodels.Enzyme
+        model = APImodels.Gene
         fields = ('uniprot_acc',)
 
 # ================================================================================
@@ -48,6 +48,12 @@ class ReactionComponentLiteSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'full_name')
 
 
+class ReactionComponentRTSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = APImodels.ReactionComponent
+        fields = ('id', 'name', 'full_name', 'compartment_str')
+
+
 class ReactionComponentSerializer(ReactionComponentBasicSerializer):
     class Meta(ReactionComponentBasicSerializer.Meta):
         model = APImodels.ReactionComponent
@@ -56,26 +62,26 @@ class ReactionComponentSerializer(ReactionComponentBasicSerializer):
                 'external_id5', 'external_id6', 'external_id7', 'external_id8')
 
 
-class EnzymeReactionComponentSearchSerializer(serializers.ModelSerializer):
-    gene_name = serializers.SerializerMethodField('read_gene_name')
+class GeneReactionComponentSearchSerializer(serializers.ModelSerializer):
+    name = serializers.SerializerMethodField('read_name')
     subsystem = serializers.SlugRelatedField(
         many=True,
         read_only=True,
         slug_field='name',
-        source='subsystem_enzyme'
+        source='subsystem_gene'
     )
     compartment = serializers.SlugRelatedField(
         many=True,
         read_only=True,
         slug_field='name',
-        source='compartment_enzyme',
+        source='compartment_gene',
      )
 
     class Meta:
         model = APImodels.ReactionComponent
-        fields = ('id', 'gene_name', 'subsystem', 'compartment')
+        fields = ('id', 'name', 'subsystem', 'compartment')
 
-    def read_gene_name(self, model):
+    def read_name(self, model):
         return model.name if model.name else None
 
 
@@ -87,16 +93,22 @@ class MetaboliteReactionComponentSearchSerializer(serializers.ModelSerializer):
         slug_field='name',
         source='subsystem_metabolite'
     )
+    charge = serializers.SerializerMethodField('read_charge')
 
     class Meta:
         model = APImodels.ReactionComponent
-        fields = ('id', 'name', 'formula', 'subsystem', 'compartment')
+        fields = ('id', 'name', 'formula', 'charge', 'subsystem', 'compartment')
 
     def read_compartment(self, model):
         return model.compartment_str
 
+    def read_charge(self, model):
+        if not hasattr(model, 'metabolite'): # fixme
+            return 0
+        return model.metabolite.charge
 
-class EnzymeReactionComponentSerializer(ReactionComponentSerializer):
+
+class GeneReactionComponentSerializer(ReactionComponentSerializer):
     function1 = serializers.SerializerMethodField('read_function1')
     function2 = serializers.SerializerMethodField('read_function2')
     ec =  serializers.SerializerMethodField('read_ec')
@@ -106,7 +118,7 @@ class EnzymeReactionComponentSerializer(ReactionComponentSerializer):
 
     external_link1 = serializers.SlugRelatedField(
         read_only=True,
-        slug_field='model.enzyme.external_link1',
+        slug_field='model.gene.external_link1',
     )
 
     # external_link1 = serializers.SerializerMethodField('read_external_link1')
@@ -125,46 +137,46 @@ class EnzymeReactionComponentSerializer(ReactionComponentSerializer):
                 'external_link5', 'external_link6', 'external_link7', 'external_link8',)
 
     def read_function1(self, model):
-        return model.enzyme.function1 if hasattr(model, 'enzyme') else None
+        return model.gene.function1 if hasattr(model, 'gene') else None
 
     def read_function2(self, model):
-        return model.enzyme.function2 if hasattr(model, 'enzyme') else None
+        return model.gene.function2 if hasattr(model, 'gene') else None
 
     def read_ec(self, model):
-        return model.enzyme.ec if hasattr(model, 'enzyme') else None
+        return model.gene.ec if hasattr(model, 'gene') else None
 
     def read_catalytic_activity(self, model):
-        return model.enzyme.catalytic_activity if hasattr(model, 'enzyme') else None
+        return model.gene.catalytic_activity if hasattr(model, 'gene') else None
 
     def read_cofactor(self, model):
-        return model.enzyme.cofactor if hasattr(model, 'enzyme') else None
+        return model.gene.cofactor if hasattr(model, 'gene') else None
 
     def read_name_link(self, model):
-        return model.enzyme.name_link if hasattr(model, 'enzyme') else None
+        return model.gene.name_link if hasattr(model, 'gene') else None
 
     def read_external_link1(self, model):
-        return model.enzyme.external_link1 if hasattr(model, 'enzyme') else None
+        return model.gene.external_link1 if hasattr(model, 'gene') else None
 
     def read_external_link2(self, model):
-        return model.enzyme.external_link2 if hasattr(model, 'enzyme') else None
+        return model.gene.external_link2 if hasattr(model, 'gene') else None
 
     def read_external_link3(self, model):
-        return model.enzyme.external_link3 if hasattr(model, 'enzyme') else None
+        return model.gene.external_link3 if hasattr(model, 'gene') else None
 
     def read_external_link4(self, model):
-        return model.enzyme.external_link4 if hasattr(model, 'enzyme') else None
+        return model.gene.external_link4 if hasattr(model, 'gene') else None
 
     def read_external_link5(self, model):
-        return model.enzyme.external_link5 if hasattr(model, 'enzyme') else None
+        return model.gene.external_link5 if hasattr(model, 'gene') else None
 
     def read_external_link6(self, model):
-        return model.enzyme.external_link6 if hasattr(model, 'enzyme') else None
+        return model.gene.external_link6 if hasattr(model, 'gene') else None
 
     def read_external_link7(self, model):
-        return model.enzyme.external_link7 if hasattr(model, 'enzyme') else None
+        return model.gene.external_link7 if hasattr(model, 'gene') else None
 
     def read_external_link8(self, model):
-        return model.enzyme.external_link8 if hasattr(model, 'enzyme') else None
+        return model.gene.external_link8 if hasattr(model, 'gene') else None
 
 
 class MetaboliteReactionComponentSerializer(ReactionComponentSerializer):
@@ -243,9 +255,9 @@ class MetaboliteReactionComponentSerializer(ReactionComponentSerializer):
 
 # custom serializers for HMR
 
-class HmrEnzymeReactionComponentLiteSerializer(serializers.ModelSerializer):
-    gene_name = serializers.SerializerMethodField('read_gene_name')
-    short_name = serializers.SerializerMethodField('read_short_name')
+class HmrGeneReactionComponentLiteSerializer(serializers.ModelSerializer):
+    name = serializers.SerializerMethodField('read_name')
+    description = serializers.SerializerMethodField('read_description')
     gene_synonyms = serializers.SerializerMethodField('read_gene_synonyms')
     ec =  serializers.SerializerMethodField('read_ec')
     hpa_id = serializers.SerializerMethodField('read_hpa')
@@ -254,33 +266,33 @@ class HmrEnzymeReactionComponentLiteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = APImodels.ReactionComponent
-        fields = ('id', 'gene_name', 'short_name', 'gene_synonyms', 'ec', 'hpa_id', 'uniprot_id', 'ncbi_id',)
+        fields = ('id', 'name', 'description', 'gene_synonyms', 'ec', 'hpa_id', 'uniprot_id', 'ncbi_id',)
 
-    def read_gene_name(self, model):
+    def read_name(self, model):
         return model.name if model.name else None
 
-    def read_short_name(self, model):
+    def read_description(self, model):
         return model.alt_name1
 
     def read_gene_synonyms(self, model):
         return model.aliases
 
     def read_ec(self, model):
-        return model.enzyme.ec if hasattr(model, 'enzyme') else None
+        return model.gene.ec if hasattr(model, 'gene') else None
 
     def read_hpa(self, model):
-        return model.external_id1
+        return model.external_id3
 
     def read_uniprot(self, model):
         return model.external_id2
 
     def read_ncbi(self, model):
-        return model.external_id3
+        return model.external_id1
 
 
-class HmrEnzymeReactionComponentSerializer(serializers.ModelSerializer):
-    gene_name = serializers.SerializerMethodField('read_gene_name')
-    prot_name = serializers.SerializerMethodField('read_prot_name')
+class HmrGeneReactionComponentSerializer(serializers.ModelSerializer):
+    name = serializers.SerializerMethodField('read_name')
+    description = serializers.SerializerMethodField('read_description')
     gene_synonyms = serializers.SerializerMethodField('read_gene_synonyms')
     function =  serializers.SerializerMethodField('read_function')
     ec =  serializers.SerializerMethodField('read_ec')
@@ -293,88 +305,66 @@ class HmrEnzymeReactionComponentSerializer(serializers.ModelSerializer):
     ncbi_id = serializers.SerializerMethodField('read_ncbi')
     ncbi_link =  serializers.SerializerMethodField('read_ncbi_link')
     ensembl_link =  serializers.SerializerMethodField('read_ensembl_link')
-    name_link =  serializers.SerializerMethodField('read_name_link')
 
     class Meta:
         model = APImodels.ReactionComponent
-        fields = ('id', 'gene_name', 'prot_name', 'gene_synonyms') + \
+        fields = ('id', 'name', 'description', 'gene_synonyms') + \
         ('function', 'ec', 'catalytic_activity', 'cofactor', 'hpa_id', 'hpa_link') + \
-        ('uniprot_id', 'uniprot_link', 'ncbi_id', 'ncbi_link', 'ensembl_link', 'name_link')
+        ('uniprot_id', 'uniprot_link', 'ncbi_id', 'ncbi_link', 'ensembl_link',)
 
-    def read_gene_name(self, model):
+    def read_name(self, model):
         return model.name if model.name else None
 
-    def read_prot_name(self, model):
+    def read_description(self, model):
         return model.alt_name1
 
     def read_gene_synonyms(self, model):
         return model.aliases
 
     def read_function(self, model):
-        return model.enzyme.function1 if hasattr(model, 'enzyme') else None
+        return model.gene.function1 if hasattr(model, 'gene') else None
 
     def read_ec(self, model):
-        return model.enzyme.ec if hasattr(model, 'enzyme') else None
+        return model.gene.ec if hasattr(model, 'gene') else None
 
     def read_catalytic_activity(self, model):
-        return model.enzyme.catalytic_activity if hasattr(model, 'enzyme') else None
+        return model.gene.catalytic_activity if hasattr(model, 'gene') else None
 
     def read_cofactor(self, model):
-        return model.enzyme.cofactor if hasattr(model, 'enzyme') else None
+        return model.gene.cofactor if hasattr(model, 'gene') else None
 
     def read_uniprot(self, model):
         return model.external_id2
 
     def read_uniprot_link(self, model):
-        return model.enzyme.external_link2 if hasattr(model, 'enzyme') else None
+        return model.gene.external_link2 if hasattr(model, 'gene') else None
 
     def read_hpa(self, model):
-        return model.external_id1
-
-    def read_hpa_link(self, model):
-        return model.enzyme.external_link1 if hasattr(model, 'enzyme') else None
-
-    def read_ncbi(self, model):
         return model.external_id3
 
+    def read_hpa_link(self, model):
+        return model.gene.external_link3 if hasattr(model, 'gene') else None
+
+    def read_ncbi(self, model):
+        return model.external_id1
+
     def read_ncbi_link(self, model):
-        return model.enzyme.external_link3 if hasattr(model, 'enzyme') else None
+        return model.gene.external_link1 if hasattr(model, 'gene') else None
 
     def read_ensembl_link(self, model):
-        return model.enzyme.name_link if hasattr(model, 'enzyme') else None
-
-    def read_name_link(self, model):
-        return model.enzyme.name_link if hasattr(model, 'enzyme') else None
+        return model.gene.name_link if hasattr(model, 'gene') else None
 
 
-class HmrEnzymeReactionComponentInteractionPartnerSerializer(serializers.ModelSerializer):
-    gene_name = serializers.SerializerMethodField('read_gene_name')
-    function =  serializers.SerializerMethodField('read_function')
-    catalytic_activity = serializers.SerializerMethodField('read_catalytic_activity')
-    compartment = serializers.SerializerMethodField('read_compartment')
-
+class GeneReactionComponentInteractionPartnerSerializer(serializers.ModelSerializer):
     class Meta:
         model = APImodels.ReactionComponent
-        fields = ('id', 'gene_name', 'function', 'catalytic_activity', 'compartment')
-
-    def read_gene_name(self, model):
-        return model.name if model.name else None
-
-    def read_function(self, model):
-        return model.enzyme.function1 if hasattr(model, 'enzyme') else None
-
-    def read_catalytic_activity(self, model):
-        return model.enzyme.catalytic_activity if hasattr(model, 'enzyme') else None
-
-    def read_compartment(self, model):
-        return model.compartment_str
+        fields = ('id', 'name',)
 
 
 # -----------------------------------------------------------------------------------------------------
 
 
 class HmrMetaboliteReactionComponentLiteSerializer(serializers.ModelSerializer):
-    model_name = serializers.SerializerMethodField('read_model_name')
     aliases = serializers.SerializerMethodField('read_aliases')
     inchi =  serializers.SerializerMethodField('read_inchi')
     hmdb_id =  serializers.SerializerMethodField('read_hmdb')
@@ -384,10 +374,7 @@ class HmrMetaboliteReactionComponentLiteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = APImodels.ReactionComponent
-        fields = ('id', 'name', 'model_name', 'aliases', 'inchi', 'hmdb_id', 'chebi_id', 'mnxref_id', 'compartment',  'is_currency')
-
-    def read_model_name(self, model):
-        return model.alt_name1
+        fields = ('id', 'name', 'full_name', 'aliases', 'inchi', 'hmdb_id', 'chebi_id', 'mnxref_id', 'compartment')
 
     def read_aliases(self, model):
         return model.aliases
@@ -481,23 +468,10 @@ class HmrMetaboliteReactionComponentSerializer(serializers.ModelSerializer):
         return model.compartment_str
 
 
-class HmrMetaboliteReactionComponentInteractionPartnerSerializer(serializers.ModelSerializer):
-    description = serializers.SerializerMethodField('read_description')
-    function = serializers.SerializerMethodField('read_function')
-    compartment = serializers.SerializerMethodField('read_compartment')
-
+class MetaboliteReactionComponentInteractionPartnerSerializer(serializers.ModelSerializer):
     class Meta:
         model = APImodels.ReactionComponent
-        fields = ('id', 'name', 'description', 'function', 'compartment')
-
-    def read_description(self, model):
-        return model.metabolite.description if hasattr(model, 'metabolite') else None
-
-    def read_function(self, model):
-        return model.metabolite.function1 if hasattr(model, 'metabolite') else None
-
-    def read_compartment(self, model):
-        return model.compartment_str
+        fields = ('id', 'name', 'compartment_str')
 
 
 # ==========================================================================================
@@ -510,11 +484,11 @@ class HmrMetaboliteReactionComponentInteractionPartnerSerializer(serializers.Mod
 class GemBrowserTileReactionSerializer(serializers.ModelSerializer):
     compartment_count = serializers.SerializerMethodField('read_compartment_count')
     subsystem_count = serializers.SerializerMethodField('read_subsystem_count')
-    enzyme_count = serializers.SerializerMethodField('read_enzyme_count')
+    gene_count = serializers.SerializerMethodField('read_gene_count')
 
     class Meta:
         model = APImodels.Reaction
-        fields = ('id', 'equation_wname', 'is_reversible', 'subsystem_count', 'compartment_count', 'enzyme_count')
+        fields = ('id', 'equation_wname', 'is_reversible', 'subsystem_count', 'compartment_count', 'gene_count')
 
     def read_compartment_count(self, model):
         return len(re.compile(" => | + ").split(model.compartment))
@@ -522,8 +496,8 @@ class GemBrowserTileReactionSerializer(serializers.ModelSerializer):
     def read_subsystem_count(self, model):
         return model.subsystem.count()
 
-    def read_enzyme_count(self, model):
-        return model.modifiers.count()
+    def read_gene_count(self, model):
+        return model.genes.count()
 
 
 class GemBrowserTileMetaboliteSerializer(serializers.ModelSerializer):
@@ -541,7 +515,7 @@ class GemBrowserTileMetaboliteSerializer(serializers.ModelSerializer):
         return model.reactions_as_reactant.count() + model.reactions_as_product.count()
 
 
-class GemBrowserTileEnzymeSerializer(serializers.ModelSerializer):
+class GemBrowserTileGeneSerializer(serializers.ModelSerializer):
     compartment_count = serializers.SerializerMethodField('read_compartment')
     subsystem_count = serializers.SerializerMethodField('read_subsystem')
     reaction_count = serializers.SerializerMethodField('read_reaction_count')
@@ -551,10 +525,10 @@ class GemBrowserTileEnzymeSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'reaction_count', 'compartment_count', 'subsystem_count')
 
     def read_compartment(self, model):
-        return model.compartment_enzyme.count()
+        return model.compartment_gene.count()
 
     def read_subsystem(self, model):
-        return model.subsystem_enzyme.count()
+        return model.subsystem_gene.count()
 
     def read_reaction_count(self, model):
-        return model.reactions_as_modifier.count()
+        return model.reactions_as_gene.count()

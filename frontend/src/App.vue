@@ -92,7 +92,7 @@
     <div v-if="showCookieMsg" id="cookies" class="has-background-grey">
       <div class="column has-text-centered">
         <div class="has-text-white">
-          We use cookies to enhance the usability of our website. By continuing you are agreeing to our <router-link class="has-text-white has-text-weight-bold" :to="{path: '/about#privacy'}">Privacy Notice and Terms of Use</router-link>&emsp;
+          We use cookies to enhance the usability of our website. By continuing you are agreeing to our <router-link class="has-text-white has-text-weight-bold" :to="{path: '/about', hash: 'privacy'}">Privacy Notice and Terms of Use</router-link>&emsp;
           <p class="button is-small is-rounded has-background-danger has-text-white has-text-weight-bold" @click="showCookieMsg=false; acceptCookiePolicy()">
             <span class="icon is-small"><i class="fa fa-check"></i></span>
             <span>OKAY</span>
@@ -200,21 +200,6 @@ export default {
 </script>
 
 <style lang='scss'>
-
-$primary: #25543C;
-$primary-light: #4C735F;
-$primary-lighter: #EEF0EF;
-$link: #00549E;
-$warning: #FFC67D;
-$danger: #F46036;
-$info: $link;
-
-$body-size: 14px !default
-
-$desktop: 1192px !default;
-$widescreen: 1384px !default;
-$fullhd: 1576px !default;
-$navbar-breakpoint: 1000px;
 
 @import '~bulma';
 
@@ -432,6 +417,16 @@ m, .clickable {
   }
 }
 
+#cytoTable .tag {
+  height: 1.4rem;
+  margin: 2px 3px;
+  user-select: none;
+  &.hl {
+    background: $primary;
+    color: whitesmoke;
+  }
+}
+
 #mapViewer {
   #menu {
     width: auto;
@@ -474,7 +469,6 @@ m, .clickable {
         cursor: not-allowed;
         background: $primary;
         color: $grey;
-        pointer-events: none;
       }
     }
   }

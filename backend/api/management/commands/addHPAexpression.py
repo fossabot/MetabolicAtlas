@@ -129,9 +129,9 @@ def parse_hpa_tab(database, file):
                 # check if the gene is in reaction component
                 rc = APImodels.ReactionComponent.objects.using(database).filter(id=gene_id)
                 if rc:
-                    hpa_level = APImodels.HpaEnzymeLevel.objects.using(database).filter(rc=rc[0])
+                    hpa_level = APImodels.HpaProteinLevel.objects.using(database).filter(rc=rc[0])
                     if not hpa_level:
-                        hpa_level = APImodels.HpaEnzymeLevel(rc=rc[0], levels=','.join(levels))
+                        hpa_level = APImodels.HpaProteinLevel(rc=rc[0], levels=','.join(levels))
                         hpa_level.save(using=database)
                 #print ("%s\t%s" % (gene_id, ','.join(levels)))
 

@@ -5,24 +5,13 @@ services:
     restart: always
 
   backend:
+    command: bash -c "python manage.py runserver 0.0.0.0:8000"
     restart: always
-    volumes:
-      - backend:/project
-
-  frontend:
-    command: npm run build
-    volumes:
-      - frontend:/project
 
   nginx:
     restart: always
     build:
-      dockerfile: Dockerfile-prod
+      context: .
+      dockerfile: nginx/Dockerfile-prod
     volumes:
-      - backend:/backend:ro
-      - frontend:/frontend:ro
       - /var/ssl:/ssl:ro
-
-volumes:
-  frontend:
-  backend:

@@ -33,7 +33,7 @@ import axios from 'axios';
 import $ from 'jquery';
 import JQPanZoom from 'jquery.panzoom';
 import JQMouseWheel from 'jquery-mousewheel';
-import Loader from 'components/Loader';
+import Loader from '@/components/Loader';
 import { default as EventBus } from '../../../event-bus';
 import { getExpressionColor } from '../../../expression-sources/hpa';
 import { default as messages } from '../../../helpers/messages';
@@ -85,7 +85,7 @@ export default {
       selectElementID: null,
 
       HPARNAlevelsHistory: {},
-      enzymeRNAlevels: {}, // enz id as key, current tissue level as value
+      geneRNAlevels: {}, // enz id as key, current tissue level as value
 
       searchTerm: '',
       searchInputClass: '',
@@ -94,8 +94,8 @@ export default {
       currentSearchMatch: 0,
       totalSearchMatch: 0,
 
-      svgMapURL: `${window.location.origin}/svgs`, // SEDME
-      defaultEnzymeColor: '#feb',
+      svgMapURL: process.env.NODE_ENV === 'production' ? 'https://ftp.metabolicatlas.org/.maps' : 'http://localhost/svgs',
+      defaultGeneColor: '#feb',
     };
   },
   watch: {
@@ -145,8 +145,8 @@ export default {
     }
     $('#svg-wrapper').on('mouseover', '.enz', function f(e) {
       const id = $(this).attr('class').split(' ')[1].trim();
-      if (id in self.enzymeRNAlevels) {
-        self.$refs.tooltip.innerHTML = `RNA level: ${self.enzymeRNAlevels[id]}`;
+      if (id in self.geneRNAlevels) {
+        self.$refs.tooltip.innerHTML = `RNA level: ${self.geneRNAlevels[id]}`;
         self.$refs.tooltip.style.top = `${(e.pageY - $('.svgbox').first().offset().top) + 15}px`;
         self.$refs.tooltip.style.left = `${(e.pageX - $('.svgbox').first().offset().left) + 15}px`;
         self.$refs.tooltip.style.display = 'block';
@@ -282,7 +282,7 @@ export default {
         this.readHPARNAlevels(tissue);
         return;
       }
-      axios.get(`${this.model.database_name}/enzyme/hpa_rna_levels/${mapType}/2d/${this.loadedMap.name_id}`)
+      axios.get(`${this.model.database_name}/gene/hpa_rna_levels/${mapType}/2d/${this.loadedMap.name_id}`)
       .then((response) => {
         this.HPARNAlevelsHistory[this.svgName] = response.data;
         setTimeout(() => {
@@ -296,8 +296,8 @@ export default {
     },
     readHPARNAlevels(tissue) {
       if (tissue === 'None') {
-        $('#svg-wrapper .enz .shape').attr('fill', this.defaultEnzymeColor);
-        this.enzymeRNAlevels = {};
+        $('#svg-wrapper .enz .shape').attr('fill', this.defaultGeneColor);
+        this.geneRNAlevels = {};
         return;
       }
       const index = this.HPARNAlevelsHistory[this.svgName].tissues.indexOf(tissue);
@@ -311,14 +311,14 @@ export default {
         const enzID = array[0];
         let level = Math.log2(parseFloat(array[1].split(',')[index]) + 1);
         level = Math.round((level + 0.00001) * 100) / 100;
-        this.enzymeRNAlevels[enzID] = level;
+        this.geneRNAlevels[enzID] = level;
       }
 
-      const allEnzymes = $('#svg-wrapper .enz');
-      for (const oneEnz of allEnzymes) {
+      const allGenes = $('#svg-wrapper .enz');
+      for (const oneEnz of allGenes) {
         const ID = oneEnz.classList[1];
-        if (this.enzymeRNAlevels[ID] !== undefined) {
-          oneEnz.children[0].setAttribute('fill', getExpressionColor(this.enzymeRNAlevels[ID]));
+        if (this.geneRNAlevels[ID] !== undefined) {
+          oneEnz.children[0].setAttribute('fill', getExpressionColor(this.geneRNAlevels[ID]));
         } else {
           oneEnz.children[0].setAttribute('fill', 'whitesmoke');
         }
@@ -326,8 +326,8 @@ export default {
 
       // update cached selected elements
       for (const id of Object.keys(this.selectedItemHistory)) {
-        if (this.enzymeRNAlevels[id] !== undefined) {
-          this.selectedItemHistory[id].rnaLvl = this.enzymeRNAlevels[id];
+        if (this.geneRNAlevels[id] !== undefined) {
+          this.selectedItemHistory[id].rnaLvl = this.geneRNAlevels[id];
         }
       }
       EventBus.$emit('loadRNAComplete', true, '');
@@ -447,7 +447,7 @@ export default {
       if (element.hasClass('rea')) {
         return [element.attr('id'), 'reaction'];
       } else if (element.hasClass('enz')) {
-        return [element.attr('class').split(' ')[1], 'enzyme'];
+        return [element.attr('class').split(' ')[1], 'gene'];
       } else if (element.hasClass('met')) {
         return [element.attr('class').split(' ')[1], 'metabolite'];
       }
@@ -486,10 +486,10 @@ export default {
         let data = response.data;
         if (type === 'reaction') {
           data = data.reaction;
-        } else if (type === 'enzyme') {
+        } else if (type === 'gene') {
           // add the RNA level if any
-          if (id in this.enzymeRNAlevels) {
-            data.rnaLvl = this.enzymeRNAlevels[id];
+          if (id in this.geneRNAlevels) {
+            data.rnaLvl = this.geneRNAlevels[id];
           }
         }
         selectionData.data = data;

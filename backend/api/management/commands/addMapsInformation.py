@@ -44,7 +44,7 @@ def read_map_metabolite(filePath):
     return res
 
 
-def read_map_enzyme(filePath):
+def read_map_gene(filePath):
     res = set()
     with open(filePath, "r") as myfile:
         data = myfile.readlines()
@@ -224,8 +224,6 @@ def get_compt_subsystem_connectivity(database, map_directory, compt_rme, rme_com
         # for each meta
         # count when the meta is reactant or product in each reaction
         # store the info for each compartment and for each subsystem where the reaction is
-        if meta[:6] == 'ENSG00':
-            continue
         result[meta] = {'compartment': {}, 'subsystem': {}}
         reactions_as_reactant = {e for e in ReactionReactant.objects.using(database).filter(reactant_id=meta).values_list('reaction_id', flat=True)}
         for r_reaction in reactions_as_reactant:
@@ -274,6 +272,10 @@ def get_compt_subsystem_connectivity(database, map_directory, compt_rme, rme_com
                     '''for cpmt in rme_compt[p_reaction]:
                         if ssub in compt_sub[cpmt]:
                             result[meta]['compartment'][cpmt]['product'] -= 1'''
+
+        if len(reactions_as_reactant) + len(reaction_as_product) == 0:
+            # skip genes
+            continue
 
         reactions_as_reactant.union(reaction_as_product)
         if len(reactions_as_reactant) == 1:
@@ -437,20 +439,20 @@ def get_components_interconnection(database):
         compt_metabolite_set = {e for e in ReactionComponent.objects.using(database).filter(compartment=c, component_type='m').values_list('id', flat=True)}
         compt_reaction = ReactionCompartment.objects.using(database).filter(compartment=c).values_list('reaction_id', flat=True)
         compt_reaction_set = {e for e in compt_reaction}
-        compt_enzyme_set = {e for e in ReactionModifier.objects.using(database).filter(reaction_id__in=compt_reaction).values_list('modifier_id', flat=True)}
+        compt_gene_set = {e for e in ReactionGene.objects.using(database).filter(reaction_id__in=compt_reaction).values_list('gene_id', flat=True)}
 
         print (c.name, "metabolite", len(compt_metabolite_set))
         print (c.name, "reaction", len(compt_reaction_set))
-        print (c.name, "enzyme", len(compt_enzyme_set))
+        print (c.name, "gene", len(compt_gene_set))
 
-        # for each compartment stores the list of unique reactions/metabolite/enzyme
+        # for each compartment stores the list of unique reactions/metabolite/gene
         compt_rme[c.name] = {
             'reaction': compt_reaction_set,
             'metabolite': compt_metabolite_set,
-            'enzyme': compt_enzyme_set,
+            'gene': compt_gene_set,
         }
 
-        # for each reactions/metabolite/enzyme stores the list of compartments
+        # for each reactions/metabolite/gene stores the list of compartments
         for r in compt_reaction_set:
             if r not in rme_compt:
                 rme_compt[r] = set()
@@ -459,7 +461,7 @@ def get_components_interconnection(database):
             if m not in rme_compt:
                 rme_compt[m] = set()
             rme_compt[m].add(c.name)
-        for e in compt_enzyme_set:
+        for e in compt_gene_set:
             if e not in rme_compt:
                 rme_compt[e] = set()
             rme_compt[e].add(c.name)
@@ -473,13 +475,13 @@ def get_components_interconnection(database):
     for s in subsystems:
         sub_reaction_set = {e for e in SubsystemReaction.objects.using(database).filter(subsystem=s).values_list('reaction_id', flat=True)}
         sub_metabolite_set = {e for e in SubsystemMetabolite.objects.using(database).filter(subsystem=s).values_list('rc_id', flat=True)}
-        sub_enzyme_set = {e for e in SubsystemEnzyme.objects.using(database).filter(subsystem=s).values_list('rc_id', flat=True)}
+        sub_gene_set = {e for e in SubsystemGene.objects.using(database).filter(subsystem=s).values_list('rc_id', flat=True)}
 
-        # for each subsystem stores the list of unique reactions/metabolite/enzyme
+        # for each subsystem stores the list of unique reactions/metabolite/gene
         sub_rme[s.name] = {
             'reaction': sub_reaction_set,
             'metabolite': sub_metabolite_set,
-            'enzyme': sub_enzyme_set,
+            'gene': sub_gene_set,
         }
 
         for r in sub_reaction_set:
@@ -496,20 +498,20 @@ def get_components_interconnection(database):
                 rme_sub[m] = set()
             rme_sub[m].add(s.name)
 
-        for e in sub_enzyme_set:
+        for e in sub_gene_set:
             if e not in rme_sub:
                 rme_sub[e] = set()
             rme_sub[e].add(s.name)
 
     sub_compt_using_reaction = {}
     sub_compt_using_metabolite = {}
-    sub_compt_using_enzyme = {}
+    sub_compt_using_gene = {}
 
     # get the association subsystem / compartment using the 3 components and compare
     for s_name in sub_rme:
         sub_compt_using_reaction[s_name] = set()
         sub_compt_using_metabolite[s_name] = set()
-        sub_compt_using_enzyme[s_name] = set()
+        sub_compt_using_gene[s_name] = set()
 
         for r in sub_rme[s_name]['reaction']:
             if r in rme_compt:
@@ -521,31 +523,31 @@ def get_components_interconnection(database):
                 for compt in rme_compt[m]:
                     sub_compt_using_metabolite[s_name].add(compt)
 
-        for e in sub_rme[s_name]['enzyme']:
+        for e in sub_rme[s_name]['gene']:
             if e in rme_compt:
                 for compt in rme_compt[e]:
-                    sub_compt_using_enzyme[s_name].add(compt)
+                    sub_compt_using_gene[s_name].add(compt)
 
 
-        print (s_name, len(sub_compt_using_reaction[s_name]), len(sub_compt_using_metabolite[s_name]), len(sub_compt_using_enzyme[s_name]))
+        print (s_name, len(sub_compt_using_reaction[s_name]), len(sub_compt_using_metabolite[s_name]), len(sub_compt_using_gene[s_name]))
         if len(sub_compt_using_reaction[s_name]) != len(sub_compt_using_metabolite[s_name]):
-            # ignore relation get with enzymes cause it give more compartments
-            # enzyme ids are not duplicated like metabolite
+            # ignore relation get with genes cause it give more compartments
+            # gene ids are not duplicated like metabolite
             print ("Error: != number of compt associate to subsystem  %s, when using reaction or metabolite")
             print (sub_compt_using_reaction[s_name], sub_compt_using_metabolite[s_name])
             exit(1)
 
         print ("sub_compt_using_reaction", sub_compt_using_reaction[s_name])
         print ("sub_compt_using_metabolite", sub_compt_using_metabolite[s_name])
-        print ("sub_compt_using_enzyme", sub_compt_using_enzyme[s_name])
+        print ("sub_compt_using_gene", sub_compt_using_gene[s_name])
         print ("###################################")
 
     reaction_not_compt = []
     reaction_not_sub = []
     metabolite_not_compt = []
     metabolite_not_sub = []
-    enzyme_not_compt = []
-    enzyme_not_sub = []
+    gene_not_compt = []
+    gene_not_sub = []
 
     # check if there is reaction not assigned to any compartment/subsystem
     for r in Reaction.objects.using(database).all():
@@ -554,13 +556,13 @@ def get_components_interconnection(database):
         if r.id not in rme_sub:
             reaction_not_sub.append(r.id)
 
-    # check if there is enzyme/metabolite not assigned to any compartment/subsystem
+    # check if there is gene/metabolite not assigned to any compartment/subsystem
     for rc in ReactionComponent.objects.using(database).all():
         if rc.component_type == 'e':
             if rc.id not in rme_compt:
-                enzyme_not_compt.append(rc.id)
+                gene_not_compt.append(rc.id)
             if rc.id not in rme_sub:
-                enzyme_not_sub.append(rc.id)
+                gene_not_sub.append(rc.id)
         elif rc.component_type == 'm':
             if rc.id not in rme_compt:
                 metabolite_not_compt.append(rc.id)
@@ -574,16 +576,16 @@ def get_components_interconnection(database):
     print ("not r in s: ", len(reaction_not_sub), len(set(reaction_not_sub)))
     print ("not m in c: ", len(metabolite_not_compt), len(set(metabolite_not_compt)))
     print ("not m in s: ", len(metabolite_not_sub), len(set(metabolite_not_sub)))
-    print ("not e in c: ", len(enzyme_not_compt), len(set(enzyme_not_compt)))
-    print ("not e in s: ", len(enzyme_not_sub), len(set(enzyme_not_sub)))
+    print ("not e in c: ", len(gene_not_compt), len(set(gene_not_compt)))
+    print ("not e in s: ", len(gene_not_sub), len(set(gene_not_sub)))
 
     if len(reaction_not_compt) or \
         len(reaction_not_sub) or \
         len(metabolite_not_compt) or \
         len(metabolite_not_sub) or \
-        len(enzyme_not_compt) or \
-        len(enzyme_not_sub):
-        print (enzyme_not_sub[:10])
+        len(gene_not_compt) or \
+        len(gene_not_sub):
+        print (gene_not_sub[:10])
         print ("Error")
         exit(1)
 
@@ -640,8 +642,8 @@ def get_components_interconnection(database):
 
 def get_subsystem_compt_element_svg_global(database, map_directory):
     # store compartment / subsystem relationship in the svg file
-    # and compartment / enzyme-metabolite-reaction
-    # note: there is no information about subsystem / enzyme-metabolite-reaction that
+    # and compartment / gene-metabolite-reaction
+    # note: there is no information about subsystem / gene-metabolite-reaction that
     # can be extracted from the svg
     compt_rme_svg = {}
     rme_compt_svg = {}
@@ -651,18 +653,18 @@ def get_subsystem_compt_element_svg_global(database, map_directory):
     for ci in CompartmentSvg.objects.using(database).all():
         reaction_compartment = read_map_reaction(os.path.join(map_directory, ci.filename))
         metabolite_compartment = read_map_metabolite(os.path.join(map_directory, ci.filename))
-        enzyme_compartment = read_map_enzyme(os.path.join(map_directory, ci.filename))
+        gene_compartment = read_map_gene(os.path.join(map_directory, ci.filename))
         subsystem_compartment = read_map_subsystem(os.path.join(map_directory, database, ci.filename))
 
         print ("Reactions found in the SVG file '%s': %s" % (ci.name, len(reaction_compartment)))
         print ("Metabolites found in the SVG file '%s': %s" % (ci.name, len(metabolite_compartment)))
-        print ("Enzymes found in the SVG file '%s': %s" % (ci.name, len(enzyme_compartment)))
+        print ("genes found in the SVG file '%s': %s" % (ci.name, len(gene_compartment)))
         print ("Subsystem found in the SVG file '%s': %s" % (ci.name, len(subsystem_compartment)))
 
         compt_rme_svg[ci.name] = {
             'reaction': {e for e in reaction_compartment},
             'metabolite': {e for e in metabolite_compartment},
-            'enzyme': {e for e in enzyme_compartment}
+            'gene': {e for e in gene_compartment}
         }
 
         for r in reaction_compartment:
@@ -673,7 +675,7 @@ def get_subsystem_compt_element_svg_global(database, map_directory):
             if m not in rme_compt_svg:
                 rme_compt_svg[m] = set()
             rme_compt_svg[m].add(ci.name)
-        for e in enzyme_compartment:
+        for e in gene_compartment:
             if e not in rme_compt_svg:
                 rme_compt_svg[e] = set()
             rme_compt_svg[e].add(ci.name)
@@ -696,24 +698,24 @@ def get_subsystem_compt_element_svg_global(database, map_directory):
 
 def parse_svg(database, component, map_directory):
     # store compartment / subsystem relationship in the svg file
-    # and compartment / enzyme-metabolite-reaction
-    # note: there is no information about subsystem / enzyme-metabolite-reaction that
+    # and compartment / gene-metabolite-reaction
+    # note: there is no information about subsystem / gene-metabolite-reaction that
     # can be extracted from the svg
 
     reaction_component = read_map_reaction(os.path.join(map_directory, component.filename))
     metabolite_component = read_map_metabolite(os.path.join(map_directory, component.filename))
-    enzyme_component = read_map_enzyme(os.path.join(map_directory, component.filename))
+    gene_component = read_map_gene(os.path.join(map_directory, component.filename))
     subsystem_component = read_map_subsystem(database, os.path.join(map_directory, component.filename))
 
     print ("Reactions found in the SVG file '%s': %s" % (component.name, len(reaction_component)))
     print ("Metabolites found in the SVG file '%s': %s" % (component.name, len(metabolite_component)))
-    print ("Enzymes found in the SVG file '%s': %s" % (component.name, len(enzyme_component)))
+    print ("Genes found in the SVG file '%s': %s" % (component.name, len(gene_component)))
     print ("Subsystem found in the SVG file '%s': %s" % (component.name, len(subsystem_component)))
 
     compt_rme_svg = {
         'reaction': {e for e in reaction_component},
         'metabolite': {e for e in metabolite_component},
-        'enzyme': {e for e in enzyme_component}
+        'gene': {e for e in gene_component}
     }
     compt_sub_svg = None
     if isinstance(component, CompartmentSvg):
@@ -748,11 +750,11 @@ def insert_compartment_svg_connectivity_and_stats(database, compartment, map_dir
         add.save(using=database)
     reaction_count = rs.count()
 
-    rcs = ReactionComponent.objects.using(database).filter(id__in=compt_rme_svg['enzyme'])
+    rcs = ReactionComponent.objects.using(database).filter(id__in=compt_rme_svg['gene'])
     for rc in rcs:
-        add = CompartmentSvgEnzyme(rc=rc, compartmentsvg=compartment)
+        add = CompartmentSvgGene(rc=rc, compartmentsvg=compartment)
         add.save(using=database)
-    enzyme_count  = rcs.count()
+    gene_count  = rcs.count()
 
     subs = Subsystem.objects.using(database).filter(name__in=compt_sub_svg)
     for sub in subs:
@@ -760,17 +762,17 @@ def insert_compartment_svg_connectivity_and_stats(database, compartment, map_dir
         add.save(using=database)
     subsystem_count = subs.count()
 
-    if reaction_count == 0 or metabolite_count == 0 or unique_meta_count == 0 or enzyme_count == 0 or subsystem_count == 0:
+    if reaction_count == 0 or metabolite_count == 0 or unique_meta_count == 0 or gene_count == 0 or subsystem_count == 0:
         print ("Error: compartment '%s'" % subsystem.filename)
         print("reaction_count", reaction_count)
         print("metabolite_count", metabolite_count)
         print("unique metabolite_count", unique_meta_count)
-        print("enzyme_count", enzyme_count)
+        print("gene_count", gene_count)
         print("subsystem_count", subsystem_count)
 
     CompartmentSvg.objects.using(database). \
         filter(id=compartment.id).update(reaction_count=reaction_count, subsystem_count=subsystem_count, \
-         metabolite_count=metabolite_count, unique_metabolite_count=unique_meta_count, enzyme_count=enzyme_count)
+         metabolite_count=metabolite_count, unique_metabolite_count=unique_meta_count, gene_count=gene_count)
 
 
 def insert_subsystem_svg_connectivity_and_stats(database, subsystem, map_directory):
@@ -794,22 +796,22 @@ def insert_subsystem_svg_connectivity_and_stats(database, subsystem, map_directo
         add.save(using=database)
     reaction_count = rs.count()
 
-    rcs = ReactionComponent.objects.using(database).filter(id__in=sub_rme_svg['enzyme'])
+    rcs = ReactionComponent.objects.using(database).filter(id__in=sub_rme_svg['gene'])
     for rc in rcs:
-        add = SubsystemSvgEnzyme(rc=rc, subsystemsvg=subsystem)
+        add = SubsystemSvgGene(rc=rc, subsystemsvg=subsystem)
         add.save(using=database)
-    enzyme_count  = rcs.count()
+    gene_count  = rcs.count()
 
     if reaction_count == 0 or metabolite_count == 0 or unique_meta_count == 0:
         print ("Error: subsystem '%s'" % subsystem.filename)
         print("reaction_count", reaction_count)
         print("metabolite_count", metabolite_count)
         print("unique metabolite_count", unique_meta_count)
-        print("enzyme_count", enzyme_count)
+        print("gene_count", gene_count)
 
     SubsystemSvg.objects.using(database). \
         filter(id=subsystem.id).update(reaction_count=reaction_count, \
-         metabolite_count=metabolite_count, unique_metabolite_count=unique_meta_count, enzyme_count=enzyme_count)
+         metabolite_count=metabolite_count, unique_metabolite_count=unique_meta_count, gene_count=gene_count)
 
 
 def compare_database_and_svg(compt_rme_svg, compt_rme, compt_sub_svg):
@@ -847,11 +849,11 @@ def compare_database_and_svg(compt_rme_svg, compt_rme, compt_sub_svg):
                 if not_in_db:
                     print ("Not in db:", not_in_db)
 
-            union_enzyme = d_svg['enzyme'] & d['enzyme']
-            print ("enzyme: ", len(d_svg['enzyme']), len(d['enzyme']), len(d_svg['enzyme'] & d['enzyme']))
-            if len(union_enzyme) != len(d_svg['enzyme']) or len(union_enzyme) != len(d['enzyme']):
-                not_in_svg = d['enzyme'] - d_svg['enzyme']
-                not_in_db = d_svg['enzyme'] - d['enzyme']
+            union_gene = d_svg['gene'] & d['gene']
+            print ("gene: ", len(d_svg['gene']), len(d['gene']), len(d_svg['gene'] & d['gene']))
+            if len(union_gene) != len(d_svg['gene']) or len(union_gene) != len(d['gene']):
+                not_in_svg = d['gene'] - d_svg['gene']
+                not_in_db = d_svg['gene'] - d['gene']
                 print("Not in svg: %s | not in db %s" % (len(not_in_svg), len(not_in_db)))
                 if not_in_svg and not cyto:
                     print ("Not in svg:", not_in_svg)
@@ -862,7 +864,7 @@ def compare_database_and_svg(compt_rme_svg, compt_rme, compt_sub_svg):
             print ("Error: unknown compartment %s" % compt)
             print ("reaction: ", len(d_svg['reaction']))
             print ("metabolite: ", len(d_svg['metabolite']))
-            print ("enzyme: ", len(d_svg['enzyme']))
+            print ("gene: ", len(d_svg['gene']))
             exit(1)
 
     # compare subsystem
@@ -944,7 +946,7 @@ def processData(database, map_type, map_directory, svg_map_metadata_file):
                     print("Warning: file '" + svg_path + "' not found")
                     CompartmentSvg.objects.using(database). \
                         filter(id=cinfo.id).update(sha=None, reaction_count=0, subsystem_count=0, \
-                         metabolite_count=0, unique_metabolite_count=0, enzyme_count=0)
+                         metabolite_count=0, unique_metabolite_count=0, gene_count=0)
                     continue
 
                 # get sha
@@ -986,7 +988,7 @@ def processData(database, map_type, map_directory, svg_map_metadata_file):
                     print("Warning: file '" + svg_path + "' not found")
                     SubsystemSvg.objects.using(database). \
                         filter(id=sinfo.id).update(sha=None, reaction_count=0, compartment_count=0, \
-                         metabolite_count=0, unique_metabolite_count=0, enzyme_count=0)
+                         metabolite_count=0, unique_metabolite_count=0, gene_count=0)
                     continue
 
                 # get sha

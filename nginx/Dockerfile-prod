@@ -1,3 +1,24 @@
-FROM nginx:stable-alpine
+FROM node:lts-slim AS frontend
+WORKDIR /project
+COPY frontend .
 
-COPY nginx-prod.conf /etc/nginx/nginx.conf
+RUN npm install && npm run build
+
+
+FROM python:3.6-slim-stretch AS backend
+ENV PYTHONUNBUFFERED 1
+
+WORKDIR /project
+COPY backend .
+ARG DJANGO_KEY=mockkeyforbuildonly
+RUN pip install -r requirements.txt && \
+  python manage.py collectstatic --noinput
+
+
+FROM nginx:stable-alpine
+ARG NGINXCONF=nginx-prod.conf
+
+COPY nginx/$NGINXCONF /etc/nginx/nginx.conf
+
+COPY --from=frontend /project/dist            /content
+COPY --from=backend  /project/static          /content/static

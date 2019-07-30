@@ -1,18 +1,18 @@
 <template>
-  <div v-if="selectedElm && ['enzyme', 'metabolite', 'reaction'].includes(selectedElm.type)" class="card">
+  <div v-if="selectedElm && ['gene', 'metabolite', 'reaction'].includes(selectedElm.type)" class="card">
     <header class="card-header">
       <p class="card-header-title">
-        <span v-if="selectedElm.type === 'reaction'">
-          Reaction ID: {{ selectedElm.id }}
-        </span>
-        <span v-else class="is-capitalized">
-          {{ selectedElm.type }}
-          <router-link :to="{ path: `/explore/gem-browser/${this.model.database_name}/${selectedElm.type}/${this.selectedElm.real_id || this.selectedElm.id}` }">
-            {{ selectedElm.name }}
-          </router-link>
+        <span class="is-capitalized">
+          {{ selectedElm.type }}: {{ selectedElm.name || selectedElm.id }}
         </span>
       </p>
     </header>
+    <footer class="card-footer">
+      <router-link class="is-paddingless is-info is-outlined card-footer-item has-text-centered" :to="{ path: `/explore/gem-browser/${this.model.database_name}/${selectedElm.type}/${this.selectedElm.real_id || this.selectedElm.id}` }">
+        <span class="icon is-large"><i class="fa fa-database fa-lg"></i></span>
+        <span>{{ messages.gemBrowserName }}</span>
+      </router-link>
+    </footer>
   </div>
 </template>
 

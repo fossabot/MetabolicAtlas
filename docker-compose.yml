@@ -9,11 +9,8 @@ services:
 
   nginx:
     container_name: nginx
-    build:
-      context: ./nginx
     depends_on:
       - backend
-      - frontend
     ports:
       - "80:80"
       - "443:443"
@@ -27,15 +24,6 @@ services:
     env_file:
       - postgres.env
     build: ./backend
-    command: bash -c "python manage.py collectstatic --noinput && python manage.py runserver 0.0.0.0:8000"
-    networks:
-      - net-tier
-
-  frontend:
-    container_name: frontend
-    depends_on:
-      - backend
-    build: ./frontend
     networks:
       - net-tier
 

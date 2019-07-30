@@ -30,15 +30,15 @@
           <td>
             <router-link :to="{path: `/explore/gem-browser/${model.database_name}/reaction/${r.id}` }">{{ r.id }}</router-link>
           </td>
-          <td v-html="reformatChemicalReactionHTML(r)"></td>
+          <td v-html="getReformatChemicalReactionHTML(r)"></td>
           <td>
-            <template v-for="(m, index) in r.modifiers">{{ index == 0 ? '' : ', '}}<router-link :to="{ path: `/explore/gem-browser/${model.database_name}/enzyme/${m.id}` }">{{ m.name || m.id }}</router-link>
+            <template v-for="(m, index) in r.genes">{{ index == 0 ? '' : ', '}}<router-link :to="{ path: `/explore/gem-browser/${model.database_name}/gene/${m.id}` }">{{ m.name || m.id }}</router-link>
             </template>
           </td>
           <td v-show="showCP">{{ r.cp }}</td>
           <td v-show="showSubsystem">
-            <template v-if="r.subsystem">
-              <template v-for="(s, index) in r.subsystem.split('; ')">
+            <template v-if="r.subsystem_str">
+              <template v-for="(s, index) in r.subsystem_str.split('; ')">
               {{ index == 0 ? '' : '; '}}<router-link :to="{ path: `/explore/gem-browser/${model.database_name}/subsystem/${idfy(s)}` }">{{ s }}</router-link>
               </template>
             </template>
@@ -62,7 +62,7 @@
 import $ from 'jquery';
 import { default as compare } from '../../../helpers/compare';
 import { chemicalReaction } from '../../../helpers/chemical-formatters';
-import { reformatCompEqString, idfy } from '../../../helpers/utils';
+import { reformatCompEqString, idfy, reformatChemicalReactionHTML } from '../../../helpers/utils';
 
 export default {
   name: 'reaction-table',
@@ -77,14 +77,14 @@ export default {
         display: 'Equation',
         name: 'equation',
       }, {
-        display: 'Enzymes',
-        name: 'modifiers',
+        display: 'Genes',
+        name: 'genes',
       }, {
         display: 'C/P',
         name: 'cp',
       }, {
         display: 'Subsystem',
-        name: 'subsystem',
+        name: 'subsystem_str',
       }, {
         display: 'Compartment',
         name: 'compartment',
@@ -95,6 +95,14 @@ export default {
       sortPattern: '',
       reformatCompEqString,
     };
+  },
+  updated() {
+    if (this.selectedElmId) {
+      // when the table is from the selectedElmId page (metabolite)
+      // do not color the selectedElmId is the reaction equations
+      $('m').css('color', '');
+      $(`.${this.selectedElmId}`).addClass('cms');
+    }
   },
   computed: {
     transportReactionCount() {
@@ -109,18 +117,18 @@ export default {
         this.showCP = true;
         for (const reaction of this.reactions) {
           if (reaction.is_reversible) {
-            reaction.cp = 'reversible';
+            reaction.cp = 'consume/produce';
           } else {
-            const boolC = reaction.id_equation.split('=>')[0].indexOf(this.selectedElmId) !== -1;
-            const boolP = reaction.id_equation.split('=>')[1].indexOf(this.selectedElmId) !== -1;
-            reaction.cp = '';
-            if (boolC) {
+            const boolC = reaction.reactionreactant_set.filter(
+              e => e.reactant.id === this.selectedElmId);
+            if (boolC.length !== 0) {
               reaction.cp = 'consume';
-              if (boolP) {
-                reaction.cp += '/produce';
+            } else {
+              const boolP = reaction.reactionproduct_set.filter(
+                e => e.product.id === this.selectedElmId);
+              if (boolP.length !== 0) {
+                reaction.cp = 'produce';
               }
-            } else if (boolP) {
-              reaction.cp = 'produce';
             }
           }
         }
@@ -130,13 +138,9 @@ export default {
     },
   },
   methods: {
-    idfy,
     formatChemicalReaction(v, r) { return chemicalReaction(v, r); },
-    reformatChemicalReactionHTML(r) {
-      if (this.$parent.$parent.$parent.reformatChemicalReactionLink) {
-        return this.$parent.$parent.$parent.reformatChemicalReactionLink(r);
-      }
-      return this.$parent.$parent.$parent.$parent.reformatChemicalReactionLink(r);
+    getReformatChemicalReactionHTML(r) {
+      return reformatChemicalReactionHTML(r);
     },
     sortTable(field, pattern, order) {
       if (order) {
@@ -152,19 +156,13 @@ export default {
     showCol(name) {
       if (name === 'cp' && !this.showCP) {
         return false;
-      } else if (name === 'subsystem' && !this.showSubsystem) {
+      } else if (name === 'subsystem_str' && !this.showSubsystem) {
         return false;
       }
       return true;
     },
-  },
-  updated() {
-    if (this.selectedElmId) {
-      // when the table is from the selectedElmId page (metabolite)
-      // do not color the selectedElmId is the reaction equations
-      $('m').css('color', '');
-      $(`.${this.selectedElmId}`).addClass('cms');
-    }
+    idfy,
+    reformatChemicalReactionHTML,
   },
 };
 
@@ -179,6 +177,7 @@ export default {
     &.cms {
       color: rgb(54, 54, 54);
       cursor: default;
+      font-weight: 600;
     }
   }
 

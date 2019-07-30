@@ -39,11 +39,11 @@
             <td> {{ this.compartment.metabolite_count }}</td>
           </tr>
           <tr>
-            <td class="td-key has-background-primary has-text-white-bis">Enzymes</td>
-            <td> {{ this.compartment.enzyme_count }}</td>
+            <td class="td-key has-background-primary has-text-white-bis">Genes</td>
+            <td> {{ this.compartment.gene_count }}</td>
           </tr>
         </table>
-        <span class="is-size-5">The <a :href="`/api/${model.database_name}/compartment/${this.cName}/`" target="_blank">complete list in JSON format</a> of reactions / metabolites / enzymes is available using our <a href="/api/" target="_blank">API</a></span>
+        <span class="is-size-5">The <a :href="`/api/${model.database_name}/compartment/${this.cName}/`" target="_blank">complete list in JSON format</a> of reactions / metabolites / genes is available using our <a href="/api/" target="_blank">API</a></span>
       </div>
       <div class="column is-2-widescreen is-3-desktop is-full-tablet has-text-centered">
         <maps-available :model="model" :type="'compartment'" :id="cName" :elementID="''"></maps-available>
@@ -54,8 +54,8 @@
 
 <script>
 import axios from 'axios';
-import Loader from 'components/Loader';
-import MapsAvailable from 'components/explorer/gemBrowser/MapsAvailable';
+import Loader from '@/components/Loader';
+import MapsAvailable from '@/components/explorer/gemBrowser/MapsAvailable';
 import { reformatTableKey } from '../../../helpers/utils';
 import { default as messages } from '../../../helpers/messages';
 
@@ -81,7 +81,7 @@ export default {
   watch: {
     /* eslint-disable quote-props */
     '$route': function watchSetup() {
-      if (this.$route.path.includes('/compartment/')) {
+      if (this.$route.path.includes('/gem-browser/') && this.$route.path.includes('/compartment/')) {
         if (this.cName !== this.$route.params.id) {
           this.setup();
         }
