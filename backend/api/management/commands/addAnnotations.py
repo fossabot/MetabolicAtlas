@@ -331,7 +331,6 @@ def insert_annotation(database, component_type, file):
     print("Annotation inserted for type %s" % component_type)
 
 
-
 class Command(BaseCommand):
 
     def add_arguments(self, parser):
@@ -341,12 +340,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         database = options['database']
-        if options['type'] == 'test':
-            insert_annotation(database, 'metabolite', '/project/annotation/%s/example/METABOLITES.txt' % database)
-            insert_annotation(database, 'gene', '/project/annotation/%s/example/GENES.txt' % database)
-            insert_annotation(database, 'reaction', '/project/annotation/%s/example/REACTIONS.txt' % database)
-            insert_annotation(database, 'subsystem', '/project/annotation/%s/example/SUBSYSTEMS.txt' % database)
-        elif options['type'] == 'all':
+        if options['type'] == 'all':
             insert_annotation(database, 'metabolite', '/project/annotation/%s/METABOLITES.txt' % database)
             insert_annotation(database, 'gene', '/project/annotation/%s/GENES.txt' % database)
             insert_annotation(database, 'reaction', '/project/annotation/%s/REACTIONS.txt' % database)
