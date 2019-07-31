@@ -82,7 +82,7 @@
                   :sort-options="{ enabled: true }" styleClass="vgt-table striped bordered" :paginationOptions="tablePaginationOpts">
 
                   <div slot="table-actions">
-                    <a class="button is-primary" style="margin: 1rem 0;" @click="exportToTSV(header, index)">
+                    <a class="button is-primary" style="margin: 0.3rem 1rem;" @click="exportToTSV(header, index)">
                       <span class="icon is-large"><i class="fa fa-download"></i></span>
                       <span>Export to TSV</span>
                     </a>
@@ -157,6 +157,7 @@
 <script>
 
 import axios from 'axios';
+import { default as FileSaver } from 'file-saver';
 import Loader from '@/components/Loader';
 import { VueGoodTable } from 'vue-good-table';
 import 'vue-good-table/dist/vue-good-table.css';
@@ -739,19 +740,32 @@ export default {
         }
       });
     },
-    exportToTSV(header, index) {
-      console.log('rows', index);
+    exportToTSV(type, index) {
       try {
         const rows = Array.from(this.$refs.searchTables[index].filteredRows[0].children);
-        console.log(rows);
-        const tsvContent = rows.map(e =>
-            e.join('\t')
+        const header = [];
+        let getHeader = false;
+        let tsvContent = rows.map(e => {
+            const data = [];
+            for (let [key, value] of Object.entries(e)) {
+              if (key !== 'vgt_id' && key !== 'originalIndex') {
+                if (!getHeader) { header.push(key); }
+                if (key === 'model') {
+                  data.push(value.name);
+                } else {
+                  if (Array.isArray(value)) { value = value.join('; ') }
+                  data.push(value);
+                }
+              }
+            }
+            if (!getHeader) { getHeader = true; }
+            return data.join('\t') }
           ).join('\n');
-        console.log('tsvContent', tsvContent);
+        tsvContent = header.join('\t') + '\n' + tsvContent;
         const blob = new Blob([tsvContent], {
           type: 'data:text/tsv;charset=utf-8',
         });
-        FileSaver.saveAs(blob, `${this.searchTerm}-${header}.tsv`);
+        FileSaver.saveAs(blob, `${this.searchTerm}-${type}.tsv`);
       } catch (e) {
         this.errorMessage = e;
       }
