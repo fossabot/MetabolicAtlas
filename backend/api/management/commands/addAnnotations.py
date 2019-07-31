@@ -248,7 +248,7 @@ def update_reaction(database, row_ann_dict, mapping_model_annotation_dict):
 
     # parse PMID
     if 'pmid' in row_ann_dict:
-        pmids_list = row_ann_dict['pmid'].split(';')
+        pmids_list = [e.strip() for e in row_ann_dict['pmid'].split(';')]
     if 'ec' in reaction_dict:
         reaction_dict['ec'] = reformat_list(reaction_dict['ec'])
 
