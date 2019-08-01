@@ -1,8 +1,8 @@
 <template>
   <div class="extended-section">
     <section class="hero video container" style="max-width:100%; width:100%;">
-      <div class="hero-video is-transparent" style="filter: blur(0.5px); opacity: 0.6">
-        <video poster="https://ftp.metabolicatlas.org/.static/banner_video2.jpg" playsinline autoplay muted loop>
+      <div class="hero-video is-transparent" style="filter: blur(0.5px);">
+        <video poster="../assets/banner_video.jpg" playsinline autoplay muted loop>
           <!-- <source src="https://ftp.metabolicatlas.org/.static/banner_video.mp4" type="video/mp4"> -->
         </video>
       </div>
