@@ -11,8 +11,9 @@
       <div class="column is-2" style="padding-bottom: 0">
         <div class="columns">
           <div class="column">
-            <a @click="exportToTSV()" class="button is-primary is-pulled-right">
-              Export to TSV
+            <a class="button is-primary is-pulled-right" @click="exportToTSV" >
+              <span class="icon is-large"><i class="fa fa-download"></i></span>
+              <span>Export to TSV</span>
             </a>
           </div>
         </div>
