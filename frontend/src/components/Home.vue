@@ -2,7 +2,7 @@
   <div class="extended-section">
     <section class="hero video container" style="max-width:100%; width:100%;">
       <div class="hero-video is-transparent">
-        <video poster="https://ftp.metabolicatlas.org/.static/banner_video.jpg" playsinline autoplay muted loop>
+        <video poster="../assets/banner_video.jpg" playsinline autoplay muted loop>
           <!-- <source src="https://ftp.metabolicatlas.org/.static/banner_video.mp4" type="video/mp4"> -->
         </video>
       </div>
@@ -88,7 +88,7 @@ export default {
           cardLink: 'Explore Human1 on the GEM Browser',
           url: { name: 'browserRoot', params: { model: 'human1' } } },
         { title: messages.interPartName,
-          text: `The <b>Interaction Partners</b> graph shows connectivity between metabolites and enzymes based on their associated reactions.<br><br>The graph is dynamically generated and is customizable. One can interact with a restricted part of the metabolic network, or further expand the interaction partners of any element already on the graph. Moreover, RNA expression data from the Human Protein Atlas can be overlaid onto the graph. <br><br>This feature is available only for metabolites and enzymes, and is accessible via the <b>${messages.gemBrowserName}</b>.`,
+          text: `The <b>Interaction Partners</b> graph shows connectivity between metabolites and genes based on their associated reactions.<br><br>The graph is dynamically generated and is customizable. One can interact with a restricted part of the metabolic network, or further expand the interaction partners of any element already on the graph. Moreover, RNA expression data from the Human Protein Atlas can be overlaid onto the graph. <br><br>This feature is available only for metabolites and genes, and is accessible via the <b>${messages.gemBrowserName}</b>.`,
           img: require('../assets/interaction.png'),
           cardLink: 'View glyoxalate[p] in Interaction Partners',
           url: { path: '/explore/gem-browser/human1/interaction/m02007p' } },
@@ -124,6 +124,7 @@ export default {
       cards: [
         { title: 'Latest news',
           text: [
+            ['2019.08.01', 'Metabolic Atlas v1.3'],
             ['2019.06.25', 'Metabolic Atlas is upgraded to v1.2 with Human1 updated to v1.1'],
             ['2019.05.29', 'Metabolic Atlas is upgraded to v1.1'],
             ['2019.05.17', 'Metabolic Atlas is publicly available as v1.0'],

@@ -81,7 +81,8 @@ postgres_data/
 frontend/src/assets/svg/
 
 utils/annotation/**/backup/*
-utils/annotation/**/*txt
+utils/annotation/**/*tsv
+!utils/annotation/**/test/*tsv
 utils/svg/input/*
 utils/svg/output/*
 *.pyc

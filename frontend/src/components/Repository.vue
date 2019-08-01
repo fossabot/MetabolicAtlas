@@ -27,7 +27,7 @@
                   <div class="column">
                     Reactions: {{ model.reaction_count }}<br>
                     Metabolites: {{ model.metabolite_count }}<br>
-                    Enzymes: {{ model.enzyme_count }}<br>
+                    Genes: {{ model.gene_count }}<br>
                   </div>
                   <div class="column">
                     Date: {{ model.date || "n/a" }}<br>
@@ -57,12 +57,16 @@
             </div>
           </div>
         </div>
-        <h2 class="title is-2">Repository</h2>
-        <p class="is-size-5">While we do not provide support for these models, we are making them available to download. For support, the authors should be contacted. They are listed in the <i>References</i> section of each model. Click on any row to view more. To download multiple models at once use the <router-link :to=" { path: '/documentation', hash: 'FTP-download'} ">FTP server</router-link>.</p><br>
+        <h2 class="title is-2">GEM Repository</h2>
+        <p class="is-size-5">
+          While we do not provide support for these models, we are making them available to download. For support, the authors should be contacted. They are listed in the <i>References</i> section of each model. Click on a row to display more information. To download multiple models at once use the <router-link :to=" { path: '/documentation', hash: 'FTP-download'} ">FTP server</router-link>.</p><br>
         <loader v-show="showLoader"></loader>
         <div v-if="GEMS.length != 0">
           <vue-good-table
             :columns="columns" :rows="GEMS"
+            :search-options="{
+              enabled: true
+            }"
             :sort-options="{ enabled: true }" styleClass="vgt-table striped bordered" :paginationOptions="tablePaginationOpts"
             @on-row-click="getModel">
           </vue-good-table>
@@ -92,7 +96,7 @@
               <table class="table main-table">
                 <tbody>
                   <tr v-for="field in model_fields">
-                    <template v-if="['reaction_count', 'metabolite_count', 'enzyme_count'].includes(field.name)">
+                    <template v-if="['reaction_count', 'metabolite_count', 'gene_count'].includes(field.name)">
                       <td v-html="field.display" class="td-key has-background-primary has-text-white-bis"></td>
                       <td>{{ selectedModel[field.name] !== null ? selectedModel[field.name] : '-' }}</td>
                     </template>
@@ -123,7 +127,7 @@
                   <tr v-if="selectedModel.link">
                     <td class="td-key has-background-primary has-text-white-bis">URL</td>
                     <td>
-                      {{ selectedModel.link }}
+                      <a :href="selectedModel.link" target="_blank">{{ selectedModel.link }}</a>
                     </td>
                   </tr>
                   <tr v-if="selectedModel.ref && selectedModel.ref.length !== 0">
@@ -168,7 +172,7 @@ import axios from 'axios';
 import $ from 'jquery';
 import { VueGoodTable } from 'vue-good-table';
 import 'vue-good-table/dist/vue-good-table.css';
-import Loader from 'components/Loader';
+import Loader from '@/components/Loader';
 import { default as EventBus } from '../event-bus';
 import { default as messages } from '../helpers/messages';
 
@@ -264,7 +268,7 @@ export default {
         { name: 'cell_line', display: 'Cell&nbsp;line' },
         { name: 'reaction_count', display: 'Reactions' },
         { name: 'metabolite_count', display: 'Metabolites' },
-        { name: 'enzyme_count', display: 'Enzymes/genes' },
+        { name: 'gene_count', display: 'Genes' },
         { name: 'year', display: 'Year' },
         { name: 'maintained', display: 'Maintained' },
       ],
@@ -368,8 +372,8 @@ export default {
           const gemex = $.extend(gem, sample);
           gemex.tissue = [gemex.tissue, gemex.cell_type, gemex.cell_line].filter(e => e).join(' ‒ ') || '-';
           delete gemex.cell_type;
-          gemex.stats = `reactions:&nbsp;${gem.reaction_count}<br>metabolites:&nbsp;${gemex.metabolite_count}<br>enzymes:&nbsp;${gemex.enzyme_count}`;
-          delete gemex.reaction_count; delete gemex.enzyme_count; delete gemex.metabolite_count;
+          gemex.stats = `reactions:&nbsp;${gem.reaction_count}<br>metabolites:&nbsp;${gemex.metabolite_count}<br>genes:&nbsp;${gemex.gene_count}`;
+          delete gemex.reaction_count; delete gemex.gene_count; delete gemex.metabolite_count;
           gemex.maintained = gem.maintained ? 'Yes' : 'No';
           gemex.organ_system = gemex.organ_system || '-';
           gemex.condition = gemex.condition || '-';

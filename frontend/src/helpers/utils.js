@@ -82,16 +82,16 @@ export function reformatSBOLink(sboID, link) {
 
 export function reformatECLink(s, rootLink) {
   const ec = s.split(';');
-  let l = '';
+  const arr = [];
   for (let i = 0; i < ec.length; i += 1) {
     const nr = ec[i].replace('EC:', '');
     if (rootLink) {
-      l = l.concat(`<a href="${rootLink}${nr}" target="_blank">${ec[i]}</a> `);
+      arr.push(`<a href="${rootLink}${nr}" target="_blank">${ec[i]}</a>`);
     } else {
-      l = l.concat(`<a href="http://www.brenda-enzymes.org/enzyme.php?ecno=${nr}" target="_blank">${ec[i]}</a> `);
+      arr.push(`<a href="http://www.brenda-enzymes.org/enzyme.php?ecno=${nr}" target="_blank">${ec[i]}</a>`);
     }
   }
-  return l;
+  return arr.join('; ');
 }
 
 export function reformatChemicalReactionHTML(reaction, noMtag = false) {
@@ -125,4 +125,35 @@ export function reformatChemicalReactionHTML(reaction, noMtag = false) {
     return `${reactants} &#8660; ${products}`;
   }
   return `${reactants} &#8658; ${products}`;
+}
+
+export function sortResults(a, b, searchTermString) {
+  let matchSizeDiffA = 100;
+  let matchedStringA = '';
+  for (const field of Object.keys(a)) {
+    if (a[field] && (typeof a[field] === 'string' || a[field] instanceof String) &&
+        a[field].toLowerCase().includes(searchTermString.toLowerCase())) {
+      const diff = a[field].length - searchTermString.length;
+      if (diff < matchSizeDiffA) {
+        matchSizeDiffA = diff;
+        matchedStringA = a[field];
+      }
+    }
+  }
+  let matchSizeDiffB = 100;
+  let matchedStringB = '';
+  for (const field of Object.keys(b)) {
+    if (b[field] && (typeof b[field] === 'string' || b[field] instanceof String) &&
+        b[field].toLowerCase().includes(searchTermString.toLowerCase())) {
+      const diff = b[field].length - searchTermString.length;
+      if (diff < matchSizeDiffB) {
+        matchSizeDiffB = diff;
+        matchedStringB = b[field];
+      }
+    }
+  }
+  if (matchSizeDiffA === matchSizeDiffB) {
+    return matchedStringA.localeCompare(matchedStringB);
+  }
+  return matchSizeDiffA < matchSizeDiffB ? -1 : 1;
 }

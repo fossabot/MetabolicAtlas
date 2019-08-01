@@ -1,6 +1,6 @@
 <template>
   <div ref="graphParent">
-    <div id="3d-graph"></div>
+    <div id="graph3D"></div>
   </div>
 </template>
 
@@ -32,9 +32,9 @@ export default {
       selectedItemHistory: {},
       selectElementID: null,
       selectElementIDfull: null,
-      enzymeRNAlevels: {},
+      geneRNAlevels: {},
       HPARNAlevelsHistory: {},
-      defaultEnzymeColor: '#feb',
+      defaultGeneColor: '#feb',
       tissue: 'None',
       focusOnID: null,
     };
@@ -55,9 +55,9 @@ export default {
         // do not handle multiple ids for now;
         this.focusOnID = null;
       }
-      if (this.loadedComponentType !== type ||
-          this.loadedComponentName !== name ||
-          this.emptyNetwork) {
+      if (this.loadedComponentType !== type
+          || this.loadedComponentName !== name
+          || this.emptyNetwork) {
         if (!this.emptyNetwork) {
           this.unSelectElement();
         }
@@ -124,7 +124,7 @@ export default {
     },
     constructGraph() {
       /* eslint-disable no-param-reassign */
-      this.graph = forceGraph3D()(document.getElementById('3d-graph'))
+      this.graph = forceGraph3D()(document.getElementById('graph3D'))
         .showNavInfo(false)
         .nodeLabel('n')
         .linkSource('s')
@@ -146,11 +146,11 @@ export default {
           }
           if (n.g === 'e') {
             if (this.tissue === 'None') {
-              return this.defaultEnzymeColor;
+              return this.defaultGeneColor;
             }
             const partialID = n.id.split('-')[0];
-            if (this.enzymeRNAlevels[partialID] !== undefined) {
-              return getExpressionColor(this.enzymeRNAlevels[partialID]);
+            if (this.geneRNAlevels[partialID] !== undefined) {
+              return getExpressionColor(this.geneRNAlevels[partialID]);
             }
             return 'whitesmoke';
           } else if (n.g === 'r') {
@@ -159,8 +159,9 @@ export default {
           return '#9df';
         })
         .onEngineStop(() => {
-          if (this.graph === null ||
-            this.graph.reloadHistory === undefined || !this.graph.reloadHistory) {
+          if (this.graph === null
+            || this.graph.reloadHistory === undefined
+            || !this.graph.reloadHistory) {
             this.networkHistory[this.loadedComponentName] = this.network;
           }
           if (this.graph.resetCamera) {
@@ -195,7 +196,7 @@ export default {
       if (element.g === 'r') {
         return [element.id, 'reaction'];
       } else if (element.g === 'e') {
-        return [element.id.split('-')[0], 'enzyme'];
+        return [element.id.split('-')[0], 'gene'];
       }
       return [element.id.split('-')[0], 'metabolite'];
     },
@@ -219,25 +220,25 @@ export default {
 
       EventBus.$emit('startSelectedElement');
       axios.get(`${this.model.database_name}/${type}/${id}`)
-      .then((response) => {
-        let data = response.data;
-        if (type === 'reaction') {
-          data = data.reaction;
-        } else if (type === 'enzyme') {
-          // add the RNA level if any
-          if (id in this.enzymeRNAlevels) {
-            data.rnaLvl = this.enzymeRNAlevels[id];
+        .then((response) => {
+          let data = response.data;
+          if (type === 'reaction') {
+            data = data.reaction;
+          } else if (type === 'gene') {
+            // add the RNA level if any
+            if (id in this.geneRNAlevels) {
+              data.rnaLvl = this.geneRNAlevels[id];
+            }
           }
-        }
-        selectionData.data = data;
-        EventBus.$emit('updatePanelSelectionData', selectionData);
-        this.selectedItemHistory[id] = selectionData.data;
-        EventBus.$emit('endSelectedElement', true);
-        this.updateGeometries(false);
-      })
-      .catch(() => {
-        EventBus.$emit('endSelectedElement', false);
-      });
+          selectionData.data = data;
+          EventBus.$emit('updatePanelSelectionData', selectionData);
+          this.selectedItemHistory[id] = selectionData.data;
+          EventBus.$emit('endSelectedElement', true);
+          this.updateGeometries(false);
+        })
+        .catch(() => {
+          EventBus.$emit('endSelectedElement', false);
+        });
     },
     unSelectElement() {
       this.selectElementID = null;
@@ -258,20 +259,22 @@ export default {
         const distance = 120;
         const distRatio = 1 + (distance / Math.hypot(np.x, np.y, np.z));
         this.graph.cameraPosition(
-          { x: np.x * distRatio,
+          {
+            x: np.x * distRatio,
             y: np.y * distRatio,
-            z: np.z * distRatio },
+            z: np.z * distRatio,
+          },
           np, // lookAt ({ x, y, z })
-          3000  // ms transition duration
+          3000, // ms transition duration
         );
       }, 0);
     },
     resetCameraPosition() {
       this.graph.cameraPosition(
-          { x: 0, y: 0, z: 0 },
-          { x: 0, y: 0, z: 0 }, // lookAt ({ x, y, z })
-          0  // ms transition duration
-        );
+        { x: 0, y: 0, z: 0 },
+        { x: 0, y: 0, z: 0 }, // lookAt ({ x, y, z })
+        0, // ms transition duration
+      );
       this.graph.camera().position.z = Math.cbrt(this.graph.graphData().nodes.length) * 150;
     },
     updateGeometries(emitLoadComplete) {
@@ -284,22 +287,21 @@ export default {
         this.readHPARNAlevels(tissue);
         return;
       }
-      axios.get(`${this.model.database_name}/enzyme/hpa_rna_levels/${mapType}/3d/${this.loadedComponentName}`)
-      .then((response) => {
-        this.HPARNAlevelsHistory[this.loadedComponentName] = response.data;
-        this.tissue = tissue;
-        setTimeout(() => {
-          this.readHPARNAlevels(tissue);
-        }, 0);
-      })
-      .catch(() => {
-        EventBus.$emit('loadRNAComplete', false, '');
-        return;
-      });
+      axios.get(`${this.model.database_name}/gene/hpa_rna_levels/${mapType}/3d/${this.loadedComponentName}`)
+        .then((response) => {
+          this.HPARNAlevelsHistory[this.loadedComponentName] = response.data;
+          this.tissue = tissue;
+          setTimeout(() => {
+            this.readHPARNAlevels(tissue);
+          }, 0);
+        })
+        .catch(() => {
+          EventBus.$emit('loadRNAComplete', false, '');
+        });
     },
     readHPARNAlevels(tissue) {
       if (tissue === 'None') {
-        this.enzymeRNAlevels = {};
+        this.geneRNAlevels = {};
         this.updateGeometries(false);
         return;
       }
@@ -314,13 +316,13 @@ export default {
         const enzID = array[0];
         let level = Math.log2(parseFloat(array[1].split(',')[index]) + 1);
         level = Math.round((level + 0.00001) * 100) / 100;
-        this.enzymeRNAlevels[enzID] = level;
+        this.geneRNAlevels[enzID] = level;
       }
 
       // update cached selected elements
       for (const id of Object.keys(this.selectedItemHistory)) {
-        if (this.enzymeRNAlevels[id] !== undefined) {
-          this.selectedItemHistory[id].rnaLvl = this.enzymeRNAlevels[id];
+        if (this.geneRNAlevels[id] !== undefined) {
+          this.selectedItemHistory[id].rnaLvl = this.geneRNAlevels[id];
         }
       }
       this.updateGeometries(false);
@@ -332,10 +334,10 @@ export default {
 
 <style lang="scss">
 
-  #3d-graph {
-    height: 100%;
-    width:100%;
-    overflow: hidden;
-  }
+#graph3D {
+ height: 100%;
+ width: 100%;
+ overflow: hidden;
+}
 
 </style>

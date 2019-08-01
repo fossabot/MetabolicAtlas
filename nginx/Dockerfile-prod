@@ -1,12 +1,24 @@
-FROM node:lts-slim
+FROM node:lts-slim AS frontend
 WORKDIR /project
 COPY frontend .
 
-RUN apt-key adv --fetch-keys http://dl.yarnpkg.com/debian/pubkey.gpg && echo "deb http://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list && apt-get update && apt-get install -y yarn --allow-unauthenticated && yarn global add webpack && yarn && npm run build
+RUN npm install && npm run build
+
+
+FROM python:3.6-slim-stretch AS backend
+ENV PYTHONUNBUFFERED 1
+
+WORKDIR /project
+COPY backend .
+ARG DJANGO_KEY=mockkeyforbuildonly
+RUN pip install -r requirements.txt && \
+  python manage.py collectstatic --noinput
 
 
 FROM nginx:stable-alpine
 ARG NGINXCONF=nginx-prod.conf
+
 COPY nginx/$NGINXCONF /etc/nginx/nginx.conf
-COPY --from=0 /project/dist /frontend/dist
-COPY --from=0 /project/dist-html /frontend/dist-html
+
+COPY --from=frontend /project/dist            /content
+COPY --from=backend  /project/static          /content/static

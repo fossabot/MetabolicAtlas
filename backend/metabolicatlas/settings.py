@@ -56,7 +56,7 @@ ROOT_URLCONF = 'metabolicatlas.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': ['metabolicatlas/templates/'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
