@@ -26,9 +26,7 @@ build-stack
 start-stack
 ```
 
-The frontend should be available at: `http://localhost/`.
-The backend should be available at: `http://localhost/api/`. There is also a swagger UI for browsing the API at: `http://localhost/swagger`.
-
+The frontend should be available at: `http://localhost/`. The backend should be available at: `http://localhost/api/` via Swagger.  
 If you encounter any problems try running `restart-stack`, or look at the logs `logs backend` / `logs frontend`
 
 ### Create the databases
@@ -180,7 +178,7 @@ Each model is stored in separated database.
 ...
 ```
 
-4) run makemigrations and migrate the new database as decribes in [Full model databases](#Integrated_model_databases) section.
+4) run makemigrations and migrate the new database as described in [Full model databases](#Integrated_model_databases) section.
 
 5) run populateDB. The 'model label' is extracted/generate when reading the model README file step 1) and is written in the 'gem' table.
   - if you got an error when parsing the YAML file, run python fixYAML.py [model yml file] located in backend/database_generation
@@ -188,8 +186,6 @@ Each model is stored in separated database.
 6) add the model in the function componentDBserializerSelector() (views.py) and create custom serializers (serializers.py and serializers_rc.py) if needed
 
 7) add Data about the model in the frontend page: (TO BE SIMPLIFIED)
-  - add the model in the dictionnary of localization.js
-  - add the model in the dictionnary 'itemKeys' of GlobalSearch.vue
   - add the model in the dictionnary 'starredComponent' of GEMBrowser.vue
   - add the model in the dictionnaries 'mainTableKey' and 'externalIDTableKey' of Metabolite.vue, Enzyme.vue, Reaction.vue
   - add the model in the dictionnary 'tableStructure' of CloseInteractionPartners.vue

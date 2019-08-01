@@ -124,6 +124,7 @@ export default {
       cards: [
         { title: 'Latest news',
           text: [
+            ['2019.08.01', 'Metabolic Atlas v1.3'],
             ['2019.06.25', 'Metabolic Atlas is upgraded to v1.2 with Human1 updated to v1.1'],
             ['2019.05.29', 'Metabolic Atlas is upgraded to v1.1'],
             ['2019.05.17', 'Metabolic Atlas is publicly available as v1.0'],
