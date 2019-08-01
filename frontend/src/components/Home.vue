@@ -1,15 +1,15 @@
 <template>
   <div class="extended-section">
     <section class="hero video container" style="max-width:100%; width:100%;">
-      <div class="hero-video is-transparent" style="filter: blur(0.5px);">
+      <div class="hero-video is-transparent">
         <video poster="../assets/banner_video.jpg" playsinline autoplay muted loop>
           <!-- <source src="https://ftp.metabolicatlas.org/.static/banner_video.mp4" type="video/mp4"> -->
         </video>
       </div>
       <div class="hero-body">
         <div class="container has-text-centered">
-          <h1 class="is-size-1 title has-text-primary" style="text-shadow: 1px 1px 3px lightgray">METABOLIC ATLAS</h1>
-          <h2 class="is-size-2 has-text-gray has-text-weight-bold" style="text-shadow: 1px 1px 5px lightgray">
+          <h1 class="is-size-1 title has-text-primary">METABOLIC ATLAS</h1>
+          <h2 class="is-size-2 has-text-gray">
             THE ATLAS FOR EXPLORATION OF METABOLISM
           </h2>
         </div>
@@ -124,6 +124,7 @@ export default {
       cards: [
         { title: 'Latest news',
           text: [
+            ['2019.08.01', 'Metabolic Atlas v1.3'],
             ['2019.06.25', 'Metabolic Atlas is upgraded to v1.2 with Human1 updated to v1.1'],
             ['2019.05.29', 'Metabolic Atlas is upgraded to v1.1'],
             ['2019.05.17', 'Metabolic Atlas is publicly available as v1.0'],
