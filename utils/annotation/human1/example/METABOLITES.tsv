@@ -18,21 +18,21 @@
 # alt_name1      | 255      | long name or full name of the metabolite (note: if 'malate' is the name, malate[c] is already stored in the db, do not re-specify it in this file)
 # alt_name2      | 255      | another commonly used name for the metabolite, if any
 # aliases        | 2000     | list of aliases, semicolon separated values
-# external_id1   | 50       | another identifier from an external database
+# external_id1   | 100       | another identifier from an external database
 # external_link1 | 255      | full URL to associate with the 'external_id1' column
-# external_id2   | 50       | another identifier from an external database
+# external_id2   | 100       | another identifier from an external database
 # external_link2 | 255      | full URL to associate with the 'external_id2' column
-# external_id3   | 50       | another identifier from an external database
+# external_id3   | 100       | another identifier from an external database
 # external_link3 | 255      | full URL to associate with the 'external_id3' column
-# external_id4   | 50       | another identifier from an external database
+# external_id4   | 100       | another identifier from an external database
 # external_link4 | 255      | full URL to associate with the 'external_id4' column
-# external_id5   | 50       | the identifier (only) in a external database
+# external_id5   | 100       | the identifier (only) in a external database
 # external_link5 | 255      | full URL to associate with the ‘external_id5’ column
-# external_id6   | 50       | the identifier (only) in a external database
+# external_id6   | 100       | the identifier (only) in a external database
 # external_link6 | 255      | full URL to associate with the ‘external_id6’ column
-# external_id7   | 50       | the identifier (only) in a external database
+# external_id7   | 100       | the identifier (only) in a external database
 # external_link7 | 255      | full URL to associate with the ‘external_id7’ column
-# external_id8   | 50       | the identifier (only) in a external database
+# external_id8   | 100       | the identifier (only) in a external database
 # external_link8 | 255      | full URL to associate with the ‘external_id8’ column
 # formula        | 255      | the formula, use [a-Z], [0-9], [+-] characters only. Formulas are automatically fetched from the YAML file.
 # description    | -        | full description of the metabolite

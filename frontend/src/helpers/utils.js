@@ -82,16 +82,16 @@ export function reformatSBOLink(sboID, link) {
 
 export function reformatECLink(s, rootLink) {
   const ec = s.split(';');
-  let l = '';
+  const arr = [];
   for (let i = 0; i < ec.length; i += 1) {
     const nr = ec[i].replace('EC:', '');
     if (rootLink) {
-      l = l.concat(`<a href="${rootLink}${nr}" target="_blank">${ec[i]}</a> `);
+      arr.push(`<a href="${rootLink}${nr}" target="_blank">${ec[i]}</a>`);
     } else {
-      l = l.concat(`<a href="http://www.brenda-enzymes.org/enzyme.php?ecno=${nr}" target="_blank">${ec[i]}</a> `);
+      arr.push(`<a href="http://www.brenda-enzymes.org/enzyme.php?ecno=${nr}" target="_blank">${ec[i]}</a>`);
     }
   }
-  return l;
+  return arr.join('; ');
 }
 
 export function reformatChemicalReactionHTML(reaction, noMtag = false) {
