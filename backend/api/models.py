@@ -178,7 +178,7 @@ class Reaction(models.Model):
     metabolites = models.ManyToManyField('ReactionComponent', related_name='reactions_as_metabolite', through='ReactionMetabolite')
 
     def __str__(self):
-        return "<Reaction: {0} {1}>".format(self.id)
+        return "<Reaction: {0} {1}>".format(self.id, self.name)
 
     class Meta:
         db_table = "reaction"
@@ -395,8 +395,8 @@ class ConnectedMetabolites(object):
         self.reactions = reactions
 
 class GemBrowserTile(object):
-    def __init__(self, compartments, subsystems, reactions, metabolites, genes):
-        self.compartments = compartments
+    def __init__(self, compartment, subsystems, reactions, metabolites, genes):
+        self.compartment = compartment
         self.subsystems = subsystems
         self.reactions = reactions
         self.metabolites = metabolites

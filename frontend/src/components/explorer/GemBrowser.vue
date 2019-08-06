@@ -22,46 +22,46 @@
           </div>
         </div>
         <div id="gem-browser-tiles" class="tile is-ancestor is-size-5" v-if="starredComponents">
-          <div class="tile">
-            <div class="tile is-vertical is-9">
-              <div class="tile">
-                <tile type="reaction" :model="model" :data="starredComponents.reactions[0]">
+            <div class="tile">
+              <div class="tile is-vertical is-9">
+                <div class="tile">
+                  <tile type="reaction" :model="model" :data="starredComponents.reactions[0]">
+                  </tile>
+                  <div class="tile is-vertical is-8">
+                    <tile type="subsystem" :model="model" :data="starredComponents.subsystems[0]">
+                    </tile>
+                    <div class="tile">
+                      <tile type="gene" size="is-6" :model="model" :data="starredComponents.genes[0]">
+                      </tile>
+                      <tile type="metabolite" size="is-6" :model="model" :data="starredComponents.metabolites[0]">
+                      </tile>
+                    </div>
+                  </div>
+                </div>
+                <div class="tile">
+                  <div class="tile is-vertical is-8">
+                    <div class="tile">
+                      <tile type="subsystem" :model="model" :data="starredComponents.subsystems[1]">
+                      </tile>
+                    </div>
+                    <div class="tile">
+                      <tile type="metabolite" size="is-6" :model="model" :data="starredComponents.metabolites[1]">
+                      </tile>
+                      <tile type="gene" size="is-6" :model="model" :data="starredComponents.genes[1]">
+                      </tile>
+                    </div>
+                  </div>
+                  <div class="tile is-4">
+                    <tile type="reaction" :model="model" :data="starredComponents.reactions[1]">
+                    </tile>
+                  </div>
+                </div>
+              </div>
+              <div class="tile is-vertical">
+                <tile type="compartment" :model="model" :data="starredComponents.compartment">
                 </tile>
-                <div class="tile is-vertical is-8">
-                  <tile type="subsystem" :model="model" :data="starredComponents.subsystems[0]">
-                  </tile>
-                  <div class="tile">
-                    <tile type="gene" size="is-6" :model="model" :data="starredComponents.genes[0]">
-                    </tile>
-                    <tile type="metabolite" size="is-6" :model="model" :data="starredComponents.metabolites[0]">
-                    </tile>
-                  </div>
-                </div>
-              </div>
-              <div class="tile">
-                <div class="tile is-vertical is-8">
-                  <div class="tile">
-                    <tile type="subsystem" :model="model" :data="starredComponents.subsystems[1]">
-                    </tile>
-                  </div>
-                  <div class="tile">
-                    <tile type="metabolite" size="is-6" :model="model" :data="starredComponents.metabolites[1]">
-                    </tile>
-                    <tile type="gene" size="is-6" :model="model" :data="starredComponents.genes[1]">
-                    </tile>
-                  </div>
-                </div>
-                <div class="tile is-4">
-                  <tile type="reaction" :model="model" :data="starredComponents.reactions[1]">
-                  </tile>
-                </div>
               </div>
             </div>
-            <div class="tile is-vertical">
-              <tile type="compartment" :model="model" :data="starredComponents.compartments[0]">
-              </tile>
-            </div>
-          </div>
         </div>
       </div>
       <div v-else>
@@ -77,6 +77,7 @@
 </template>
 
 <script>
+import Vue from 'vue';
 import axios from 'axios';
 import GemSearch from '@/components/explorer/gemBrowser/GemSearch';
 import ClosestInteractionPartners from '@/components/explorer/gemBrowser/ClosestInteractionPartners';
@@ -114,6 +115,8 @@ export default {
       componentID: '',
       mapsAvailable: null,
       starredComponents: null,
+      newStarredComponents: null,
+      interval: null,
     };
   },
   watch: {
@@ -143,6 +146,51 @@ export default {
       this.$router.push(`/explore/gem-browser/${this.$route.params.model}/${type}/${ID}`);
     });
   },
+  mounted() {
+      this.$nextTick(function () {
+        window.setInterval(() => {
+          axios.get(`${this.model.database_name}/gem_browser_tiles/`)
+          .then((response) => {
+            if (this.interval) {
+              clearInterval(this.interval);
+            }
+            this.newStarredComponents = response.data;
+            console.log('restart');
+            this.interval = setInterval(() => {
+              if (Object.keys(this.newStarredComponents).length === 0) {
+                return;
+              }
+              const index = Math.floor(Math.random() * Math.floor(Object.keys(this.newStarredComponents).length));
+              const key = Object.keys(this.newStarredComponents)[index];
+              console.log('key', key, index, Object.keys(this.newStarredComponents));
+              if (Array.isArray(this.newStarredComponents[key])) {
+                // select a random index of the array (reaction / gene/ metabolite / subsystem)
+                let indexArr = Math.floor(Math.random() * Math.floor(this.newStarredComponents[key].length));
+                if (!this.newStarredComponents[key][indexArr]) {
+                  indexArr ^= 1;
+                }
+                console.log(indexArr);
+                if (indexArr === 0) {
+                  this.starredComponents[key] = [JSON.parse(JSON.stringify(this.newStarredComponents[key][indexArr])), this.starredComponents[key][1]];
+                } else {
+                  this.starredComponents[key] = [this.starredComponents[key][0], JSON.parse(JSON.stringify(this.newStarredComponents[key][indexArr]))];
+                }
+                this.newStarredComponents[key][indexArr] = '';
+                if (this.newStarredComponents[key].filter(e => e).length === 0) {
+                  delete this.newStarredComponents[key];
+                }
+              } else {
+                Vue.set(this.starredComponents, key, JSON.parse(JSON.stringify(this.newStarredComponents[key])));
+                delete this.newStarredComponents[key];
+              }
+            }, 4000);
+          })
+          .catch(() => {
+            this.errorMessage = messages.unknownError;
+          });
+        }, 40000);
+      })
+    },
   methods: {
     setup() {
       if (this.$route.name === 'browser' || this.$route.name === 'browserRoot') {
@@ -169,6 +217,9 @@ export default {
       .catch(() => {
         this.errorMessage = messages.unknownError;
       });
+    },
+    update_tiles_data() {
+
     },
     showMapViewer() {
       EventBus.$emit('showMapViewer');
