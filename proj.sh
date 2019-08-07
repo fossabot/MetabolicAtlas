@@ -1,46 +1,77 @@
+# To make sure docker-compose is in the path
+export PATH=$PATH:/usr/local/bin
+
 function build-stack {
-    docker-compose -f docker-compose.yml -f docker-compose-local.yml build $@
+  if [ "$METATLASPROD" = true ] ; then
+    docker-compose -f docker-compose.yml -f docker-compose-prod.yml build $@
+  else
+    docker-compose -f docker-compose.yml -f docker-compose-local.yml build
+  fi
 }
 
 function start-stack {
+  if [ "$METATLASPROD" = true ] ; then
+    docker-compose -f docker-compose.yml -f docker-compose-prod.yml up -d
+  else
     docker-compose -f docker-compose.yml -f docker-compose-local.yml up -d
+  fi
 }
 
 function stop-stack {
+  if [ "$METATLASPROD" = true ] ; then
+    docker-compose -f docker-compose.yml -f docker-compose-prod.yml kill
+  else
     docker-compose -f docker-compose.yml -f docker-compose-local.yml kill
+  fi
 }
 
-function restart-stack {
-    stop-stack && start-stack
+function clean-stack {
+  # docker stop $(docker ps -a -q) || true
+  # docker rm $(docker ps -a -q) || true
+  # docker volume prune --force || true
+  # All of the above in one line
+  if [ "$METATLASPROD" = true ] ; then
+    docker-compose -f docker-compose.yml -f docker-compose-prod.yml down
+  else
+    docker-compose -f docker-compose.yml -f docker-compose-local.yml down
+  fi
 }
 
 function logs {
+  if [ "$METATLASPROD" = true ] ; then
+    docker-compose -f docker-compose.yml -f docker-compose-prod.yml logs -f $@
+  else
     docker-compose -f docker-compose.yml -f docker-compose-local.yml logs -f $@
+  fi
+}
+
+function db-import {
+  docker exec -i db psql -U postgres < $1
 }
 
 function db-make-migrations {
-    docker exec backend python manage.py makemigrations api
+  docker exec backend python manage.py makemigrations api
 }
 
 function db-migrate {
-    docker exec backend python manage.py migrate --database=$@
-}
-
-function create-su {
-    docker exec -it backend python manage.py createsuperuser
+  docker exec backend python manage.py migrate --database=$@
 }
 
 
-echo -e "
-
-Available commands:
-
-\tbuild-stack
+echo -e "Available commands:
+\tbuild-stack [options for dev instance only]
 \tstart-stack
 \tstop-stack
-\trestart-stack
+\tclean-stack
 \tlogs [container]
+\tdb-import [database]
 \tdb-make-migrations
-\tdb-migrate [database]
-\tcreate-su
-"
+\tdb-migrate [database]"
+
+if [ "$1" != 'production' ] ; then
+  export METATLASPROD=false
+  echo 'Sourced for LOCALHOST'
+else
+  export METATLASPROD=true
+  echo 'Sourced for PRODUCTION'
+fi
