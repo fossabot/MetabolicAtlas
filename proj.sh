@@ -35,6 +35,7 @@ function clean-stack {
   else
     docker-compose -f docker-compose.yml -f docker-compose-local.yml down
   fi
+  docker volume prune
 }
 
 function logs {
