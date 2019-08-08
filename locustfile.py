@@ -21,22 +21,23 @@ class UserBehavior(TaskSet):
     @task(1)
     def index(self):
         self.client.get("/")
+        self.client.get("/api/models")
 
     @task(2)
     def explore(self):
-        self.client.get("/explore")
+        self.client.get("/api/human1/gem_browser_tiles")
 
     @task(3)
     def explore(self):
-        self.client.get("/explore")
+        self.client.get("/api/human1/get_reaction/HMR_8313")
 
     @task(4)
     def browser(self):
-        self.client.get("/explore/gem-browser/hmr2")
+        self.client.get("/api/human1/subsystem/transport_reactions/summary")
 
     @task(5)
     def viewer(self):
-        self.client.get("/explore/map-viewer/hmr2")
+        self.client.get("/api/human1/metabolite/m00010s")
 
 class WebsiteUser(HttpLocust):
     task_set = UserBehavior
