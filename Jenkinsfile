@@ -3,8 +3,11 @@ pipeline {
   stages {
     stage('Configure') {
       steps {
-        sh '''cp /var/lib/jenkins/postgres.env .'''
-        echo 'Copied PostgreSQL and Django environment.'
+        sh '''
+          cp /var/lib/jenkins/postgres.env .
+          echo "VUE_APP_MATOMOID=14" >> frontend/.env.production
+        '''
+        echo 'Copied PostgreSQL and Django environments. Configured Vue environment.'
         withCredentials([string(credentialsId: '	f8066a74-2a9c-4510-8bd5-7edb569fff14', variable: 'human1db'), string(credentialsId: '7650c2ee-c69d-4499-a180-b089acfd1afc', variable: 'yeast8db'), string(credentialsId: '	5013ec59-acd1-4b13-a0c2-90904f2aceb1', variable: 'gemsdb')]) {
           sh '''
             wget $human1db -O human1.db

@@ -5,7 +5,7 @@
   "author": "https://sysbio.se https://nbis.se",
   "private": true,
   "scripts": {
-    "serve": "vue-cli-service serve --mode development",
+    "serve": "vue-cli-service serve --mode local",
     "build": "vue-cli-service build --mode production",
     "lint": "vue-cli-service lint"
   },
