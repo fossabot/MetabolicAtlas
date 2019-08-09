@@ -117,6 +117,7 @@ export default {
       starredComponents: null,
       newStarredComponents: null,
       interval: null,
+      timeout: 4000,
     };
   },
   watch: {
@@ -147,50 +148,10 @@ export default {
     });
   },
   mounted() {
-      this.$nextTick(function () {
-        window.setInterval(() => {
-          axios.get(`${this.model.database_name}/gem_browser_tiles/`)
-          .then((response) => {
-            if (this.interval) {
-              clearInterval(this.interval);
-            }
-            this.newStarredComponents = response.data;
-            console.log('restart');
-            this.interval = setInterval(() => {
-              if (Object.keys(this.newStarredComponents).length === 0) {
-                return;
-              }
-              const index = Math.floor(Math.random() * Math.floor(Object.keys(this.newStarredComponents).length));
-              const key = Object.keys(this.newStarredComponents)[index];
-              console.log('key', key, index, Object.keys(this.newStarredComponents));
-              if (Array.isArray(this.newStarredComponents[key])) {
-                // select a random index of the array (reaction / gene/ metabolite / subsystem)
-                let indexArr = Math.floor(Math.random() * Math.floor(this.newStarredComponents[key].length));
-                if (!this.newStarredComponents[key][indexArr]) {
-                  indexArr ^= 1;
-                }
-                console.log(indexArr);
-                if (indexArr === 0) {
-                  this.starredComponents[key] = [JSON.parse(JSON.stringify(this.newStarredComponents[key][indexArr])), this.starredComponents[key][1]];
-                } else {
-                  this.starredComponents[key] = [this.starredComponents[key][0], JSON.parse(JSON.stringify(this.newStarredComponents[key][indexArr]))];
-                }
-                this.newStarredComponents[key][indexArr] = '';
-                if (this.newStarredComponents[key].filter(e => e).length === 0) {
-                  delete this.newStarredComponents[key];
-                }
-              } else {
-                Vue.set(this.starredComponents, key, JSON.parse(JSON.stringify(this.newStarredComponents[key])));
-                delete this.newStarredComponents[key];
-              }
-            }, 4000);
-          })
-          .catch(() => {
-            this.errorMessage = messages.unknownError;
-          });
-        }, 40000);
-      })
-    },
+    this.$nextTick(function () {
+      this.loop();
+    });
+  },
   methods: {
     setup() {
       if (this.$route.name === 'browser' || this.$route.name === 'browserRoot') {
@@ -212,14 +173,89 @@ export default {
     get_tiles_data() {
       axios.get(`${this.model.database_name}/gem_browser_tiles/`)
       .then((response) => {
+        for (const k of Object.keys(response.data)) {
+          if (Array.isArray(response.data[k])) {
+            response.data[k][0].hidden = false; response.data[k][1].hidden = false;
+          } else {
+            response.data[k].hidden = false;
+          }
+        }
         this.starredComponents = response.data;
       })
       .catch(() => {
         this.errorMessage = messages.unknownError;
       });
     },
-    update_tiles_data() {
-
+    loop() {
+      this.update_starred_components();
+      window.setTimeout(this.loop, this.timeout);
+      if (this.timeout !== 40000) {
+        this.timeout = 40000;
+      }
+    },
+    update_starred_components() {
+      if (this.selectedType !== '' || this._inactive) {
+        // do not update tiles when the GB is not on the screen or when the tiles are not shown
+        if (this.interval) {
+          clearInterval(this.interval);
+        }
+        return;
+      }
+      axios.get(`${this.model.database_name}/gem_browser_tiles/`)
+      .then((response) => {
+        if (this.interval) {
+          clearInterval(this.interval);
+        }
+        this.newStarredComponents = response.data;
+        // add the 'hidden' key
+        for (const v of Object.values(this.newStarredComponents)) {
+           if (Array.isArray(v)) {
+            v[0].hidden = false; v[1].hidden = false;
+           } else {
+            v.hidden = false;
+           }
+        }
+        this.interval = setInterval(() => {
+          if (Object.keys(this.newStarredComponents).length === 0) {
+            return;
+          }
+          const index = Math.floor(Math.random() * Math.floor(Object.keys(this.newStarredComponents).length));
+          const key = Object.keys(this.newStarredComponents)[index];
+          if (Array.isArray(this.newStarredComponents[key])) {
+            this.update_tiles_data(key);
+          } else {
+            this.starredComponents[key].hidden = true;
+            setTimeout(() => {
+              this.newStarredComponents[key].hidden = false;
+              Vue.set(this.starredComponents, key, JSON.parse(JSON.stringify(this.newStarredComponents[key])));
+              delete this.newStarredComponents[key];
+            },500);
+          }
+        }, 4000);
+      })
+      .catch(() => {
+        this.errorMessage = messages.unknownError;
+      });
+    },
+    update_tiles_data(key) {
+      // select a random index of the array (reaction / gene/ metabolite / subsystem)
+      let indexArr = Math.floor(Math.random() * Math.floor(this.newStarredComponents[key].length));
+      if (!this.newStarredComponents[key][indexArr]) {
+        indexArr ^= 1;
+      }
+      this.starredComponents[key][indexArr].hidden = true;
+      setTimeout(() => {
+        if (indexArr === 0) {
+          this.starredComponents[key] = [JSON.parse(JSON.stringify(this.newStarredComponents[key][indexArr])), this.starredComponents[key][1]];
+          this.newStarredComponents[key][indexArr] = '';
+        } else {
+          this.starredComponents[key] = [this.starredComponents[key][0], JSON.parse(JSON.stringify(this.newStarredComponents[key][indexArr]))];
+          this.newStarredComponents[key][indexArr] = '';
+        }
+        if (this.newStarredComponents[key].filter(e => e).length === 0) {
+          delete this.newStarredComponents[key];
+        }
+      },500);
     },
     showMapViewer() {
       EventBus.$emit('showMapViewer');
