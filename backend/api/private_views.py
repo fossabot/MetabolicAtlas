@@ -591,10 +591,10 @@ def get_tiles_data(request, model):
         gene2 = APImodels.ReactionComponent.objects.using(model).filter(component_type='e')[random_index]
     else:
         random_index = randint(0, gene_count - 1)
-        gene1 = APImodels.Gene.objects.using(model).all()[random_index]
+        gene1 = APImodels.Gene.objects.using(model).all()[random_index].rc
 
         random_index = randint(0, gene_count - 1)
-        gene2 = APImodels.Gene.objects.using(model).all()[random_index]
+        gene2 = APImodels.Gene.objects.using(model).all()[random_index].rc
     # compartments = APImodels.Compartment.objects.using(model).all().prefetch_related('subsystem')[:2]
     # subsystems = APImodels.Subsystem.objects.using(model).all().order_by('?')[:2]
     # reactions = APImodels.Reaction.objects.using(model).all().order_by('?')[:2]
