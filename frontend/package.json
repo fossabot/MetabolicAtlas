@@ -34,6 +34,7 @@
     "rollup": "The two rollup packages below were added as a temp fix, please remove"
   },
   "devDependencies": {
+    "compression-webpack-plugin": "^3.0.0",
     "@vue/cli-plugin-babel": "^3.9.0",
     "@vue/cli-plugin-eslint": "^3.9.0",
     "@vue/cli-service": "^3.9.0",
