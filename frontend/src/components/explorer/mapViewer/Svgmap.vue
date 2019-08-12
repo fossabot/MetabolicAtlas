@@ -94,7 +94,7 @@ export default {
       currentSearchMatch: 0,
       totalSearchMatch: 0,
 
-      svgMapURL: process.env.NODE_ENV === 'production' ? 'https://ftp.metabolicatlas.org/.maps' : 'http://localhost/svgs',
+      svgMapURL: process.env.VUE_APP_SVGMAPURL,
       defaultGeneColor: '#feb',
     };
   },
