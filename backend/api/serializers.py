@@ -28,6 +28,7 @@ class ReactionBasicSerializer(serializers.ModelSerializer):
         model = APImodels.Reaction
         fields = ('id', 'id_equation', 'equation', 'gene_rule', 'name_gene_rule', 'ec', 'lower_bound', 'upper_bound', 'objective_coefficient',
                 'compartment', 'subsystem', 'is_transport', 'is_reversible',)
+
     def read_subsystem(self, model):
         return model.subsystem_str
 
@@ -57,7 +58,6 @@ class ReactionProductSerializer(serializers.ModelSerializer):
 # serializer use for reactome table
 class ReactionBasicRTSerializer(serializers.ModelSerializer):
     reactionreactant_set = ReactionReactantSerializer(many=True)
-    # reactants = serializers.SerializerMethodField('read_reaction_reactants')
     reactionproduct_set = ReactionProductSerializer(many=True)
     genes = APIrcSerializer.ReactionComponentLiteSerializer(many=True)
 
@@ -69,14 +69,43 @@ class ReactionBasicRTSerializer(serializers.ModelSerializer):
 
 # serializer use for reaction page
 class ReactionPageSerializer(ReactionBasicRTSerializer):
-    reactionreactant_set = ReactionReactantSerializer(many=True)
-    # reactants = serializers.SerializerMethodField('read_reaction_reactants')
-    reactionproduct_set = ReactionProductSerializer(many=True)
-    genes = APIrcSerializer.ReactionComponentLiteSerializer(many=True)
+    kegg_id = serializers.SerializerMethodField('read_kegg')
+    kegg_link =  serializers.SerializerMethodField('read_kegg_link')
+    bigg_id = serializers.SerializerMethodField('read_bigg')
+    bigg_link =  serializers.SerializerMethodField('read_bigg_link')
+    reactome_id = serializers.SerializerMethodField('read_reactome')
+    reactome_link =  serializers.SerializerMethodField('read_reactome_link')
+    mnxref_id = serializers.SerializerMethodField('read_mnxref')
+    mnxref_link =  serializers.SerializerMethodField('read_mnxref_link')
 
     class Meta:
         model = APImodels.Reaction
-        fields = ReactionBasicRTSerializer.Meta.fields + ('ec', 'lower_bound', 'upper_bound', 'objective_coefficient')
+        fields = ReactionBasicRTSerializer.Meta.fields + ('ec', 'lower_bound', 'upper_bound', 'objective_coefficient', 
+            'kegg_id', 'kegg_link', 'bigg_id', 'bigg_link', 'reactome_id', 'reactome_link', 'mnxref_id', 'mnxref_link',)
+
+    def read_kegg(self, model):
+        return model.external_id1
+
+    def read_kegg_link(self, model):
+        return model.external_link1
+
+    def read_bigg(self, model):
+        return model.external_id2
+
+    def read_bigg_link(self, model):
+        return model.external_link2
+
+    def read_reactome(self, model):
+        return model.external_id3
+
+    def read_reactome_link(self, model):
+        return model.external_link3
+
+    def read_mnxref(self, model):
+        return model.external_id4
+
+    def read_mnxref_link(self, model):
+        return model.external_link4
 
 
 # serializer use for searchTable table
@@ -104,20 +133,43 @@ class ReactionLiteSerializer(ReactionBasicSerializer):
 
 
 class HmrReactionLiteSerializer(ReactionLiteSerializer):
-    # more ids will be added
+    kegg_id = serializers.SerializerMethodField('read_kegg')
+    kegg_link =  serializers.SerializerMethodField('read_kegg_link')
+    bigg_id = serializers.SerializerMethodField('read_bigg')
+    bigg_link =  serializers.SerializerMethodField('read_bigg_link')
+    reactome_id = serializers.SerializerMethodField('read_reactome')
+    reactome_link =  serializers.SerializerMethodField('read_reactome_link')
     mnxref_id = serializers.SerializerMethodField('read_mnxref')
     mnxref_link =  serializers.SerializerMethodField('read_mnxref_link')
 
     class Meta(ReactionLiteSerializer.Meta):
         model = APImodels.Reaction
         fields = ReactionLiteSerializer.Meta.fields + \
-            ('mnxref_id', 'mnxref_link',)
+            ('kegg_id', 'kegg_link', 'bigg_id', 'bigg_link', 'reactome_id', 'reactome_link', 'mnxref_id', 'mnxref_link',)
 
-    def read_mnxref(self, model):
+    def read_kegg(self, model):
         return model.external_id1
 
-    def read_mnxref_link(self, model):
+    def read_kegg_link(self, model):
         return model.external_link1
+
+    def read_bigg(self, model):
+        return model.external_id2
+
+    def read_bigg_link(self, model):
+        return model.external_link2
+
+    def read_reactome(self, model):
+        return model.external_id3
+
+    def read_reactome_link(self, model):
+        return model.external_link3
+
+    def read_mnxref(self, model):
+        return model.external_id4
+
+    def read_mnxref_link(self, model):
+        return model.external_link4
 
 
 class ReactionSerializer(ReactionBasicSerializer):
@@ -139,27 +191,52 @@ class ReactionSerializer(ReactionBasicSerializer):
 
 
 class HmrReactionSerializer(ReactionBasicSerializer):
-    reactants = APIrcSerializer.HmrMetaboliteReactionComponentSerializer(many=True)
-    products = APIrcSerializer.HmrMetaboliteReactionComponentSerializer(many=True)
-    genes = APIrcSerializer.HmrGeneReactionComponentSerializer(many=True)
+    kegg_id = serializers.SerializerMethodField('read_kegg')
+    kegg_link =  serializers.SerializerMethodField('read_kegg_link')
+    bigg_id = serializers.SerializerMethodField('read_bigg')
+    bigg_link =  serializers.SerializerMethodField('read_bigg_link')
+    reactome_id = serializers.SerializerMethodField('read_reactome')
+    reactome_link =  serializers.SerializerMethodField('read_reactome_link')
+    mnxref_id = serializers.SerializerMethodField('read_mnxref')
+    mnxref_link =  serializers.SerializerMethodField('read_mnxref_link')
     subsystem = serializers.SlugRelatedField(
         many=True,
         read_only=True,
         slug_field='name',
      )
-    mnxref_id = serializers.SerializerMethodField('read_mnxref')
-    mnxref_link =  serializers.SerializerMethodField('read_mnxref_link')
 
     class Meta(ReactionBasicSerializer.Meta):
         model = APImodels.Reaction
-        fields = ReactionBasicSerializer.Meta.fields + \
-            ('reactants', 'products', 'genes', 'mnxref_id', 'mnxref_link')
+        fields = HmrReactionLiteSerializer.Meta.fields
 
-    def read_mnxref(self, model):
+    class Meta(ReactionLiteSerializer.Meta):
+        model = APImodels.Reaction
+        fields = ReactionLiteSerializer.Meta.fields + \
+            ('kegg_id', 'kegg_link', 'bigg_id', 'bigg_link', 'reactome_id', 'reactome_link', 'mnxref_id', 'mnxref_link',)
+
+    def read_kegg(self, model):
         return model.external_id1
 
-    def read_mnxref_link(self, model):
+    def read_kegg_link(self, model):
         return model.external_link1
+
+    def read_bigg(self, model):
+        return model.external_id2
+
+    def read_bigg_link(self, model):
+        return model.external_link2
+
+    def read_reactome(self, model):
+        return model.external_id3
+
+    def read_reactome_link(self, model):
+        return model.external_link3
+
+    def read_mnxref(self, model):
+        return model.external_id4
+
+    def read_mnxref_link(self, model):
+        return model.external_link4
 
 # =========================================================================================
 

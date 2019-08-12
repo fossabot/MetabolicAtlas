@@ -127,9 +127,7 @@ def get_reactions(request, model):
     """
     List all reactions for the given model.
     """
-    limit = int(request.query_params.get('limit', 10000))
-    offset = int(request.query_params.get('offset', 0))
-    reactions = APImodels.Reaction.objects.using(model).all()[offset:(offset+limit)]
+    reactions = APImodels.Reaction.objects.using(model).all()
 
     serializerClass = componentDBserializerSelector(model, 'reaction', serializer_type="basic", api_version=request.version)
 
@@ -148,14 +146,16 @@ def get_reaction(request, model, id):
     except APImodels.Reaction.DoesNotExist:
         return HttpResponse(status=404)
 
-    ReactionSerializerClass = componentDBserializerSelector(model, 'reaction', serializer_type='lite', api_version=request.version)
+    ReactionSerializerClass = componentDBserializerSelector(model, 'reaction', serializer_type=None, api_version=request.version)
     reactionserializer = ReactionSerializerClass(reaction, context={'model': model})
 
     pmids = APImodels.ReactionReference.objects.using(model).filter(reaction_id=reaction.id)
     pmidserializer = APIserializer.ReactionReferenceSerializer(pmids, many=True)
 
-    return JSONResponse({'reaction': reactionserializer.data,
-                         'pmids': pmidserializer.data})
+    result = reactionserializer.data.copy()
+    result.update({'pmids': pmidserializer.data})
+
+    return JSONResponse(result)
 
 
 @api_view()
@@ -310,10 +310,8 @@ def get_genes(request, model):
     """
     List all the genes in the given model.
     """
-    limit = int(request.query_params.get('limit', 10000))
-    offset = int(request.query_params.get('offset', 0))
 
-    genes = APImodels.ReactionComponent.objects.using(model).filter(component_type='e').select_related('gene')[offset:(offset+limit)]
+    genes = APImodels.ReactionComponent.objects.using(model).filter(component_type='e').select_related('gene')
 
     GeneSerializerClass = componentDBserializerSelector(model, 'gene', api_version=request.version)
     serializer = GeneSerializerClass(genes, many=True, context={'model': model})
@@ -346,10 +344,8 @@ def get_metabolites(request, model):
     """
     List all the metabolites in the given model.
     """
-    limit = int(request.query_params.get('limit', 10000))
-    offset = int(request.query_params.get('offset', 0))
 
-    genes = APImodels.ReactionComponent.objects.using(model).filter(component_type='m').select_related('metabolite')[offset:(offset+limit)]
+    genes = APImodels.ReactionComponent.objects.using(model).filter(component_type='m').select_related('metabolite')
 
     MetaboliteSerializerClass = componentDBserializerSelector(model, 'metabolite', api_version=request.version)
     serializer = MetaboliteSerializerClass(genes, many=True, context={'model': model})

@@ -1,6 +1,8 @@
 // vue.config.js
-
 const IS_DEV = process.env.NODE_ENV === 'development';
+
+// plugins for compressing the static files
+const CompressionPlugin = require("compression-webpack-plugin");
 
 module.exports = {
   productionSourceMap: false,
@@ -21,5 +23,8 @@ module.exports = {
       analyzerPort: 81,
       openAnalyzer: false
     }
+  },
+  configureWebpack: {
+    plugins: [new CompressionPlugin]
   }
 }
