@@ -117,7 +117,10 @@ export default {
       starredComponents: null,
       newStarredComponents: null,
       interval: null,
-      timeout: 4000,
+      timeoutLoop: null,
+      timeout: 4000, // initial value
+      maxTileUpdateCount: 90, // 1 hour
+      counter: 0
     };
   },
   watch: {
@@ -188,10 +191,14 @@ export default {
     },
     loop() {
       this.update_starred_components();
-      window.setTimeout(this.loop, this.timeout);
+      this.timeoutLoop = window.setTimeout(this.loop, this.timeout);
       if (this.timeout !== 40000) {
         this.timeout = 40000;
       }
+      if (this.counter === this.maxTileUpdateCount) {
+        clearTimeout(this.timeoutLoop);
+      }
+      this.counter += 1;
     },
     update_starred_components() {
       if (this.selectedType !== '' || this._inactive) {
