@@ -26,8 +26,7 @@ build-stack
 start-stack
 ```
 
-The frontend should be available at: `http://localhost/`. The backend should be available at: `http://localhost/api/` via Swagger.  
-If you encounter any problems try running `restart-stack`, or look at the logs `logs backend` / `logs frontend`
+The frontend should be available at: `http://localhost/` and the backend should be available at: `http://localhost/api/` via Swagger. If you encounter any problems try running `restart-stack`, or look at the logs `logs backend` / `logs frontend`
 
 ### Create the databases
 
@@ -95,7 +94,7 @@ python manage.py makemigrations
 python manage.py migrate --database [database] e.g. 'human1' (see settings.py)
 python manage.py populateDB [database] [YAML file]
 python manage.py addAnnotations [database] 'all' # add content of annotations files found in annotation/human1/ in the database
-# this commande populate annotations data in tables: metabolite, enzyme, reaction and subsystem
+# this command populates annotations data in tables: metabolite, enzyme, reaction and subsystem
 
 ```
 
@@ -161,9 +160,9 @@ Make sure the YAML format of the model is available.
 
 Each model is stored in separated database.
 
-2) Create the database as decribes in [Integrated model databases](#Integrated_model_databases) section.
+2) Create the database as described in [Integrated model databases](#Integrated_model_databases) section.
 
-3) Add the database in the setting.py file with the name used to create the database. e.g.
+3) Add the database in the `settings.py` file with the name used to create the database, e.g.
 
 ```bash
 ...
@@ -205,4 +204,3 @@ Then you will get access to the following commands:
 * To stop the project: `stop-stack`
 * To create new migration files: `db-make-migrations`
 * To run a database migration: `db-migrate`
-* To create a Django superuser: `create-su`

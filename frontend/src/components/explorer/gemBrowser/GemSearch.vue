@@ -17,7 +17,7 @@
             <i class="fa fa-search"></i>
           </span>
         </p>
-        <router-link :to="{ name: 'search', query: { term: this.searchTermString } }">Global search</router-link>
+        <router-link class="is-pulled-right" :to="{ name: 'search', query: { term: this.searchTermString } }">Global search</router-link>
       </div>
       <div id="searchResults" v-show="showResults && searchTermString.length > 1" ref="searchResults">
         <div id="asn" class="notification is-large is-unselectable has-text-centered clickable" v-show="searchResults.length !== 0 && !showLoader" @mousedown.prevent="globalSearch">
