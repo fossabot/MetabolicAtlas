@@ -12,7 +12,7 @@ const rnaExpressionLvl = [
   [6.6, 'red'],
 ];
 
-export function getExpressionColor(value) {
+export function getRNAExpressionColor(value) {
   const v = parseInt(value * 28, 10);
   if (v >= cmap.length) {
     return overExpressedColor;

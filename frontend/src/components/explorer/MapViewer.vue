@@ -69,6 +69,12 @@
               </li>
             </ul>
           </div>
+          <RNAexpression
+            :model="model"
+            :mapType="currentDisplayedType"
+            :mapName="currentDisplayedName"
+            @loadedHPARNAtissue="setHPATissue($event)">
+          </RNAexpression>
           <sidebar-data-panels
             :model="model"
             :dim="show2D ? '2d' : '3d'"
@@ -135,6 +141,7 @@
 import $ from 'jquery';
 import axios from 'axios';
 import SidebarDataPanels from '@/components/explorer/mapViewer/SidebarDataPanels';
+import RNAexpression from '@/components/explorer/mapViewer/RNAexpression.vue';
 import Svgmap from '@/components/explorer/mapViewer/Svgmap';
 import D3dforce from '@/components/explorer/mapViewer/D3dforce';
 import { default as EventBus } from '../../event-bus';
@@ -145,6 +152,7 @@ export default {
   props: ['model'],
   components: {
     SidebarDataPanels,
+    RNAexpression,
     Svgmap,
     D3dforce,
   },
@@ -324,7 +332,6 @@ export default {
         return;
       }
       this.getSubComptData(this.model);
-      this.getHPATissue(this.model);
     },
     hideDropleftMenus() {
       $('#menu ul.l1, #menu ul.l2').hide();
@@ -465,17 +472,8 @@ export default {
         this.$router.push(`/explore/map-viewer/${this.model.database_name}/${type}/${mapID}?dim=${dim}`);
       }
     },
-    getHPATissue(model) {
-      axios.get(`${model.database_name}/gene/hpa_tissue/`)
-        .then((response) => {
-          this.HPATissue = response.data;
-        })
-        .catch((error) => {
-          switch (error.response.status) {
-            default:
-              this.loadErrorMesssage = messages.unknownError;
-          }
-        });
+    setHPATissue(tissues) {
+      this.HPATissue = tissues;
     },
     loadHPARNAlevels(tissue) {
       this.requestedTissue = tissue;
@@ -484,9 +482,9 @@ export default {
         this.loadedTissue = '';
       }
       if (this.show2D) {
-        EventBus.$emit('load2DHPARNAlevels', this.currentDisplayedType, tissue);
+        EventBus.$emit('load2DHPARNAlevels', tissue);
       } else {
-        EventBus.$emit('load3DHPARNAlevels', this.currentDisplayedType, tissue);
+        EventBus.$emit('load3DHPARNAlevels', tissue);
       }
     },
     checkValidRequest(displayType, displayName) {

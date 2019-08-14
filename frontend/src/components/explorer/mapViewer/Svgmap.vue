@@ -35,7 +35,6 @@ import JQPanZoom from 'jquery.panzoom';
 import JQMouseWheel from 'jquery-mousewheel';
 import Loader from '@/components/Loader';
 import { default as EventBus } from '../../../event-bus';
-import { getExpressionColor } from '../../../expression-sources/hpa';
 import { default as messages } from '../../../helpers/messages';
 
 // hack: the only way for jquery plugins to play nice with the plugins inside Vue
@@ -84,8 +83,7 @@ export default {
       selectedItemHistory: {},
       selectElementID: null,
 
-      HPARNAlevelsHistory: {},
-      geneRNAlevels: {}, // enz id as key, current tissue level as value
+      HPARNAlevels: {}, // enz id as key, [current tissue level, color] as value
 
       searchTerm: '',
       searchInputClass: '',
@@ -109,7 +107,7 @@ export default {
   },
   created() {
     EventBus.$off('showSVGmap');
-    EventBus.$off('load2DHPARNAlevels');
+    EventBus.$off('apply2DHPARNAlevels');
 
     EventBus.$on('showSVGmap', (type, name, ids, forceReload) => {
       if (forceReload) {
@@ -132,8 +130,8 @@ export default {
       }
     });
 
-    EventBus.$on('load2DHPARNAlevels', (mapType, tissue) => {
-      this.loadHPAlevelsOnMap(mapType, tissue);
+    EventBus.$on('apply2DHPARNAlevels', (levels) => {
+      this.applyHPARNAlevelsOnMap(levels);
     });
   },
   mounted() {
@@ -145,8 +143,8 @@ export default {
     }
     $('#svg-wrapper').on('mouseover', '.enz', function f(e) {
       const id = $(this).attr('class').split(' ')[1].trim();
-      if (id in self.geneRNAlevels) {
-        self.$refs.tooltip.innerHTML = `RNA level: ${self.geneRNAlevels[id]}`;
+      if (id in self.HPARNAlevels) {
+        self.$refs.tooltip.innerHTML = `RNA level: ${self.HPARNAlevels[id][0]}`;
         self.$refs.tooltip.style.top = `${(e.pageY - $('.svgbox').first().offset().top) + 15}px`;
         self.$refs.tooltip.style.left = `${(e.pageX - $('.svgbox').first().offset().left) + 15}px`;
         self.$refs.tooltip.style.display = 'block';
@@ -277,57 +275,28 @@ export default {
         this.$emit('loadComplete', true, '');
       }
     },
-    loadHPAlevelsOnMap(mapType, tissue) {
-      if (this.svgName in this.HPARNAlevelsHistory) {
-        this.readHPARNAlevels(tissue);
-        return;
-      }
-      axios.get(`${this.model.database_name}/gene/hpa_rna_levels/${mapType}/2d/${this.loadedMap.name_id}`)
-      .then((response) => {
-        this.HPARNAlevelsHistory[this.svgName] = response.data;
-        setTimeout(() => {
-          this.readHPARNAlevels(tissue);
-        }, 0);
-      })
-      .catch(() => {
-        EventBus.$emit('loadRNAComplete', false, '');
-        return;
-      });
-    },
-    readHPARNAlevels(tissue) {
-      if (tissue === 'None') {
+    applyHPARNAlevelsOnMap(RNAlevels) {
+      this.HPARNAlevels = RNAlevels;
+      // this.HPARNAlevelsHistory[this.svgName] = response.data;
+      if (Object.keys(this.HPARNAlevels).length === 0) {
         $('#svg-wrapper .enz .shape').attr('fill', this.defaultGeneColor);
-        this.geneRNAlevels = {};
         return;
-      }
-      const index = this.HPARNAlevelsHistory[this.svgName].tissues.indexOf(tissue);
-      if (index === -1) {
-        EventBus.$emit('loadRNAComplete', false, '');
-        return;
-      }
-
-      const levels = this.HPARNAlevelsHistory[this.svgName].levels;
-      for (const array of levels) {
-        const enzID = array[0];
-        let level = Math.log2(parseFloat(array[1].split(',')[index]) + 1);
-        level = Math.round((level + 0.00001) * 100) / 100;
-        this.geneRNAlevels[enzID] = level;
       }
 
       const allGenes = $('#svg-wrapper .enz');
       for (const oneEnz of allGenes) {
         const ID = oneEnz.classList[1];
-        if (this.geneRNAlevels[ID] !== undefined) {
-          oneEnz.children[0].setAttribute('fill', getExpressionColor(this.geneRNAlevels[ID]));
+        if (this.HPARNAlevels[ID] !== undefined) {
+          oneEnz.children[0].setAttribute('fill', this.HPARNAlevels[ID][1]); // 0 is the float value
         } else {
           oneEnz.children[0].setAttribute('fill', 'whitesmoke');
         }
       }
 
       // update cached selected elements
-      for (const id of Object.keys(this.selectedItemHistory)) {
-        if (this.geneRNAlevels[id] !== undefined) {
-          this.selectedItemHistory[id].rnaLvl = this.geneRNAlevels[id];
+      for (const ID of Object.keys(this.selectedItemHistory)) {
+        if (this.HPARNAlevels[id] !== undefined) {
+          this.selectedItemHistory[id].rnaLvl = this.HPARNAlevels[ID];
         }
       }
       EventBus.$emit('loadRNAComplete', true, '');
@@ -488,8 +457,8 @@ export default {
           data = data.reaction;
         } else if (type === 'gene') {
           // add the RNA level if any
-          if (id in this.geneRNAlevels) {
-            data.rnaLvl = this.geneRNAlevels[id];
+          if (id in this.HPARNAlevels) {
+            data.rnaLvl = this.HPARNAlevels[id][0];
           }
         }
         selectionData.data = data;
