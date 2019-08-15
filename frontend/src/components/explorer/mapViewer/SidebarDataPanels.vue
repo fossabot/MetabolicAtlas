@@ -104,7 +104,7 @@
                   <span v-html="chemicalReaction(selectionData.data[item.name], selectionData.data['is_reversible'])"></span></p>
                 </template>
                 <template v-else-if="item.name === 'formula'">
-                  <p><span class="has-text-weight-bold" v-html="capitalize(item.display || item.name) + ':'"></span>
+                  <p><span class="has-text-weight-bold" v-html="capitalize(item.display || item.name) + ': '"></span>
                   <span v-html="chemicalFormula(selectionData.data[item.name], selectionData.data.charge)"></span></p>
                 </template>
                 <template v-else>

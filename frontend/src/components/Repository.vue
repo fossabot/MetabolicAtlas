@@ -372,7 +372,7 @@ export default {
           const gemex = $.extend(gem, sample);
           gemex.tissue = [gemex.tissue, gemex.cell_type, gemex.cell_line].filter(e => e).join(' ‒ ') || '-';
           delete gemex.cell_type;
-          gemex.stats = `reactions:&nbsp;${gem.reaction_count}<br>metabolites:&nbsp;${gemex.metabolite_count}<br>genes:&nbsp;${gemex.gene_count}`;
+          gemex.stats = `reactions:&nbsp;${gem.reaction_count === null ? '-' : gem.reaction_count}<br>metabolites:&nbsp;${gemex.metabolite_count === null ? '-' : gemex.metabolite_count}<br>genes:&nbsp;${gemex.gene_count === null ? '-' : gemex.gene_count}`;
           delete gemex.reaction_count; delete gemex.gene_count; delete gemex.metabolite_count;
           gemex.maintained = gem.maintained ? 'Yes' : 'No';
           gemex.organ_system = gemex.organ_system || '-';
