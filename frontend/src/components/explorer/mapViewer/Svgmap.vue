@@ -144,9 +144,15 @@ export default {
     $('#svg-wrapper').on('mouseover', '.enz', function f(e) {
       const id = $(this).attr('class').split(' ')[1].trim();
       if (id in self.HPARNAlevels) {
-        self.$refs.tooltip.innerHTML = `RNA level: ${self.HPARNAlevels[id][0]}`;
+        if (self.HPARNAlevels[id].length === 2) {
+          self.$refs.tooltip.innerHTML = `RNA log<sub>2</sub>(TPM): ${self.HPARNAlevels[id][1]}`;
+        } else {
+          self.$refs.tooltip.innerHTML = `RNA log<sub>2</sub>(TPM<sub>T1</sub>): ${self.HPARNAlevels[id][2]}<br>`;
+          self.$refs.tooltip.innerHTML += `RNA log<sub>2</sub>(TPM<sub>T2</sub>): ${self.HPARNAlevels[id][3]}<br>`;
+          self.$refs.tooltip.innerHTML += `RNA log<sub>2</sub>(TPM ratio): ${self.HPARNAlevels[id][1]}<br>`;
+        }
       } else if (Object.keys(self.HPARNAlevels).length !== 0) {
-        self.$refs.tooltip.innerHTML = `RNA level: ${self.HPARNAlevels['n/a'][0]}`;
+        self.$refs.tooltip.innerHTML = `RNA log<sub>2</sub>(TPM): ${self.HPARNAlevels['n/a'][1]}`;
       } else {
         return;
       }
@@ -292,9 +298,9 @@ export default {
       for (const oneEnz of allGenes) {
         const ID = oneEnz.classList[1];
         if (this.HPARNAlevels[ID] !== undefined) {
-          oneEnz.children[0].setAttribute('fill', this.HPARNAlevels[ID][1]); // 0 is the float value, 1 the color hex
+          oneEnz.children[0].setAttribute('fill', this.HPARNAlevels[ID][0]); // 0 is the float value, 1 the color hex
         } else {
-          oneEnz.children[0].setAttribute('fill', this.HPARNAlevels['n/a'][1]); 
+          oneEnz.children[0].setAttribute('fill', this.HPARNAlevels['n/a'][0]); 
         }
       }
 
@@ -463,7 +469,7 @@ export default {
         } else if (type === 'gene') {
           // add the RNA level if any
           if (id in this.HPARNAlevels) {
-            data.rnaLvl = this.HPARNAlevels[id][0];
+            data.rnaLvl = this.HPARNAlevels[id][1];
           }
         }
         selectionData.data = data;

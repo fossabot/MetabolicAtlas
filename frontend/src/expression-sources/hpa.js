@@ -1,7 +1,7 @@
 const notDetectedSingleColor = 'whitesmoke';
 const notDetectedComparisonColor = 'lightgray';
 const overExpressedColor = '#ffe945';
-const underCompExpressionColor = '#018E01';
+const underCompExpressionColor = '#0033CC';
 const overCompExpressionColor = '#930101';
 
 export function getSingleRNAExpressionColor(value) {
@@ -13,7 +13,7 @@ export function getSingleRNAExpressionColor(value) {
 }
 
 export function getComparisonRNAExpressionColor(value) {
-  const v = parseInt(value * 9.6, 10) + 96;
+  const v = parseInt(value * 19.2, 10) + 96;
   if (v >= comparison_cmap.length) {
     return overCompExpressionColor;
   } else if (v < 0) {
@@ -23,7 +23,7 @@ export function getComparisonRNAExpressionColor(value) {
 }
 
 export function getSingleExpLvlLegend() {
-  let l = '<div id="singleHPARNAexpLegend" class="box"><div><h5 class="title is-6 has-text-centered">HPA RNA expression level - log<sub>2</sub>(TPM) </h5></div>';
+  let l = '<div id="singleHPARNAexpLegend" class="box"><div><h5 class="title is-6 has-text-centered">HPA RNA expression level - log<sub>2</sub>(TPM)</h5></div>';
   l += '<div class="has-text-centered">';
   if (notDetectedSingleColor) {
     l += `<ul><li><span class="boxc" style="background: ${notDetectedSingleColor};"></span><span>n/a</span></li></ul>`;
@@ -50,9 +50,9 @@ export function getComparisonExpLvlLegend() {
   if (notDetectedComparisonColor) {
     l += `<ul><li><span class="boxc" style="background: ${notDetectedComparisonColor};"></span><span>n/a</span></li></ul>`;
   }
-  l += '</div><div class="has-text-centered"><ul class="exp-lvl-legend">'
+  l += '</div><div class="has-text-centered" title="Allons enfants de la patrie.."><ul class="exp-lvl-legend">'
   let i = 0;
-  l += '<li>-10&nbsp;</li>';
+  l += '<li>-5&nbsp;</li>';
   for (const el of comparison_cmap) {
     l += `<li><span style="background: ${el};`;
     if (i % 24 == 0 && i !== 0) {
@@ -62,7 +62,7 @@ export function getComparisonExpLvlLegend() {
     }
     i += 1;
   }
-  l += '<li>&nbsp;10+</li></ul></div></div>';
+  l += '<li>&nbsp;5+</li></ul></div></div>';
   return l;
 }
 

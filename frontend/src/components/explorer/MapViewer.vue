@@ -243,12 +243,12 @@ export default {
     tissuesSelectedString() {
       if (this.loadedTissue1) {
         if (this.loadedTissue2) {
-          return `${this.loadedTissue1} VS ${this.loadedTissue2}`;
+          return [`${this.loadedTissue1} VS ${this.loadedTissue2}`, `Tissue1: ${this.loadedTissue1} - Tissue2: ${this.loadedTissue2}`];
         } else {
-          return this.loadedTissue1;
+          return [this.loadedTissue1, ''];
         }
       } else if (this.loadedTissue2) {
-        return this.loadedTissue2;
+        return [this.loadedTissue2, ''];
       }
       return '';
     },

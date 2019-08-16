@@ -206,20 +206,22 @@ export default {
         RNAlevels = Object.keys(this.firstRNAlevels).length === 0 ? this.secondRNAlevels : this.firstRNAlevels;
         for (const enzID of Object.keys(RNAlevels)) {
           let level = Math.log2(RNAlevels[enzID] + 1);
-          level = Math.round((level + 0.00001) * 100) / 100; // round value
-          this.computedRNAlevels[enzID] = [level, getSingleRNAExpressionColor(level)];
+          level = Math.round((level + 0.00001) * 100) / 100;
+          this.computedRNAlevels[enzID] = [getSingleRNAExpressionColor(level), level];
         }
-        this.computedRNAlevels['n/a'] = ['n/a', 'whitesmoke']; // fixme
+        this.computedRNAlevels['n/a'] = ['whitesmoke', 'n/a']; // fixme
         EventBus.$emit('updateRNAExpressionLegend', this.getSingleExpLvlLegend());
       } else {
         // comparison
         console.log('compute comparison', Object.keys(this.firstRNAlevels).length, Object.keys(this.secondRNAlevels).length);
         for (const enzID of Object.keys(this.firstRNAlevels)) {
+          const log2tpm1 = Math.round((Math.log2(this.firstRNAlevels[enzID] + 1) + 0.00001) * 100) / 100;
+          const log2tpm2 = Math.round((Math.log2(this.secondRNAlevels[enzID] + 1) + 0.00001) * 100) / 100;
           let level = Math.log2((this.secondRNAlevels[enzID] + 1) / (this.firstRNAlevels[enzID] + 1));
-          level = Math.round((level + 0.00001) * 100) / 100; // round value
-          this.computedRNAlevels[enzID] = [level, getComparisonRNAExpressionColor(level)];
+          level = Math.round((level + 0.00001) * 100) / 100;
+          this.computedRNAlevels[enzID] = [getComparisonRNAExpressionColor(level), level, log2tpm1, log2tpm2];
         }
-        this.computedRNAlevels['n/a'] = ['n/a', 'lightgray']; // fixme
+        this.computedRNAlevels['n/a'] = ['lightgray', 'n/a']; // fixme
         EventBus.$emit('updateRNAExpressionLegend', this.getComparisonExpLvlLegend());
       }
       this.$nextTick(() => {
