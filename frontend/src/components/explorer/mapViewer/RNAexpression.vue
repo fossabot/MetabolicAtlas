@@ -4,7 +4,7 @@
 import axios from 'axios';
 import $ from 'jquery';
 import { default as EventBus } from '../../../event-bus';
-import { getRNAExpressionColor } from '../../../expression-sources/hpa';
+import { getSingleRNAExpressionColor, getComparisonRNAExpressionColor, getSingleExpLvlLegend, getComparisonExpLvlLegend } from '../../../expression-sources/hpa';
 import { default as messages } from '../../../helpers/messages';
 
 export default {
@@ -13,26 +13,133 @@ export default {
   data() {
     return {
       errorMessage: '',
+      tissue1: 'None',
+      tissue2: 'None',
+      dim: null,
+
       HPATissue: [],
       HPARNAlevelsHistory: {},
-      HPARNAlevels: {}, // enz id as key, current tissue level as value
+
+      firstRNAlevels: {},
+      secondRNAlevels: {},
+
+      computedRNAlevels: {}, // enz id as key, current tissue level as value
     };
   },
   created() {
-    EventBus.$off('load2DHPARNAlevels');
-    EventBus.$off('load3DHPARNAlevels');
+    EventBus.$off('selectTissues');
+    EventBus.$off('selectFirstTissue');
+    EventBus.$off('selectSecondTissue');
+    EventBus.$off('unselectFirstTissue');
+    EventBus.$off('unselectSecondTissue');
 
-    EventBus.$on('load2DHPARNAlevels', (tissue) => {
-      this.loadHPAlevelsOnMap(tissue, '2d');
+    EventBus.$on('selectTissues', (tissue1, tissue2, dim) => {
+      if (!tissue1) {
+        EventBus.$emit('unselectFirstTissue', true);
+        if (tissue2) {
+          EventBus.$emit('selectSecondTissue', tissue2, dim);
+        } else {
+          EventBus.$emit('unselectSecondTissue');
+        }
+      } else if (!tissue2) {
+        EventBus.$emit('unselectSecondTissue', true);
+        EventBus.$emit('selectFirstTissue', tissue1, dim);
+      } else {
+        EventBus.$emit('selectFirstTissue', tissue1, dim, true);
+        EventBus.$emit('selectSecondTissue', tissue2, dim);
+      }
     });
 
-    EventBus.$on('load3DHPARNAlevels', (tissue) => {
-      this.loadHPAlevelsOnMap(tissue, '3d');
+    EventBus.$on('selectFirstTissue', (tissue, dim, skipCompute = false) => {
+      console.log('selectFirstTissue = ', tissue);
+      if (!this.isTissueValid(tissue)) {
+        // handle error
+        console.log('error tissue unknown: ', tissue);
+        return;
+      }
+      // if (this.tissue1 === tissue) {
+      //   return;
+      // }
+      this.selectFirstTissue(tissue, dim, skipCompute);
+    });
+
+    EventBus.$on('selectSecondTissue', (tissue, dim, skipCompute = false) => {
+      console.log('selectSecondTissue = ', tissue);
+      if (!this.isTissueValid(tissue)) {
+        // handle error
+        console.log('error tissue unknown: ', tissue);
+        return;
+      }
+      // if (this.tissue2 === tissue) {
+      //   return;
+      // }
+      this.selectSecondTissue(tissue, dim, skipCompute);
+    });
+
+    EventBus.$on('unselectFirstTissue', (skipCompute) => {
+      console.log('unselectFirstTissue');
+      // if (this.tissue1 === 'None') {
+      //   return;
+      // }
+      this.tissue1 = 'None';
+      this.firstRNAlevels = {};
+      if (!skipCompute) {
+        this.computeRNAlevels();
+      }
+      this.$emit('firstTissueSelected', '');
+    });
+
+    EventBus.$on('unselectSecondTissue', (skipCompute) => {
+      console.log('unselectSecondTissue');
+      // if (this.tissue2 === 'None') {
+      //   return;
+      // }
+      this.tissue2 = 'None';
+      this.secondRNAlevels = {};
+      if (!skipCompute) {
+        this.computeRNAlevels();
+      }
+      this.$emit('secondTissueSelected', '');
     });
 
     this.getHPATissue();
   },
+  computed: {
+    mode() {
+      let m;
+      if (this.tissue1 !== 'None' && this.tissue2 !== 'None') {
+        return 'comparison';
+      }
+      return 'single';
+    },
+  },
   methods: {
+    isTissueValid(tissue) {
+      if (!this.HPATissue || this.HPATissue.indexOf(tissue) === -1) {
+        return false;
+      }
+      return true;
+    },
+    selectFirstTissue(tissue, dim, skipCompute = false) {
+      this.dim = dim;
+      this.tissue1 = tissue;
+      if (!skipCompute) {
+        this.loadHPAlevels(tissue, dim, 0, this.computeRNAlevels);
+      } else {
+        this.loadHPAlevels(tissue, dim, 0, null);
+      }
+      this.$emit('firstTissueSelected', tissue);
+    },
+    selectSecondTissue(tissue, dim, skipCompute = false) {
+      this.dim = dim;
+      this.tissue2 = tissue;
+      if (!skipCompute) {
+        this.loadHPAlevels(tissue, dim, 1, this.computeRNAlevels);
+      } else {
+        this.loadHPAlevels(tissue, dim, 1, null);
+      }
+      this.$emit('secondTissueSelected', tissue);
+    },
     getHPATissue() {
       axios.get(`${this.model.database_name}/gene/hpa_tissue/`)
         .then((response) => {
@@ -46,9 +153,10 @@ export default {
           }
         });
     },
-    loadHPAlevelsOnMap(tissue, dim) {
+    loadHPAlevels(tissue, dim, index, callback) {
+      // todo : not fetch when tissue is none?
       if (this.mapName in this.HPARNAlevelsHistory && dim in this.HPARNAlevelsHistory[this.mapName]) {
-        this.parseHPARNAlevels(tissue, dim);
+        this.parseHPARNAlevels(tissue, dim, index, callback);
         return;
       }
       axios.get(`${this.model.database_name}/gene/hpa_rna_levels/${this.mapType}/${dim}/${this.mapName}`)
@@ -58,29 +166,68 @@ export default {
         }
         this.HPARNAlevelsHistory[this.mapName][dim] = response.data;
         setTimeout(() => {
-          this.parseHPARNAlevels(tissue, dim);
+          this.parseHPARNAlevels(tissue, dim, index, callback);
         }, 0);
       })
-      .catch(() => {
+      .catch((error) => {
+        console.log(error, tissue, dim, index);
         EventBus.$emit('loadRNAComplete', false, '');
         return;
       });
     },
-    parseHPARNAlevels(tissue, dim) {
-      if (tissue === 'None') {
-        this.HPARNAlevels = {};
-      } else {
-        const index = this.HPARNAlevelsHistory[this.mapName][dim].tissues.indexOf(tissue);
-        const levels = this.HPARNAlevelsHistory[this.mapName][dim].levels;
-        for (const array of levels) {
-          const enzID = array[0];
-          let level = Math.log2(parseFloat(array[1].split(',')[index]) + 1);
-          level = Math.round((level + 0.00001) * 100) / 100; // round value
-          this.HPARNAlevels[enzID] = [level, getRNAExpressionColor(level)];
-        }
+    parseHPARNAlevels(tissue, dim, index, callback) {
+      console.log('parseHPARNAlevels ', tissue, dim, index);
+      const RNAlevels = {};
+      const tissue_index = this.HPARNAlevelsHistory[this.mapName][dim].tissues.indexOf(tissue);
+      const levels = this.HPARNAlevelsHistory[this.mapName][dim].levels;
+      for (const array of levels) {
+        const enzID = array[0];
+        let level = parseFloat(array[1].split(',')[tissue_index]);
+        RNAlevels[enzID] = level;
       }
-      EventBus.$emit(dim === '2d' ? 'apply2DHPARNAlevels' : 'apply3DHPARNAlevels' , this.HPARNAlevels);
+      RNAlevels['n/a'] = 'n/a';
+      index === 0 ? this.firstRNAlevels = RNAlevels : this.secondRNAlevels = RNAlevels;
+      if (callback) {
+        callback();
+      }
     },
+    computeRNAlevels() {
+      console.log('computeRNAlevels');
+      if (Object.keys(this.firstRNAlevels).length === 0 && Object.keys(this.secondRNAlevels).length === 0) {
+        // nothing to compute
+        EventBus.$emit(this.dim === '2d' ? 'apply2DHPARNAlevels' : 'apply3DHPARNAlevels' , {});
+        EventBus.$emit('updateRNAExpressionLegend', '');
+        return;
+      }
+      this.computedRNAlevels = {};
+      let RNAlevels = null;
+      if (this.mode === 'single') {
+        console.log('compute single', Object.keys(this.firstRNAlevels).length, Object.keys(this.secondRNAlevels).length);
+        RNAlevels = Object.keys(this.firstRNAlevels).length === 0 ? this.secondRNAlevels : this.firstRNAlevels;
+        for (const enzID of Object.keys(RNAlevels)) {
+          let level = Math.log2(RNAlevels[enzID] + 1);
+          level = Math.round((level + 0.00001) * 100) / 100; // round value
+          this.computedRNAlevels[enzID] = [level, getSingleRNAExpressionColor(level)];
+        }
+        this.computedRNAlevels['n/a'] = ['n/a', 'whitesmoke']; // fixme
+        EventBus.$emit('updateRNAExpressionLegend', this.getSingleExpLvlLegend());
+      } else {
+        // comparison
+        console.log('compute comparison', Object.keys(this.firstRNAlevels).length, Object.keys(this.secondRNAlevels).length);
+        for (const enzID of Object.keys(this.firstRNAlevels)) {
+          let level = Math.log2((this.secondRNAlevels[enzID] + 1) / (this.firstRNAlevels[enzID] + 1));
+          level = Math.round((level + 0.00001) * 100) / 100; // round value
+          this.computedRNAlevels[enzID] = [level, getComparisonRNAExpressionColor(level)];
+        }
+        this.computedRNAlevels['n/a'] = ['n/a', 'lightgray']; // fixme
+        EventBus.$emit('updateRNAExpressionLegend', this.getComparisonExpLvlLegend());
+      }
+      this.$nextTick(() => {
+        EventBus.$emit(this.dim === '2d' ? 'apply2DHPARNAlevels' : 'apply3DHPARNAlevels' , this.computedRNAlevels);
+      });
+    },
+    getSingleExpLvlLegend,
+    getComparisonExpLvlLegend,
   },
 };
 </script>

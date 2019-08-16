@@ -129,7 +129,12 @@
             RNA expression levels for genes from <a href="http://proteinatlas.org" target="_blank">The Human Protein Atlas</a> can be loaded using the corresponding sidebar button. Once selected, the RNA levels corresponding to the chosen tissue will be overlaid on the selected map. To clear the RNA levels, use the <i>Clear selection</i> button. RNA levels are available for both the 2D and 3D viewers.<br>
             Expression levels from the Human Protein Atlas can be loaded in the <i>Interaction Partners</i> graph using the panel on the right, and in the <i>Map Viewer</i> using the corresponding sidebar button. Doing so will update the gene's node color according to the legend. Some genes may not have RNA levels available - in such case their color corresponds to the n/a color.
             </div>
-            <div class="column" v-html="getExpLvlLegend()" style="padding-right: 0">
+            <div class="column">
+              <div class="columns" v-html="getSingleExpLvlLegend()" style="padding-right: 0">
+              </div>
+              <br>
+              <div class="columns" v-html="getComparisonExpLvlLegend()" style="padding-right: 0">
+              </div>
             </div>
           </div>
 
@@ -180,12 +185,13 @@
 
 <script>
 
-import { getExpLvlLegend } from '../expression-sources/hpa';
+import { getSingleExpLvlLegend, getComparisonExpLvlLegend } from '../expression-sources/hpa';
 
 export default {
   name: 'help',
   methods: {
-    getExpLvlLegend,
+    getSingleExpLvlLegend,
+    getComparisonExpLvlLegend,
   },
 };
 </script>

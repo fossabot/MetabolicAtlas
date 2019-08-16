@@ -145,10 +145,14 @@ export default {
       const id = $(this).attr('class').split(' ')[1].trim();
       if (id in self.HPARNAlevels) {
         self.$refs.tooltip.innerHTML = `RNA level: ${self.HPARNAlevels[id][0]}`;
-        self.$refs.tooltip.style.top = `${(e.pageY - $('.svgbox').first().offset().top) + 15}px`;
-        self.$refs.tooltip.style.left = `${(e.pageX - $('.svgbox').first().offset().left) + 15}px`;
-        self.$refs.tooltip.style.display = 'block';
+      } else if (Object.keys(self.HPARNAlevels).length !== 0) {
+        self.$refs.tooltip.innerHTML = `RNA level: ${self.HPARNAlevels['n/a'][0]}`;
+      } else {
+        return;
       }
+      self.$refs.tooltip.style.top = `${(e.pageY - $('.svgbox').first().offset().top) + 15}px`;
+      self.$refs.tooltip.style.left = `${(e.pageX - $('.svgbox').first().offset().left) + 15}px`;
+      self.$refs.tooltip.style.display = 'block';
     });
     $('#svg-wrapper').on('mouseout', '.enz', () => {
       self.$refs.tooltip.innerHTML = '';
@@ -276,6 +280,7 @@ export default {
       }
     },
     applyHPARNAlevelsOnMap(RNAlevels) {
+      console.log('apply RNAlevel with', Object.keys(RNAlevels).length);
       this.HPARNAlevels = RNAlevels;
       // this.HPARNAlevelsHistory[this.svgName] = response.data;
       if (Object.keys(this.HPARNAlevels).length === 0) {
@@ -287,16 +292,16 @@ export default {
       for (const oneEnz of allGenes) {
         const ID = oneEnz.classList[1];
         if (this.HPARNAlevels[ID] !== undefined) {
-          oneEnz.children[0].setAttribute('fill', this.HPARNAlevels[ID][1]); // 0 is the float value
+          oneEnz.children[0].setAttribute('fill', this.HPARNAlevels[ID][1]); // 0 is the float value, 1 the color hex
         } else {
-          oneEnz.children[0].setAttribute('fill', 'whitesmoke');
+          oneEnz.children[0].setAttribute('fill', this.HPARNAlevels['n/a'][1]); 
         }
       }
 
       // update cached selected elements
       for (const ID of Object.keys(this.selectedItemHistory)) {
-        if (this.HPARNAlevels[id] !== undefined) {
-          this.selectedItemHistory[id].rnaLvl = this.HPARNAlevels[ID];
+        if (this.HPARNAlevels[ID] !== undefined) {
+          this.selectedItemHistory[ID].rnaLvl = this.HPARNAlevels[ID];
         }
       }
       EventBus.$emit('loadRNAComplete', true, '');

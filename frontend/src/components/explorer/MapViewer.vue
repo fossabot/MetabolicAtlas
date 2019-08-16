@@ -60,9 +60,20 @@
                 :title="getRNATitle()">RNA levels from <i style="color: lightblue">proteinAtlas.org</i>
                 <span v-show="HPATissue.length !== 0">&nbsp;&#9656;</span>
                 <ul class="vhs l1" title="">
-                  <li v-show="HPATissue.length !== 0" @click="loadHPARNAlevels('None')"  class="has-background-grey-dark clickable"><i>Clear selection</i></li>
-                  <li v-for="tissue in HPATissue" class="clickable is-capitalized" @click="loadHPARNAlevels(tissue)"
-                    :class="{'has-text-warning': tissue === loadedTissue }">
+                  <li v-show="HPATissue.length !== 0" @click="clearTissue1Selection()" class="has-background-grey-dark clickable"><i>Clear selection</i></li>
+                  <li v-for="tissue in HPATissue" class="clickable is-capitalized" @click="loadHPARNAlevelsTissue1(tissue)"
+                    :class="{'has-text-warning': tissue === loadedTissue1 }">
+                    {{ tissue }}
+                  </li>
+                </ul>
+              </li>
+              <li :class="{'clickable' : true, 'disable' : disabledRNAlvl }"
+                :title="getRNATitle()">RNA levels from <i style="color: lightblue">proteinAtlas.org</i>
+                <span v-show="HPATissue.length !== 0">&nbsp;&#9656;</span>
+                <ul class="vhs l1" title="">
+                  <li v-show="HPATissue.length !== 0" @click="clearTissue2Selection()" class="has-background-grey-dark clickable"><i>Clear selection</i></li>
+                  <li v-for="tissue in HPATissue" class="clickable is-capitalized" @click="loadHPARNAlevelsTissue2(tissue)"
+                    :class="{'has-text-warning': tissue === loadedTissue2 }">
                     {{ tissue }}
                   </li>
                 </ul>
@@ -73,12 +84,15 @@
             :model="model"
             :mapType="currentDisplayedType"
             :mapName="currentDisplayedName"
-            @loadedHPARNAtissue="setHPATissue($event)">
+            @loadedHPARNAtissue="setHPATissue($event)"
+            @firstTissueSelected="setFirstTissue($event)"
+            @secondTissueSelected="setSecondTissue($event)"
+            >
           </RNAexpression>
           <sidebar-data-panels
             :model="model"
             :dim="show2D ? '2d' : '3d'"
-            :tissue="loadedTissue"
+            :tissue="tissuesSelectedString"
             :mapType="currentDisplayedType"
             :mapName="currentDisplayedName"
             :mapsData="show2D ? mapsData2D : mapsData3D"
@@ -197,8 +211,11 @@ export default {
       isHoverMenuItem: false,
 
       HPATissue: [],
-      requestedTissue: '',
-      loadedTissue: '',
+      requestedTissue1: '',
+      loadedTissue1: '',
+      requestedTissue2: '',
+      loadedTissue2: '',
+
       messages,
     };
   },
@@ -222,6 +239,18 @@ export default {
     },
     disabledRNAlvl() {
       return !this.currentDisplayedName || this.HPATissue.length === 0;
+    },
+    tissuesSelectedString() {
+      if (this.loadedTissue1) {
+        if (this.loadedTissue2) {
+          return `${this.loadedTissue1} VS ${this.loadedTissue2}`;
+        } else {
+          return this.loadedTissue1;
+        }
+      } else if (this.loadedTissue2) {
+        return this.loadedTissue2;
+      }
+      return '';
     },
   },
   watch: {
@@ -254,8 +283,10 @@ export default {
       this.showOverviewScreen = false; // to get the loader visible
       this.selectionData.data = null;
       if (this.show3D) {
+        console.log('MV show3Dnetwork');
         EventBus.$emit('show3Dnetwork', this.requestedType, this.requestedName, ids);
       } else {
+        console.log('MV showSVGmap');
         EventBus.$emit('showSVGmap', this.requestedType, this.requestedName, ids, forceReload);
       }
     });
@@ -283,14 +314,18 @@ export default {
           this.loadErrorMesssage = messages.unknownError;
         }
         this.showLoader = false;
-        this.loadedTissue = '';
-        this.requestedTissue = '';
+        this.loadedTissue1 = '';
+        this.requestedTissue1 = '';
+        this.loadedTissue2 = '';
+        this.requestedTissue2 = '';
+        console.log('here here');
+        EventBus.$emit('unselectFirstTissue');
+        EventBus.$emit('unselectSecondTissue');
         setTimeout(() => {
           this.loadErrorMesssage = '';
         }, 3000);
         return;
       }
-      this.loadedTissue = this.requestedTissue;
       this.showLoader = false;
     });
   },
@@ -333,6 +368,18 @@ export default {
       }
       this.getSubComptData(this.model);
     },
+    setFirstTissue(tissue) {
+      this.loadedTissue1 = tissue;
+    },
+    setSecondTissue(tissue) {
+      this.loadedTissue2 = tissue;
+    },
+    clearTissue1Selection() {
+      EventBus.$emit('unselectFirstTissue');
+    },
+    clearTissue2Selection() {
+      EventBus.$emit('unselectSecondTissue');
+    },
     hideDropleftMenus() {
       $('#menu ul.l1, #menu ul.l2').hide();
     },
@@ -344,8 +391,6 @@ export default {
       this.show2D = !this.show2D;
       this.selectedElement = null;
       this.selectionData.data = null;
-      this.requestedTissue = '';
-      this.loadedTissue = '';
       if (!this.currentDisplayedType || !this.currentDisplayedName) {
         return;
       }
@@ -382,9 +427,15 @@ export default {
       }
       this.updateURL(this.currentDisplayedType, this.currentDisplayedName, this.URLID);
       this.showLoader = false;
-      if (this.loadedTissue) {
-        this.loadHPARNAlevels(this.loadedTissue);
-      }
+
+      this.$nextTick(() => {
+        if (this.loadedTissue1 || this.loadedTissue2) {
+          console.log('reload RNA: with tissues', this.loadedTissue1, this.loadedTissue2);
+          EventBus.$emit('selectTissues', this.loadedTissue1, this.loadedTissue2, this.show2D ? '2d' : '3d');
+        } else {
+          EventBus.$emit('selectFirstTissue', 'urinary bladder', this.show2D ? '2d' : '3d', false);  // remove me
+        }
+      });
     },
     showMessage(errorMessage, messageType) {
       this.loadErrorMesssage = errorMessage;
@@ -475,16 +526,18 @@ export default {
     setHPATissue(tissues) {
       this.HPATissue = tissues;
     },
-    loadHPARNAlevels(tissue) {
-      this.requestedTissue = tissue;
-      if (this.requestedTissue === 'None') {
-        this.requestedTissue = '';
-        this.loadedTissue = '';
-      }
-      if (this.show2D) {
-        EventBus.$emit('load2DHPARNAlevels', tissue);
+    loadHPARNAlevelsTissue1(tissue) {
+      if (tissue === 'None') {
+        EventBus.$emit('unselectFirstTissue');
       } else {
-        EventBus.$emit('load3DHPARNAlevels', tissue);
+        EventBus.$emit('selectFirstTissue', tissue, this.show2D ? '2d' : '3d');
+      }
+    },
+    loadHPARNAlevelsTissue2(tissue) {
+       if (tissue === 'None') {
+        EventBus.$emit('unselectSecondTissue');
+      } else {
+        EventBus.$emit('selectSecondTissue', tissue, this.show2D ? '2d' : '3d');
       }
     },
     checkValidRequest(displayType, displayName) {
@@ -516,8 +569,10 @@ export default {
       if (compartmentOrSubsystemID) {
         EventBus.$emit('showAction', type, compartmentOrSubsystemID, [], false);
       } else {
-        this.loadedTissue = null;
-        this.requestedTissue = null;
+        this.loadedTissue1 = '';
+        this.requestedTissue1 = '';
+        this.loadedTissue2 = '';
+        this.requestedTissue2 = '';
         this.showOverviewScreen = true;
         this.$router.push(`/explore/map-viewer/${this.model.database_name}/`);
         // keep the loaded 2D map, and data info in the 'back', to quickly reload it

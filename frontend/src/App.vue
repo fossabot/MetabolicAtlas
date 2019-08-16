@@ -319,11 +319,15 @@ m, .clickable {
   }
 }
 
-#HPARNAexpLegend {
+#singleHPARNAexpLegend, #comparisonHPARNAexpLegend {
   margin: auto;
   border-radius: 0;
   .title {
     margin-bottom: 0.3em;
+  }
+
+  ul {
+    margin: 0;
   }
 
   list-style: none;

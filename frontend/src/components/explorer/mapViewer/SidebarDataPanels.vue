@@ -12,7 +12,7 @@
             </span>
           </a>
         </header>
-        <div v-html="getExpLvlLegend()" v-show="showLvlCardContent"></div>
+        <div v-html="RNAExpressionLegend" v-show="showLvlCardContent"></div>
       </div>
     </div>
     <div class="column" v-if="mapName">
@@ -132,7 +132,6 @@
 <script>
 import { capitalize, reformatStringToLink, idfy } from '../../../helpers/utils';
 import { chemicalFormula, chemicalReaction } from '../../../helpers/chemical-formatters';
-import { getExpLvlLegend } from '../../../expression-sources/hpa';
 import { default as messages } from '../../../helpers/messages';
 import { default as EventBus } from '../../../event-bus';
 
@@ -187,8 +186,16 @@ export default {
       showLvlCardContent: true,
       showMapCardContent: true,
       showSelectionCardContent: true,
+      RNAExpressionLegend: '',
       messages,
     };
+  },
+  created() {
+    EventBus.$off('updateRNAExpressionLegend');
+
+    EventBus.$on('updateRNAExpressionLegend', (legend) => {
+      this.RNAExpressionLegend = legend;
+    });
   },
   methods: {
     hasExternalIDs(keys) {
@@ -215,7 +222,6 @@ export default {
     showSubsystem(id) {
       EventBus.$emit('showAction', 'subsystem', id, [], false);
     },
-    getExpLvlLegend,
     capitalize,
     reformatStringToLink,
     chemicalFormula,

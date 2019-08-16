@@ -240,7 +240,7 @@ import { default as graph } from '../../../graph-stylers/hmr-closest-interaction
 import { chemicalName } from '../../../helpers/chemical-formatters';
 import { default as convertGraphML } from '../../../helpers/graph-ml-converter';
 
-import { getExpLvlLegend, getRNAExpressionColor } from '../../../expression-sources/hpa';
+import { getSingleExpLvlLegend, getSingleRNAExpressionColor } from '../../../expression-sources/hpa';
 import { default as messages } from '../../../helpers/messages';
 
 
@@ -966,12 +966,12 @@ export default {
             const tissue = this.tissues.HPA[j];
             let level = Math.log2(parseFloat(array[1].split(',')[j]) + 1);
             level = Math.round((level + 0.00001) * 100) / 100;
-            this.rawElms[enzID].expressionLvl.HPA.RNA[tissue] = getRNAExpressionColor(level);
+            this.rawElms[enzID].expressionLvl.HPA.RNA[tissue] = getSingleRNAExpressionColor(level);
           }
         }
         this.expSourceLoaded.gene.HPA = {};
         this.expSourceLoaded.gene.HPA.RNA = true;
-        this.legend = getExpLvlLegend();
+        this.legend = getSingleExpLvlLegend();
         this.disableExpLvl = false;
         this.loadingHPA = false;
         setTimeout(() => {

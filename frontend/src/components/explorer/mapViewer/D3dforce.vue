@@ -149,8 +149,9 @@ export default {
             const partialID = n.id.split('-')[0];
             if (this.HPARNAlevels[partialID] !== undefined) {
               return this.HPARNAlevels[partialID][1];
+            } else {
+              return this.HPARNAlevels['n/a'][1];
             }
-            return 'whitesmoke';
           } else if (n.g === 'r') {
             return '#fff';
           }
