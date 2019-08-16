@@ -26,16 +26,16 @@ function stop-stack {
 }
 
 function clean-stack {
-  docker stop $(docker ps -a -q) || true
-  docker rm $(docker ps -a -q) || true
-  docker volume prune --force || true
-  # The code below was not removing the db container properly
+  # docker stop $(docker ps -a -q) || true
+  # docker rm $(docker ps -a -q) || true
+  # docker volume prune --force || true
+  # All of the above in one line
   if [ "$METATLASPROD" = true ] ; then
     docker-compose -f docker-compose.yml -f docker-compose-prod.yml down
   else
     docker-compose -f docker-compose.yml -f docker-compose-local.yml down
   fi
-  docker volume prune -f
+  docker volume prune
 }
 
 function logs {
