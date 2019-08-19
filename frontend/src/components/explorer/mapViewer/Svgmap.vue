@@ -17,6 +17,7 @@
           style="position: absolute; left: 18px; top: 15px">S</span>
         </i>
       </span>
+      <span class="button" v-on:click="toggleFullScreen()" title="fullscreen" :disabled="isFullScreenDisabled"><i class="fa fa-arrows-alt"></i></span>
     </div>
     <div id="svgSearch" class="overlay">
       <div class="control" :class="{ 'is-loading' : isLoadingSearch }">
@@ -119,6 +120,15 @@ export default {
       }
     },
   },
+  computed: {
+    isFullScreenDisabled() {
+      const elem = $('.svgbox').first()[0];
+      if ((document.fullScreenElement !== undefined && document.fullScreenElement === null) || (document.msFullscreenElement !== undefined && document.msFullscreenElement === null) || (document.mozFullScreen !== undefined && !document.mozFullScreen) || (document.webkitIsFullScreen !== undefined && !document.webkitIsFullScreen)) {
+        return false;
+      }
+      return true;
+    },
+  },
   created() {
     EventBus.$off('showSVGmap');
     EventBus.$off('load2DHPARNAlevels');
@@ -168,6 +178,11 @@ export default {
       self.$refs.tooltip.innerHTML = '';
       self.$refs.tooltip.style.display = 'none';
     });
+    $('.svgbox').on('fullscreenchange', (e) => {
+        $('.svgbox').first().toggleClass('fullscreen');
+        $('#svgSearch').toggleClass('fullscreen');
+    });
+    
   },
   methods: {
     toggleGenes() {
@@ -182,6 +197,33 @@ export default {
         $('.subsystem .shape').attr('visibility', 'visible');
       } else {
         $('.subsystem .shape').attr('visibility', 'hidden');
+      }
+    },
+    toggleFullScreen() {
+      if (this.isFullScreenDisabled) {
+        return;
+      }
+      const elem = $('.svgbox').first()[0];
+      if ((document.fullScreenElement !== undefined && document.fullScreenElement === null) || (document.msFullscreenElement !== undefined && document.msFullscreenElement === null) || (document.mozFullScreen !== undefined && !document.mozFullScreen) || (document.webkitIsFullScreen !== undefined && !document.webkitIsFullScreen)) {
+          if (elem.requestFullScreen) {
+              elem.requestFullScreen();
+          } else if (elem.mozRequestFullScreen) {
+              elem.mozRequestFullScreen();
+          } else if (elem.webkitRequestFullScreen) {
+              elem.webkitRequestFullScreen(Element.ALLOW_KEYBOARD_INPUT);
+          } else if (elem.msRequestFullscreen) {
+              elem.msRequestFullscreen();
+          }
+      } else {
+          if (document.cancelFullScreen) {
+              document.cancelFullScreen();
+          } else if (document.mozCancelFullScreen) {
+              document.mozCancelFullScreen();
+          } else if (document.webkitCancelFullScreen) {
+              document.webkitCancelFullScreen();
+          } else if (document.msExitFullscreen) {
+              document.msExitFullscreen();
+          }
       }
     },
     zoomOut(bool) {
@@ -572,6 +614,9 @@ export default {
     padding: 0;
     width: 100%;
     height:100%;
+    &.fullscreen {
+      background: white;
+    }
   }
 
   #svgOption {
@@ -600,6 +645,12 @@ export default {
       display: inline-block;
       margin-right: 5px;
       width: 20vw;
+    }
+    &.fullscreen {
+      left: 30%;
+      #searchInput {
+        width: 30vw;
+      }
     }
   }
 
