@@ -71,7 +71,7 @@
           <div class="card-content card-content-compact" v-show="showSelectionCardContent">
             <div class="content" v-if="!selectionData.error">
               <p v-if="selectionData.data['rnaLvl'] != null">
-                <span class="has-text-weight-bold">RNA&nbsp;level:&nbsp;</span><span>{{ selectionData.data['rnaLvl'] }}</span>
+                <span class="has-text-weight-bold">RNA&nbsp;level:&nbsp;</span><span>{{ selectionData.data['rnaLvl'][1] }}</span>
               </p>
               <template v-for="item in selectedElementDataKeys[model.database_name][selectionData.type]"
                 v-if="selectionData.data[item.name] != null || item.name === 'external_ids'" >

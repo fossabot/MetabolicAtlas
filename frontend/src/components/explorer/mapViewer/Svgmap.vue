@@ -469,7 +469,7 @@ export default {
         } else if (type === 'gene') {
           // add the RNA level if any
           if (id in this.HPARNAlevels) {
-            data.rnaLvl = this.HPARNAlevels[id][1];
+            data.rnaLvl = this.HPARNAlevels[id];
           }
         }
         selectionData.data = data;
