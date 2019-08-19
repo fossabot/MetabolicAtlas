@@ -5,7 +5,18 @@
     <div id="svgOption" class="overlay">
       <span class="button" v-on:click="zoomOut(false)" title="Zoom in"><i class="fa fa-search-plus"></i></span>
       <span class="button" v-on:click="zoomOut(true)" title="Zoom out"><i class="fa fa-search-minus"></i></span>
-      <span class="button" v-on:click="toggleGenes()" title="Show/Hide genes"><i class="fa fa-filter"></i></span>
+      <span class="button" v-on:click="toggleGenes()" title="Show/Hide genes">
+        <i class="fa fa-filter">
+          <span class="is-size-7 has-text-weight-bold" 
+          style="position: absolute; left: 18px; top: 15px">G</span>
+        </i>
+      </span>
+      <span class="button" v-on:click="toggleSubsystems()" title="Show/Hide subsystem colors">
+        <i class="fa fa-filter">
+          <span class="is-size-7 has-text-weight-bold" 
+          style="position: absolute; left: 18px; top: 15px">S</span>
+        </i>
+      </span>
     </div>
     <div id="svgSearch" class="overlay">
       <div class="control" :class="{ 'is-loading' : isLoadingSearch }">
@@ -164,6 +175,13 @@ export default {
         $('.enz, .ee').attr('visibility', 'visible');
       } else {
         $('.enz, .ee').attr('visibility', 'hidden');
+      }
+    },
+    toggleSubsystems() {
+      if ($('.subsystem .shape').first().attr('visibility') === 'hidden') {
+        $('.subsystem .shape').attr('visibility', 'visible');
+      } else {
+        $('.subsystem .shape').attr('visibility', 'hidden');
       }
     },
     zoomOut(bool) {
