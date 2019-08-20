@@ -178,7 +178,7 @@ export default {
       self.$refs.tooltip.innerHTML = '';
       self.$refs.tooltip.style.display = 'none';
     });
-    $('.svgbox').on('fullscreenchange', (e) => {
+    $('.svgbox').on('webkitfullscreenchange mozfullscreenchange fullscreenchange MSFullscreenChange', (e) => {
         $('.svgbox').first().toggleClass('fullscreen');
         $('#svgSearch').toggleClass('fullscreen');
     });
@@ -205,25 +205,25 @@ export default {
       }
       const elem = $('.svgbox').first()[0];
       if ((document.fullScreenElement !== undefined && document.fullScreenElement === null) || (document.msFullscreenElement !== undefined && document.msFullscreenElement === null) || (document.mozFullScreen !== undefined && !document.mozFullScreen) || (document.webkitIsFullScreen !== undefined && !document.webkitIsFullScreen)) {
-          if (elem.requestFullScreen) {
-              elem.requestFullScreen();
-          } else if (elem.mozRequestFullScreen) {
-              elem.mozRequestFullScreen();
-          } else if (elem.webkitRequestFullScreen) {
-              elem.webkitRequestFullScreen(Element.ALLOW_KEYBOARD_INPUT);
-          } else if (elem.msRequestFullscreen) {
-              elem.msRequestFullscreen();
-          }
+        if (elem.requestFullScreen) {
+          elem.requestFullScreen();
+        } else if (elem.mozRequestFullScreen) {
+          elem.mozRequestFullScreen();
+        } else if (elem.webkitRequestFullScreen) {
+          elem.webkitRequestFullScreen(Element.ALLOW_KEYBOARD_INPUT);
+        } else if (elem.msRequestFullscreen) {
+          elem.msRequestFullscreen();
+        }
       } else {
-          if (document.cancelFullScreen) {
-              document.cancelFullScreen();
-          } else if (document.mozCancelFullScreen) {
-              document.mozCancelFullScreen();
-          } else if (document.webkitCancelFullScreen) {
-              document.webkitCancelFullScreen();
-          } else if (document.msExitFullscreen) {
-              document.msExitFullscreen();
-          }
+        if (document.cancelFullScreen) {
+          document.cancelFullScreen();
+        } else if (document.mozCancelFullScreen) {
+          document.mozCancelFullScreen();
+        } else if (document.webkitCancelFullScreen) {
+          document.webkitCancelFullScreen();
+        } else if (document.msExitFullscreen) {
+          document.msExitFullscreen();
+        }
       }
     },
     zoomOut(bool) {
