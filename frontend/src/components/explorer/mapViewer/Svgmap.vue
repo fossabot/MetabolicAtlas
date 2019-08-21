@@ -7,13 +7,13 @@
       <span class="button" v-on:click="zoomOut(true)" title="Zoom out"><i class="fa fa-search-minus"></i></span>
       <span class="button" v-on:click="toggleGenes()" title="Show/Hide genes">
         <i class="fa fa-filter">
-          <span class="is-size-7 has-text-weight-bold" 
+          <span class="is-size-7 has-text-weight-bold"
           style="position: absolute; left: 18px; top: 15px">G</span>
         </i>
       </span>
       <span class="button" v-on:click="toggleSubsystems()" title="Show/Hide subsystem colors">
         <i class="fa fa-filter">
-          <span class="is-size-7 has-text-weight-bold" 
+          <span class="is-size-7 has-text-weight-bold"
           style="position: absolute; left: 18px; top: 15px">S</span>
         </i>
       </span>
@@ -178,6 +178,16 @@ export default {
       self.$refs.tooltip.innerHTML = '';
       self.$refs.tooltip.style.display = 'none';
     });
+    $('.svgbox').on('webkitfullscreenchange mozfullscreenchange fullscreenchange mozFullScreen MSFullscreenChange', (e) => {
+        $('.svgbox').first().toggleClass('fullscreen');
+        $('#svgSearch').toggleClass('fullscreen');
+        e.stopPropagation();
+    });
+    $(document).on('mozfullscreenchange', (e) => {
+        $('.svgbox').first().toggleClass('fullscreen');
+        $('#svgSearch').toggleClass('fullscreen');
+    });
+
   },
   methods: {
     toggleGenes() {
@@ -220,8 +230,6 @@ export default {
           document.msExitFullscreen();
         }
       }
-      $('.svgbox').first().toggleClass('fullscreen');
-      $('#svgSearch').toggleClass('fullscreen');
     },
     zoomOut(bool) {
       if (this.$panzoom) {
