@@ -5,16 +5,12 @@
     <div id="svgOption" class="overlay">
       <span class="button" v-on:click="zoomOut(false)" title="Zoom in"><i class="fa fa-search-plus"></i></span>
       <span class="button" v-on:click="zoomOut(true)" title="Zoom out"><i class="fa fa-search-minus"></i></span>
-      <span class="button" v-on:click="toggleGenes()" title="Show/Hide genes">
-        <i class="fa fa-filter">
-          <span class="is-size-7 has-text-weight-bold"
-          style="position: absolute; left: 18px; top: 15px">G</span>
+      <span class="button" style="padding: 4.25px;" @click="toggleGenes()" title="Show/Hide genes">
+        <i class="fa fa-eye-slash">&thinsp;G
         </i>
       </span>
-      <span class="button" v-on:click="toggleSubsystems()" title="Show/Hide subsystem colors">
-        <i class="fa fa-filter">
-          <span class="is-size-7 has-text-weight-bold"
-          style="position: absolute; left: 18px; top: 15px">S</span>
+      <span class="button" style="padding: 4.25px;" @click="toggleSubsystems()" title="Show/Hide subsystem colors">
+        <i class="fa fa-eye-slash">&thinsp;S
         </i>
       </span>
       <span class="button" v-on:click="toggleFullScreen()" title="fullscreen" :disabled="isFullScreenDisabled"><i class="fa fa-arrows-alt"></i></span>
@@ -26,14 +22,14 @@
           v-on:keyup.enter="searchComponentIDs()" :disabled="!loadedMap"
           placeholder="Exact search by id, name, alias"/>
       </div>
-      <div v-show="searchTerm && totalSearchMatch">
+      <template v-if="searchTerm && totalSearchMatch">
         <span id="searchResCount" class="button has-text-dark" @click="centerElementOnSVG(0)" title="Click to center on current match">
           {{ this.currentSearchMatch }} of {{this.totalSearchMatch }}
         </span>
         <span class="button has-text-dark" @click="centerElementOnSVG(-1)" title="Go to previous"><i class="fa fa-angle-left"></i></span>
         <span class="button has-text-dark" @click="centerElementOnSVG(1)" title="Go to next"><i class="fa fa-angle-right"></i></span>
         <span class="button has-text-dark" @click="highlightElementsFound" title="Highlight all matches">Highlight all</span>
-      </div>
+      </template>
     </div>
     <div id="tooltip" ref="tooltip"></div>
   </div>
@@ -645,12 +641,11 @@ export default {
       display: inline-block;
       vertical-align: middle;
     }
-    span:first-child {
-      color: white;
+    span {
+      margin-left: 5px;
     }
     #searchInput {
       display: inline-block;
-      margin-right: 5px;
       width: 20vw;
     }
     &.fullscreen {
