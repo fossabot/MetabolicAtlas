@@ -178,11 +178,6 @@ export default {
       self.$refs.tooltip.innerHTML = '';
       self.$refs.tooltip.style.display = 'none';
     });
-    $('.svgbox').on('webkitfullscreenchange mozfullscreenchange fullscreenchange MSFullscreenChange', (e) => {
-        $('.svgbox').first().toggleClass('fullscreen');
-        $('#svgSearch').toggleClass('fullscreen');
-    });
-    
   },
   methods: {
     toggleGenes() {
@@ -225,6 +220,8 @@ export default {
           document.msExitFullscreen();
         }
       }
+      $('.svgbox').first().toggleClass('fullscreen');
+      $('#svgSearch').toggleClass('fullscreen');
     },
     zoomOut(bool) {
       if (this.$panzoom) {
