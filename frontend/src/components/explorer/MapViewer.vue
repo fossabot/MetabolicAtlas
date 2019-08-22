@@ -15,7 +15,7 @@
         <div id="iSideBar" class="column is-one-fifth-widescreen is-one-quarter-desktop is-one-quarter-tablet is-half-mobile is-fullheight">
           <div id="menu">
             <ul class="l0">
-              <li :title="`Select a ${show2D ? '2D' : '3D'} compartment network to show`">Compartments<span>&nbsp;&#9656;</span>
+              <li :title="`Select a ${dim.toUpperCase()} compartment network to show`">Compartments<span>&nbsp;&#9656;</span>
                 <ul class="vhs l1" title="">
                   <li @click="showMap()" class="has-background-grey-dark clickable"><i>Clear selection</i></li>
                   <div v-if="!has2DCompartmentMaps || show3D">
@@ -34,7 +34,7 @@
                   </div>
                 </ul>
               </li>
-              <li :title="`Select a ${show2D ? '2D' : '3D'} subsystem network to show`">Subsystems<span>&nbsp;&#9656;</span>
+              <li :title="`Select a ${dim.toUpperCase()} subsystem network to show`">Subsystems<span>&nbsp;&#9656;</span>
                 <ul class="vhs l1" title="">
                   <li @click="showMap()" class="has-background-grey-dark clickable"><i>Clear selection</i></li>
                   <div v-if="!has2DSubsystemMaps || show3D">
@@ -56,43 +56,11 @@
                   </div>
                 </ul>
               </li>
-              <li :class="{'clickable' : true, 'disable' : disabledRNAlvl }"
-                :title="getRNATitle()">RNA levels from <i style="color: lightblue">proteinAtlas.org</i>
-                <span v-show="HPATissue.length !== 0">&nbsp;&#9656;</span>
-                <ul class="vhs l1" title="">
-                  <li v-show="HPATissue.length !== 0" @click="clearTissue1Selection()" class="has-background-grey-dark clickable"><i>Clear selection</i></li>
-                  <li v-for="tissue in HPATissue" class="clickable is-capitalized" @click="loadHPARNAlevelsTissue1(tissue)"
-                    :class="{'has-text-warning': tissue === loadedTissue1 }">
-                    {{ tissue }}
-                  </li>
-                </ul>
-              </li>
-              <li :class="{'clickable' : true, 'disable' : disabledRNAlvl }"
-                :title="getRNATitle()">RNA levels from <i style="color: lightblue">proteinAtlas.org</i>
-                <span v-show="HPATissue.length !== 0">&nbsp;&#9656;</span>
-                <ul class="vhs l1" title="">
-                  <li v-show="HPATissue.length !== 0" @click="clearTissue2Selection()" class="has-background-grey-dark clickable"><i>Clear selection</i></li>
-                  <li v-for="tissue in HPATissue" class="clickable is-capitalized" @click="loadHPARNAlevelsTissue2(tissue)"
-                    :class="{'has-text-warning': tissue === loadedTissue2 }">
-                    {{ tissue }}
-                  </li>
-                </ul>
-              </li>
             </ul>
           </div>
-          <RNAexpression
-            :model="model"
-            :mapType="currentDisplayedType"
-            :mapName="currentDisplayedName"
-            @loadedHPARNAtissue="setHPATissue($event)"
-            @firstTissueSelected="setFirstTissue($event)"
-            @secondTissueSelected="setSecondTissue($event)"
-            >
-          </RNAexpression>
           <sidebar-data-panels
             :model="model"
-            :dim="show2D ? '2d' : '3d'"
-            :tissue="tissuesSelectedString"
+            :dim="dim"
             :mapType="currentDisplayedType"
             :mapName="currentDisplayedName"
             :mapsData="show2D ? mapsData2D : mapsData3D"
@@ -104,6 +72,28 @@
           <p class="is-size-5 has-text-centered" style="padding: 10%;">Choose a compartment or subsystem map from the menu on the left</p>
         </div>
         <div id="graphframe" v-show="!showOverviewScreen" class="column is-unselectable">
+          <div id="dataOverlayBar" title="Click to show the data overlay panel">
+            <div id="dataOverlayBut" v-show="showOverlayButton" class="column has-background-primary has-text-white" @click="toggleDataOverlayPanel = !toggleDataOverlayPanel">
+              <span class="icon">
+                <i class="fa fa-arrow-left"></i>
+              </span>
+              <p class="is-size-5 has-text-centered has-text-weight-bold">
+                D&nbsp;&nbsp;<br>A&nbsp;&nbsp;<br>T&nbsp;&nbsp;<br>A&nbsp;&nbsp;<br><br>
+                O&nbsp;&nbsp;<br>V&nbsp;&nbsp;<br>E&nbsp;&nbsp;<br>R&nbsp;&nbsp;<br>L&nbsp;&nbsp;<br>A&nbsp;&nbsp;<br>Y&nbsp;&nbsp;
+              </p>
+              <span class="icon">
+                <i class="fa fa-arrow-left"></i>
+              </span>
+            </div>
+          </div>
+          <DataOverlay
+            :model="model"
+            :mapType="currentDisplayedType"
+            :mapName="currentDisplayedName"
+            :dim="dim"
+            @hidePanel="toggleDataOverlayPanel = !toggleDataOverlayPanel"
+            v-show="toggleDataOverlayPanel">
+          </DataOverlay>
           <div class="is-fullheight">
             <svgmap v-show="show2D" :model="model" :mapsData="mapsData2D"
               @loadComplete="handleLoadComplete"
@@ -119,13 +109,13 @@
           </div>
           <div id="iSwitch" class="overlay">
             <span class="button" @click="switchDimension" :disabled="!activeSwitch"
-            :title="activeSwitch ? `Reload the current network in ${show2D ? '3D' : '2D'}` : ''">
+            :title="activeSwitch ? `Reload the current network in ${dim.toUpperCase()}` : ''">
               <template v-if="activeSwitch">
-                Switch to&nbsp;<b>{{ show3D ? '2D' : '3D' }}</b>
+                Switch to&nbsp;<b>{{ dim.toUpperCase() }}</b>
               </template>
               <template v-else>
                 <template v-if="!disabled2D">
-                  Switch to&nbsp;<b>{{ show3D ? '2D' : '3D' }}</b>
+                  Switch to&nbsp;<b>{{ dim.toUpperCase() }}</b>
                 </template>
                 <template v-else>
                   2D disabled
@@ -155,7 +145,7 @@
 import $ from 'jquery';
 import axios from 'axios';
 import SidebarDataPanels from '@/components/explorer/mapViewer/SidebarDataPanels';
-import RNAexpression from '@/components/explorer/mapViewer/RNAexpression.vue';
+import DataOverlay from '@/components/explorer/mapViewer/DataOverlay.vue';
 import Svgmap from '@/components/explorer/mapViewer/Svgmap';
 import D3dforce from '@/components/explorer/mapViewer/D3dforce';
 import { default as EventBus } from '../../event-bus';
@@ -166,7 +156,7 @@ export default {
   props: ['model'],
   components: {
     SidebarDataPanels,
-    RNAexpression,
+    DataOverlay,
     Svgmap,
     D3dforce,
   },
@@ -210,11 +200,8 @@ export default {
       showSelectionLoader: false,
       isHoverMenuItem: false,
 
-      HPATissue: [],
-      requestedTissue1: '',
-      loadedTissue1: '',
-      requestedTissue2: '',
-      loadedTissue2: '',
+      showOverlayButton: true,
+      toggleDataOverlayPanel: false,
 
       messages,
     };
@@ -237,20 +224,8 @@ export default {
       const altID = this.mapsData3D.subsystems[this.currentDisplayedName].alternateDim;
       return !(altID in this.mapsData2D.subsystems && this.mapsData2D.subsystems[altID].sha);
     },
-    disabledRNAlvl() {
-      return !this.currentDisplayedName || this.HPATissue.length === 0;
-    },
-    tissuesSelectedString() {
-      if (this.loadedTissue1) {
-        if (this.loadedTissue2) {
-          return [`${this.loadedTissue1} VS ${this.loadedTissue2}`, `Tissue1: ${this.loadedTissue1} - Tissue2: ${this.loadedTissue2}`];
-        } else {
-          return [this.loadedTissue1, ''];
-        }
-      } else if (this.loadedTissue2) {
-        return [this.loadedTissue2, ''];
-      }
-      return '';
+    dim() {
+      return this.show2D ? '2d' : '3d';
     },
   },
   watch: {
@@ -304,7 +279,6 @@ export default {
     EventBus.$on('endSelectedElement', (isSuccess) => {
       this.showSelectionLoader = false;
       this.selectionData.error = !isSuccess;
-      // this.showSelectedElementPanelError = !isSuccess;
     });
     EventBus.$on('loadRNAComplete', (isSuccess, errorMessage) => {
       if (!isSuccess) {
@@ -314,11 +288,6 @@ export default {
           this.loadErrorMesssage = messages.unknownError;
         }
         this.showLoader = false;
-        this.loadedTissue1 = '';
-        this.requestedTissue1 = '';
-        this.loadedTissue2 = '';
-        this.requestedTissue2 = '';
-        console.log('here here');
         EventBus.$emit('unselectFirstTissue');
         EventBus.$emit('unselectSecondTissue');
         setTimeout(() => {
@@ -336,7 +305,7 @@ export default {
     // menu
     const self = this;
     $('#menu').on('mouseenter', 'ul.l0 > li:has(ul)', function f() {
-      if ($(this).hasClass('disable')) {
+      if (self.toggleDataOverlayPanel || $(this).hasClass('disable')) {
         return;
       }
       $('#menu ul.l1, #menu ul.l2').hide();
@@ -367,18 +336,6 @@ export default {
         return;
       }
       this.getSubComptData(this.model);
-    },
-    setFirstTissue(tissue) {
-      this.loadedTissue1 = tissue;
-    },
-    setSecondTissue(tissue) {
-      this.loadedTissue2 = tissue;
-    },
-    clearTissue1Selection() {
-      EventBus.$emit('unselectFirstTissue');
-    },
-    clearTissue2Selection() {
-      EventBus.$emit('unselectSecondTissue');
     },
     hideDropleftMenus() {
       $('#menu ul.l1, #menu ul.l2').hide();
@@ -428,14 +385,14 @@ export default {
       this.updateURL(this.currentDisplayedType, this.currentDisplayedName, this.URLID);
       this.showLoader = false;
 
-      this.$nextTick(() => {
-        if (this.loadedTissue1 || this.loadedTissue2) {
-          console.log('reload RNA: with tissues', this.loadedTissue1, this.loadedTissue2);
-          EventBus.$emit('selectTissues', this.loadedTissue1, this.loadedTissue2, this.show2D ? '2d' : '3d');
-        } else {
-          EventBus.$emit('selectFirstTissue', 'urinary bladder', this.show2D ? '2d' : '3d', false);  // remove me
-        }
-      });
+      // this.$nextTick(() => {
+      //   if (this.loadedTissue1 || this.loadedTissue2) {
+      //     console.log('reload RNA: with tissues', this.loadedTissue1, this.loadedTissue2);
+      //     EventBus.$emit('selectTissues', this.loadedTissue1, this.loadedTissue2, this.show2D ? '2d' : '3d');
+      //   } else {
+      //     EventBus.$emit('selectFirstTissue', 'urinary bladder', this.show2D ? '2d' : '3d', false);  // remove me
+      //   }
+      // });
     },
     showMessage(errorMessage, messageType) {
       this.loadErrorMesssage = errorMessage;
@@ -466,7 +423,6 @@ export default {
           this.compartmentMapping.dim3D[c.compartment] = c.name_id;
         }
         this.has2DCompartmentMaps = Object.keys(this.mapsData2D.compartments).length !== 0;
-        // this.mapsData2D.compartments.sort();
         this.mapsData3D.subsystems = {};
         for (const s of response.data.subsystem) {
           this.mapsData3D.subsystems[s.name_id] = s;
@@ -515,29 +471,11 @@ export default {
     },
     updateURL(type, mapID, URLID) {
       this.watchURL = false;
-      const dim = this.show2D ? '2d' : '3d';
       if (URLID && false) {
         // no reaction id in url for now
-        this.$router.push(`/explore/map-viewer/${this.model.database_name}/${type}/${mapID}/${URLID}?dim=${dim}`);
+        this.$router.push(`/explore/map-viewer/${this.model.database_name}/${type}/${mapID}/${URLID}?dim=${this.dim}`);
       } else {
-        this.$router.push(`/explore/map-viewer/${this.model.database_name}/${type}/${mapID}?dim=${dim}`);
-      }
-    },
-    setHPATissue(tissues) {
-      this.HPATissue = tissues;
-    },
-    loadHPARNAlevelsTissue1(tissue) {
-      if (tissue === 'None') {
-        EventBus.$emit('unselectFirstTissue');
-      } else {
-        EventBus.$emit('selectFirstTissue', tissue, this.show2D ? '2d' : '3d');
-      }
-    },
-    loadHPARNAlevelsTissue2(tissue) {
-       if (tissue === 'None') {
-        EventBus.$emit('unselectSecondTissue');
-      } else {
-        EventBus.$emit('selectSecondTissue', tissue, this.show2D ? '2d' : '3d');
+        this.$router.push(`/explore/map-viewer/${this.model.database_name}/${type}/${mapID}?dim=${this.dim}`);
       }
     },
     checkValidRequest(displayType, displayName) {
@@ -577,12 +515,6 @@ export default {
         this.$router.push(`/explore/map-viewer/${this.model.database_name}/`);
         // keep the loaded 2D map, and data info in the 'back', to quickly reload it
       }
-    },
-    getRNATitle() {
-      if (this.HPATissue.length === 0) {
-        return `RNA expression levels not available for ${this.model.short_name}`;
-      }
-      return this.disabledRNAlvl ? 'RNA expression levels disabled, select a map first' : 'Select a tissue from the list to color genes according their expression levels in that tissue';
     },
   },
 };
@@ -641,6 +573,53 @@ $footer-height: 4.55rem;
     padding: 0;
     margin: 0;
     overflow: hidden;
+  }
+
+
+  #dataOverlayBar {
+    position: absolute;
+    z-index: 10;
+    right: 0;
+    min-height: calc(100vh - #{$navbar-height} - #{$footer-height});
+    max-height: calc(100vh - #{$navbar-height} - #{$footer-height});
+    height: calc(100vh - #{$navbar-height} - #{$footer-height});
+    display: table;
+    opacity: 0.7 ;
+  }
+
+  #dataOverlayBut {
+    display:table-cell;
+    vertical-align: middle;
+    border: 1px solid black;
+    cursor: pointer;
+    line-height: 17px;
+    padding-left: 10px;
+    padding-right: 10px;
+    .icon {
+      padding-right: 10px;
+      padding-bottom: 20px;
+      padding-top: 20px;
+    }
+  }
+
+  #dataOverlayPanel {
+    z-index: 13;
+    padding: 10px 10px;
+    position: absolute;
+    right: 0;
+    min-height: calc(100vh - #{$navbar-height} - #{$footer-height});
+    border-left: 1px solid gray;
+  }
+
+  #collapseBar {
+    width: 7%;
+    color: white;
+    background: $primary;
+    min-height: calc(101vh - #{$navbar-height} - #{$footer-height});
+    max-height: calc(101vh - #{$navbar-height} - #{$footer-height});
+    height: calc(101vh - #{$navbar-height} - #{$footer-height});
+    cursor: pointer;
+    opacity: 0.7;
   }
 
   .overlay {

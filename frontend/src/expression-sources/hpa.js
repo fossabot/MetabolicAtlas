@@ -23,7 +23,7 @@ export function getComparisonRNAExpressionColor(value) {
 }
 
 export function getSingleExpLvlLegend() {
-  let l = '<div id="singleHPARNAexpLegend" class="box"><div><h5 class="title is-6 has-text-centered">HPA RNA expression level - log<sub>2</sub>(TPM)</h5></div>';
+  let l = '<div id="singleHPARNAexpLegend" class="box"><div class="title is-6 has-text-centered">HPA RNA expression lvl - log<sub>2</sub>(TPM)</div>';
   l += '<div class="has-text-centered">';
   if (notDetectedSingleColor) {
     l += `<ul><li><span class="boxc" style="background: ${notDetectedSingleColor};"></span><span>n/a</span></li></ul>`;
@@ -45,7 +45,7 @@ export function getSingleExpLvlLegend() {
 }
 
 export function getComparisonExpLvlLegend() {
-  let l = '<div id="comparisonHPARNAexpLegend" class="box"><div><h5 class="title is-6 has-text-centered">HPA RNA expression ratio<br>log<sub>2</sub>(TPM<sub>T2</sub>+1 / TPM<sub>T1</sub>+1)</h5></div>';
+  let l = '<div id="comparisonHPARNAexpLegend" class="box"><div class="title is-6 has-text-centered">HPA RNA expression ratio<br>log<sub>2</sub>(TPM<sub>T2</sub>+1 / TPM<sub>T1</sub>+1)</div>';
   l += '<div class="has-text-centered">';
   if (notDetectedComparisonColor) {
     l += `<ul><li><span class="boxc" style="background: ${notDetectedComparisonColor};"></span><span>n/a</span></li></ul>`;

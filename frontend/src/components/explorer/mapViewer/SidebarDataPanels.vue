@@ -1,20 +1,5 @@
 <template>
   <div id="sidebar_mapviewer">
-    <div class="column" v-if="tissue">
-      <div class="card">
-        <header class="card-header clickable" @click.prevent="showLvlCardContent = !showLvlCardContent">
-          <p class="card-header-title is-inline" :title="tissue[1]">
-            RNA levels for&nbsp;<i class="is-capitalized">{{ tissue[0] }}</i>
-          </p>
-          <a href="#" class="card-header-icon" aria-label="more options">
-            <span class="icon">
-              <i aria-hidden="true" :class="[showLvlCardContent ? 'fa-caret-down' : 'fa-caret-right', 'fa']"></i>
-            </span>
-          </a>
-        </header>
-        <div v-html="RNAExpressionLegend" v-show="showLvlCardContent"></div>
-      </div>
-    </div>
     <div class="column" v-if="mapName">
       <div class="card">
         <header class="card-header" @click.prevent="showMapCardContent = !showMapCardContent">
@@ -104,7 +89,7 @@
                   <span v-html="chemicalReaction(selectionData.data[item.name], selectionData.data['is_reversible'])"></span></p>
                 </template>
                 <template v-else-if="item.name === 'formula'">
-                  <p><span class="has-text-weight-bold" v-html="capitalize(item.display || item.name) + ':'"></span>
+                  <p><span class="has-text-weight-bold" v-html="capitalize(item.display || item.name) + ': '"></span>
                   <span v-html="chemicalFormula(selectionData.data[item.name], selectionData.data.charge)"></span></p>
                 </template>
                 <template v-else>
@@ -137,7 +122,7 @@ import { default as EventBus } from '../../../event-bus';
 
 export default {
   name: 'sidebar-data-panels',
-  props: ['model', 'dim', 'tissue', 'mapType', 'mapName', 'mapsData', 'selectionData', 'loading'],
+  props: ['model', 'dim', 'mapType', 'mapName', 'mapsData', 'selectionData', 'loading'],
   data() {
     return {
       errorMessage: '',
@@ -183,19 +168,10 @@ export default {
           ],
         },
       },
-      showLvlCardContent: true,
       showMapCardContent: true,
       showSelectionCardContent: true,
-      RNAExpressionLegend: '',
       messages,
     };
-  },
-  created() {
-    EventBus.$off('updateRNAExpressionLegend');
-
-    EventBus.$on('updateRNAExpressionLegend', (legend) => {
-      this.RNAExpressionLegend = legend;
-    });
   },
   methods: {
     hasExternalIDs(keys) {
