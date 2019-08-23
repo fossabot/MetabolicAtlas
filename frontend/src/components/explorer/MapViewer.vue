@@ -72,8 +72,8 @@
           <p class="is-size-5 has-text-centered" style="padding: 10%;">Choose a compartment or subsystem map from the menu on the left</p>
         </div>
         <div id="graphframe" v-show="!showOverviewScreen" class="column is-unselectable">
-          <div id="dataOverlayBar" title="Click to show the data overlay panel">
-            <div id="dataOverlayBut" v-show="showOverlayButton" class="column has-background-primary has-text-white" @click="toggleDataOverlayPanel = !toggleDataOverlayPanel">
+          <div id="dataOverlayBar" title="Click to show the data overlay panel" v-show="!showLoader && !toggleDataOverlayPanel">
+            <div id="dataOverlayBut" class="column has-background-primary has-text-white" @click="toggleDataOverlayPanel = !toggleDataOverlayPanel">
               <span class="icon">
                 <i class="fa fa-arrow-left"></i>
               </span>
@@ -199,10 +199,7 @@ export default {
       },
       showSelectionLoader: false,
       isHoverMenuItem: false,
-
-      showOverlayButton: true,
       toggleDataOverlayPanel: false,
-
       messages,
     };
   },
@@ -305,7 +302,7 @@ export default {
     // menu
     const self = this;
     $('#menu').on('mouseenter', 'ul.l0 > li:has(ul)', function f() {
-      if (self.toggleDataOverlayPanel || $(this).hasClass('disable')) {
+      if ($(this).hasClass('disable')) {
         return;
       }
       $('#menu ul.l1, #menu ul.l2').hide();
@@ -385,14 +382,9 @@ export default {
       this.updateURL(this.currentDisplayedType, this.currentDisplayedName, this.URLID);
       this.showLoader = false;
 
-      // this.$nextTick(() => {
-      //   if (this.loadedTissue1 || this.loadedTissue2) {
-      //     console.log('reload RNA: with tissues', this.loadedTissue1, this.loadedTissue2);
-      //     EventBus.$emit('selectTissues', this.loadedTissue1, this.loadedTissue2, this.show2D ? '2d' : '3d');
-      //   } else {
-      //     EventBus.$emit('selectFirstTissue', 'urinary bladder', this.show2D ? '2d' : '3d', false);  // remove me
-      //   }
-      // });
+      this.$nextTick(() => {
+        EventBus.$emit('reloadGeneExpressionData');
+      });
     },
     showMessage(errorMessage, messageType) {
       this.loadErrorMesssage = errorMessage;
@@ -608,6 +600,8 @@ $footer-height: 4.55rem;
     position: absolute;
     right: 0;
     min-height: calc(100vh - #{$navbar-height} - #{$footer-height});
+    max-height: calc(101vh - #{$navbar-height} - #{$footer-height});
+    height: calc(101vh - #{$navbar-height} - #{$footer-height});
     border-left: 1px solid gray;
   }
 

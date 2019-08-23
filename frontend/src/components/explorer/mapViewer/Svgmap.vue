@@ -33,7 +33,6 @@ import axios from 'axios';
 import $ from 'jquery';
 import JQPanZoom from 'jquery.panzoom';
 import JQMouseWheel from 'jquery-mousewheel';
-import Loader from '@/components/Loader';
 import { default as EventBus } from '../../../event-bus';
 import { default as messages } from '../../../helpers/messages';
 
@@ -52,9 +51,6 @@ $.fn.extend({
 export default {
   name: 'svgmap',
   props: ['model', 'mapsData'],
-  components: {
-    Loader,
-  },
   data() {
     return {
       errorMessage: '',
@@ -268,7 +264,6 @@ export default {
               this.svgContentHistory[this.svgName] = response.data;
               this.loadedMapHistory[this.svgName] = mapInfo;
               setTimeout(() => {
-                // this.showLoader = false;
                 this.loadSvgPanZoom(callback);
               }, 0);
             })
