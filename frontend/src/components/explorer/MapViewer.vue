@@ -324,6 +324,10 @@ export default {
       $(this).find('ul').first().show();
       self.isHoverMenuItem = true;
     });
+
+    $('#graphframe').on('click', function f() {
+      $('#menu ul.l1, #menu ul.l2').hide();
+    });
   },
   methods: {
     setup() {

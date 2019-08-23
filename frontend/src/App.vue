@@ -498,21 +498,6 @@ m, .clickable {
   }
 }
 
-#gem-browser-tiles {
-  .tile.is-child {
-    &:hover {
-      box-shadow: 0 2px 3px gray, 0 0 0 1px gray;
-    }
-    ul {
-      list-style-type: disc;
-      margin-left: 2rem;
-    }
-  }
-  .box {
-    box-shadow: 0 2px 3px lightgray, 0 0 0 1px lightgray;
-  }
-}
-
 #documentation hr {
    margin-top: 2.75rem;
 }

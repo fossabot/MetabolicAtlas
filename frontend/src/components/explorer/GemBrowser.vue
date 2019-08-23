@@ -17,51 +17,51 @@
       <div v-if="selectedType === ''">
         <div class="columns is-centered">
           <div class="column is-10 is-size-5 has-text-centered">
-            Use the search field above to look for your constituent of interest.<br>
-            A selection of <b>random</b> constituents of {{ model.short_name }} is shown below.<br><br>
+            <p>Use the search field above to look for your element of interest.</p>
+            <p>A selection of &thinsp;<button id="randomButton" class="button is-rounded" @click="get_tiles_data()" title="Fetch another random set of elements"><b>random</b></button>&thinsp; elements of {{ model.short_name }} is shown below.</p><br>
           </div>
         </div>
         <div id="gem-browser-tiles" class="tile is-ancestor is-size-5" v-if="starredComponents">
-          <div class="tile">
-            <div class="tile is-vertical is-9">
-              <div class="tile">
-                <tile type="reaction" :model="model" :data="starredComponents.reactions[0]">
+            <div class="tile">
+              <div class="tile is-vertical is-9">
+                <div class="tile">
+                  <tile type="reaction" :model="model" :data="starredComponents.reactions[0]">
+                  </tile>
+                  <div class="tile is-vertical is-8">
+                    <tile type="subsystem" :model="model" :data="starredComponents.subsystems[0]">
+                    </tile>
+                    <div class="tile">
+                      <tile type="gene" size="is-6" :model="model" :data="starredComponents.genes[0]">
+                      </tile>
+                      <tile type="metabolite" size="is-6" :model="model" :data="starredComponents.metabolites[0]">
+                      </tile>
+                    </div>
+                  </div>
+                </div>
+                <div class="tile">
+                  <div class="tile is-vertical is-8">
+                    <div class="tile">
+                      <tile type="subsystem" :model="model" :data="starredComponents.subsystems[1]">
+                      </tile>
+                    </div>
+                    <div class="tile">
+                      <tile type="metabolite" size="is-6" :model="model" :data="starredComponents.metabolites[1]">
+                      </tile>
+                      <tile type="gene" size="is-6" :model="model" :data="starredComponents.genes[1]">
+                      </tile>
+                    </div>
+                  </div>
+                  <div class="tile is-4">
+                    <tile type="reaction" :model="model" :data="starredComponents.reactions[1]">
+                    </tile>
+                  </div>
+                </div>
+              </div>
+              <div class="tile is-vertical">
+                <tile type="compartment" :model="model" :data="starredComponents.compartment">
                 </tile>
-                <div class="tile is-vertical is-8">
-                  <tile type="subsystem" :model="model" :data="starredComponents.subsystems[0]">
-                  </tile>
-                  <div class="tile">
-                    <tile type="gene" size="is-6" :model="model" :data="starredComponents.genes[0]">
-                    </tile>
-                    <tile type="metabolite" size="is-6" :model="model" :data="starredComponents.metabolites[0]">
-                    </tile>
-                  </div>
-                </div>
-              </div>
-              <div class="tile">
-                <div class="tile is-vertical is-8">
-                  <div class="tile">
-                    <tile type="subsystem" :model="model" :data="starredComponents.subsystems[1]">
-                    </tile>
-                  </div>
-                  <div class="tile">
-                    <tile type="metabolite" size="is-6" :model="model" :data="starredComponents.metabolites[1]">
-                    </tile>
-                    <tile type="gene" size="is-6" :model="model" :data="starredComponents.genes[1]">
-                    </tile>
-                  </div>
-                </div>
-                <div class="tile is-4">
-                  <tile type="reaction" :model="model" :data="starredComponents.reactions[1]">
-                  </tile>
-                </div>
               </div>
             </div>
-            <div class="tile is-vertical">
-              <tile type="compartment" :model="model" :data="starredComponents.compartments[0]">
-              </tile>
-            </div>
-          </div>
         </div>
       </div>
       <div v-else>
@@ -170,13 +170,31 @@ export default {
         this.errorMessage = messages.unknownError;
       });
     },
-    showMapViewer() {
-      EventBus.$emit('showMapViewer');
-    },
   },
 };
 
 </script>
 
 <style lang="scss">
+
+#gem-browser-tiles {
+  word-wrap: anywhere;
+  .tile.is-child {
+    &:hover {
+      box-shadow: 0 2px 3px gray, 0 0 0 1px gray;
+    }
+    ul {
+      list-style-type: disc;
+      margin-left: 2rem;
+    }
+  }
+  .box {
+    box-shadow: 0 2px 3px lightgray, 0 0 0 1px lightgray;
+  }
+}
+
+#randomButton {
+  vertical-align: inherit;
+}
+
 </style>
