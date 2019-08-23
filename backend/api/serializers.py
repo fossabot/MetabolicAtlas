@@ -387,7 +387,7 @@ class SubsystemSvgSerializer(serializers.ModelSerializer):
 
 
 class GemBrowserTileSerializer(serializers.Serializer):
-    compartments = GemBrowserTileCompartmentSerializer(many=True)
+    compartment = GemBrowserTileCompartmentSerializer()
     subsystems = GemBrowserTileSubsystemSerializer(many=True)
     reactions = APIrcSerializer.GemBrowserTileReactionSerializer(many=True)
     metabolites = APIrcSerializer.GemBrowserTileMetaboliteSerializer(many=True)
