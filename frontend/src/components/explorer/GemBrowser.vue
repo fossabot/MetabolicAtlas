@@ -17,8 +17,8 @@
       <div v-if="selectedType === ''">
         <div class="columns is-centered">
           <div class="column is-10 is-size-5 has-text-centered">
-            Use the search field above to look for your constituent of interest.<br>
-            A selection of <b>random</b> constituents of {{ model.short_name }} is shown below.<br><br>
+            <p>Use the search field above to look for your element of interest.</p>
+            <p>A selection of &thinsp;<button id="randomButton" class="button is-rounded" @click="get_tiles_data()" title="Fetch another random set of elements"><b>random</b></button>&thinsp; elements of {{ model.short_name }} is shown below.</p><br>
           </div>
         </div>
         <div id="gem-browser-tiles" class="tile is-ancestor is-size-5" v-if="starredComponents">
@@ -176,96 +176,11 @@ export default {
     get_tiles_data() {
       axios.get(`${this.model.database_name}/gem_browser_tiles/`)
       .then((response) => {
-        for (const k of Object.keys(response.data)) {
-          if (Array.isArray(response.data[k])) {
-            response.data[k][0].hidden = false; response.data[k][1].hidden = false;
-          } else {
-            response.data[k].hidden = false;
-          }
-        }
         this.starredComponents = response.data;
       })
       .catch(() => {
         this.errorMessage = messages.unknownError;
       });
-    },
-    loop() {
-      this.update_starred_components();
-      this.timeoutLoop = window.setTimeout(this.loop, this.timeout);
-      if (this.timeout !== 40000) {
-        this.timeout = 40000;
-      }
-      if (this.counter === this.maxTileUpdateCount) {
-        clearTimeout(this.timeoutLoop);
-      }
-      this.counter += 1;
-    },
-    update_starred_components() {
-      if (this.selectedType !== '' || this._inactive) {
-        // do not update tiles when the GB is not on the screen or when the tiles are not shown
-        if (this.interval) {
-          clearInterval(this.interval);
-        }
-        return;
-      }
-      axios.get(`${this.model.database_name}/gem_browser_tiles/`)
-      .then((response) => {
-        if (this.interval) {
-          clearInterval(this.interval);
-        }
-        this.newStarredComponents = response.data;
-        // add the 'hidden' key
-        for (const v of Object.values(this.newStarredComponents)) {
-           if (Array.isArray(v)) {
-            v[0].hidden = false; v[1].hidden = false;
-           } else {
-            v.hidden = false;
-           }
-        }
-        this.interval = setInterval(() => {
-          if (Object.keys(this.newStarredComponents).length === 0) {
-            return;
-          }
-          const index = Math.floor(Math.random() * Math.floor(Object.keys(this.newStarredComponents).length));
-          const key = Object.keys(this.newStarredComponents)[index];
-          if (Array.isArray(this.newStarredComponents[key])) {
-            this.update_tiles_data(key);
-          } else {
-            this.starredComponents[key].hidden = true;
-            setTimeout(() => {
-              this.newStarredComponents[key].hidden = false;
-              Vue.set(this.starredComponents, key, JSON.parse(JSON.stringify(this.newStarredComponents[key])));
-              delete this.newStarredComponents[key];
-            },500);
-          }
-        }, 4000);
-      })
-      .catch(() => {
-        this.errorMessage = messages.unknownError;
-      });
-    },
-    update_tiles_data(key) {
-      // select a random index of the array (reaction / gene/ metabolite / subsystem)
-      let indexArr = Math.floor(Math.random() * Math.floor(this.newStarredComponents[key].length));
-      if (!this.newStarredComponents[key][indexArr]) {
-        indexArr ^= 1;
-      }
-      this.starredComponents[key][indexArr].hidden = true;
-      setTimeout(() => {
-        if (indexArr === 0) {
-          this.starredComponents[key] = [JSON.parse(JSON.stringify(this.newStarredComponents[key][indexArr])), this.starredComponents[key][1]];
-          this.newStarredComponents[key][indexArr] = '';
-        } else {
-          this.starredComponents[key] = [this.starredComponents[key][0], JSON.parse(JSON.stringify(this.newStarredComponents[key][indexArr]))];
-          this.newStarredComponents[key][indexArr] = '';
-        }
-        if (this.newStarredComponents[key].filter(e => e).length === 0) {
-          delete this.newStarredComponents[key];
-        }
-      },500);
-    },
-    showMapViewer() {
-      EventBus.$emit('showMapViewer');
     },
   },
 };
@@ -273,4 +188,25 @@ export default {
 </script>
 
 <style lang="scss">
+
+#gem-browser-tiles {
+  word-wrap: anywhere;
+  .tile.is-child {
+    &:hover {
+      box-shadow: 0 2px 3px gray, 0 0 0 1px gray;
+    }
+    ul {
+      list-style-type: disc;
+      margin-left: 2rem;
+    }
+  }
+  .box {
+    box-shadow: 0 2px 3px lightgray, 0 0 0 1px lightgray;
+  }
+}
+
+#randomButton {
+  vertical-align: inherit;
+}
+
 </style>
