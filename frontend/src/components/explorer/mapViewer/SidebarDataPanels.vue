@@ -85,17 +85,17 @@
                     </template>
                   </p>
                 </template>
-                <template v-else-if="['aliases', 'subsystem'].includes(item.name)">
+                <template v-else-if="['aliases', 'subsystem_str'].includes(item.name)">
                   <span class="has-text-weight-bold">{{ capitalize(item.display || item.name) }}:</span><p>
                   <template v-for="s in selectionData.data[item.name].split('; ')">
                     &ndash;&nbsp;{{ s }}<br>
                   </template></p>
                 </template>
-                <template v-else-if="['reactants', 'products'].includes(item.name)">
+                <template v-else-if="['reactionreactant_set', 'reactionproduct_set'].includes(item.name)">
                   <span class="has-text-weight-bold">{{ capitalize(item.display || item.name) }}:</span>
                   <p>
                     <template v-for="s in selectionData.data[item.name]">
-                      &ndash;&nbsp;{{ s.name }}<br>
+                      &ndash;&nbsp;{{ s[`${item.name.includes('reactant') ? 'reactant' : 'product' }`].full_name }}<br>
                     </template>
                   </p>
                 </template>
@@ -104,7 +104,7 @@
                   <span v-html="chemicalReaction(selectionData.data[item.name], selectionData.data['is_reversible'])"></span></p>
                 </template>
                 <template v-else-if="item.name === 'formula'">
-                  <p><span class="has-text-weight-bold" v-html="capitalize(item.display || item.name) + ':'"></span>
+                  <p><span class="has-text-weight-bold" v-html="capitalize(item.display || item.name) + ': '"></span>
                   <span v-html="chemicalFormula(selectionData.data[item.name], selectionData.data.charge)"></span></p>
                 </template>
                 <template v-else>
@@ -158,9 +158,9 @@ export default {
           ],
           reaction: [
             { name: 'equation' },
-            { name: 'subsystem', display: 'Subsystems' },
-            { name: 'reactants' },
-            { name: 'products' },
+            { name: 'subsystem_str', display: 'Subsystems' },
+            { name: 'reactionreactant_set', display: 'Reactants' },
+            { name: 'reactionproduct_set', display: 'Products'  },
           ],
         },
         yeast8: {
@@ -178,9 +178,9 @@ export default {
           ],
           reaction: [
             { name: 'equation' },
-            { name: 'subsystem', display: 'Subsystems' },
-            { name: 'reactants' },
-            { name: 'products' },
+            { name: 'subsystem_str', display: 'Subsystems' },
+            { name: 'reactionreactant_set', display: 'Reactants' },
+            { name: 'reactionproduct_set', display: 'Products'  },
           ],
         },
       },

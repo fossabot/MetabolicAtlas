@@ -300,7 +300,7 @@ class Subsystem(models.Model):
     name = models.CharField(max_length=100, unique=True)
     name_id = models.CharField(max_length=100, unique=True) # use to request the subsystem by url
     system = models.CharField(max_length=100)
-    subsystem_svg = models.ForeignKey('SubsystemSvg', on_delete=models.CASCADE, null=True, related_name='+')
+    subsystem_svg = models.ForeignKey('SubsystemSvg', on_delete=models.SET_NULL, null=True, related_name='+')
     external_id1 = models.CharField(max_length=100, null=True)
     external_id2 = models.CharField(max_length=100, null=True)
     external_id3 = models.CharField(max_length=100, null=True)
@@ -346,7 +346,7 @@ class Compartment(models.Model):
     name_id = models.CharField(max_length=50, unique=True) # use to request the compartement by url
     letter_code = models.CharField(max_length=3, unique=True)
     subsystem = models.ManyToManyField('Subsystem', related_name='c_subsystems', through='SubsystemCompartment')
-    compartment_svg = models.ForeignKey('CompartmentSvg', on_delete=models.CASCADE, null=True, related_name='+')
+    compartment_svg = models.ForeignKey('CompartmentSvg', on_delete=models.SET_NULL, null=True, related_name='+')
     reaction_count = models.IntegerField(default=0)
     subsystem_count = models.IntegerField(default=0)
     metabolite_count = models.IntegerField(default=0)

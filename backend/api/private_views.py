@@ -306,7 +306,7 @@ def get_db_json(request, model, component_name_id=None, ctype=None, dup_meta=Fal
     duplicateMetaName = {'ATP', 'ADP', 'Pi', 'PPi', 'H2O', 'O2', 'PI pool', 'H+', \
      'NADP', 'NADP+', 'NADH', 'NAD+', 'CoA', 'NADPH', 'acetyl-CoA', 'FAD', 'FADH'}
 
-    for r in reactions.iterator():
+    for r in reactions:
         reaction = {
             'g': 'r',
             'id': r.id,

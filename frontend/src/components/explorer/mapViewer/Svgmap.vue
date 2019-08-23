@@ -5,7 +5,15 @@
     <div id="svgOption" class="overlay">
       <span class="button" v-on:click="zoomOut(false)" title="Zoom in"><i class="fa fa-search-plus"></i></span>
       <span class="button" v-on:click="zoomOut(true)" title="Zoom out"><i class="fa fa-search-minus"></i></span>
-      <span class="button" v-on:click="toggleGenes()" title="Show/Hide genes"><i class="fa fa-filter"></i></span>
+      <span class="button" style="padding: 4.25px;" @click="toggleGenes()" title="Show/Hide genes">
+        <i class="fa fa-eye-slash">&thinsp;G
+        </i>
+      </span>
+      <span class="button" style="padding: 4.25px;" @click="toggleSubsystems()" title="Show/Hide subsystem colors">
+        <i class="fa fa-eye-slash">&thinsp;S
+        </i>
+      </span>
+      <span class="button" v-on:click="toggleFullScreen()" title="fullscreen" :disabled="isFullScreenDisabled"><i class="fa fa-arrows-alt"></i></span>
     </div>
     <div id="svgSearch" class="overlay">
       <div class="control" :class="{ 'is-loading' : isLoadingSearch }">
@@ -14,14 +22,14 @@
           v-on:keyup.enter="searchComponentIDs()" :disabled="!loadedMap"
           placeholder="Exact search by id, name, alias"/>
       </div>
-      <div v-show="searchTerm && totalSearchMatch">
+      <template v-if="searchTerm && totalSearchMatch">
         <span id="searchResCount" class="button has-text-dark" @click="centerElementOnSVG(0)" title="Click to center on current match">
           {{ this.currentSearchMatch }} of {{this.totalSearchMatch }}
         </span>
         <span class="button has-text-dark" @click="centerElementOnSVG(-1)" title="Go to previous"><i class="fa fa-angle-left"></i></span>
         <span class="button has-text-dark" @click="centerElementOnSVG(1)" title="Go to next"><i class="fa fa-angle-right"></i></span>
         <span class="button has-text-dark" @click="highlightElementsFound" title="Highlight all matches">Highlight all</span>
-      </div>
+      </template>
     </div>
     <div id="tooltip" ref="tooltip"></div>
   </div>
@@ -37,6 +45,7 @@ import Loader from '@/components/Loader';
 import { default as EventBus } from '../../../event-bus';
 import { getExpressionColor } from '../../../expression-sources/hpa';
 import { default as messages } from '../../../helpers/messages';
+import { reformatChemicalReactionHTML } from '../../../helpers/utils';
 
 // hack: the only way for jquery plugins to play nice with the plugins inside Vue
 $.Panzoom = JQPanZoom;
@@ -94,7 +103,7 @@ export default {
       currentSearchMatch: 0,
       totalSearchMatch: 0,
 
-      svgMapURL: process.env.NODE_ENV === 'production' ? 'https://ftp.metabolicatlas.org/.maps' : 'http://localhost/svgs',
+      svgMapURL: process.env.VUE_APP_SVGMAPURL,
       defaultGeneColor: '#feb',
     };
   },
@@ -105,6 +114,15 @@ export default {
         this.totalSearchMatch = 0;
         this.searchInputClass = 'is-info';
       }
+    },
+  },
+  computed: {
+    isFullScreenDisabled() {
+      const elem = $('.svgbox').first()[0];
+      if ((document.fullScreenElement !== undefined && document.fullScreenElement === null) || (document.msFullscreenElement !== undefined && document.msFullscreenElement === null) || (document.mozFullScreen !== undefined && !document.mozFullScreen) || (document.webkitIsFullScreen !== undefined && !document.webkitIsFullScreen)) {
+        return false;
+      }
+      return true;
     },
   },
   created() {
@@ -156,6 +174,16 @@ export default {
       self.$refs.tooltip.innerHTML = '';
       self.$refs.tooltip.style.display = 'none';
     });
+    $('.svgbox').on('webkitfullscreenchange mozfullscreenchange fullscreenchange mozFullScreen MSFullscreenChange', (e) => {
+        $('.svgbox').first().toggleClass('fullscreen');
+        $('#svgSearch').toggleClass('fullscreen');
+        e.stopPropagation();
+    });
+    $(document).on('mozfullscreenchange', (e) => {
+        $('.svgbox').first().toggleClass('fullscreen');
+        $('#svgSearch').toggleClass('fullscreen');
+    });
+
   },
   methods: {
     toggleGenes() {
@@ -163,6 +191,40 @@ export default {
         $('.enz, .ee').attr('visibility', 'visible');
       } else {
         $('.enz, .ee').attr('visibility', 'hidden');
+      }
+    },
+    toggleSubsystems() {
+      if ($('.subsystem').first().attr('visibility') === 'hidden') {
+        $('.subsystem').attr('visibility', 'visible');
+      } else {
+        $('.subsystem').attr('visibility', 'hidden');
+      }
+    },
+    toggleFullScreen() {
+      if (this.isFullScreenDisabled) {
+        return;
+      }
+      const elem = $('.svgbox').first()[0];
+      if ((document.fullScreenElement !== undefined && document.fullScreenElement === null) || (document.msFullscreenElement !== undefined && document.msFullscreenElement === null) || (document.mozFullScreen !== undefined && !document.mozFullScreen) || (document.webkitIsFullScreen !== undefined && !document.webkitIsFullScreen)) {
+        if (elem.requestFullScreen) {
+          elem.requestFullScreen();
+        } else if (elem.mozRequestFullScreen) {
+          elem.mozRequestFullScreen();
+        } else if (elem.webkitRequestFullScreen) {
+          elem.webkitRequestFullScreen(Element.ALLOW_KEYBOARD_INPUT);
+        } else if (elem.msRequestFullscreen) {
+          elem.msRequestFullscreen();
+        }
+      } else {
+        if (document.cancelFullScreen) {
+          document.cancelFullScreen();
+        } else if (document.mozCancelFullScreen) {
+          document.mozCancelFullScreen();
+        } else if (document.webkitCancelFullScreen) {
+          document.webkitCancelFullScreen();
+        } else if (document.msExitFullscreen) {
+          document.msExitFullscreen();
+        }
       }
     },
     zoomOut(bool) {
@@ -481,11 +543,12 @@ export default {
         return;
       }
       EventBus.$emit('startSelectedElement');
-      axios.get(`${this.model.database_name}/${type}/${id}`)
+      axios.get(`${this.model.database_name}/${type === 'reaction' ? 'get_reaction' : type}/${id}`)
       .then((response) => {
         let data = response.data;
         if (type === 'reaction') {
           data = data.reaction;
+          data.equation = this.reformatChemicalReactionHTML(data, true);
         } else if (type === 'gene') {
           // add the RNA level if any
           if (id in this.geneRNAlevels) {
@@ -524,6 +587,7 @@ export default {
       this.$panzoom.panzoom('pan', -panX + ($('.svgbox').width() / 2), -panY + ($('.svgbox').height() / 2));
       this.$emit('loadComplete', true, '');
     },
+    reformatChemicalReactionHTML,
   },
 };
 </script>
@@ -551,15 +615,20 @@ export default {
     padding: 0;
     width: 100%;
     height:100%;
+    &.fullscreen {
+      background: white;
+    }
   }
 
   #svgOption {
     position: absolute;
     top: 7.25rem;
     left: 2.25rem;
-    span:not(:last-child) {
-      display: inline-block;
-      margin-right: 5px;
+    span {
+      display: block;
+      &:not(:last-child) {
+        margin-bottom: 5px;
+      }
     }
   }
 
@@ -572,13 +641,18 @@ export default {
       display: inline-block;
       vertical-align: middle;
     }
-    span:first-child {
-      color: white;
+    span {
+      margin-left: 5px;
     }
     #searchInput {
       display: inline-block;
-      margin-right: 5px;
       width: 20vw;
+    }
+    &.fullscreen {
+      left: 30%;
+      #searchInput {
+        width: 30vw;
+      }
     }
   }
 
