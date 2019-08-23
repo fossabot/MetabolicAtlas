@@ -17,8 +17,8 @@
       <div v-if="selectedType === ''">
         <div class="columns is-centered">
           <div class="column is-10 is-size-5 has-text-centered">
-            Use the search field above to look for your constituent of interest.<br>
-            A selection of <b>random</b> constituents of {{ model.short_name }} is shown below.<br><br>
+            <p>Use the search field above to look for your element of interest.</p>
+            <p>A selection of <button class="button is-rounded is-inline" @click="get_tiles_data()" title="Fetch another random set of elements"><b>random</b></button> elements of {{ model.short_name }} is shown below.</p><br>
           </div>
         </div>
         <div id="gem-browser-tiles" class="tile is-ancestor is-size-5" v-if="starredComponents">
@@ -170,13 +170,27 @@ export default {
         this.errorMessage = messages.unknownError;
       });
     },
-    showMapViewer() {
-      EventBus.$emit('showMapViewer');
-    },
   },
 };
 
 </script>
 
 <style lang="scss">
+
+#gem-browser-tiles {
+  word-wrap: anywhere;
+  .tile.is-child {
+    &:hover {
+      box-shadow: 0 2px 3px gray, 0 0 0 1px gray;
+    }
+    ul {
+      list-style-type: disc;
+      margin-left: 2rem;
+    }
+  }
+  .box {
+    box-shadow: 0 2px 3px lightgray, 0 0 0 1px lightgray;
+  }
+}
+
 </style>
