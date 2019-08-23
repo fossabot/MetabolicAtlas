@@ -63,7 +63,7 @@ def get_gemodel(request, gem_id):
 @api_view()
 @is_model_valid
 def get_reaction(request, model, id):
-
+    # requested from the gem browser page
     try:
         reaction = APImodels.Reaction.objects.using(model).filter(id__iexact=id) \
             .prefetch_related('reactionreactant_set', 'reactionreactant_set__reactant',

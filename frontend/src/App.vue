@@ -469,7 +469,6 @@ m, .clickable {
         cursor: not-allowed;
         background: $primary;
         color: $grey;
-        pointer-events: none;
       }
     }
   }

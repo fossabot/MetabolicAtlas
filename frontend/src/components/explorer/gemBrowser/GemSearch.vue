@@ -17,7 +17,7 @@
             <i class="fa fa-search"></i>
           </span>
         </p>
-        <router-link :to="{ name: 'search', query: { term: this.searchTermString } }">Global search</router-link>
+        <router-link class="is-pulled-right" :to="{ name: 'search', query: { term: this.searchTermString } }">Global search</router-link>
       </div>
       <div id="searchResults" v-show="showResults && searchTermString.length > 1" ref="searchResults">
         <div id="asn" class="notification is-large is-unselectable has-text-centered clickable" v-show="searchResults.length !== 0 && !showLoader" @mousedown.prevent="globalSearch">
@@ -26,7 +26,7 @@
         <div class="resList" v-show="!showLoader">
           <template v-if="searchResults.length !== 0" v-for="(k, i1) in resultsOrder">
             <div v-for="(r, i2) in searchResults[k]" class="searchResultSection">
-              <hr class="is-marginless" v-if="i2 != 0">
+              <hr class="is-marginless" v-if="i2 !== 0">
               <div class="clickable" @mousedown.prevent="goToTab(k, r.id || r.name_id || r.name)">
                  <b class="is-capitalized">{{ k }}: </b><label class="clickable" v-html="formatSearchResultLabel(k, r, searchTermString)"></label>
               </div>
@@ -50,6 +50,7 @@ import axios from 'axios';
 import $ from 'jquery';
 import Loader from '@/components/Loader';
 import _ from 'lodash';
+import { sortResults } from '../../../helpers/utils';
 import { chemicalFormula, chemicalReaction } from '../../../helpers/chemical-formatters';
 import { default as EventBus } from '../../../event-bus';
 import { default as messages } from '../../../helpers/messages';
@@ -150,36 +151,7 @@ export default {
         // sort result by exact matched first, then by alpha order
         for (const k of Object.keys(localResults)) {
           if (localResults[k].length) {
-            localResults[k].sort((a, b) => {
-              let matchSizeDiffA = 100;
-              let matchedStringA = '';
-              for (const field of Object.keys(a)) {
-                if (a[field] && (typeof a[field] === 'string' || a[field] instanceof String) &&
-                    a[field].toLowerCase().includes(this.searchTermString.toLowerCase())) {
-                  const diff = a[field].length - this.searchTermString.length;
-                  if (diff < matchSizeDiffA) {
-                    matchSizeDiffA = diff;
-                    matchedStringA = a[field];
-                  }
-                }
-              }
-              let matchSizeDiffB = 100;
-              let matchedStringB = '';
-              for (const field of Object.keys(b)) {
-                if (b[field] && (typeof b[field] === 'string' || b[field] instanceof String) &&
-                    b[field].toLowerCase().includes(this.searchTermString.toLowerCase())) {
-                  const diff = b[field].length - this.searchTermString.length;
-                  if (diff < matchSizeDiffB) {
-                    matchSizeDiffB = diff;
-                    matchedStringB = b[field];
-                  }
-                }
-              }
-              if (matchSizeDiffA === matchSizeDiffB) {
-                return matchedStringA.localeCompare(matchedStringB);
-              }
-              return matchSizeDiffA < matchSizeDiffB ? -1 : 1;
-            });
+            localResults[k].sort((a, b) => this.sortResults(a, b, this.searchTermString));
           }
         }
         this.$refs.searchResults.scrollTop = 0;
@@ -226,6 +198,7 @@ export default {
       return s;
     },
     chemicalFormula,
+    sortResults,
   },
 };
 </script>

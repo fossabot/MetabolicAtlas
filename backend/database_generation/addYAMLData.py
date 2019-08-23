@@ -14,7 +14,7 @@ import api.management.commands.repo_parser as github_model_parser
 import re
 import collections
 
-def insert_model_metadata(database, metadata, overwrite=False, content_only=False):
+def insert_model_metadata(database, metadata, metadata_only=False, overwrite=False, content_only=False):
     # YAML metadata expected structure:
     # - metadata:
     #     id         : "HumanGEM"
@@ -53,7 +53,7 @@ def insert_model_metadata(database, metadata, overwrite=False, content_only=Fals
         # email       : "nielsenj@chalmers.se"
         # organization: "Chalmers University of Technology"
         # taxonomy    : "9606"
-        # github      : "https://github.com/SysBioChalmers/human-GEM"
+        # github      : "https://github.com/SysBioChalmers/Human-GEM"
         # description : "Human genome-scale metabolic models are important tools for the study of human health and diseases, by providing a scaffold upon which different types of data can be analyzed. This is the latest version of human-GEM, which is a genome-scale model of the generic human cell. The objective of human-GEM is to serve as a community model for enabling integrative and mechanistic studies of human metabolism."
 
     if content_only:
@@ -85,8 +85,9 @@ def insert_model_metadata(database, metadata, overwrite=False, content_only=Fals
             exit(1)
         gem.delete()
     except GEM.DoesNotExist:
-        print("Error: model '%s' is not in the database" % metadata_dict["short_name"])
-        exit(1)
+        if not metadata_only:
+            print("Error: model '%s' is not in the database" % metadata_dict["short_name"])
+            exit(1)
 
     #fix metadata dict
     if database == "human1":
@@ -95,7 +96,7 @@ def insert_model_metadata(database, metadata, overwrite=False, content_only=Fals
         metadata_dict["tissue"] = None
         metadata_dict["cell_type"] = "Generic cell"
         metadata_dict["cell_line"] = None
-        metadata_dict["link"] = "https://github.com/SysBioChalmers/human-GEM"
+        metadata_dict["link"] = "https://github.com/SysBioChalmers/Human-GEM"
         metadata_dict["pmid"] = []
         metadata_dict["author"] = []
 
@@ -337,11 +338,44 @@ def load_YAML(database, yaml_file, overwrite=False, metadata_only=False, content
         metadata, metabolites, reactions, genes, compartments = model_list
 
     # counts must be updated so we need the gem object
-    gem = insert_model_metadata(database, metadata, overwrite=overwrite, content_only=content_only)
+    gem = insert_model_metadata(database, metadata, overwrite=overwrite, metadata_only=metadata_only, content_only=content_only)
 
     if not metadata_only:
         if overwrite:
+            Gene.objects.using(database).all().delete()
+            Metabolite.objects.using(database).all().delete()
+            ReactionGene.objects.using(database).all().delete()
+            ReactionReactant.objects.using(database).all().delete()
+            ReactionProduct.objects.using(database).all().delete()
+            ReactionMetabolite.objects.using(database).all().delete()
+
+            SubsystemGene.objects.using(database).all().delete()
+            SubsystemMetabolite.objects.using(database).all().delete()
+            SubsystemReactionComponent.objects.using(database).all().delete()
+
+            ReactionComponentSubsystemSvg.objects.using(database).all().delete()
+            ReactionComponent.objects.using(database).all().delete()
+
+            ReactionCompartment.objects.using(database).all().delete()
+            ReactionComponentCompartment.objects.using(database).all().delete()
+            CompartmentGene.objects.using(database).all().delete()
+            SubsystemCompartment.objects.using(database).all().delete()
+            SubsystemCompartmentSvg.objects.using(database).all().delete()
+            CompartmentSvgGene.objects.using(database).all().delete()
+            ReactionComponentCompartmentSvg.objects.using(database).all().delete()
+
+            CompartmentSvg.objects.using(database).all().delete()
             Compartment.objects.using(database).all().delete()
+
+            SubsystemReaction.objects.using(database).all().delete()
+            ReactionCompartmentSvg.objects.using(database).all().delete()
+            ReactionSubsystemSvg.objects.using(database).all().delete()
+            ReactionReference.objects.using(database).all().delete()
+            Reaction.objects.using(database).all().delete()
+
+            SubsystemSvg.objects.using(database).all().delete()
+            SubsystemSvgGene.objects.using(database).all().delete()
+            Subsystem.objects.using(database).all().delete()
 
         print("Inserting compartments...")
         compartment_dict = {} 
@@ -351,11 +385,9 @@ def load_YAML(database, yaml_file, overwrite=False, metadata_only=False, content
                 compartment = Compartment(name=name, name_id=idfy_name(name), letter_code=letter_code)
                 compartment.save(using=database)
             else:
-                compartment=compartment[0]
+                print('Error: compartment %s already in DB' % name)
+                exit()
             compartment_dict[letter_code] = compartment
-
-    if overwrite and not metadata_only:
-        ReactionComponent.objects.using(database).all().delete()
 
     if not metadata_only:
         print("Inserting metabolites (rc)...")
@@ -380,7 +412,9 @@ def load_YAML(database, yaml_file, overwrite=False, metadata_only=False, content
                     met = Metabolite(rc=rc, charge=dict_metabolite['charge'])
                     met.save(using=database)
             else:
-                rc = rc[0]
+                print('Error: metabolite %s already in DB' % dict_metabolite['id'])
+                exit()
+
             rc_dict[dict_metabolite['id']] = rc
         unique_metabolite.add(dict_metabolite['name'])
 
@@ -399,16 +433,14 @@ def load_YAML(database, yaml_file, overwrite=False, metadata_only=False, content
                 rc = ReactionComponent(id=id_value, name='', component_type='e')
                 rc.save(using=database)
             else:
-                rc = rc[0]
+                print('Error: gene %s already in DB' % id_value)
+                exit()
+
             rc_dict[id_value] = rc
 
     # update gene count
     if not content_only:
         GEM.objects.filter(id=gem.id).update(gene_count=len(genes[1]))
-
-    if overwrite and not metadata_only:
-        Reaction.objects.using(database).all().delete()
-        Subsystem.objects.using(database).all().delete()
 
     if metadata_only and not content_only:
         # update reaction count
@@ -424,7 +456,6 @@ def load_YAML(database, yaml_file, overwrite=False, metadata_only=False, content
         equation_compartment = equation.get_equation_compartment()
 
         # extract additional info
-
         is_transport = False
         for id, meta_name in [(a, rc_dict[a].name) for a,b, in dict_rxn['reactant']]:
             if not meta_name:
@@ -442,7 +473,8 @@ def load_YAML(database, yaml_file, overwrite=False, metadata_only=False, content
 
         try:
             r = Reaction.objects.using(database).get(id__iexact=dict_rxn['id'])
-            reaction_dict[r.id] = r
+            print('Error: reaction %s already in DB' % dict_rxn['id'])
+            exit()
         except Reaction.DoesNotExist:
             r  = Reaction(
                     id=dict_rxn['id'],

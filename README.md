@@ -26,10 +26,7 @@ build-stack
 start-stack
 ```
 
-The frontend should be available at: `http://localhost/`.
-The backend should be available at: `http://localhost/api/`. There is also a swagger UI for browsing the API at: `http://localhost/swagger`.
-
-If you encounter any problems try running `restart-stack`, or look at the logs `logs backend` / `logs frontend`
+The frontend should be available at: `http://localhost/` and the backend should be available at: `http://localhost/api/` via Swagger. If you encounter any problems try running `restart-stack`, or look at the logs `logs backend` / `logs frontend`
 
 ### Create the databases
 
@@ -97,7 +94,7 @@ python manage.py makemigrations
 python manage.py migrate --database [database] e.g. 'human1' (see settings.py)
 python manage.py populateDB [database] [YAML file]
 python manage.py addAnnotations [database] 'all' # add content of annotations files found in annotation/human1/ in the database
-# this commande populate annotations data in tables: metabolite, enzyme, reaction and subsystem
+# this command populates annotations data in tables: metabolite, enzyme, reaction and subsystem
 
 ```
 
@@ -163,9 +160,9 @@ Make sure the YAML format of the model is available.
 
 Each model is stored in separated database.
 
-2) Create the database as decribes in [Integrated model databases](#Integrated_model_databases) section.
+2) Create the database as described in [Integrated model databases](#Integrated_model_databases) section.
 
-3) Add the database in the setting.py file with the name used to create the database. e.g.
+3) Add the database in the `settings.py` file with the name used to create the database, e.g.
 
 ```bash
 ...
@@ -180,7 +177,7 @@ Each model is stored in separated database.
 ...
 ```
 
-4) run makemigrations and migrate the new database as decribes in [Full model databases](#Integrated_model_databases) section.
+4) run makemigrations and migrate the new database as described in [Full model databases](#Integrated_model_databases) section.
 
 5) run populateDB. The 'model label' is extracted/generate when reading the model README file step 1) and is written in the 'gem' table.
   - if you got an error when parsing the YAML file, run python fixYAML.py [model yml file] located in backend/database_generation
@@ -188,8 +185,6 @@ Each model is stored in separated database.
 6) add the model in the function componentDBserializerSelector() (views.py) and create custom serializers (serializers.py and serializers_rc.py) if needed
 
 7) add Data about the model in the frontend page: (TO BE SIMPLIFIED)
-  - add the model in the dictionnary of localization.js
-  - add the model in the dictionnary 'itemKeys' of GlobalSearch.vue
   - add the model in the dictionnary 'starredComponent' of GEMBrowser.vue
   - add the model in the dictionnaries 'mainTableKey' and 'externalIDTableKey' of Metabolite.vue, Enzyme.vue, Reaction.vue
   - add the model in the dictionnary 'tableStructure' of CloseInteractionPartners.vue
@@ -209,4 +204,3 @@ Then you will get access to the following commands:
 * To stop the project: `stop-stack`
 * To create new migration files: `db-make-migrations`
 * To run a database migration: `db-migrate`
-* To create a Django superuser: `create-su`

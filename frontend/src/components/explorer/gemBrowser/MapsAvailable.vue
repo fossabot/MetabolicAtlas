@@ -8,6 +8,9 @@
     </header>
     <div class="card-content" style="padding: 0.5rem;">
       <div class="content has-text-left is-paddingless" v-if="Object.keys(mapsAvailable).length !== 0">
+        <template v-if="type === 'reaction'">
+          Locate this reaction on:
+        </template>
         <ul v-if="mapsAvailable['2d']['count'] !== 0">2D maps
           <template v-for="map in mapsAvailable['2d']['compartment']">
             <li><router-link  :to="{ path: `/explore/map-viewer/${model.database_name}/${map[2]}/${map[0]}/${elementID}?dim=2d` }">

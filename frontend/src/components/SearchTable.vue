@@ -3,8 +3,10 @@
     <div class="container">
       <div id="search-table">
         <div class="columns">
-          <div class="column has-text-centered">
-            <h3 class="title is-3">Global search all integrated GEMs <span v-if="searchTerm"> for <i>{{ searchTerm }}</i></span></h3>
+          <div class="column has-text-centered content">
+            <br>
+            <h3 class="title is-3">Search within all integrated GEMs</h3>
+            <h4 class="subtitle is-4 has-text-weight-normal">for reactions, metabolites, genes, subsystems and compartments</h4>
           </div>
         </div>
         <div class="columns is-centered">
@@ -12,7 +14,7 @@
             <div id="input-wrapper">
               <p class="control has-icons-right has-icons-left">
                 <input id="search" class="input" type="text" v-model="searchTerm"
-                  placeholder="Search by metabolite (uracil), gene (SULT1A3), or reaction (ATP => cAMP + PPi) or subsystem" v-on:keyup.enter="updateSearch()">
+                  placeholder="Example: uracil, SULT1A3, ATP => cAMP + PPi, Acyl-CoA hydrolysis" v-on:keyup.enter="updateSearch()">
                 <span class="has-text-danger icon is-small is-right" v-show="this.showSearchCharAlert" style="width: 200px">
                   Type at least 2 characters
                 </span>
@@ -39,8 +41,8 @@
           <loader v-show="loading && searchTerm !== ''"></loader>
           <div v-show="!loading">
             <div v-if="Object.keys(searchResults).length === 0" class="column is-offset-3 is-6">
-              <div v-if="searchTerm.length > 1" class=" has-text-centered notification">
-                {{ messages.searchNoResult }}
+              <div v-if="searchedTerm" class="has-text-centered notification">
+                {{ messages.searchNoResult }} for <i>{{ searchedTerm }}</i>
               </div>
               <div class="content">
                 <div class="has-text-centered">Search using the following parameters:</div>
@@ -48,7 +50,7 @@
                 <ul>
                   <li>ID</li>
                   <li>Name or aliases</li>
-                  <li>Formula</li>
+                  <li>Formula (without charge)</li>
                   <li>External identifiers</li>
                 </ul>
                 <span>Genes by:</span>
@@ -73,17 +75,27 @@
                 <div class="has-text-centered"><u>External identifiers and aliases may be missing if they are not provided with the models.</u></div>
               </div>
             </div>
-            <template v-for="header in tabs">
+            <template v-for="(header, index) in tabs">
               <div v-show="showTab(header) && resultsCount[header] !== 0">
-                <vue-good-table
+                <vue-good-table ref="searchTables"
                   :columns="columns[header]" :rows="rows[header]"
                   :sort-options="{ enabled: true }" styleClass="vgt-table striped bordered" :paginationOptions="tablePaginationOpts">
+
+                  <div slot="table-actions">
+                    <a class="button is-primary" style="margin: 0.3rem 1rem;" @click="exportToTSV(header, index)">
+                      <span class="icon is-large"><i class="fa fa-download"></i></span>
+                      <span>Export to TSV</span>
+                    </a>
+                  </div>
                   <template slot="table-row" slot-scope="props">
                     <template v-if="props.column.field == 'model'">
                       {{ props.formattedRow[props.column.field].name }}
                     </template>
                     <template v-else-if="props.column.field === 'equation'">
                       <span v-html="reformatEqSign(props.formattedRow[props.column.field], false)"></span>
+                    </template>
+                    <template v-else-if="props.column.field === 'formula'">
+                      <span v-html="formulaFormater(props.row[props.column.field], props.row.charge)"></span>
                     </template>
                     <template v-else-if="['name', 'id'].includes(props.column.field)">
                       <router-link :to="{ path: `/explore/gem-browser/${props.row.model.id}/${header}/${props.row.id}` }">
@@ -145,11 +157,12 @@
 <script>
 
 import axios from 'axios';
+import { default as FileSaver } from 'file-saver';
 import Loader from '@/components/Loader';
 import { VueGoodTable } from 'vue-good-table';
 import 'vue-good-table/dist/vue-good-table.css';
 import { chemicalFormula } from '../helpers/chemical-formatters';
-import { idfy, reformatEqSign } from '../helpers/utils';
+import { idfy, reformatEqSign, sortResults } from '../helpers/utils';
 import { default as messages } from '../helpers/messages';
 
 export default {
@@ -411,6 +424,7 @@ export default {
       },
       resultsCount: {},
       searchTerm: '',
+      searchedTerm: '',
       searchResults: [],
       showSearchCharAlert: false,
       showTabType: '',
@@ -426,17 +440,19 @@ export default {
   },
   beforeRouteEnter(to, from, next) {
     next((vm) => {
+      vm.searchedTerm = to.query.term;
       vm.validateSearch(to.query.term);
       next();
     });
   },
   beforeRouteUpdate(to, from, next) {
+    this.searchedTerm = to.query.term;
     this.validateSearch(to.query.term);
     next();
   },
   methods: {
-    formulaFormater(s) {
-      return chemicalFormula(s);
+    formulaFormater(formula, charge) {
+      return chemicalFormula(formula, charge);
     },
     countResults() {
       for (const key of this.tabs) {
@@ -483,6 +499,9 @@ export default {
       // store choice only once in a dict
       for (const componentType of Object.keys(this.searchResults)) {
         const compoList = this.searchResults[componentType];
+        // sort
+        compoList.sort((a, b) => this.sortResults(a, b, this.searchedTerm));
+
         for (const el of compoList) { // e.g. results list for metabolites
           if (componentType === 'metabolite') {
             for (const field of Object.keys(filterTypeDropdown[componentType])) {
@@ -503,6 +522,7 @@ export default {
               model: el.model,
               name: el.name,
               formula: el.formula,
+              charge: el.charge,
               subsystem: el.subsystem,
               compartment: el.compartment,
             });
@@ -720,9 +740,40 @@ export default {
         }
       });
     },
+    exportToTSV(type, index) {
+      try {
+        const rows = Array.from(this.$refs.searchTables[index].filteredRows[0].children);
+        const header = [];
+        let getHeader = false;
+        let tsvContent = rows.map(e => {
+            const data = [];
+            for (let [key, value] of Object.entries(e)) {
+              if (key !== 'vgt_id' && key !== 'originalIndex') {
+                if (!getHeader) { header.push(key); }
+                if (key === 'model') {
+                  data.push(value.name);
+                } else {
+                  if (Array.isArray(value)) { value = value.join('; ') }
+                  data.push(value);
+                }
+              }
+            }
+            if (!getHeader) { getHeader = true; }
+            return data.join('\t') }
+          ).join('\n');
+        tsvContent = header.join('\t') + '\n' + tsvContent;
+        const blob = new Blob([tsvContent], {
+          type: 'data:text/tsv;charset=utf-8',
+        });
+        FileSaver.saveAs(blob, `${this.searchTerm}-${type}.tsv`);
+      } catch (e) {
+        this.errorMessage = e;
+      }
+    },
     idfy,
     chemicalFormula,
     reformatEqSign,
+    sortResults,
   },
 };
 
