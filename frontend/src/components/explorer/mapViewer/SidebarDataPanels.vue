@@ -24,7 +24,7 @@
           </p>
         </header>
         <footer class="card-footer">
-          <router-link class="is-paddingless is-info is-outlined card-footer-item has-text-centered" :to="{ path: `/explore/gem-browser/${model.database_name}/${mapType}/${ mapsData.compartments[mapName] ? mapsData.compartments[mapName].model_id : mapsData.subsystems[mapName] ? mapsData.subsystems[mapName].model_id : '' }`}">
+          <router-link class="is-paddingless is-info is-outlined card-footer-item has-text-centered" :to="{ path: `/explore/gem-browser/${model.database_name}/${mapType}/${ mapsData.compartments[mapName] ? mapsData.compartments[mapName].id : mapsData.subsystems[mapName] ? mapsData.subsystems[mapName].id : '' }`}">
             <span class="icon is-large"><i class="fa fa-database fa-lg"></i></span>
             <span>{{ messages.gemBrowserName }}</span>
           </router-link>
@@ -40,7 +40,7 @@
       <div class="column">
         <div class="card" v-if="selectionData.data && mapType !== 'subsystem' && selectionData.type == 'subsystem'">
           <header class="card-header">
-            <p class="card-header-title is-capitalized is-inline">
+            <p class="card-header-title is-capitalized is-inline is-unselectable">
               {{ selectionData.type }}: <i>{{ selectionData.data.id }}</i>
             </p>
           </header>
@@ -57,9 +57,9 @@
             </div>
           </footer>
         </div>
-        <div class="card" v-else-if="selectionData.data && ['metabolite', 'enzyme', 'reaction'].includes(selectionData.type)">
+        <div class="card" v-else-if="selectionData.data && ['metabolite', 'gene', 'reaction'].includes(selectionData.type)">
           <header class="card-header clickable" v-if="!selectionData.error" @click.prevent="showSelectionCardContent = !showSelectionCardContent">
-            <p class="card-header-title is-inline is-capitalized">
+            <p class="card-header-title is-inline is-capitalized is-unselectable">
               {{ selectionData.type }}: <i>{{ selectionData.data.id }}</i>
             </p>
             <a href="#" class="card-header-icon" aria-label="more options">
@@ -85,17 +85,17 @@
                     </template>
                   </p>
                 </template>
-                <template v-else-if="['aliases', 'subsystem'].includes(item.name)">
+                <template v-else-if="['aliases', 'subsystem_str'].includes(item.name)">
                   <span class="has-text-weight-bold">{{ capitalize(item.display || item.name) }}:</span><p>
                   <template v-for="s in selectionData.data[item.name].split('; ')">
                     &ndash;&nbsp;{{ s }}<br>
                   </template></p>
                 </template>
-                <template v-else-if="['reactants', 'products'].includes(item.name)">
+                <template v-else-if="['reactionreactant_set', 'reactionproduct_set'].includes(item.name)">
                   <span class="has-text-weight-bold">{{ capitalize(item.display || item.name) }}:</span>
                   <p>
                     <template v-for="s in selectionData.data[item.name]">
-                      &ndash;&nbsp;{{ s.name }}<br>
+                      &ndash;&nbsp;{{ s[`${item.name.includes('reactant') ? 'reactant' : 'product' }`].full_name }}<br>
                     </template>
                   </p>
                 </template>
@@ -104,7 +104,7 @@
                   <span v-html="chemicalReaction(selectionData.data[item.name], selectionData.data['is_reversible'])"></span></p>
                 </template>
                 <template v-else-if="item.name === 'formula'">
-                  <p><span class="has-text-weight-bold" v-html="capitalize(item.display || item.name) + ':'"></span>
+                  <p><span class="has-text-weight-bold" v-html="capitalize(item.display || item.name) + ': '"></span>
                   <span v-html="chemicalFormula(selectionData.data[item.name], selectionData.data.charge)"></span></p>
                 </template>
                 <template v-else>
@@ -151,16 +151,16 @@ export default {
             { name: 'compartment' },
             { name: 'aliases', display: 'Synonyms' },
           ],
-          enzyme: [
-            { name: 'gene_name', display: 'Gene&nbsp;name' },
+          gene: [
+            { name: 'name', display: 'Gene&nbsp;name' },
             { name: 'description', display: 'Description' },
             { name: 'gene_synonyms', display: 'Synonyms' },
           ],
           reaction: [
             { name: 'equation' },
-            { name: 'subsystem', display: 'Subsystems' },
-            { name: 'reactants' },
-            { name: 'products' },
+            { name: 'subsystem_str', display: 'Subsystems' },
+            { name: 'reactionreactant_set', display: 'Reactants' },
+            { name: 'reactionproduct_set', display: 'Products'  },
           ],
         },
         yeast8: {
@@ -171,16 +171,16 @@ export default {
             { name: 'compartment' },
             { name: 'aliases', display: 'Synonyms' },
           ],
-          enzyme: [
-            { name: 'gene_name', display: 'Gene&nbsp;name' },
+          gene: [
+            { name: 'name', display: 'Gene&nbsp;name' },
             { name: 'description', display: 'Description' },
             { name: 'gene_synonyms', display: 'Synonyms' },
           ],
           reaction: [
             { name: 'equation' },
-            { name: 'subsystem', display: 'Subsystems' },
-            { name: 'reactants' },
-            { name: 'products' },
+            { name: 'subsystem_str', display: 'Subsystems' },
+            { name: 'reactionreactant_set', display: 'Reactants' },
+            { name: 'reactionproduct_set', display: 'Products'  },
           ],
         },
       },

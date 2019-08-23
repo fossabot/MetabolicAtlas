@@ -25,6 +25,6 @@ with open('/project/annotation/hmr2/scripts/ensembl_ID_mapping.tsv', 'r') as fh:
             res[eid]['external_id1'] = eid
             res[eid]['external_link1'] = "https://www.proteinatlas.org/%s/cell" % eid
 
-enzyme_file = '/project/annotation/hmr2/ENZYMES.txt'
-ld = tools.merge_values(enzyme_file, res)
-tools.write_dicts_to_annotation_file(ld, enzyme_file)
+gene_file = '/project/annotation/hmr2/GENES.txt'
+ld = tools.merge_values(gene_file, res)
+tools.write_dicts_to_annotation_file(ld, gene_file)

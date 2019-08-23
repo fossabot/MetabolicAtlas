@@ -3,12 +3,11 @@ pipeline {
   stages {
     stage('Configure') {
       steps {
-        sh '''cp /var/lib/jenkins/postgres.env .'''
-        echo 'Copied PostgreSQL and Django environment.'
         sh '''
-          sed -i "s/svgMapURL:.*/svgMapURL: 'https:\\/\\/ftp.metabolicatlas.org\\/.maps',/g"  frontend/src/components/explorer/mapViewer/Svgmap.vue
+          cp /var/lib/jenkins/postgres.env .
+          echo "VUE_APP_MATOMOID=14" >> frontend/.env.production
         '''
-        echo 'Updated SVG URL for production.'
+        echo 'Copied PostgreSQL and Django environments. Configured Vue environment.'
         withCredentials([string(credentialsId: '	f8066a74-2a9c-4510-8bd5-7edb569fff14', variable: 'human1db'), string(credentialsId: '7650c2ee-c69d-4499-a180-b089acfd1afc', variable: 'yeast8db'), string(credentialsId: '	5013ec59-acd1-4b13-a0c2-90904f2aceb1', variable: 'gemsdb')]) {
           sh '''
             wget $human1db -O human1.db
@@ -16,14 +15,14 @@ pipeline {
             wget $yeast8db -O yeast8.db
           '''
         }
-        echo 'Download source databases.'
+        echo 'Downloaded source databases.'
       }
     }
     stage('Build') {
       steps {
         sh '''
-          PATH=$PATH:/usr/local/bin
-          docker-compose -f docker-compose.yml -f docker-compose-prod.yml build --build-arg NGINXCONF=nginx-dev.conf
+          . ./proj.sh production
+          build-stack --build-arg NGINXCONF=nginx-dev.conf
         '''
         echo 'Built new Docker images.'
       }
@@ -31,18 +30,17 @@ pipeline {
     stage('Cleanup running containers') {
       steps {
         sh '''
-          docker stop $(docker ps -a -q) || true
-          docker rm $(docker ps -a -q) || true
-          docker volume prune --force || true
+          . ./proj.sh production
+          clean-stack
         '''
-        echo 'Stopped active Docker containers and deleted Docker volumes.'
+        echo 'Stopped active Docker containers and deleted Docker volumes. Needed only when there are database content changes, which requires deleting the Postgres volume.'
       }
     }
     stage('Run') {
       steps {
         sh '''
-          PATH=$PATH:/usr/local/bin
-          docker-compose -f docker-compose.yml -f docker-compose-prod.yml up -d
+          . ./proj.sh production
+          start-stack
         '''
         echo 'Running the new Docker images.'
       }
@@ -50,14 +48,14 @@ pipeline {
     stage('Import databases') {
       steps {
         sh '''
-          docker exec -i db psql -U postgres < human1.db
-          docker exec -i db psql -U postgres < yeast8.db
-          docker exec -i db psql -U postgres < gems.db
-
-          docker exec backend python manage.py makemigrations
-          docker exec backend python manage.py migrate --database yeast8 --fake
-          docker exec backend python manage.py migrate --database human1 --fake
-          docker exec backend python manage.py migrate --database gems --fake
+          . ./proj.sh production
+          db-import human1.db
+          db-import yeast8.db
+          db-import gems.db
+          db-make-migrations
+          db-migrate yeast8 --fake
+          db-migrate human1 --fake
+          db-migrate gems --fake
         '''
       }
     }

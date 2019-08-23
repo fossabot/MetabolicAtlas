@@ -31,7 +31,7 @@
                   <tile type="subsystem" :model="model" :data="starredComponents.subsystems[0]">
                   </tile>
                   <div class="tile">
-                    <tile type="enzyme" size="is-6" :model="model" :data="starredComponents.enzymes[0]">
+                    <tile type="gene" size="is-6" :model="model" :data="starredComponents.genes[0]">
                     </tile>
                     <tile type="metabolite" size="is-6" :model="model" :data="starredComponents.metabolites[0]">
                     </tile>
@@ -47,7 +47,7 @@
                   <div class="tile">
                     <tile type="metabolite" size="is-6" :model="model" :data="starredComponents.metabolites[1]">
                     </tile>
-                    <tile type="enzyme" size="is-6" :model="model" :data="starredComponents.enzymes[1]">
+                    <tile type="gene" size="is-6" :model="model" :data="starredComponents.genes[1]">
                     </tile>
                   </div>
                 </div>
@@ -66,7 +66,7 @@
       </div>
       <div v-else>
         <closest-interaction-partners v-if="selectedType==='interaction'" :model="model"></closest-interaction-partners>
-        <enzyme v-if="selectedType==='enzyme'" :model="model"></enzyme>
+        <gene v-if="selectedType==='gene'" :model="model"></gene>
         <metabolite v-if="selectedType==='metabolite'" :model="model"></metabolite>
         <reaction v-if="selectedType==='reaction'" :model="model"></reaction>
         <subsystem v-if="selectedType==='subsystem'" :model="model"></subsystem>
@@ -80,7 +80,7 @@
 import axios from 'axios';
 import GemSearch from '@/components/explorer/gemBrowser/GemSearch';
 import ClosestInteractionPartners from '@/components/explorer/gemBrowser/ClosestInteractionPartners';
-import Enzyme from '@/components/explorer/gemBrowser/Enzyme';
+import Gene from '@/components/explorer/gemBrowser/Gene';
 import Metabolite from '@/components/explorer/gemBrowser/Metabolite';
 import Reaction from '@/components/explorer/gemBrowser/Reaction';
 import Subsystem from '@/components/explorer/gemBrowser/Subsystem';
@@ -96,7 +96,7 @@ export default {
   props: ['model'],
   components: {
     ClosestInteractionPartners,
-    Enzyme,
+    Gene,
     Metabolite,
     Reaction,
     Subsystem,

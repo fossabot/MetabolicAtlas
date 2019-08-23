@@ -37,12 +37,12 @@ export default function (c, reactions, relms, rrels, rcomp, rsub) {
         type: 'metabolite',
         name: m.name,
         formula: m.formula,
-        compartment: m.compartment,
+        compartment: m.compartment_str,
         subsystem: new Set(),
         reaction: new Set([r.id]),
       };
-      compartmentSet.add(m.compartment);
-      reactionComp.add(m.compartment);
+      compartmentSet.add(m.compartment_str);
+      reactionComp.add(m.compartment_str);
       if (r.subsystem) {
         metabolite.subsystem.add(...r.subsystem);
       }
@@ -50,11 +50,11 @@ export default function (c, reactions, relms, rrels, rcomp, rsub) {
     }
 
     const mods = {};
-    for (const m of r.modifiers) {
-      const modifier = {
+    for (const m of r.genes) {
+      const gene = {
         id: m.id,
-        type: 'enzyme',
-        name: m.gene_name || m.id,
+        type: 'gene',
+        name: m.name || m.id,
         formula: m.formula,
         compartment: {},
         subsystem: new Set(),
@@ -62,15 +62,15 @@ export default function (c, reactions, relms, rrels, rcomp, rsub) {
       };
       if (reactionComp.size === 1) {
         const compt = reactionComp.values().next().value;
-        modifier.compartment[compt] = 1;
+        gene.compartment[compt] = 1;
       } else {
         // ambigous localization
-        reactionComp.forEach((e) => { modifier.compartment[e] = 0; });
+        reactionComp.forEach((e) => { gene.compartment[e] = 0; });
       }
       if (r.subsystem) {
-        modifier.subsystem.add(...r.subsystem);
+        gene.subsystem.add(...r.subsystem);
       }
-      mods[modifier.id] = modifier;
+      mods[gene.id] = gene;
     }
 
     for (const eid of Object.keys(mods)) {
@@ -81,7 +81,7 @@ export default function (c, reactions, relms, rrels, rcomp, rsub) {
         elms[eid].reaction.add(...e.reaction);
         elms[eid].subsystem.add(...e.subsystem);
         for (const cpt of Object.keys(e.compartment)) {
-          // new compartment or not ambigous localization for the existing enzyme
+          // new compartment or not ambigous localization for the existing gene
           if (!(cpt in elms[eid].compartment) || e.compartment[cpt] === 1) {
             elms[eid].compartment[cpt] = e.compartment[cpt];
           }

@@ -1,7 +1,12 @@
 // vue.config.js
+const IS_DEV = process.env.NODE_ENV === 'development';
+
+// plugins for compressing the static files
+const CompressionPlugin = require("compression-webpack-plugin");
+
 module.exports = {
   productionSourceMap: false,
-  lintOnSave: 'default',
+  lintOnSave: IS_DEV,
   css: {
     loaderOptions: {
       sass: {
@@ -12,11 +17,14 @@ module.exports = {
   },
   pluginOptions: {
     webpackBundleAnalyzer: {
-      analyzerMode: process.env.NODE_ENV === 'development' ? 'server' : 'disabled',
+      analyzerMode: IS_DEV ? 'server' : 'disabled',
       // Using the same host name as the container name
       analyzerHost: 'frontend',
       analyzerPort: 81,
       openAnalyzer: false
     }
+  },
+  configureWebpack: {
+    plugins: [new CompressionPlugin]
   }
 }

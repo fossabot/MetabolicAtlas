@@ -18,14 +18,14 @@
               <li :title="`Select a ${show2D ? '2D' : '3D'} compartment network to show`">Compartments<span>&nbsp;&#9656;</span>
                 <ul class="vhs l1" title="">
                   <li @click="showMap()" class="has-background-grey-dark clickable"><i>Clear selection</i></li>
-                  <div v-show="!has2DCompartmentMaps || show3D">
+                  <div v-if="!has2DCompartmentMaps || show3D">
                     <li v-for="cKey in Object.keys(mapsData3D.compartments).sort()" class="clickable"
                       :class="{'has-text-warning': cKey === currentDisplayedName }"
                       @click="showMap(mapsData3D.compartments[cKey].name_id)">
                       {{ mapsData3D.compartments[cKey].name }} {{ mapsData3D.compartments[cKey].reaction_count != 0 ? `(${mapsData3D.compartments[cKey].reaction_count})` : '' }}
                     </li>
                   </div>
-                  <div v-show="has2DCompartmentMaps && show2D">
+                  <div v-else>
                     <li v-for="cKey in Object.keys(mapsData2D.compartments).sort()" class="clickable"
                       :class="{ 'disable' : !mapsData2D.compartments[cKey].sha, 'has-text-warning': cKey === currentDisplayedName }"
                       @click="showMap(mapsData2D.compartments[cKey].name_id)">
@@ -37,14 +37,14 @@
               <li :title="`Select a ${show2D ? '2D' : '3D'} subsystem network to show`">Subsystems<span>&nbsp;&#9656;</span>
                 <ul class="vhs l1" title="">
                   <li @click="showMap()" class="has-background-grey-dark clickable"><i>Clear selection</i></li>
-                  <div v-show="!has2DSubsystemMaps || show3D">
+                  <div v-if="!has2DSubsystemMaps || show3D">
                     <li v-for="sKey in Object.keys(mapsData3D.subsystems).sort()" class="clickable"
                       :class="{'has-text-warning': sKey === currentDisplayedName }"
                       @click="showMap(mapsData3D.subsystems[sKey].name_id, 'subsystem')">
                         {{ mapsData3D.subsystems[sKey].name }} {{ mapsData3D.subsystems[sKey].reaction_count != 0 ? `(${mapsData3D.subsystems[sKey].reaction_count})` : '' }}
                     </li>
                   </div>
-                  <div v-show="has2DSubsystemMaps && mapsData2D.subsystems">
+                  <div v-else>
                     <li v-for="sKey in Object.keys(mapsData2D.subsystems).sort()" class="clickable"
                       :class="{'has-text-warning': sKey === currentDisplayedName }"
                       v-if="mapsData2D.subsystems[sKey].name_id && mapsData2D.subsystems[sKey].sha" @click="showMap(mapsData2D.subsystems[sKey].name_id, 'subsystem')">
@@ -56,9 +56,10 @@
                   </div>
                 </ul>
               </li>
-              <li :class="{'clickable' : true, 'disable' : !currentDisplayedName || HPATissue.length === 0 }" >RNA levels from <i style="color: lightblue">proteinAtlas.org</i>
+              <li :class="{'clickable' : true, 'disable' : disabledRNAlvl }"
+                :title="getRNATitle()">RNA levels from <i style="color: lightblue">proteinAtlas.org</i>
                 <span v-show="HPATissue.length !== 0">&nbsp;&#9656;</span>
-                <ul class="vhs l1">
+                <ul class="vhs l1" title="">
                   <li v-show="HPATissue.length !== 0" @click="loadHPARNAlevels('None')"  class="has-background-grey-dark clickable"><i>Clear selection</i></li>
                   <li v-for="tissue in HPATissue" class="clickable is-capitalized" @click="loadHPARNAlevels(tissue)"
                     :class="{'has-text-warning': tissue === loadedTissue }">
@@ -174,6 +175,10 @@ export default {
         compartments: {},
         subsystems: {},
       },
+      compartmentMapping: {
+        dim2D: {},
+        dim3D: {},
+      },
 
       selectionData: {
         type: '',
@@ -206,6 +211,9 @@ export default {
       }
       const altID = this.mapsData3D.subsystems[this.currentDisplayedName].alternateDim;
       return !(altID in this.mapsData2D.subsystems && this.mapsData2D.subsystems[altID].sha);
+    },
+    disabledRNAlvl() {
+      return !this.currentDisplayedName || this.HPATissue.length === 0;
     },
   },
   watch: {
@@ -285,6 +293,9 @@ export default {
     // menu
     const self = this;
     $('#menu').on('mouseenter', 'ul.l0 > li:has(ul)', function f() {
+      if ($(this).hasClass('disable')) {
+        return;
+      }
       $('#menu ul.l1, #menu ul.l2').hide();
       $(this).find('ul').first().show();
       self.isHoverMenuItem = true;
@@ -303,6 +314,10 @@ export default {
       $('#menu ul.l2').hide();
       $(this).find('ul').first().show();
       self.isHoverMenuItem = true;
+    });
+
+    $('#graphframe').on('click', function f() {
+      $('#menu ul.l1, #menu ul.l2').hide();
     });
   },
   methods: {
@@ -333,11 +348,12 @@ export default {
       }
 
       if (!this.checkValidRequest(this.currentDisplayedType, this.currentDisplayedName)) {
-        this.handleLoadComplete(false, messages.mapNotFound, 'info');
+        this.showMessage(messages.mapNotFound, 'info');
         this.show3D = !this.show3D;
         this.show2D = !this.show2D;
         return;
       }
+
       if (this.show3D) {
         this.URLID = null;
         EventBus.$emit('show3Dnetwork', this.requestedType, this.requestedName);
@@ -350,17 +366,9 @@ export default {
     handleLoadComplete(isSuccess, errorMessage, messageType) {
       if (!isSuccess) {
         this.selectionData.data = null;
-        this.loadErrorMesssage = errorMessage;
-        this.loadErrorTypeMesssage = messageType;
-        if (!this.loadErrorMesssage) {
-          this.loadErrorMesssage = messages.unknownError;
-        }
-        this.showLoader = false;
+        this.showMessage(errorMessage, messageType);
         this.currentDisplayedType = '';
         this.currentDisplayedName = '';
-        setTimeout(() => {
-          this.loadErrorMesssage = '';
-        }, 3000);
         return;
       }
       this.showOverviewScreen = false;
@@ -375,33 +383,46 @@ export default {
         this.loadHPARNAlevels(this.loadedTissue);
       }
     },
+    showMessage(errorMessage, messageType) {
+      this.loadErrorMesssage = errorMessage;
+      this.loadErrorTypeMesssage = messageType;
+      if (!this.loadErrorMesssage) {
+        this.loadErrorMesssage = messages.unknownError;
+      }
+      this.showLoader = false;
+      setTimeout(() => {
+        this.loadErrorMesssage = '';
+      }, 3000);
+    },
     getSubComptData(model) {
       axios.get(`${model.database_name}/viewer/`)
       .then((response) => {
         this.mapsData3D.compartments = {};
         for (const c of response.data.compartment) {
           this.mapsData3D.compartments[c.name_id] = c;
-          this.mapsData3D.compartments[c.name_id].model_id = c.name_id;
+          this.mapsData3D.compartments[c.name_id].id = c.name_id;
           this.mapsData3D.compartments[c.name_id].alternateDim = c.compartment_svg;
+          this.compartmentMapping.dim2D[c.compartment_svg] = c.name_id;
         }
         this.mapsData2D.compartments = {};
         for (const c of response.data.compartmentsvg) {
           this.mapsData2D.compartments[c.name_id] = c;
-          this.mapsData2D.compartments[c.name_id].model_id = c.compartment;
+          this.mapsData2D.compartments[c.name_id].id = c.compartment;
           this.mapsData2D.compartments[c.name_id].alternateDim = c.compartment;
+          this.compartmentMapping.dim3D[c.compartment] = c.name_id;
         }
         this.has2DCompartmentMaps = Object.keys(this.mapsData2D.compartments).length !== 0;
         // this.mapsData2D.compartments.sort();
         this.mapsData3D.subsystems = {};
         for (const s of response.data.subsystem) {
           this.mapsData3D.subsystems[s.name_id] = s;
-          this.mapsData3D.subsystems[s.name_id].model_id = s.name_id;
+          this.mapsData3D.subsystems[s.name_id].id = s.name_id;
           this.mapsData3D.subsystems[s.name_id].alternateDim = s.subsystem_svg;
         }
         this.mapsData2D.subsystems = {};
         for (const s of response.data.subsystemsvg) {
           this.mapsData2D.subsystems[s.name_id] = s;
-          this.mapsData2D.subsystems[s.name_id].model_id = s.subsystem;
+          this.mapsData2D.subsystems[s.name_id].id = s.subsystem;
           this.mapsData2D.subsystems[s.name_id].alternateDim = s.subsystem;
         }
         this.has2DSubsystemMaps = Object.keys(this.mapsData2D.subsystems).length !== 0;
@@ -449,7 +470,7 @@ export default {
       }
     },
     getHPATissue(model) {
-      axios.get(`${model.database_name}/enzyme/hpa_tissue/`)
+      axios.get(`${model.database_name}/gene/hpa_tissue/`)
         .then((response) => {
           this.HPATissue = response.data;
         })
@@ -477,12 +498,18 @@ export default {
       this.requestedName = displayName;
       if (this.show2D) {
         if (displayType === 'compartment') {
+          if (displayName in this.compartmentMapping.dim3D) {
+            this.requestedName = this.compartmentMapping.dim3D[displayName];
+          }
           return this.requestedName in this.mapsData2D.compartments;
         }
         return this.requestedName in this.mapsData2D.subsystems &&
          this.mapsData2D.subsystems[this.requestedName].sha;
       }
       if (displayType === 'compartment') {
+        if (displayName in this.compartmentMapping.dim2D) {
+          this.requestedName = this.compartmentMapping.dim2D[displayName];
+        }
         return this.requestedName in this.mapsData3D.compartments;
       }
       return this.requestedName in this.mapsData3D.subsystems;
@@ -501,6 +528,12 @@ export default {
         this.$router.push(`/explore/map-viewer/${this.model.database_name}/`);
         // keep the loaded 2D map, and data info in the 'back', to quickly reload it
       }
+    },
+    getRNATitle() {
+      if (this.HPATissue.length === 0) {
+        return `RNA expression levels not available for ${this.model.short_name}`;
+      }
+      return this.disabledRNAlvl ? 'RNA expression levels disabled, select a map first' : 'Select a tissue from the list to color genes according their expression levels in that tissue';
     },
   },
 };

@@ -5,7 +5,15 @@
     <div id="svgOption" class="overlay">
       <span class="button" v-on:click="zoomOut(false)" title="Zoom in"><i class="fa fa-search-plus"></i></span>
       <span class="button" v-on:click="zoomOut(true)" title="Zoom out"><i class="fa fa-search-minus"></i></span>
-      <span class="button" v-on:click="toggleGenes()" title="Show/Hide genes"><i class="fa fa-filter"></i></span>
+      <span class="button" style="padding: 4.25px;" @click="toggleGenes()" title="Show/Hide genes">
+        <i class="fa fa-eye-slash">&thinsp;G
+        </i>
+      </span>
+      <span class="button" style="padding: 4.25px;" @click="toggleSubsystems()" title="Show/Hide subsystem colors">
+        <i class="fa fa-eye-slash">&thinsp;S
+        </i>
+      </span>
+      <span class="button" v-on:click="toggleFullScreen()" title="fullscreen" :disabled="isFullScreenDisabled"><i class="fa fa-arrows-alt"></i></span>
     </div>
     <div id="svgSearch" class="overlay">
       <div class="control" :class="{ 'is-loading' : isLoadingSearch }">
@@ -14,14 +22,14 @@
           v-on:keyup.enter="searchComponentIDs()" :disabled="!loadedMap"
           placeholder="Exact search by id, name, alias"/>
       </div>
-      <div v-show="searchTerm && totalSearchMatch">
+      <template v-if="searchTerm && totalSearchMatch">
         <span id="searchResCount" class="button has-text-dark" @click="centerElementOnSVG(0)" title="Click to center on current match">
           {{ this.currentSearchMatch }} of {{this.totalSearchMatch }}
         </span>
         <span class="button has-text-dark" @click="centerElementOnSVG(-1)" title="Go to previous"><i class="fa fa-angle-left"></i></span>
         <span class="button has-text-dark" @click="centerElementOnSVG(1)" title="Go to next"><i class="fa fa-angle-right"></i></span>
         <span class="button has-text-dark" @click="highlightElementsFound" title="Highlight all matches">Highlight all</span>
-      </div>
+      </template>
     </div>
     <div id="tooltip" ref="tooltip"></div>
   </div>
@@ -37,6 +45,7 @@ import Loader from '@/components/Loader';
 import { default as EventBus } from '../../../event-bus';
 import { getExpressionColor } from '../../../expression-sources/hpa';
 import { default as messages } from '../../../helpers/messages';
+import { reformatChemicalReactionHTML } from '../../../helpers/utils';
 
 // hack: the only way for jquery plugins to play nice with the plugins inside Vue
 $.Panzoom = JQPanZoom;
@@ -85,7 +94,7 @@ export default {
       selectElementID: null,
 
       HPARNAlevelsHistory: {},
-      enzymeRNAlevels: {}, // enz id as key, current tissue level as value
+      geneRNAlevels: {}, // enz id as key, current tissue level as value
 
       searchTerm: '',
       searchInputClass: '',
@@ -94,8 +103,8 @@ export default {
       currentSearchMatch: 0,
       totalSearchMatch: 0,
 
-      svgMapURL: `${window.location.origin}/svgs`, // SEDME
-      defaultEnzymeColor: '#feb',
+      svgMapURL: process.env.VUE_APP_SVGMAPURL,
+      defaultGeneColor: '#feb',
     };
   },
   watch: {
@@ -105,6 +114,15 @@ export default {
         this.totalSearchMatch = 0;
         this.searchInputClass = 'is-info';
       }
+    },
+  },
+  computed: {
+    isFullScreenDisabled() {
+      const elem = $('.svgbox').first()[0];
+      if ((document.fullScreenElement !== undefined && document.fullScreenElement === null) || (document.msFullscreenElement !== undefined && document.msFullscreenElement === null) || (document.mozFullScreen !== undefined && !document.mozFullScreen) || (document.webkitIsFullScreen !== undefined && !document.webkitIsFullScreen)) {
+        return false;
+      }
+      return true;
     },
   },
   created() {
@@ -145,8 +163,8 @@ export default {
     }
     $('#svg-wrapper').on('mouseover', '.enz', function f(e) {
       const id = $(this).attr('class').split(' ')[1].trim();
-      if (id in self.enzymeRNAlevels) {
-        self.$refs.tooltip.innerHTML = `RNA level: ${self.enzymeRNAlevels[id]}`;
+      if (id in self.geneRNAlevels) {
+        self.$refs.tooltip.innerHTML = `RNA level: ${self.geneRNAlevels[id]}`;
         self.$refs.tooltip.style.top = `${(e.pageY - $('.svgbox').first().offset().top) + 15}px`;
         self.$refs.tooltip.style.left = `${(e.pageX - $('.svgbox').first().offset().left) + 15}px`;
         self.$refs.tooltip.style.display = 'block';
@@ -156,6 +174,16 @@ export default {
       self.$refs.tooltip.innerHTML = '';
       self.$refs.tooltip.style.display = 'none';
     });
+    $('.svgbox').on('webkitfullscreenchange mozfullscreenchange fullscreenchange mozFullScreen MSFullscreenChange', (e) => {
+        $('.svgbox').first().toggleClass('fullscreen');
+        $('#svgSearch').toggleClass('fullscreen');
+        e.stopPropagation();
+    });
+    $(document).on('mozfullscreenchange', (e) => {
+        $('.svgbox').first().toggleClass('fullscreen');
+        $('#svgSearch').toggleClass('fullscreen');
+    });
+
   },
   methods: {
     toggleGenes() {
@@ -163,6 +191,40 @@ export default {
         $('.enz, .ee').attr('visibility', 'visible');
       } else {
         $('.enz, .ee').attr('visibility', 'hidden');
+      }
+    },
+    toggleSubsystems() {
+      if ($('.subsystem').first().attr('visibility') === 'hidden') {
+        $('.subsystem').attr('visibility', 'visible');
+      } else {
+        $('.subsystem').attr('visibility', 'hidden');
+      }
+    },
+    toggleFullScreen() {
+      if (this.isFullScreenDisabled) {
+        return;
+      }
+      const elem = $('.svgbox').first()[0];
+      if ((document.fullScreenElement !== undefined && document.fullScreenElement === null) || (document.msFullscreenElement !== undefined && document.msFullscreenElement === null) || (document.mozFullScreen !== undefined && !document.mozFullScreen) || (document.webkitIsFullScreen !== undefined && !document.webkitIsFullScreen)) {
+        if (elem.requestFullScreen) {
+          elem.requestFullScreen();
+        } else if (elem.mozRequestFullScreen) {
+          elem.mozRequestFullScreen();
+        } else if (elem.webkitRequestFullScreen) {
+          elem.webkitRequestFullScreen(Element.ALLOW_KEYBOARD_INPUT);
+        } else if (elem.msRequestFullscreen) {
+          elem.msRequestFullscreen();
+        }
+      } else {
+        if (document.cancelFullScreen) {
+          document.cancelFullScreen();
+        } else if (document.mozCancelFullScreen) {
+          document.mozCancelFullScreen();
+        } else if (document.webkitCancelFullScreen) {
+          document.webkitCancelFullScreen();
+        } else if (document.msExitFullscreen) {
+          document.msExitFullscreen();
+        }
       }
     },
     zoomOut(bool) {
@@ -282,7 +344,7 @@ export default {
         this.readHPARNAlevels(tissue);
         return;
       }
-      axios.get(`${this.model.database_name}/enzyme/hpa_rna_levels/${mapType}/2d/${this.loadedMap.name_id}`)
+      axios.get(`${this.model.database_name}/gene/hpa_rna_levels/${mapType}/2d/${this.loadedMap.name_id}`)
       .then((response) => {
         this.HPARNAlevelsHistory[this.svgName] = response.data;
         setTimeout(() => {
@@ -296,8 +358,8 @@ export default {
     },
     readHPARNAlevels(tissue) {
       if (tissue === 'None') {
-        $('#svg-wrapper .enz .shape').attr('fill', this.defaultEnzymeColor);
-        this.enzymeRNAlevels = {};
+        $('#svg-wrapper .enz .shape').attr('fill', this.defaultGeneColor);
+        this.geneRNAlevels = {};
         return;
       }
       const index = this.HPARNAlevelsHistory[this.svgName].tissues.indexOf(tissue);
@@ -311,14 +373,14 @@ export default {
         const enzID = array[0];
         let level = Math.log2(parseFloat(array[1].split(',')[index]) + 1);
         level = Math.round((level + 0.00001) * 100) / 100;
-        this.enzymeRNAlevels[enzID] = level;
+        this.geneRNAlevels[enzID] = level;
       }
 
-      const allEnzymes = $('#svg-wrapper .enz');
-      for (const oneEnz of allEnzymes) {
+      const allGenes = $('#svg-wrapper .enz');
+      for (const oneEnz of allGenes) {
         const ID = oneEnz.classList[1];
-        if (this.enzymeRNAlevels[ID] !== undefined) {
-          oneEnz.children[0].setAttribute('fill', getExpressionColor(this.enzymeRNAlevels[ID]));
+        if (this.geneRNAlevels[ID] !== undefined) {
+          oneEnz.children[0].setAttribute('fill', getExpressionColor(this.geneRNAlevels[ID]));
         } else {
           oneEnz.children[0].setAttribute('fill', 'whitesmoke');
         }
@@ -326,8 +388,8 @@ export default {
 
       // update cached selected elements
       for (const id of Object.keys(this.selectedItemHistory)) {
-        if (this.enzymeRNAlevels[id] !== undefined) {
-          this.selectedItemHistory[id].rnaLvl = this.enzymeRNAlevels[id];
+        if (this.geneRNAlevels[id] !== undefined) {
+          this.selectedItemHistory[id].rnaLvl = this.geneRNAlevels[id];
         }
       }
       EventBus.$emit('loadRNAComplete', true, '');
@@ -447,7 +509,7 @@ export default {
       if (element.hasClass('rea')) {
         return [element.attr('id'), 'reaction'];
       } else if (element.hasClass('enz')) {
-        return [element.attr('class').split(' ')[1], 'enzyme'];
+        return [element.attr('class').split(' ')[1], 'gene'];
       } else if (element.hasClass('met')) {
         return [element.attr('class').split(' ')[1], 'metabolite'];
       }
@@ -481,15 +543,16 @@ export default {
         return;
       }
       EventBus.$emit('startSelectedElement');
-      axios.get(`${this.model.database_name}/${type}/${id}`)
+      axios.get(`${this.model.database_name}/${type === 'reaction' ? 'get_reaction' : type}/${id}`)
       .then((response) => {
         let data = response.data;
         if (type === 'reaction') {
           data = data.reaction;
-        } else if (type === 'enzyme') {
+          data.equation = this.reformatChemicalReactionHTML(data, true);
+        } else if (type === 'gene') {
           // add the RNA level if any
-          if (id in this.enzymeRNAlevels) {
-            data.rnaLvl = this.enzymeRNAlevels[id];
+          if (id in this.geneRNAlevels) {
+            data.rnaLvl = this.geneRNAlevels[id];
           }
         }
         selectionData.data = data;
@@ -524,6 +587,7 @@ export default {
       this.$panzoom.panzoom('pan', -panX + ($('.svgbox').width() / 2), -panY + ($('.svgbox').height() / 2));
       this.$emit('loadComplete', true, '');
     },
+    reformatChemicalReactionHTML,
   },
 };
 </script>
@@ -551,15 +615,20 @@ export default {
     padding: 0;
     width: 100%;
     height:100%;
+    &.fullscreen {
+      background: white;
+    }
   }
 
   #svgOption {
     position: absolute;
     top: 7.25rem;
     left: 2.25rem;
-    span:not(:last-child) {
-      display: inline-block;
-      margin-right: 5px;
+    span {
+      display: block;
+      &:not(:last-child) {
+        margin-bottom: 5px;
+      }
     }
   }
 
@@ -572,13 +641,18 @@ export default {
       display: inline-block;
       vertical-align: middle;
     }
-    span:first-child {
-      color: white;
+    span {
+      margin-left: 5px;
     }
     #searchInput {
       display: inline-block;
-      margin-right: 5px;
       width: 20vw;
+    }
+    &.fullscreen {
+      left: 30%;
+      #searchInput {
+        width: 30vw;
+      }
     }
   }
 

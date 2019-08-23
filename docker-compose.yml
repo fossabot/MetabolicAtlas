@@ -3,12 +3,14 @@ version: '3'
 services:
   db:
     container_name: db
-    image: postgres
+    image: postgres:alpine
     networks:
       - net-tier
 
   nginx:
     container_name: nginx
+    depends_on:
+      - backend
     ports:
       - "80:80"
       - "443:443"
