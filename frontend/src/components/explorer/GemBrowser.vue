@@ -77,7 +77,6 @@
 </template>
 
 <script>
-import Vue from 'vue';
 import axios from 'axios';
 import GemSearch from '@/components/explorer/gemBrowser/GemSearch';
 import ClosestInteractionPartners from '@/components/explorer/gemBrowser/ClosestInteractionPartners';
@@ -115,12 +114,6 @@ export default {
       componentID: '',
       mapsAvailable: null,
       starredComponents: null,
-      newStarredComponents: null,
-      interval: null,
-      timeoutLoop: null,
-      timeout: 4000, // initial value
-      maxTileUpdateCount: 90, // 1 hour
-      counter: 0
     };
   },
   watch: {
@@ -148,11 +141,6 @@ export default {
         ID = idfy(id);
       }
       this.$router.push(`/explore/gem-browser/${this.$route.params.model}/${type}/${ID}`);
-    });
-  },
-  mounted() {
-    this.$nextTick(function () {
-      this.loop();
     });
   },
   methods: {

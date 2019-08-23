@@ -552,10 +552,6 @@ def get_data_viewer(request, model):
 @api_view()
 @is_model_valid
 def get_tiles_data(request, model):
-    # l = logging.getLogger('django.db.backends')
-    # l.setLevel(logging.DEBUG)
-    # l.addHandler(logging.StreamHandler())
-
     compartment_count = APImodels.Compartment.objects.using(model).all().count()
     random_index = randint(0, compartment_count - 1)
     compartment = APImodels.Compartment.objects.using(model).all()[random_index]
@@ -582,24 +578,13 @@ def get_tiles_data(request, model):
     metabolite2 = APImodels.Metabolite.objects.using(model).all()[random_index].rc
 
     gene_count = APImodels.Gene.objects.using(model).all().count()
-    if gene_count == 0:
-        gene_count = APImodels.ReactionComponent.objects.using(model).filter(component_type='e').count()
-        random_index = randint(0, gene_count - 1)
-        gene1 = APImodels.ReactionComponent.objects.using(model).filter(component_type='e')[random_index]
+    gene_count = APImodels.ReactionComponent.objects.using(model).filter(component_type='e').count()
+    random_index = randint(0, gene_count - 1)
+    gene1 = APImodels.ReactionComponent.objects.using(model).filter(component_type='e')[random_index]
 
-        random_index = randint(0, gene_count - 1)
-        gene2 = APImodels.ReactionComponent.objects.using(model).filter(component_type='e')[random_index]
-    else:
-        random_index = randint(0, gene_count - 1)
-        gene1 = APImodels.Gene.objects.using(model).all()[random_index].rc
+    random_index = randint(0, gene_count - 1)
+    gene2 = APImodels.ReactionComponent.objects.using(model).filter(component_type='e')[random_index]
 
-        random_index = randint(0, gene_count - 1)
-        gene2 = APImodels.Gene.objects.using(model).all()[random_index].rc
-    # compartments = APImodels.Compartment.objects.using(model).all().prefetch_related('subsystem')[:2]
-    # subsystems = APImodels.Subsystem.objects.using(model).all().order_by('?')[:2]
-    # reactions = APImodels.Reaction.objects.using(model).all().order_by('?')[:2]
-    # metabolites = APImodels.ReactionComponent.objects.using(model).filter(component_type='m').order_by('?')[:2]
-    # genes = APImodels.ReactionComponent.objects.using(model).filter(component_type='e').order_by('?')[:2]
     res = APImodels.GemBrowserTile(compartment, [subsystem1, subsystem2], [reaction1, reaction2], [metabolite1, metabolite2], [gene1, gene2])
     return JSONResponse(APIserializer.GemBrowserTileSerializer(res).data)
 
