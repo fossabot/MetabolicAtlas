@@ -145,17 +145,10 @@
                 </tbody>
               </table>
               <template v-if="selectedModel.files">
-                <br>
-                <span class="subtitle">Files</span>
-                <table class="table">
-                  <tbody>
-                    <tr>
-                      <td v-for="file in selectedModel.files">
-                        <a :href="`${filesURL}${file.path}`">{{ file.format }}</a>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
+                <p class="subtitle has-text-weight-bold">Files</p>
+                <template v-for="file in selectedModel.files">
+                  <a class="button" :href="`${filesURL}${file.path}`">{{ file.format }}</a>&nbsp;
+                </template>
               </template>
             </div>
           </div>
