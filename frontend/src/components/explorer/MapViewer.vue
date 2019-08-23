@@ -315,6 +315,10 @@ export default {
       $(this).find('ul').first().show();
       self.isHoverMenuItem = true;
     });
+
+    $('#graphframe').on('click', function f() {
+      $('#menu ul.l1, #menu ul.l2').hide();
+    });
   },
   methods: {
     setup() {
@@ -527,7 +531,7 @@ export default {
     },
     getRNATitle() {
       if (this.HPATissue.length === 0) {
-        return `RNA expression levels not available for ${this.model.name}`;
+        return `RNA expression levels not available for ${this.model.short_name}`;
       }
       return this.disabledRNAlvl ? 'RNA expression levels disabled, select a map first' : 'Select a tissue from the list to color genes according their expression levels in that tissue';
     },
