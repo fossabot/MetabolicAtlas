@@ -421,8 +421,6 @@ def get_metabolite_reactions(request, model, id, all_compartment=False, api=True
     else:
         ReactionSerializerClass= componentDBserializerSelector(model, 'reaction', serializer_type='basic', api_version=request.version)
 
-
-    
     serializer = ReactionSerializerClass(reactions, many=True, context={'model': model})
 
     return JSONResponse(serializer.data)
@@ -444,15 +442,22 @@ def get_gene_reactions(request, model, id, api=True):
 
     reactions = APImodels.Reaction.objects.none()
     for c in component:
-        reactions_as_gene = c.reactions_as_gene.using(model). \
-        prefetch_related('reactants', 'products', 'genes').distinct()
+        if api:
+            reactions_as_gene = c.reactions_as_gene.using(model). \
+                prefetch_related('reactants', 'products', 'genes').distinct()
+        else:
+            reactions_as_gene = c.reactions_as_gene.using(model). \
+                prefetch_related('reactionreactant_set', 'reactionreactant_set__reactant',
+                                 'reactionproduct_set', 'reactionproduct_set__product', 'genes').distinct()
         reactions |= reactions_as_gene
-    reactions = reactions.distinct()
 
+    reactions = reactions.distinct()
     if not api:
         reactions = reactions[:200]
+        ReactionSerializerClass= componentDBserializerSelector(model, 'reaction', serializer_type='table', api_version=request.version)
+    else:
+        ReactionSerializerClass= componentDBserializerSelector(model, 'reaction', serializer_type='basic', api_version=request.version)
 
-    ReactionSerializerClass= componentDBserializerSelector(model, 'reaction', serializer_type='table', api_version=request.version)
     serializer = ReactionSerializerClass(reactions, many=True, context={'model': model})
 
     return JSONResponse(serializer.data)
@@ -488,7 +493,7 @@ def get_subsystem(request, model, subsystem_name_id, api=True):
             filter(subsystem_id=subsystem_id).values_list('rc_id', flat=True)
 
         results = {}
-        results.update(SubsystemSerializerClass(s, context={'model': model}).data)
+        results.update(SubsystemSerializerClass(subsystem, context={'model': model}).data)
         results['metabolites'] =  smsQuerySet
         results['genes'] =  sesQuerySet
 
@@ -512,9 +517,14 @@ def get_subsystem_reactions(request, model, subsystem_name_id, api=True):
             prefetch_related('genes').distinct()
     else:
         r = APImodels.Reaction.objects.using(model).filter(subsystem=subsystem_id). \
-            prefetch_related('genes').distinct()[:1000]
+            prefetch_related('reactionreactant_set', 'reactionreactant_set__reactant',
+                 'reactionproduct_set', 'reactionproduct_set__product', 'genes').distinct()[:1000]
 
-    ReactionSerializerClass= componentDBserializerSelector(model, 'reaction', serializer_type='table', api_version=request.version)
+    if api:
+        ReactionSerializerClass= componentDBserializerSelector(model, 'reaction', serializer_type='basic', api_version=request.version)
+    else:
+        ReactionSerializerClass= componentDBserializerSelector(model, 'reaction', serializer_type='table', api_version=request.version)
+
     results = {
         'reactions': ReactionSerializerClass(r, many=True, context={'model': model}).data,
         'limit': 1000,
