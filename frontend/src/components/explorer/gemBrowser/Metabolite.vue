@@ -45,7 +45,7 @@
             </tr>
           </table>
           <template v-if="hasExternalID">
-            <h4 class="title is-4">External links</h4>
+            <h4 class="title is-4">External databases</h4>
             <table v-if="metabolite && Object.keys(metabolite).length !== 0" id="ed-table" class="table is-fullwidth">
               <tr v-for="el in externalIDTableKey[model.database_name]" v-if="metabolite[el.name] && metabolite[el.link]">
                 <td v-if="'display' in el" class="td-key has-background-primary has-text-white-bis" v-html="el.display"></td>
