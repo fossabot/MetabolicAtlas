@@ -374,13 +374,13 @@ class HmrMetaboliteReactionComponentLiteSerializer(serializers.ModelSerializer):
     chebi_id = serializers.SerializerMethodField('read_chebi')
     pubchem_id = serializers.SerializerMethodField('read_pubchem')
     lipidmaps_id = serializers.SerializerMethodField('read_lipidmaps')
-    mnxref_id = serializers.SerializerMethodField('read_mnxref')
+    metanetx_id = serializers.SerializerMethodField('read_metanetx')
 
 
     class Meta:
         model = APImodels.ReactionComponent
         fields = ('id', 'name', 'full_name', 'aliases', 'inchi', 'compartment', 'kegg_id',
-         'bigg_id', 'hmdb_id', 'chebi_id', 'pubchem_id', 'lipidmaps_id', 'mnxref_id',)
+         'bigg_id', 'hmdb_id', 'chebi_id', 'pubchem_id', 'lipidmaps_id', 'metanetx_id',)
 
     def read_aliases(self, model):
         return model.aliases
@@ -409,7 +409,7 @@ class HmrMetaboliteReactionComponentLiteSerializer(serializers.ModelSerializer):
     def read_lipidmaps(self, model):
         return model.external_id6
 
-    def read_mnxref(self, model):
+    def read_metanetx(self, model):
         return model.external_id7
 
 
@@ -437,14 +437,14 @@ class HmrMetaboliteReactionComponentSerializer(serializers.ModelSerializer):
     pubchem_link = serializers.SerializerMethodField('read_pubchem_link')
     lipidmaps_id = serializers.SerializerMethodField('read_lipidmaps')
     lipidmaps_link = serializers.SerializerMethodField('read_lipidmaps_link')
-    mnxref_id = serializers.SerializerMethodField('read_mnxref')
-    mnxref_link = serializers.SerializerMethodField('read_mnxref_link')
+    metanetx_id = serializers.SerializerMethodField('read_metanetx')
+    metanetx_link = serializers.SerializerMethodField('read_metanetx_link')
 
     class Meta:
         model = APImodels.ReactionComponent
         fields = ('id', 'name', 'alt_name', 'aliases', 'description', 'function', 'formula', 'charge', 'inchi', 'compartment',
         'kegg_id', 'kegg_link', 'bigg_id', 'bigg_link', 'hmdb_id', 'hmdb_link', 'chebi_id', 'chebi_link', 'pubchem_id', 'pubchem_link',
-            'lipidmaps_id', 'lipidmaps_link', 'mnxref_id', 'mnxref_link',)
+            'lipidmaps_id', 'lipidmaps_link', 'metanetx_id', 'metanetx_link',)
 
     def read_alt_name(self, model):
         return model.alt_name1
@@ -512,10 +512,10 @@ class HmrMetaboliteReactionComponentSerializer(serializers.ModelSerializer):
     def read_lipidmaps_link(self, model):
         return model.metabolite.external_link6 if hasattr(model, 'metabolite') else None
 
-    def read_mnxref(self, model):
+    def read_metanetx(self, model):
         return model.external_id7
 
-    def read_mnxref_link(self, model):
+    def read_metanetx_link(self, model):
         return model.metabolite.external_link7 if hasattr(model, 'metabolite') else None
 
 

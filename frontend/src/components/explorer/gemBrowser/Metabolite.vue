@@ -123,7 +123,7 @@ export default {
           { name: 'chebi_id', display: 'ChEBI', link: 'chebi_link' },
           { name: 'pubchem_id', display: 'PubChem', link: 'pubchem_link' },
           { name: 'lipidmaps_id', display: 'Lipidmaps', link: 'lipidmaps_link' },
-          { name: 'mnxref_id', display: 'MNXref', link: 'mnxref_link' },
+          { name: 'metanetx_id', display: 'MetaNetX', link: 'metanetx_link' },
         ],
         yeast8: [
         ],
