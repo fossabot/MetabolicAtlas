@@ -13,7 +13,7 @@
         <i class="fa fa-eye-slash">&thinsp;S
         </i>
       </span>
-      <span class="button" v-on:click="toggleFullScreen()" title="fullscreen" :disabled="isFullScreenDisabled"><i class="fa fa-arrows-alt"></i></span>
+      <span class="button" v-on:click="toggleFullScreen()" title="Show the map in fullscreen" :disabled="isFullScreenDisabled"><i class="fa fa-arrows-alt"></i></span>
     </div>
     <div id="svgSearch" class="overlay">
       <div class="control" :class="{ 'is-loading' : isLoadingSearch }">
@@ -68,7 +68,6 @@ export default {
       svgContent: null,
       svgContentHistory: {},
       svgName: '',
-      svgBigMapName: 'whole_metabolic_network_without_details',
 
       $panzoom: null,
       panzoomOptions: {
@@ -356,7 +355,7 @@ export default {
         if (this.HPARNAlevels[ID] !== undefined) {
           oneEnz.children[0].setAttribute('fill', this.HPARNAlevels[ID][0]); // 0 is the float value, 1 the color hex
         } else {
-          oneEnz.children[0].setAttribute('fill', this.HPARNAlevels['n/a'][0]); 
+          oneEnz.children[0].setAttribute('fill', this.HPARNAlevels['n/a'][0]);
         }
       }
 

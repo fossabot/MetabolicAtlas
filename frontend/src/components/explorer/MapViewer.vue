@@ -1,6 +1,6 @@
 <template>
   <div id="mapViewer" class="extended-section">
-    <div class="columns" id="iMainPanel" :class="{ 'is-fullheight' : errorMessage}">
+    <div class="columns" id="iMainPanel">
       <template v-if="errorMessage">
         <div class="column">
           <br><br>
@@ -12,7 +12,7 @@
         </div>
       </template>
       <template v-else>
-        <div id="iSideBar" class="column is-one-fifth-widescreen is-one-quarter-desktop is-one-quarter-tablet is-half-mobile is-fullheight">
+        <div id="iSideBar" class="column is-one-fifth-widescreen is-one-quarter-desktop is-one-quarter-tablet is-half-mobile has-background-lightgray">
           <div id="menu">
             <ul class="l0">
               <li :title="`Select a ${dim.toUpperCase()} compartment network to show`">Compartments<span>&nbsp;&#9656;</span>
@@ -72,38 +72,14 @@
           <p class="is-size-5 has-text-centered" style="padding: 10%;">Choose a compartment or subsystem map from the menu on the left</p>
         </div>
         <div id="graphframe" v-show="!showOverviewScreen" class="column is-unselectable">
-          <div id="dataOverlayBar" title="Click to show the data overlay panel" v-show="!showLoader && !toggleDataOverlayPanel">
-            <div id="dataOverlayBut" class="column has-background-primary has-text-white" @click="toggleDataOverlayPanel = !toggleDataOverlayPanel">
-              <span class="icon">
-                <i class="fa fa-arrow-left"></i>
-              </span>
-              <p class="is-size-5 has-text-centered has-text-weight-bold">
-                D&nbsp;&nbsp;<br>A&nbsp;&nbsp;<br>T&nbsp;&nbsp;<br>A&nbsp;&nbsp;<br><br>
-                O&nbsp;&nbsp;<br>V&nbsp;&nbsp;<br>E&nbsp;&nbsp;<br>R&nbsp;&nbsp;<br>L&nbsp;&nbsp;<br>A&nbsp;&nbsp;<br>Y&nbsp;&nbsp;
-              </p>
-              <span class="icon">
-                <i class="fa fa-arrow-left"></i>
-              </span>
-            </div>
-          </div>
-          <DataOverlay
-            :model="model"
-            :mapType="currentDisplayedType"
-            :mapName="currentDisplayedName"
-            :dim="dim"
-            @hidePanel="toggleDataOverlayPanel = !toggleDataOverlayPanel"
-            v-show="toggleDataOverlayPanel">
-          </DataOverlay>
-          <div class="is-fullheight">
-            <svgmap v-show="show2D" :model="model" :mapsData="mapsData2D"
-              @loadComplete="handleLoadComplete"
-              @loading="showLoader=true">
-            </svgmap>
-            <d3dforce v-show="show3D" :model="model"
-              @loadComplete="handleLoadComplete"
-              @loading="showLoader=true">
-            </d3dforce>
-          </div>
+          <svgmap v-show="show2D" :model="model" :mapsData="mapsData2D"
+            @loadComplete="handleLoadComplete"
+            @loading="showLoader=true">
+          </svgmap>
+          <d3dforce v-show="show3D" :model="model"
+            @loadComplete="handleLoadComplete"
+            @loading="showLoader=true">
+          </d3dforce>
           <div id="iLoader" class="loading" v-show="showLoader">
             <a class="button is-loading"></a>
           </div>
@@ -136,6 +112,22 @@
             </article>
           </transition>
         </div>
+        <div id="dataOverlayBar" class="column is-narrow has-text-white" :class="{
+          'is-paddingless': toggleDataOverlayPanel }" v-show="!showLoader" title="Click to show the data overlay panel" @click="toggleDataOverlayPanel = !toggleDataOverlayPanel">
+          <p class="is-size-5 has-text-centered has-text-weight-bold">
+            <span class="icon">
+                <i class="fa" :class="{ 'fa-arrow-left': !toggleDataOverlayPanel, 'fa-arrow-right': toggleDataOverlayPanel}"></i>
+            </span><br>
+              D<br>A<br>T<br>A<br><br>
+              O<br>V<br>E<br>R<br>L<br>A<br>Y<br>
+            <span class="icon">
+              <i class="fa" :class="{ 'fa-arrow-left': !toggleDataOverlayPanel, 'fa-arrow-right': toggleDataOverlayPanel}"></i>
+            </span>
+          </p>
+        </div>
+        <DataOverlay :model="model" :mapType="currentDisplayedType" :dim="dim"
+          :mapName="currentDisplayedName" v-show="toggleDataOverlayPanel">
+        </DataOverlay>
       </template>
     </div>
   </div>
@@ -518,18 +510,13 @@ export default {
 
 <style lang="scss">
 
-$navbar-height: 2.5rem;
-$footer-height: 4.55rem;
-
 #mapViewer {
-  .is-fullheight {
-    min-height: calc(100vh - #{$navbar-height} - #{$footer-height});
-    max-height: calc(100vh - #{$navbar-height} - #{$footer-height});
-    height: calc(100vh - #{$navbar-height} - #{$footer-height});
-  }
 
   #iMainPanel {
     margin-bottom: 0;
+    min-height: calc(100vh - #{$navbar-height} - #{$footer-height});
+    max-height: calc(100vh - #{$navbar-height} - #{$footer-height});
+    height: calc(100vh - #{$navbar-height} - #{$footer-height});
   }
 
   #iSwitch {
@@ -539,7 +526,6 @@ $footer-height: 4.55rem;
 
   #iSideBar {
     padding: 0.75rem 0 0 0.75rem;
-    background: lightgray;
   }
 
   #iLoader {
@@ -573,51 +559,21 @@ $footer-height: 4.55rem;
 
 
   #dataOverlayBar {
-    position: absolute;
-    z-index: 10;
-    right: 0;
-    min-height: calc(100vh - #{$navbar-height} - #{$footer-height});
-    max-height: calc(100vh - #{$navbar-height} - #{$footer-height});
-    height: calc(100vh - #{$navbar-height} - #{$footer-height});
-    display: table;
-    opacity: 0.7 ;
-  }
-
-  #dataOverlayBut {
-    display:table-cell;
-    vertical-align: middle;
-    border: 1px solid black;
+    display: flex;
+    align-items: center;
+    background-color: $primary;
     cursor: pointer;
     line-height: 17px;
-    padding-left: 10px;
-    padding-right: 10px;
+    padding: 0.25rem;
     .icon {
-      padding-right: 10px;
       padding-bottom: 20px;
       padding-top: 20px;
     }
-  }
-
-  #dataOverlayPanel {
-    z-index: 13;
-    padding: 10px 10px;
-    position: absolute;
-    right: 0;
-    min-height: calc(100vh - #{$navbar-height} - #{$footer-height});
-    max-height: calc(101vh - #{$navbar-height} - #{$footer-height});
-    height: calc(101vh - #{$navbar-height} - #{$footer-height});
-    border-left: 1px solid gray;
-  }
-
-  #collapseBar {
-    width: 7%;
-    color: white;
-    background: $primary;
-    min-height: calc(101vh - #{$navbar-height} - #{$footer-height});
-    max-height: calc(101vh - #{$navbar-height} - #{$footer-height});
-    height: calc(101vh - #{$navbar-height} - #{$footer-height});
-    cursor: pointer;
-    opacity: 0.7;
+    &:hover{
+      background: red;
+      background-color: $primary-light;
+    }
+    padding-right: 0.75rem;
   }
 
   .overlay {

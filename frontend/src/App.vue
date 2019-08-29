@@ -211,6 +211,10 @@ export default {
   background-color: $primary-lighter;
 }
 
+.has-background-lightgray {
+  background-color: lightgray;
+}
+
 #logo {
   margin-left: 0.5rem;
 }
@@ -433,7 +437,6 @@ m, .clickable {
 
 #mapViewer {
   #menu {
-    width: auto;
     background: $primary;
     color: $white;
     position: relative;

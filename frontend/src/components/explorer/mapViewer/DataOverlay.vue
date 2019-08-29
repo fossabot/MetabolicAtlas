@@ -1,6 +1,5 @@
 <template>
-  <div id="dataOverlayPanel"
-    class="column" style="padding-right: 20px">
+  <div class="has-background-lightgray column is-one-fifth-widescreen is-one-quarter-desktop is-one-quarter-tablet is-half-mobile" style="padding-left: 0; overflow-y: scroll;">
     <RNAexpression
       :model="model"
       :mapType="mapType"
@@ -9,18 +8,8 @@
       @loadedCustomTissues="setCustomTissues($event)"
       @errorCustomFile="handleErrorCustomFile($event)">
     </RNAexpression>
-    <div class="columns">
-      <div id="collapseBar" class="column is-narrow is-marginless is-paddingless"
-       @click="hidePanel()"
-       title="Click to hide the data overlay panel"
-       style="display: table;">
-        <div style="display: table-cell; vertical-align: middle;">
-          <span class="icon">
-            <i class="fa fa-arrow-right"></i>
-          </span>
-        </div>
-      </div>
-      <div id="dataOverlayContent" class="column">
+    <div class="columns" style="height:100%;">
+      <div class="column">
         <div class="title is-size-4 has-text-centered">Gene expression data</div>
         <div class="has-text-centered">Load custom gene expression data<span class="icon" title="Load An TSV file, with gene IDs and TPM values. More information can be found in the documentation"><i class="fa fa-info-circle"></i></span></div>
         <div id="fileSelectBut" class="file is-centered">
@@ -48,51 +37,59 @@
             <a class="button is-small is-loading"></a>
           </div>
         </div>
-        <div class="box card-content-compact">
-          <div class="has-text-centered title is-size-6">Data 1</div>
-          <div class="control">
-            <p>RNA levels from <i>proteinAtlas.org</i><span class="icon" title="HPA expression level are TPM etc.."><i class="fa fa-info-circle"></i></span></p>
-            <div class="select is-fullwidth">
-              <select v-model="HPATissue1" @change="setFirstTissue('HPA')">
-                <option>None</option>
-                <option v-for="tissue in HPATissues" class="clickable is-capitalized">{{ tissue }}</option>
-              </select>
-            </div>
-          </div>
-          <p>Or uploaded data</p>
-          <div class="control">
-            <div class="select is-fullwidth">
-              <select
-              :disabled="disabledCustomSelectData"
-              v-model="customTissue1"
-              @change="setFirstTissue('custom')">
-                <option v-if="!disabledCustomSelectData">None</option>
-                <option v-for="tissue in customTissues" class="clickable is-capitalized">{{ tissue }}</option>
-              </select>
+        <div class="column">
+          <div class="card">
+            <div class="card-content card-content-compact">
+              <div class="has-text-centered title is-size-6">Data 1</div>
+              <div class="control">
+                <p>RNA levels from <i>proteinAtlas.org</i><span class="icon" title="HPA expression level are TPM etc.."><i class="fa fa-info-circle"></i></span></p>
+                <div class="select is-fullwidth">
+                  <select v-model="HPATissue1" @change="setFirstTissue('HPA')">
+                    <option>None</option>
+                    <option v-for="tissue in HPATissues" class="clickable is-capitalized">{{ tissue }}</option>
+                  </select>
+                </div>
+              </div>
+              <p>Or uploaded data</p>
+              <div class="control">
+                <div class="select is-fullwidth">
+                  <select
+                  :disabled="disabledCustomSelectData"
+                  v-model="customTissue1"
+                  @change="setFirstTissue('custom')">
+                    <option v-if="!disabledCustomSelectData">None</option>
+                    <option v-for="tissue in customTissues" class="clickable is-capitalized">{{ tissue }}</option>
+                  </select>
+                </div>
+              </div>
             </div>
           </div>
         </div>
-        <div class="box card-content-compact">
-          <div class="has-text-centered title is-size-6">Data 2 (for comparison)</div>
-          <div class="control">
-            <p>RNA levels from <i>proteinAtlas.org</i><span class="icon"><i class="fa fa-info-circle"></i></span></p>
-            <div class="select is-fullwidth">
-              <select v-model="HPATissue2" @change="setSecondTissue('HPA')">
-                <option>None</option>
-                <option v-for="tissue in HPATissues" class="clickable is-capitalized">{{ tissue }}</option>
-              </select>
-            </div>
-          </div>
-          <div>Or uploaded data</div>
-          <div class="control">
-            <div class="select is-fullwidth">
-              <select
-              :disabled="disabledCustomSelectData"
-              v-model="customTissue2"
-              @change="setSecondTissue('custom')">
-                <option v-if="!disabledCustomSelectData">None</option>
-                <option v-for="tissue in customTissues" class="clickable is-capitalized">{{ tissue }}</option>
-              </select>
+        <div class="column">
+          <div class="card">
+            <div class="card-content card-content-compact">
+              <div class="has-text-centered title is-size-6">Data 2 (for comparison)</div>
+              <div class="control">
+                <p>RNA levels from <i>proteinAtlas.org</i><span class="icon"><i class="fa fa-info-circle"></i></span></p>
+                <div class="select is-fullwidth">
+                  <select v-model="HPATissue2" @change="setSecondTissue('HPA')">
+                    <option>None</option>
+                    <option v-for="tissue in HPATissues" class="clickable is-capitalized">{{ tissue }}</option>
+                  </select>
+                </div>
+              </div>
+              <div>Or uploaded data</div>
+              <div class="control">
+                <div class="select is-fullwidth">
+                  <select
+                  :disabled="disabledCustomSelectData"
+                  v-model="customTissue2"
+                  @change="setSecondTissue('custom')">
+                    <option v-if="!disabledCustomSelectData">None</option>
+                    <option v-for="tissue in customTissues" class="clickable is-capitalized">{{ tissue }}</option>
+                  </select>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -203,9 +200,6 @@ export default {
     });
   },
   methods: {
-    hidePanel() {
-      this.$emit('hidePanel');
-    },
     getFileName(e) {
       console.log(e);
       if (e.target.files.length !== 0) {
@@ -293,45 +287,38 @@ export default {
 </script>
 
 <style lang="scss">
-  #dataOverlayPanel {
-    .box {
-      margin-bottom: 1rem;
-      border-radius: 0;
-    }
-    .select {
-      margin: 0.5rem 0;
-    }
-    .title {
-      margin-bottom: 0.5rem;
-    }
-  }
 
-  #fileSelectBut {
+#dataOverlayPanel {
+  z-index: 13;
+  .select {
+    margin: 0.5rem 0;
+  }
+  .title {
     margin-bottom: 0.5rem;
   }
+}
 
-  #fileNameBox {
-    span.tag {
-      width: 90%;
+#fileSelectBut {
+  margin-bottom: 0.5rem;
+}
+
+#fileNameBox {
+  span.tag {
+    width: 90%;
+    cursor: help;
+      > div {
+      white-space: nowrap;
+      overflow: hidden;
+      max-width: 250px;
+      text-overflow: ellipsis;
       cursor: help;
-        > div {
-        white-space: nowrap;
-        overflow: hidden;
-        max-width: 250px;
-        text-overflow: ellipsis;
-        cursor: help;
-      }
     }
-    margin-bottom: 1rem;
   }
+  margin-bottom: 1rem;
+}
 
-  #dataOverlayContent {
-    background: lightgray;
-    padding-top: 1rem;
-  }
-
-  #RNAlegend {
-    margin-top: 1rem;
-  }
+#RNAlegend {
+  margin-top: 1rem;
+}
 
 </style>
