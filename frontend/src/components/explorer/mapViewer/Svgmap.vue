@@ -13,7 +13,7 @@
         <i class="fa fa-eye-slash">&thinsp;S
         </i>
       </span>
-      <span class="button" v-on:click="toggleFullScreen()" title="Show the map in fullscreen" :disabled="isFullScreenDisabled"><i class="fa fa-arrows-alt"></i></span>
+      <span class="button" v-on:click="toggleFullScreen()" title="Show the map in fullscreen" :disabled="isFullScreenDisabled"><i class="fa" :class="{ 'fa-compress': isFullscreen, 'fa-arrows-alt': !isFullscreen}"></i></span>
     </div>
     <div id="svgSearch" class="overlay">
       <div class="control" :class="{ 'is-loading' : isLoadingSearch }">
@@ -68,6 +68,7 @@ export default {
       svgContent: null,
       svgContentHistory: {},
       svgName: '',
+      isFullscreen: false,
 
       $panzoom: null,
       panzoomOptions: {
@@ -217,6 +218,7 @@ export default {
         } else if (elem.msRequestFullscreen) {
           elem.msRequestFullscreen();
         }
+        this.isFullscreen = true;
       } else {
         if (document.cancelFullScreen) {
           document.cancelFullScreen();
@@ -227,6 +229,7 @@ export default {
         } else if (document.msExitFullscreen) {
           document.msExitFullscreen();
         }
+        this.isFullscreen = false;
       }
     },
     zoomOut(bool) {
