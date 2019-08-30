@@ -573,7 +573,7 @@ export default {
       background: red;
       background-color: $primary-light;
     }
-    padding-right: 0.75rem;
+    padding-right: 1rem;
   }
 
   .overlay {

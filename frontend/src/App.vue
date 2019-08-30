@@ -215,6 +215,10 @@ export default {
   background-color: lightgray;
 }
 
+.card-margin {
+  margin: 0.75rem;
+}
+
 #logo {
   margin-left: 0.5rem;
 }

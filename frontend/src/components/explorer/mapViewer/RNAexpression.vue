@@ -1,15 +1,28 @@
-<template></template>
+<template>
+  <div v-if="this.mode === 'single'">
+    <RNALegend text="log<sub>2</sub>(TPM+1)" leftValue="0" leftColor="#00204c" rightValue="7+" rightColor="#ffe945" nacolor="n/a" natext=""></RNALegend>
+  </div>
+  <div v-else-if="this.mode === 'comparison'">
+    <RNALegend text="log<sub>2</sub>(TPM<sub>T2</sub>+1 / TPM<sub>T1</sub>+1)" leftValue="-5" leftColor="#0033CC" rightValue="5" rightColor="#930101" nacolor="" natext="n/a"></RNALegend>
+  </div>
+  <div v-else>
+  </div>
+</template>
 
 <script>
 import axios from 'axios';
 import $ from 'jquery';
 import { default as EventBus } from '../../../event-bus';
-import { getSingleRNAExpressionColor, getComparisonRNAExpressionColor, getSingleExpLvlLegend, getComparisonExpLvlLegend } from '../../../expression-sources/hpa';
+import RNALegend from '@/components/explorer/mapViewer/RNALegend.vue';
+import { getSingleRNAExpressionColor, getComparisonRNAExpressionColor } from '../../../expression-sources/hpa';
 import { default as messages } from '../../../helpers/messages';
 
 export default {
   name: 'RNAexpression',
   props: ['model', 'mapType', 'mapName'],
+  components: {
+    RNALegend,
+  },
   data() {
     return {
       errorMessage: '',
@@ -40,7 +53,6 @@ export default {
     EventBus.$off('loadCustomGeneExpData');
 
     EventBus.$on('selectTissues', (tissue1, tissue1Source, tissue2, tissue2Source, dim) => {
-      console.log('here');
       if (!tissue1) {
         EventBus.$emit('unselectFirstTissue', true);
         if (tissue2) {
@@ -58,7 +70,6 @@ export default {
     });
 
     EventBus.$on('selectFirstTissue', (tissue, tissueSource, dim, skipCompute = false) => {
-      console.log('selectFirstTissue = ', tissue);
       if (!this.isTissueValid(tissue, tissueSource)) {
         // handle error
         console.log('error tissue1 unknown: ', tissue, 'for source', tissueSource);
@@ -68,7 +79,6 @@ export default {
     });
 
     EventBus.$on('selectSecondTissue', (tissue, tissueSource, dim, skipCompute = false) => {
-      console.log('selectSecondTissue = ', tissue);
       if (!this.isTissueValid(tissue, tissueSource)) {
         // handle error
         console.log('error tissue2 unknown: ', tissue, 'for source', tissueSource);
@@ -78,7 +88,6 @@ export default {
     });
 
     EventBus.$on('unselectFirstTissue', (skipCompute) => {
-      console.log('unselectFirstTissue');
       this.tissue1 = 'None';
       this.tissue1Source = '';
       this.firstRNAlevels = {};
@@ -88,7 +97,6 @@ export default {
     });
 
     EventBus.$on('unselectSecondTissue', (skipCompute) => {
-      console.log('unselectSecondTissue');
       this.tissue2 = 'None';
       this.tissue2Source = '';
       this.secondRNAlevels = {};
@@ -108,7 +116,10 @@ export default {
       if (this.tissue1 !== 'None' && this.tissue2 !== 'None') {
         return 'comparison';
       }
-      return 'single';
+      else if (this.tissue1 !== 'None' || this.tissue2 !== 'None') {
+        return 'single';
+      }
+      return 'inactive';
     },
   },
   methods: {
@@ -122,7 +133,6 @@ export default {
       return true;
     },
     isCustomTissueValid(tissue) {
-      console.log(this.customTissues);
       if (!this.customTissues || this.customTissues.indexOf(tissue) === -1) {
         return false;
       }
@@ -180,13 +190,11 @@ export default {
         }, 0);
       })
       .catch((error) => {
-        console.log(error, tissue, dim, index);
         EventBus.$emit('loadRNAComplete', false, '');
         return;
       });
     },
     parseHPARNAlevels(tissue, dim, index, callback) {
-      console.log('parseHPARNAlevels ', tissue, dim, index);
       const RNAlevels = {};
       const tissue_index = this.HPARNAlevelsHistory[this.mapName][dim].tissues.indexOf(tissue);
       const levels = this.HPARNAlevelsHistory[this.mapName][dim].levels;
@@ -273,7 +281,6 @@ export default {
       reader.readAsText(file);
     },
     parseCustomRNAlevels(tissue, index, callback) {
-      console.log('parseCustomRNAlevels ', tissue, index);
       const RNAlevels = this.customRNALevels[tissue];
       RNAlevels['n/a'] = 'n/a';
       index === 0 ? this.firstRNAlevels = RNAlevels : this.secondRNAlevels = RNAlevels;
@@ -282,17 +289,15 @@ export default {
       }
     },
     computeRNAlevels() {
-      console.log('computeRNAlevels', this.tissue1, this.tissue2);
       if (Object.keys(this.firstRNAlevels).length === 0 && Object.keys(this.secondRNAlevels).length === 0) {
         // nothing to compute
         EventBus.$emit(this.dim === '2d' ? 'apply2DHPARNAlevels' : 'apply3DHPARNAlevels' , {});
-        EventBus.$emit('updateRNAExpressionLegend', '');
+        this.RNAExpressionLegend = false;
         return;
       }
       this.computedRNAlevels = {};
       let RNAlevels = null;
       if (this.mode === 'single') {
-        console.log('compute single', Object.keys(this.firstRNAlevels).length, Object.keys(this.secondRNAlevels).length);
         RNAlevels = Object.keys(this.firstRNAlevels).length === 0 ? this.secondRNAlevels : this.firstRNAlevels;
         for (const enzID of Object.keys(RNAlevels)) {
           let level = Math.log2(RNAlevels[enzID] + 1);
@@ -300,10 +305,9 @@ export default {
           this.computedRNAlevels[enzID] = [getSingleRNAExpressionColor(level), level];
         }
         this.computedRNAlevels['n/a'] = ['whitesmoke', 'n/a']; // fixme
-        EventBus.$emit('updateRNAExpressionLegend', this.getSingleExpLvlLegend());
+        this.RNALegendType = 'comparison';
       } else {
         // comparison
-        console.log('compute comparison', Object.keys(this.firstRNAlevels).length, Object.keys(this.secondRNAlevels).length);
         if (this.tissue1Source === 'HPA' && this.tissue1Source === this.tissue2Source) {
           // HPA tissues data have the same entries, so no need to check for missing geneID
           for (const enzID of Object.keys(this.firstRNAlevels)) {
@@ -334,14 +338,11 @@ export default {
           }
         }
         this.computedRNAlevels['n/a'] = ['lightgray', 'n/a']; // fixme
-        EventBus.$emit('updateRNAExpressionLegend', this.getComparisonExpLvlLegend());
       }
       this.$nextTick(() => {
         EventBus.$emit(this.dim === '2d' ? 'apply2DHPARNAlevels' : 'apply3DHPARNAlevels' , this.computedRNAlevels);
       });
     },
-    getSingleExpLvlLegend,
-    getComparisonExpLvlLegend,
   },
 };
 </script>
