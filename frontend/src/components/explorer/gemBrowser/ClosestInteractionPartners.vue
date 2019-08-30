@@ -138,7 +138,7 @@
                   </p>
                 </header>
                 <div class="card-content" v-show="toggleGeneExpLevel">
-                  <RNALegend text="log<sub>2</sub>(TPM+1)" leftValue="0" leftColor="#00204c" rightValue="7+" rightColor="#ffe945" nacolor="n/a" natext=""></RNALegend>
+                  <RNALegend></RNALegend>
                   <br>
                   <div class="select is-fullwidth" :class="{ 'is-loading' : loadingHPA && toggleGeneExpLevel}" v-show="toggleGeneExpLevel && !disableExpLvl">
                     <select id="enz-select" ref="enzHPAselect" v-model="selectedSample" :disabled="!toggleGeneExpLevel"

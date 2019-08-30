@@ -5,7 +5,7 @@ const underCompExpressionColor = '#0033CC';
 const overCompExpressionColor = '#930101';
 
 export function getSingleRNAExpressionColor(value) {
-  if (isNaN(value)) {
+  if (Number.isNaN(value)) {
     return notDetectedSingleColor;
   }
   const r =  0 + value * (255-0)/10;
@@ -22,28 +22,6 @@ export function getComparisonRNAExpressionColor(value) {
     return underCompExpressionColor;
   }
   return comparison_cmap[v];
-}
-
-export function getComparisonExpLvlLegend() {
-  let l = '<div id="comparisonHPARNAexpLegend" class="box"><div class="title is-6 has-text-centered">log<sub>2</sub>(TPM<sub>T2</sub>+1 / TPM<sub>T1</sub>+1)</div>';
-  l += '<div class="has-text-centered">';
-  if (notDetectedComparisonColor) {
-    l += `<ul><li><span class="boxc" style="background: ${notDetectedComparisonColor};"></span><span>n/a</span></li></ul>`;
-  }
-  l += '</div><div class="has-text-centered" title="Allons enfants de la patrie.."><ul class="exp-lvl-legend">'
-  let i = 0;
-  l += '<li>-5&nbsp;</li>';
-  for (const el of comparison_cmap) {
-    l += `<li><span style="background: ${el};`;
-    if (i % 24 == 0 && i !== 0) {
-      l += 'border-bottom: 5px solid black;"></span></li>';
-    } else {
-      l += '"></span></li>';
-    }
-    i += 1;
-  }
-  l += '<li>&nbsp;5+</li></ul></div></div>';
-  return l;
 }
 
 const comparison_cmap = [

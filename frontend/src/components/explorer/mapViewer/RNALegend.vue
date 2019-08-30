@@ -1,23 +1,45 @@
 <template>
-  <div class="card">
+  <div class="card is-unselectable">
     <div class="card-content card-content-compact">
       <div class="title is-6 has-text-centered" v-html="text"></div>
+      <div class="columns is-gapless">
+        <div class="column is-narrow">{{leftValue}}&nbsp;</div>
+        <div class="column">
+          <div :style="{ 'height': '20px', 'background-image': `linear-gradient(to right, ${gradient})`}"></div>
+        </div>
+        <div class="column is-narrow">&nbsp;{{rightValue}}</div>
+      </div>
       <div class="has-text-centered">
-        {{leftValue}}&nbsp;
-        <div :style="{ 'height': '20px', 'background-image': `linear-gradient(to right, ${leftColor}, ${rightColor})` }"></div>
-        &nbsp;{{rightValue}}
-        <div style="width: 15px; height: 15px; border: 1px solid black; background: ${notDetectedSingleColor};"></div>
-        <span>n/a</span>
+        <span :style="{'padding': '0.20rem 0.80rem', 'min-width': '20px', 'border': '1px solid black', 'background': `${nacolor}` }"></span>
+        &nbsp;{{natext}}
       </div>
     </div>
   </div>
 </template>
 
 <script>
-
 export default {
   name: 'RNALegend',
-  props: ['text', 'leftValue', 'rightValue', 'leftColor', 'rightColor', 'nacolor', 'natext'],
+  props: {
+    text: {
+      default: 'log<sub>2</sub>(TPM+1)',
+    },
+    gradient: {
+      default: '#00204c, #7c7b78, #ffe945',
+    },
+    leftValue: {
+      default: '0',
+    },
+    rightValue: {
+      default: '7+',
+    },
+    nacolor: {
+      default: 'whitesmoke',
+    },
+    natext: {
+      default: 'n/a',
+    },
+  },
 };
 
 </script>

@@ -1,9 +1,9 @@
 <template>
   <div v-if="this.mode === 'single'">
-    <RNALegend text="log<sub>2</sub>(TPM+1)" leftValue="0" leftColor="#00204c" rightValue="7+" rightColor="#ffe945" nacolor="n/a" natext=""></RNALegend>
+    <RNALegend></RNALegend>
   </div>
   <div v-else-if="this.mode === 'comparison'">
-    <RNALegend text="log<sub>2</sub>(TPM<sub>T2</sub>+1 / TPM<sub>T1</sub>+1)" leftValue="-5" leftColor="#0033CC" rightValue="5" rightColor="#930101" nacolor="" natext="n/a"></RNALegend>
+    <RNALegend text="log<sub>2</sub>(TPM<sub>T2</sub>+1 / TPM<sub>T1</sub>+1)" leftValue="-5" rightValue="5" gradient="#0033CC, #F7F8FD, #930101" nacolor="" natext="n/a"></RNALegend>
   </div>
   <div v-else>
   </div>

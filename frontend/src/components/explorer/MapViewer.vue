@@ -112,7 +112,7 @@
             </article>
           </transition>
         </div>
-        <div id="dataOverlayBar" class="column is-narrow has-text-white" :class="{
+        <div id="dataOverlayBar" class="column is-narrow has-text-white is-unselectable" :class="{
           'is-paddingless': toggleDataOverlayPanel }" v-show="!showLoader" title="Click to show the data overlay panel" @click="toggleDataOverlayPanel = !toggleDataOverlayPanel">
           <p class="is-size-5 has-text-centered has-text-weight-bold">
             <span class="icon">
@@ -509,8 +509,50 @@ export default {
 </script>
 
 <style lang="scss">
-
 #mapViewer {
+  #menu {
+    background: $primary;
+    color: $white;
+    position: relative;
+    font-size: 16px;
+    ul {
+      list-style: none;
+      &.vhs, &.l2 {
+        max-height: 65vh;
+        overflow-y: auto;
+      }
+    }
+
+    ul.l1, ul.l2 {
+      display: none;
+      border-left: 1px solid white;
+      position: absolute;
+      top: 0;
+      left: 100%;
+      width: 100%;
+      background: $primary;
+      z-index: 11;
+      box-shadow: 5px 5px 5px #222222;
+    }
+
+    li {
+      padding: 17px 15px 17px 20px;
+      border-bottom: 1px solid $grey-lighter;
+      user-select: none;
+      &:hover {
+        background: $primary-light;
+      }
+      span {
+        position: absolute;
+        right: 10px;
+      }
+      &.disable {
+        cursor: not-allowed;
+        background: $primary;
+        color: $grey;
+      }
+    }
+  }
 
   #iMainPanel {
     margin-bottom: 0;

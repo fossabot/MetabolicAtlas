@@ -130,9 +130,9 @@
             Expression levels from the Human Protein Atlas can be loaded in the <i>Interaction Partners</i> graph using the panel on the right, and in the <i>Map Viewer</i> using the corresponding sidebar button. Doing so will update the gene's node color according to the legend. Some genes may not have RNA levels available - in such case their color corresponds to the n/a color.
             </div>
             <div class="column">
-              <RNALegend text="log<sub>2</sub>(TPM+1)" leftValue="0" leftColor="#00204c" rightValue="7+" rightColor="#ffe945" nacolor="n/a" natext=""></RNALegend>
+              <RNALegend></RNALegend>
               <br>
-              <RNALegend text="log<sub>2</sub>(TPM<sub>T2</sub>+1 / TPM<sub>T1</sub>+1)" leftValue="-5" leftColor="#0033CC" rightValue="5" rightColor="#930101" nacolor="" natext="n/a"></RNALegend>
+              <RNALegend text="log<sub>2</sub>(TPM<sub>T2</sub>+1 / TPM<sub>T1</sub>+1)" leftValue="-5" rightValue="5" gradient="#0033CC, #F7F8FD, #930101" nacolor="" natext="n/a"></RNALegend>
             </div>
           </div>
 

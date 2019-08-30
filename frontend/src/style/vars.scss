@@ -13,8 +13,11 @@ $widescreen: 1384px !default;
 $fullhd: 1576px !default;
 $navbar-breakpoint: 1000px;
 
+// default Bulma
+$white: hsl(0, 0%, 100%);
+$grey: hsl(0, 0%, 48%);
+$grey-lighter: hsl(0, 0%, 86%);
 
-// Custom variables
-
+// Custom variables for fullheight Map Viewer
 $navbar-height: 2.5rem;
 $footer-height: 4.55rem;
