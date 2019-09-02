@@ -278,6 +278,7 @@ export default {
     },
     reformatReversible() { return this.reaction.is_reversible ? 'Yes' : 'No'; },
     reformatRefs(refs) {
+      this.formattedRef = [];
       const queryIDs = `(EXT_ID:"${refs.map(e => e.pmid).join('"+OR+EXT_ID:"')}")`;
       axios.get(`https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=${queryIDs}&resultType=core&format=json`)
       .then((response) => {
