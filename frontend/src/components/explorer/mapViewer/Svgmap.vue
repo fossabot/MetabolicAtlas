@@ -9,11 +9,11 @@
         <i class="fa fa-eye-slash">&thinsp;G
         </i>
       </span>
-      <span class="button" style="padding: 4.25px;" @click="toggleSubsystems()" title="Show/Hide subsystem colors">
+      <span class="button" style="padding: 4.25px;" @click="toggleSubsystems()" title="Show/Hide subsystem">
         <i class="fa fa-eye-slash">&thinsp;S
         </i>
       </span>
-      <span class="button" v-on:click="toggleFullScreen()" title="Show the map in fullscreen" :disabled="isFullScreenDisabled"><i class="fa" :class="{ 'fa-compress': isFullscreen, 'fa-arrows-alt': !isFullscreen}"></i></span>
+      <span class="button" v-on:click="toggleFullScreen()" title="Toggle fullscreen" :disabled="isFullScreenDisabled"><i class="fa" :class="{ 'fa-compress': isFullscreen, 'fa-arrows-alt': !isFullscreen}"></i></span>
     </div>
     <div id="svgSearch" class="overlay">
       <div class="control" :class="{ 'is-loading' : isLoadingSearch }">
