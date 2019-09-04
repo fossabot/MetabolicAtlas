@@ -98,16 +98,15 @@ def build_ftp_path_and_dl(liste_dico_data, FTP_root, model_set, root_path, model
             # print(xml_file)
             output_file_path = os.path.join(path, input_file.split('/')[-1])
             if not os.path.isfile(output_file_path):
-                if input_file.startswith("http"):
-                    print ("Downloading %s" % input_file)
+                if xml_file.startswith("http"):
+                    print ("Downloading %s" % output_file_path)
                     try:
-                        urllib.request.urlretrieve(input_file.replace('http://www.metabolicatlas.org/', 'http://atlas.sysbio.chalmers.se/'), output_file_path)
+                        urllib.request.urlretrieve(xml_file, output_file_path)
                     except urllib.error.HTTPError as e:
                         print (e)
-                        print ("error with file", input_file)
-                        exit()
+                        print ("error with file", xml_file)
                 else:
-                    shutil.copyfile(input_file, output_file_path)
+                    shutil.copyfile(xml_file, output_file_path)
                     if not output_file_path.endswith('.zip'):
 
                         output_zip = os.path.splitext(output_file_path)[0] + '.zip'
@@ -121,7 +120,7 @@ def build_ftp_path_and_dl(liste_dico_data, FTP_root, model_set, root_path, model
                                 compression = zipfile.ZIP_STORED
                             zf = zipfile.ZipFile(output_zip, mode='w')
                             try:
-                                zf.write(output_file_path, os.path.basename(output_file_path), compress_type=compression)
+                                zf.write(output_file_path, compress_type=compression)
                             finally:
                                 zf.close()
             if xml_file == input_file and formats[i] == "SBML":
@@ -482,7 +481,7 @@ def insert_gems(model_set_data, model_data_list):
         files_ids = []
         for file in model_dict.pop('files'):
             try:
-                file['path'] = os.path.splitext(file['path'])[0].replace('/project/model_files/FTP/', 'models/') + '.zip'
+                file['path'] = os.path.splitext(file['path'])[0].replace('/project/model_files/FTP/', 'https://ftp.metabolicatlas.org/models/') + '.zip'
                 gf = GEModelFile.objects.get(path=file['path'])
                 # print ("gf1 %s" % gf)
             except GEModelFile.DoesNotExist:

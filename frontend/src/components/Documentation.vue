@@ -20,9 +20,9 @@
                 <ul class="menu-list">
                   <li><a href="#2D Viewer">2D Viewer</a></li>
                   <li><a href="#3D Viewer">3D Viewer</a></li>
+                  <li><a href="#Data overlay">Data Overlay</a></li>
                 </ul>
               </li>
-              <a href="#HPA RNA levels"><b>RNA levels</b></a>
               <a href="#Global-search"><b>Global search</b></a>
               <li>
                 <a href="#GEMs"><b>GEMs</b></a>
@@ -95,6 +95,7 @@
           </ul>
           Clicking on a node also shows a link on the right sidebar to quickly access the <a href="#GEM Browser">GEM browser</a> page for that node.
           The top-left buttons allow users to (from left to right): customize the graph node's shape and colors, zoom in, zoom out, reset the display, reload the graph (remove expanded interaction partners), and remove any highlighting. The nodes can also be moved around the graph by the user.
+          Expression levels from the Human Protein Atlas can be loaded in the <i>Interaction Partners</i> graph using the panel on the right, and in the <i>Map Viewer</i> using the corresponding sidebar button. Doing so will update the gene's node color according to the legend. Some genes may not have RNA levels available - in such case their color corresponds to the n/a color.
 
           <h6 class="has-text-grey">Export graph</h6>
           Clicking the <i>Export graph</i> button will display two options: GraphML or PNG. The first is a Cytoscape compatible GraphML format; currently, the colors are not exported in this format.
@@ -122,20 +123,29 @@
           Interaction with the 3D graph is possible using the mouse by holding left-click and moving the mose to rotate the view, right-click to pan, and use the mouse wheel to zoom in/out.<br>
           Users can also hover a node to view its name/id or left-clik on a node (once the graph has stopped moving) to display some of its information in the sidebar. Additonal information on the corresponding selected element can be accessed by clicking the <i>GEM browser</i> button.<br>
 
-          <hr>
-          <h3 id="HPA RNA levels">RNA levels</h3>
+          <h5 id="Data overlay">Data overlay</h5>
           <div class="columns is-marginless">
-            <div class="column is-paddingless">
-            RNA expression levels for genes from <a href="http://proteinatlas.org" target="_blank">The Human Protein Atlas</a> can be loaded using the corresponding sidebar button. Once selected, the RNA levels corresponding to the chosen tissue will be overlaid on the selected map. To clear the RNA levels, use the <i>Clear selection</i> button. RNA levels are available for both the 2D and 3D viewers.<br>
-            Expression levels from the Human Protein Atlas can be loaded in the <i>Interaction Partners</i> graph using the panel on the right, and in the <i>Map Viewer</i> using the corresponding sidebar button. Doing so will update the gene's node color according to the legend. Some genes may not have RNA levels available - in such case their color corresponds to the n/a color.
+            <div class="column is-paddingless is-8 content">
+            Gene expression levels for genes from <a href="https://www.proteinatlas.org" target="_blank">The Human Protein Atlas</a> can be loaded using the <i>Data overlay</i> sidebar on the right side. Once selected, the RNA levels corresponding to the chosen tissue will be used to color each gene on the respective map, as shown in the legend. To clear the RNA levels, select the <i>None</i> option. RNA levels are available for both the 2D and 3D Map Viewer. The data is obtained from version 18 of the Protein Atlas with the units in log<sub>2</sub>(TPM+1) associated with a gradient colorbar.<br>
+            The <i>Data overlay</i> sidebar allows for the upload of user-generated data in TSV format. If the file is parsed correctly, the file name will be highlighted green; in case errors are detected, it will be highlighted red. The expected format is at least two columns with headers using tab delimiters. For an exact description of the TSV file format <a target="_blank" href="https://en.wikipedia.org/wiki/Tab-separated_values">see the Wiki page</a>. The first column has to contain the gene IDs, identical to the ones in the model. Any missing genes or missing values will be assigned an "n/a" value and highlighted in gray. The rest of the columns act as data series, with each column being a new series, as shown in the example to the right. The headers of these data series will be shown automatically in the dropdown options for the uploaded data. The values are expected in TPM.<br>
+            If multiple data are selected in the <i>Data overlay</i> sidebar, the overlay will switch to the comparison mode, using a differently colored legend for the log fold change between the selected data.<br>
             </div>
-            <div class="column" v-html="getExpLvlLegend()" style="padding-right: 0">
+            <div class="column">
+              <blockquote>
+                geneID&emsp;heart&emsp;liver<br>
+                ENSG00000177666&emsp;42&emsp;8701<br>
+                ENSG00000175535&emsp;572<br>
+                ENSG00000187021&emsp;3498&emsp;1768
+              </blockquote>
+              <RNALegend></RNALegend>
+              <br>
+              <RNALegend text="log<sub>2</sub>(TPM<sub>T2</sub>+1 / TPM<sub>T1</sub>+1)" leftValue="-5" rightValue="5" :gradient="`${multipleColors}`"></RNALegend>
             </div>
           </div>
 
           <hr>
           <h3 id="Global-search">Global search</h3>
-          The <i>Global search</i> page queries all the integrated metabolic models. Each metabolic component has its own results table accessible via the dedicated tab. Tabs are inactivated when no results are found. The search text is not restricted to the visible columns; for example, searching an MNXref ID will return results for the metabolites and/or reactions matching the ID even though the MNXref column is not in the table. The search algorithm matches partial names of components: searching for 'cholesterol' will output all metabolites containing the substring 'cholesterol'. When the name of a metabolite is provided, all metabolites matching or partially matching this name be returned, in addition to a the list of all reactions that involve these matching metabolites. The global search is also able to query reactions in a more advanced way using special patterns:
+          The <i>Global search</i> page queries all the integrated metabolic models. Each metabolic component has its own results table accessible via the dedicated tab. Tabs are inactivated when no results are found. The search text is not restricted to the visible columns; for example, searching an MetaNetX ID will return results for the metabolites and/or reactions matching the ID even though the MetaNetX column is not in the table. The search algorithm matches partial names of components: searching for 'cholesterol' will output all metabolites containing the substring 'cholesterol'. When the name of a metabolite is provided, all metabolites matching or partially matching this name be returned, in addition to a the list of all reactions that involve these matching metabolites. The global search is also able to query reactions in a more advanced way using special patterns:
           <ul>
             <li>Use the compartment letter at the end of a metabolite name, e.g cholesterol[c] to match metabolites associated with that compartment.</li>
             <li>Use " => " and metabolite terms - ID (m02439c), name (malate) or name with compartment (malate[c]) - in the query term to indicate that only reactions should be searched, and to return reactions involve the specified metabolite(s) as reactant/product. For example, "pyruvate =>" will return all reactions in which pyruvate participates as a reactant.</li>
@@ -161,7 +171,7 @@
           Genome-Scale Metabolic model files can be downloaded from <a href="https://ftp.metabolicatlas.org">ftp.metabolicatlas.org</a> or by connecting to the FTP using your favorite FTP client (e.g. <a href="https://filezilla-project.org/">FileZilla</a>).
 
           <br>
-          <span class="has-text-weight-bold lab">Host:</span> <a href="https://ftp.metabolicatlas.org">ftp.metabolicatlas.org</a><br>
+          <span class="has-text-weight-bold lab">Host:</span> <a href="https://ftp.metabolicatlas.org"> ftp.metabolicatlas.org</a><br>
           <span class="has-text-weight-bold lab">Login:</span> (leave it empty)<br>
           <span class="has-text-weight-bold lab">Password:</span> (leave it empty)<br>
           <span class="has-text-weight-bold lab">Port:</span> 21
@@ -180,13 +190,19 @@
 
 <script>
 
-import { getExpLvlLegend } from '../expression-sources/hpa';
+import RNALegend from '@/components/explorer/mapViewer/RNALegend.vue';
+import { multipleColors } from '@/expression-sources/hpa';
 
 export default {
   name: 'help',
-  methods: {
-    getExpLvlLegend,
+  components: {
+    RNALegend,
   },
+  data() {
+    return {
+      multipleColors,
+    }
+  }
 };
 </script>
 

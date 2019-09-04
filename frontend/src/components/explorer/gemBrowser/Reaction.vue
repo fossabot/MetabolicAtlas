@@ -139,7 +139,7 @@ export default {
           { name: 'kegg_id', display: 'KEGG', link: 'kegg_link' },
           { name: 'bigg_id', display: 'BiGG', link: 'bigg_link' },
           { name: 'reactome_id', display: 'Reactome', link: 'reactome_link' },
-          { name: 'mnxref_id', display: 'MNXref', link: 'mnxref_link' },
+          { name: 'metanetx_id', display: 'MetaNetX', link: 'metanetx_link' },
         ],
         yeast8: [],
       },

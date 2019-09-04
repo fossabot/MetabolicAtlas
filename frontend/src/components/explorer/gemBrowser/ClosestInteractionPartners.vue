@@ -138,8 +138,7 @@
                   </p>
                 </header>
                 <div class="card-content" v-show="toggleGeneExpLevel">
-                  <div id="graphLegend" v-show="(toggleMetaboliteExpLevel || toggleGeneExpLevel) && !disableExpLvl" v-html="legend">
-                  </div>
+                  <RNALegend></RNALegend>
                   <br>
                   <div class="select is-fullwidth" :class="{ 'is-loading' : loadingHPA && toggleGeneExpLevel}" v-show="toggleGeneExpLevel && !disableExpLvl">
                     <select id="enz-select" ref="enzHPAselect" v-model="selectedSample" :disabled="!toggleGeneExpLevel"
@@ -231,6 +230,7 @@ import { default as FileSaver } from 'file-saver';
 import Sidebar from '@/components/explorer/gemBrowser/Sidebar';
 import CytoscapeTable from '@/components/explorer/gemBrowser/CytoscapeTable';
 import Loader from '@/components/Loader';
+import RNALegend from '@/components/explorer/mapViewer/RNALegend.vue';
 
 import { default as EventBus } from '../../../event-bus';
 
@@ -240,7 +240,7 @@ import { default as graph } from '../../../graph-stylers/hmr-closest-interaction
 import { chemicalName } from '../../../helpers/chemical-formatters';
 import { default as convertGraphML } from '../../../helpers/graph-ml-converter';
 
-import { getExpLvlLegend, getExpressionColor } from '../../../expression-sources/hpa';
+import { getSingleRNAExpressionColor } from '../../../expression-sources/hpa';
 import { default as messages } from '../../../helpers/messages';
 
 
@@ -251,6 +251,7 @@ export default {
     CytoscapeTable,
     Loader,
     'compact-picker': Compact,
+    RNALegend,
   },
   props: ['model'],
   data() {
@@ -966,12 +967,11 @@ export default {
             const tissue = this.tissues.HPA[j];
             let level = Math.log2(parseFloat(array[1].split(',')[j]) + 1);
             level = Math.round((level + 0.00001) * 100) / 100;
-            this.rawElms[enzID].expressionLvl.HPA.RNA[tissue] = getExpressionColor(level);
+            this.rawElms[enzID].expressionLvl.HPA.RNA[tissue] = getSingleRNAExpressionColor(level);
           }
         }
         this.expSourceLoaded.gene.HPA = {};
         this.expSourceLoaded.gene.HPA.RNA = true;
-        this.legend = getExpLvlLegend();
         this.disableExpLvl = false;
         this.loadingHPA = false;
         setTimeout(() => {

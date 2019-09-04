@@ -211,6 +211,14 @@ export default {
   background-color: $primary-lighter;
 }
 
+.has-background-lightgray {
+  background-color: lightgray;
+}
+
+.card-margin {
+  margin: 0.75rem;
+}
+
 #logo {
   margin-left: 0.5rem;
 }
@@ -319,48 +327,6 @@ m, .clickable {
   }
 }
 
-#HPARNAexpLegend {
-  margin: auto;
-  border-radius: 0;
-  .title {
-    margin-bottom: 0.3em;
-  }
-
-  list-style: none;
-  li {
-    line-height: 15px;
-    display: inline-block;
-    &:first-child {
-      margin-left: 0;
-    }
-    span {
-      float: left;
-      margin: 0;
-    }
-  }
-
-  span {
-    height: 15px;
-    &.boxc {
-      margin: 0 7px;
-      width: 15px;
-      border: 1px solid black;
-    }
-  }
-
-  .exp-lvl-legend {
-    list-style: none;
-    li {
-      span {
-        float: left;
-        margin: 0;
-        width: 1px;
-        border: 0
-      }
-    }
-  }
-}
-
 #home {
   .menu-list li {
     &:first-child {
@@ -424,53 +390,6 @@ m, .clickable {
   &.hl {
     background: $primary;
     color: whitesmoke;
-  }
-}
-
-#mapViewer {
-  #menu {
-    width: auto;
-    background: $primary;
-    color: $white;
-    position: relative;
-    font-size: 16px;
-    ul {
-      list-style: none;
-      &.vhs, &.l2 {
-        max-height: 65vh;
-        overflow-y: auto;
-      }
-    }
-
-    ul.l1, ul.l2 {
-      display: none;
-      border-left: 1px solid white;
-      position: absolute;
-      top: 0;
-      left: 100%;
-      width: 100%;
-      background: $primary;
-      z-index: 11;
-      box-shadow: 5px 5px 5px #222222;
-    }
-
-    li {
-      padding: 17px 15px 17px 20px;
-      border-bottom: 1px solid $grey-lighter;
-      user-select: none;
-      &:hover {
-        background: $primary-light;
-      }
-      span {
-        position: absolute;
-        right: 10px;
-      }
-      &.disable {
-        cursor: not-allowed;
-        background: $primary;
-        color: $grey;
-      }
-    }
   }
 }
 
