@@ -600,7 +600,7 @@ export default {
   #dataOverlayBar {
     display: flex;
     align-items: center;
-    background-color: $primary;
+    background: $primary;
     cursor: pointer;
     line-height: 17px;
     padding: 0.25rem;
@@ -609,8 +609,7 @@ export default {
       padding-top: 20px;
     }
     &:hover{
-      background: red;
-      background-color: $primary-light;
+      background: $primary-light;
     }
     padding-right: 1rem;
   }

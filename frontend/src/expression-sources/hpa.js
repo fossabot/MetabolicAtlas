@@ -1,4 +1,4 @@
-const notDetectedColor = 'lightgray';
+export const notDetectedColor = 'lightgray';
 
 // Single series colors
 const slr = 255; // left red
@@ -7,7 +7,6 @@ const slb = 255; // left blue
 const srr = 255; // right red
 const srg = 233; // right green
 const srb = 69; // right blue
-const scr = '#ffe945'; // single color right
 
 // Multiple series colors
 const mlr = 0; // left red
@@ -19,15 +18,22 @@ const mmb = 253; // middle blue
 const mrr = 147; // right red
 const mrg = 1; // right green
 const mrb = 1; // right blue
-const mlc = '#0033CC'; // multiple left color
-const mrc = '#930101'; // multiple right color
+
+export const singleLeftColor = `rgb(${slr},${slg},${slb})`; // single left color
+export const singleRightColor = `rgb(${srr},${srg},${srb})`; // single right color
+const multipleLeftColor = `rgb(${mlr},${mlg},${mlb})`; // multiple left color
+const multipleMiddleColor = `rgb(${mmr},${mmg},${mmb})`; // multiple middle color
+const multipleRightColor = `rgb(${mrr},${mrg},${mrb})`; // multiple right color
+export const singleColors = `${singleLeftColor}, ${singleRightColor}`;
+export const multipleColors = `${multipleLeftColor}, ${multipleMiddleColor}, ${multipleRightColor}`;
+
 
 export function getSingleRNAExpressionColor(value) {
   const ratio = value / 7;
   if (Number.isNaN(value)) {
     return notDetectedColor;
-  } else if (value > 1) {
-    return scr;
+  } else if (ratio > 1) {
+    return singleRightColor;
   }
   const r = slr + ratio * (srr - slr);
   const g = slg + ratio * (srg - slg);
@@ -40,7 +46,7 @@ export function getComparisonRNAExpressionColor(value) {
     return notDetectedColor;
   } else if (value >= 0) {
     if (value > 5) {
-      return mrc;
+      return multipleRightColor;
     }
     const ratio = value / 5;
     const r = mmr + ratio * (mrr - mmr);
@@ -49,7 +55,7 @@ export function getComparisonRNAExpressionColor(value) {
     return `rgb(${r},${g},${b})`;
   } else {
     if (value < -5) {
-      return mlc;
+      return multipleLeftColor;
     }
     const ratio = 1 - value / -5;
     const r = mlr + ratio * (mmr - mlr);

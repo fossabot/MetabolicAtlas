@@ -1,7 +1,7 @@
 <template>
   <div class="column is-one-fifth-widescreen is-one-quarter-desktop is-one-quarter-tablet is-half-mobile has-background-lightgray" style="padding-left: 0; overflow-y: scroll;">
     <div class="title is-size-4 has-text-centered">Gene expression data</div>
-    <div class="has-text-centered">Load custom gene expression data<span class="icon" title="Load An TSV file, with gene IDs and TPM values. More information can be found in the documentation"><i class="fa fa-info-circle"></i></span></div>
+    <div class="has-text-centered" title="Load a TSV file with gene IDs and TPM values. More information can be found in the documentation.">Load custom gene expression data<span class="icon"><i class="fa fa-info-circle"></i></span></div>
     <div id="fileSelectBut" class="file is-centered">
       <label class="file-label">
         <input class="file-input" type="file" name="resume" @change="getFileName">
@@ -10,7 +10,7 @@
             <i class="fa fa-upload"></i>
           </span>
           <span class="file-label">
-            Choose a file…
+            Choose a file
           </span>
         </span>
       </label>
@@ -31,7 +31,7 @@
         <div class="card-content card-content-compact">
           <div class="has-text-centered title is-size-6">Data 1</div>
           <div class="control">
-            <p>RNA levels from <i>proteinAtlas.org</i><span class="icon" title="HPA expression level are TPM etc.."><i class="fa fa-info-circle"></i></span></p>
+            <p>RNA levels from <a href="https://www.proteinatlas.org" target="_blank">proteinAtlas.org</a></p>
             <div class="select is-fullwidth">
               <select v-model="HPATissue1" @change="setFirstTissue('HPA')">
                 <option>None</option>
@@ -57,7 +57,7 @@
       <div class="card-content card-content-compact">
         <div class="has-text-centered title is-size-6">Data 2 (for comparison)</div>
         <div class="control">
-          <p>RNA levels from <i>proteinAtlas.org</i><span class="icon"><i class="fa fa-info-circle"></i></span></p>
+          <p>RNA levels from <a href="https://www.proteinatlas.org" target="_blank">proteinAtlas.org</a></p>
           <div class="select is-fullwidth">
             <select v-model="HPATissue2" @change="setSecondTissue('HPA')">
               <option>None</option>

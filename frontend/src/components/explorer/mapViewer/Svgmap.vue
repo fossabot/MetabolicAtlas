@@ -641,7 +641,7 @@ export default {
   }
 
   #tooltip {
-    background: #C4C4C4;
+    background: whitesmoke;
     color: black;
     border-radius: 3px;
     border: 1px solid gray;

@@ -3,7 +3,7 @@
     <RNALegend></RNALegend>
   </div>
   <div v-else-if="this.mode === 'comparison'">
-    <RNALegend text="log<sub>2</sub>(TPM<sub>T2</sub>+1 / TPM<sub>T1</sub>+1)" leftValue="-5" rightValue="5" gradient="#0033CC, #F7F8FD, #930101" natext="n/a"></RNALegend>
+    <RNALegend text="log<sub>2</sub>(TPM<sub>T2</sub>+1 / TPM<sub>T1</sub>+1)" leftValue="-5" rightValue="5" :gradient="`${multipleColors}`" natext="n/a"></RNALegend>
   </div>
   <div v-else>
   </div>
@@ -14,7 +14,7 @@ import axios from 'axios';
 import $ from 'jquery';
 import { default as EventBus } from '../../../event-bus';
 import RNALegend from '@/components/explorer/mapViewer/RNALegend.vue';
-import { getSingleRNAExpressionColor, getComparisonRNAExpressionColor } from '../../../expression-sources/hpa';
+import { getSingleRNAExpressionColor, getComparisonRNAExpressionColor, multipleColors } from '@/expression-sources/hpa';
 import { default as messages } from '../../../helpers/messages';
 
 export default {
@@ -42,6 +42,7 @@ export default {
       secondRNAlevels: {},
 
       computedRNAlevels: {}, // enz id as key, current tissue level as value
+      multipleColors,
     };
   },
   created() {
