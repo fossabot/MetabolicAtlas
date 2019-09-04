@@ -344,7 +344,7 @@ export default {
       }
     },
     applyHPARNAlevelsOnMap(RNAlevels) {
-      console.log('apply RNAlevel with', Object.keys(RNAlevels).length);
+      // console.log('apply RNAlevel with', Object.keys(RNAlevels).length);
       this.HPARNAlevels = RNAlevels;
       // this.HPARNAlevelsHistory[this.svgName] = response.data;
       if (Object.keys(this.HPARNAlevels).length === 0) {

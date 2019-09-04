@@ -185,7 +185,7 @@ export default {
   },
   methods: {
     getFileName(e) {
-      console.log(e);
+      // console.log(e);
       if (e.target.files.length !== 0) {
         this.customFileName = e.target.files[0].name;
         this.errorCustomFile = false;

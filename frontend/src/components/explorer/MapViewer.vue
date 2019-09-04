@@ -236,7 +236,6 @@ export default {
     EventBus.$off('loadRNAComplete');
 
     EventBus.$on('showAction', (type, name, ids, forceReload) => {
-      // console.log(`showAction ${type} ${name} ${ids} ${forceReload}`);
       if (this.showLoader) {
         return;
       }
@@ -247,10 +246,8 @@ export default {
       this.showOverviewScreen = false; // to get the loader visible
       this.selectionData.data = null;
       if (this.show3D) {
-        console.log('MV show3Dnetwork');
         EventBus.$emit('show3Dnetwork', this.requestedType, this.requestedName, ids);
       } else {
-        console.log('MV showSVGmap');
         EventBus.$emit('showSVGmap', this.requestedType, this.requestedName, ids, forceReload);
       }
     });

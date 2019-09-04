@@ -3,7 +3,7 @@
     <RNALegend></RNALegend>
   </div>
   <div v-else-if="this.mode === 'comparison'">
-    <RNALegend text="log<sub>2</sub>(TPM<sub>T2</sub>+1 / TPM<sub>T1</sub>+1)" leftValue="-5" rightValue="5" gradient="#0033CC, #F7F8FD, #930101" nacolor="" natext="n/a"></RNALegend>
+    <RNALegend text="log<sub>2</sub>(TPM<sub>T2</sub>+1 / TPM<sub>T1</sub>+1)" leftValue="-5" rightValue="5" gradient="#0033CC, #F7F8FD, #930101" natext="n/a"></RNALegend>
   </div>
   <div v-else>
   </div>
@@ -72,7 +72,7 @@ export default {
     EventBus.$on('selectFirstTissue', (tissue, tissueSource, dim, skipCompute = false) => {
       if (!this.isTissueValid(tissue, tissueSource)) {
         // handle error
-        console.log('error tissue1 unknown: ', tissue, 'for source', tissueSource);
+        // console.log('error tissue1 unknown: ', tissue, 'for source', tissueSource);
         return;
       }
       this.selectFirstTissue(tissue, tissueSource, dim, skipCompute);
@@ -81,7 +81,7 @@ export default {
     EventBus.$on('selectSecondTissue', (tissue, tissueSource, dim, skipCompute = false) => {
       if (!this.isTissueValid(tissue, tissueSource)) {
         // handle error
-        console.log('error tissue2 unknown: ', tissue, 'for source', tissueSource);
+        // console.log('error tissue2 unknown: ', tissue, 'for source', tissueSource);
         return;
       }
       this.selectSecondTissue(tissue, tissueSource, dim, skipCompute);
@@ -304,8 +304,7 @@ export default {
           level = Math.round((level + 0.00001) * 100) / 100;
           this.computedRNAlevels[enzID] = [getSingleRNAExpressionColor(level), level];
         }
-        this.computedRNAlevels['n/a'] = ['whitesmoke', 'n/a']; // fixme
-        this.RNALegendType = 'comparison';
+        this.computedRNAlevels['n/a'] = [getSingleRNAExpressionColor(NaN), 'n/a'];
       } else {
         // comparison
         if (this.tissue1Source === 'HPA' && this.tissue1Source === this.tissue2Source) {
@@ -327,17 +326,17 @@ export default {
               level = Math.round((level + 0.00001) * 100) / 100;
               this.computedRNAlevels[enzID] = [getComparisonRNAExpressionColor(level), level, log2tpm1, log2tpm2];
             } else {
-              this.computedRNAlevels[enzID] = ['lightgray', 'n/a', log2tpm1, 'n/a'];
+              this.computedRNAlevels[enzID] = [getComparisonRNAExpressionColor(NaN), 'n/a', log2tpm1, 'n/a'];
             }
           }
           for (const enzID of Object.keys(this.secondRNAlevels)) {
             if (!(enzID in this.firstRNAlevels)) {
               const log2tpm2 = Math.round((Math.log2(this.secondRNAlevels[enzID] + 1) + 0.00001) * 100) / 100;
-              this.computedRNAlevels[enzID] = ['lightgray', 'n/a', 'n/a', log2tpm2];
+              this.computedRNAlevels[enzID] = [getComparisonRNAExpressionColor(NaN), 'n/a', 'n/a', log2tpm2];
             }
           }
         }
-        this.computedRNAlevels['n/a'] = ['lightgray', 'n/a']; // fixme
+        this.computedRNAlevels['n/a'] = [getComparisonRNAExpressionColor(NaN), 'n/a'];
       }
       this.$nextTick(() => {
         EventBus.$emit(this.dim === '2d' ? 'apply2DHPARNAlevels' : 'apply3DHPARNAlevels' , this.computedRNAlevels);
