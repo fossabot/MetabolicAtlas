@@ -5,8 +5,8 @@
   "author": "https://sysbio.se https://nbis.se",
   "private": true,
   "scripts": {
-    "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build",
+    "serve": "vue-cli-service serve --mode local",
+    "build": "vue-cli-service build --mode production",
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
@@ -34,6 +34,7 @@
     "rollup": "The two rollup packages below were added as a temp fix, please remove"
   },
   "devDependencies": {
+    "compression-webpack-plugin": "^3.0.0",
     "@vue/cli-plugin-babel": "^3.9.0",
     "@vue/cli-plugin-eslint": "^3.9.0",
     "@vue/cli-service": "^3.9.0",

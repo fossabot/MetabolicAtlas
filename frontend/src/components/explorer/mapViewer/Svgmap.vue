@@ -5,7 +5,15 @@
     <div id="svgOption" class="overlay">
       <span class="button" v-on:click="zoomOut(false)" title="Zoom in"><i class="fa fa-search-plus"></i></span>
       <span class="button" v-on:click="zoomOut(true)" title="Zoom out"><i class="fa fa-search-minus"></i></span>
-      <span class="button" v-on:click="toggleGenes()" title="Show/Hide genes"><i class="fa fa-filter"></i></span>
+      <span class="button" style="padding: 4.25px;" @click="toggleGenes()" title="Show/Hide genes">
+        <i class="fa fa-eye-slash">&thinsp;G
+        </i>
+      </span>
+      <span class="button" style="padding: 4.25px;" @click="toggleSubsystems()" title="Show/Hide subsystem">
+        <i class="fa fa-eye-slash">&thinsp;S
+        </i>
+      </span>
+      <span class="button" v-on:click="toggleFullScreen()" title="Toggle fullscreen" :disabled="isFullScreenDisabled"><i class="fa" :class="{ 'fa-compress': isFullscreen, 'fa-arrows-alt': !isFullscreen}"></i></span>
     </div>
     <div id="svgSearch" class="overlay">
       <div class="control" :class="{ 'is-loading' : isLoadingSearch }">
@@ -14,14 +22,14 @@
           v-on:keyup.enter="searchComponentIDs()" :disabled="!loadedMap"
           placeholder="Exact search by id, name, alias"/>
       </div>
-      <div v-show="searchTerm && totalSearchMatch">
+      <template v-if="searchTerm && totalSearchMatch">
         <span id="searchResCount" class="button has-text-dark" @click="centerElementOnSVG(0)" title="Click to center on current match">
           {{ this.currentSearchMatch }} of {{this.totalSearchMatch }}
         </span>
         <span class="button has-text-dark" @click="centerElementOnSVG(-1)" title="Go to previous"><i class="fa fa-angle-left"></i></span>
         <span class="button has-text-dark" @click="centerElementOnSVG(1)" title="Go to next"><i class="fa fa-angle-right"></i></span>
         <span class="button has-text-dark" @click="highlightElementsFound" title="Highlight all matches">Highlight all</span>
-      </div>
+      </template>
     </div>
     <div id="tooltip" ref="tooltip"></div>
   </div>
@@ -33,10 +41,9 @@ import axios from 'axios';
 import $ from 'jquery';
 import JQPanZoom from 'jquery.panzoom';
 import JQMouseWheel from 'jquery-mousewheel';
-import Loader from '@/components/Loader';
 import { default as EventBus } from '../../../event-bus';
-import { getExpressionColor } from '../../../expression-sources/hpa';
 import { default as messages } from '../../../helpers/messages';
+import { reformatChemicalReactionHTML } from '../../../helpers/utils';
 
 // hack: the only way for jquery plugins to play nice with the plugins inside Vue
 $.Panzoom = JQPanZoom;
@@ -53,9 +60,6 @@ $.fn.extend({
 export default {
   name: 'svgmap',
   props: ['model', 'mapsData'],
-  components: {
-    Loader,
-  },
   data() {
     return {
       errorMessage: '',
@@ -65,7 +69,7 @@ export default {
       svgContent: null,
       svgContentHistory: {},
       svgName: '',
-      svgBigMapName: 'whole_metabolic_network_without_details',
+      isFullscreen: false,
 
       $panzoom: null,
       panzoomOptions: {
@@ -84,8 +88,7 @@ export default {
       selectedItemHistory: {},
       selectElementID: null,
 
-      HPARNAlevelsHistory: {},
-      geneRNAlevels: {}, // enz id as key, current tissue level as value
+      HPARNAlevels: {}, // enz id as key, [current tissue level, color] as value
 
       searchTerm: '',
       searchInputClass: '',
@@ -94,7 +97,7 @@ export default {
       currentSearchMatch: 0,
       totalSearchMatch: 0,
 
-      svgMapURL: process.env.NODE_ENV === 'production' ? 'https://ftp.metabolicatlas.org/.maps' : 'http://localhost/svgs',
+      svgMapURL: process.env.VUE_APP_SVGMAPURL,
       defaultGeneColor: '#feb',
     };
   },
@@ -107,9 +110,18 @@ export default {
       }
     },
   },
+  computed: {
+    isFullScreenDisabled() {
+      const elem = $('.svgbox').first()[0];
+      if ((document.fullScreenElement !== undefined && document.fullScreenElement === null) || (document.msFullscreenElement !== undefined && document.msFullscreenElement === null) || (document.mozFullScreen !== undefined && !document.mozFullScreen) || (document.webkitIsFullScreen !== undefined && !document.webkitIsFullScreen)) {
+        return false;
+      }
+      return true;
+    },
+  },
   created() {
     EventBus.$off('showSVGmap');
-    EventBus.$off('load2DHPARNAlevels');
+    EventBus.$off('apply2DHPARNAlevels');
 
     EventBus.$on('showSVGmap', (type, name, ids, forceReload) => {
       if (forceReload) {
@@ -132,8 +144,8 @@ export default {
       }
     });
 
-    EventBus.$on('load2DHPARNAlevels', (mapType, tissue) => {
-      this.loadHPAlevelsOnMap(mapType, tissue);
+    EventBus.$on('apply2DHPARNAlevels', (levels) => {
+      this.applyHPARNAlevelsOnMap(levels);
     });
   },
   mounted() {
@@ -145,17 +157,37 @@ export default {
     }
     $('#svg-wrapper').on('mouseover', '.enz', function f(e) {
       const id = $(this).attr('class').split(' ')[1].trim();
-      if (id in self.geneRNAlevels) {
-        self.$refs.tooltip.innerHTML = `RNA level: ${self.geneRNAlevels[id]}`;
-        self.$refs.tooltip.style.top = `${(e.pageY - $('.svgbox').first().offset().top) + 15}px`;
-        self.$refs.tooltip.style.left = `${(e.pageX - $('.svgbox').first().offset().left) + 15}px`;
-        self.$refs.tooltip.style.display = 'block';
+      if (id in self.HPARNAlevels) {
+        if (self.HPARNAlevels[id].length === 2) {
+          self.$refs.tooltip.innerHTML = `RNA log<sub>2</sub>(TPM): ${self.HPARNAlevels[id][1]}`;
+        } else {
+          self.$refs.tooltip.innerHTML = `RNA log<sub>2</sub>(TPM<sub>T1</sub>): ${self.HPARNAlevels[id][2]}<br>`;
+          self.$refs.tooltip.innerHTML += `RNA log<sub>2</sub>(TPM<sub>T2</sub>): ${self.HPARNAlevels[id][3]}<br>`;
+          self.$refs.tooltip.innerHTML += `RNA log<sub>2</sub>(TPM ratio): ${self.HPARNAlevels[id][1]}<br>`;
+        }
+      } else if (Object.keys(self.HPARNAlevels).length !== 0) {
+        self.$refs.tooltip.innerHTML = `RNA log<sub>2</sub>(TPM): ${self.HPARNAlevels['n/a'][1]}`;
+      } else {
+        return;
       }
+      self.$refs.tooltip.style.top = `${(e.pageY - $('.svgbox').first().offset().top) + 15}px`;
+      self.$refs.tooltip.style.left = `${(e.pageX - $('.svgbox').first().offset().left) + 15}px`;
+      self.$refs.tooltip.style.display = 'block';
     });
     $('#svg-wrapper').on('mouseout', '.enz', () => {
       self.$refs.tooltip.innerHTML = '';
       self.$refs.tooltip.style.display = 'none';
     });
+    $('.svgbox').on('webkitfullscreenchange mozfullscreenchange fullscreenchange mozFullScreen MSFullscreenChange', (e) => {
+        $('.svgbox').first().toggleClass('fullscreen');
+        $('#svgSearch').toggleClass('fullscreen');
+        e.stopPropagation();
+    });
+    $(document).on('mozfullscreenchange', (e) => {
+        $('.svgbox').first().toggleClass('fullscreen');
+        $('#svgSearch').toggleClass('fullscreen');
+    });
+
   },
   methods: {
     toggleGenes() {
@@ -163,6 +195,42 @@ export default {
         $('.enz, .ee').attr('visibility', 'visible');
       } else {
         $('.enz, .ee').attr('visibility', 'hidden');
+      }
+    },
+    toggleSubsystems() {
+      if ($('.subsystem').first().attr('visibility') === 'hidden') {
+        $('.subsystem').attr('visibility', 'visible');
+      } else {
+        $('.subsystem').attr('visibility', 'hidden');
+      }
+    },
+    toggleFullScreen() {
+      if (this.isFullScreenDisabled) {
+        return;
+      }
+      const elem = $('.svgbox').first()[0];
+      if ((document.fullScreenElement !== undefined && document.fullScreenElement === null) || (document.msFullscreenElement !== undefined && document.msFullscreenElement === null) || (document.mozFullScreen !== undefined && !document.mozFullScreen) || (document.webkitIsFullScreen !== undefined && !document.webkitIsFullScreen)) {
+        if (elem.requestFullScreen) {
+          elem.requestFullScreen();
+        } else if (elem.mozRequestFullScreen) {
+          elem.mozRequestFullScreen();
+        } else if (elem.webkitRequestFullScreen) {
+          elem.webkitRequestFullScreen(Element.ALLOW_KEYBOARD_INPUT);
+        } else if (elem.msRequestFullscreen) {
+          elem.msRequestFullscreen();
+        }
+        this.isFullscreen = true;
+      } else {
+        if (document.cancelFullScreen) {
+          document.cancelFullScreen();
+        } else if (document.mozCancelFullScreen) {
+          document.mozCancelFullScreen();
+        } else if (document.webkitCancelFullScreen) {
+          document.webkitCancelFullScreen();
+        } else if (document.msExitFullscreen) {
+          document.msExitFullscreen();
+        }
+        this.isFullscreen = false;
       }
     },
     zoomOut(bool) {
@@ -260,7 +328,6 @@ export default {
               this.svgContentHistory[this.svgName] = response.data;
               this.loadedMapHistory[this.svgName] = mapInfo;
               setTimeout(() => {
-                // this.showLoader = false;
                 this.loadSvgPanZoom(callback);
               }, 0);
             })
@@ -277,57 +344,29 @@ export default {
         this.$emit('loadComplete', true, '');
       }
     },
-    loadHPAlevelsOnMap(mapType, tissue) {
-      if (this.svgName in this.HPARNAlevelsHistory) {
-        this.readHPARNAlevels(tissue);
-        return;
-      }
-      axios.get(`${this.model.database_name}/gene/hpa_rna_levels/${mapType}/2d/${this.loadedMap.name_id}`)
-      .then((response) => {
-        this.HPARNAlevelsHistory[this.svgName] = response.data;
-        setTimeout(() => {
-          this.readHPARNAlevels(tissue);
-        }, 0);
-      })
-      .catch(() => {
-        EventBus.$emit('loadRNAComplete', false, '');
-        return;
-      });
-    },
-    readHPARNAlevels(tissue) {
-      if (tissue === 'None') {
+    applyHPARNAlevelsOnMap(RNAlevels) {
+      // console.log('apply RNAlevel with', Object.keys(RNAlevels).length);
+      this.HPARNAlevels = RNAlevels;
+      // this.HPARNAlevelsHistory[this.svgName] = response.data;
+      if (Object.keys(this.HPARNAlevels).length === 0) {
         $('#svg-wrapper .enz .shape').attr('fill', this.defaultGeneColor);
-        this.geneRNAlevels = {};
         return;
-      }
-      const index = this.HPARNAlevelsHistory[this.svgName].tissues.indexOf(tissue);
-      if (index === -1) {
-        EventBus.$emit('loadRNAComplete', false, '');
-        return;
-      }
-
-      const levels = this.HPARNAlevelsHistory[this.svgName].levels;
-      for (const array of levels) {
-        const enzID = array[0];
-        let level = Math.log2(parseFloat(array[1].split(',')[index]) + 1);
-        level = Math.round((level + 0.00001) * 100) / 100;
-        this.geneRNAlevels[enzID] = level;
       }
 
       const allGenes = $('#svg-wrapper .enz');
       for (const oneEnz of allGenes) {
         const ID = oneEnz.classList[1];
-        if (this.geneRNAlevels[ID] !== undefined) {
-          oneEnz.children[0].setAttribute('fill', getExpressionColor(this.geneRNAlevels[ID]));
+        if (this.HPARNAlevels[ID] !== undefined) {
+          oneEnz.children[0].setAttribute('fill', this.HPARNAlevels[ID][0]); // 0 is the float value, 1 the color hex
         } else {
-          oneEnz.children[0].setAttribute('fill', 'whitesmoke');
+          oneEnz.children[0].setAttribute('fill', this.HPARNAlevels['n/a'][0]);
         }
       }
 
       // update cached selected elements
-      for (const id of Object.keys(this.selectedItemHistory)) {
-        if (this.geneRNAlevels[id] !== undefined) {
-          this.selectedItemHistory[id].rnaLvl = this.geneRNAlevels[id];
+      for (const ID of Object.keys(this.selectedItemHistory)) {
+        if (this.HPARNAlevels[ID] !== undefined) {
+          this.selectedItemHistory[ID].rnaLvl = this.HPARNAlevels[ID];
         }
       }
       EventBus.$emit('loadRNAComplete', true, '');
@@ -481,15 +520,16 @@ export default {
         return;
       }
       EventBus.$emit('startSelectedElement');
-      axios.get(`${this.model.database_name}/${type}/${id}`)
+      axios.get(`${this.model.database_name}/${type === 'reaction' ? 'get_reaction' : type}/${id}`)
       .then((response) => {
         let data = response.data;
         if (type === 'reaction') {
           data = data.reaction;
+          data.equation = this.reformatChemicalReactionHTML(data, true);
         } else if (type === 'gene') {
           // add the RNA level if any
-          if (id in this.geneRNAlevels) {
-            data.rnaLvl = this.geneRNAlevels[id];
+          if (id in this.HPARNAlevels) {
+            data.rnaLvl = this.HPARNAlevels[id];
           }
         }
         selectionData.data = data;
@@ -524,6 +564,7 @@ export default {
       this.$panzoom.panzoom('pan', -panX + ($('.svgbox').width() / 2), -panY + ($('.svgbox').height() / 2));
       this.$emit('loadComplete', true, '');
     },
+    reformatChemicalReactionHTML,
   },
 };
 </script>
@@ -551,15 +592,20 @@ export default {
     padding: 0;
     width: 100%;
     height:100%;
+    &.fullscreen {
+      background: white;
+    }
   }
 
   #svgOption {
     position: absolute;
     top: 7.25rem;
     left: 2.25rem;
-    span:not(:last-child) {
-      display: inline-block;
-      margin-right: 5px;
+    span {
+      display: block;
+      &:not(:last-child) {
+        margin-bottom: 5px;
+      }
     }
   }
 
@@ -572,13 +618,18 @@ export default {
       display: inline-block;
       vertical-align: middle;
     }
-    span:first-child {
-      color: white;
+    span {
+      margin-left: 5px;
     }
     #searchInput {
       display: inline-block;
-      margin-right: 5px;
       width: 20vw;
+    }
+    &.fullscreen {
+      left: 30%;
+      #searchInput {
+        width: 30vw;
+      }
     }
   }
 
@@ -593,7 +644,7 @@ export default {
   }
 
   #tooltip {
-    background: #C4C4C4;
+    background: whitesmoke;
     color: black;
     border-radius: 3px;
     border: 1px solid gray;
