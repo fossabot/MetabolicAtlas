@@ -85,13 +85,13 @@
           </div>
           <div id="iSwitch" class="overlay">
             <span class="button" @click="switchDimension" :disabled="!activeSwitch"
-            :title="activeSwitch ? `Reload the current network in ${dim.toUpperCase()}` : ''">
+            :title="activeSwitch ? `Reload the current network in ${ show2D ? '3D' : '2D' }` : ''">
               <template v-if="activeSwitch">
-                Switch to&nbsp;<b>{{ dim.toUpperCase() }}</b>
+                Switch to&nbsp;<b>{{ show2D ? '3D' : '2D' }}</b>
               </template>
               <template v-else>
                 <template v-if="!disabled2D">
-                  Switch to&nbsp;<b>{{ dim.toUpperCase() }}</b>
+                  Switch to&nbsp;<b>{{ show2D ? '3D' : '2D' }}</b>
                 </template>
                 <template v-else>
                   2D disabled
