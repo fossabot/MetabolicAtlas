@@ -417,4 +417,12 @@ m, .clickable {
    margin-top: 2.75rem;
 }
 
+
+span.sc {
+  border-radius: 10px;
+  background: lightgray;
+  padding-right: 4px;
+  padding-left: 3px;
+}
+
 </style>

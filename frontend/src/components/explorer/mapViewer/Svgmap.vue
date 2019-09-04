@@ -43,6 +43,7 @@ import JQPanZoom from 'jquery.panzoom';
 import JQMouseWheel from 'jquery-mousewheel';
 import { default as EventBus } from '../../../event-bus';
 import { default as messages } from '../../../helpers/messages';
+import { reformatChemicalReactionHTML } from '../../../helpers/utils';
 
 // hack: the only way for jquery plugins to play nice with the plugins inside Vue
 $.Panzoom = JQPanZoom;
@@ -519,11 +520,12 @@ export default {
         return;
       }
       EventBus.$emit('startSelectedElement');
-      axios.get(`${this.model.database_name}/${type}/${id}`)
+      axios.get(`${this.model.database_name}/${type === 'reaction' ? 'get_reaction' : type}/${id}`)
       .then((response) => {
         let data = response.data;
         if (type === 'reaction') {
           data = data.reaction;
+          data.equation = this.reformatChemicalReactionHTML(data, true);
         } else if (type === 'gene') {
           // add the RNA level if any
           if (id in this.HPARNAlevels) {
@@ -562,6 +564,7 @@ export default {
       this.$panzoom.panzoom('pan', -panX + ($('.svgbox').width() / 2), -panY + ($('.svgbox').height() / 2));
       this.$emit('loadComplete', true, '');
     },
+    reformatChemicalReactionHTML,
   },
 };
 </script>
