@@ -72,6 +72,7 @@ backend/database_generation/**/*.tsv
 !backend/database_generation/example/*.tsv
 backend/database_generation/**/*.gz
 backend/database_generation/**/output/*
+backend/database_generation/**/jsonMaps/*
 backend/model_files/
 backend/svgs/
 *.db

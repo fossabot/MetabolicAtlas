@@ -1,6 +1,6 @@
 <template>
   <div id="mapViewer" class="extended-section">
-    <div class="columns" id="iMainPanel" :class="{ 'is-fullheight' : errorMessage}">
+    <div class="columns" id="iMainPanel">
       <template v-if="errorMessage">
         <div class="column">
           <br><br>
@@ -12,10 +12,10 @@
         </div>
       </template>
       <template v-else>
-        <div id="iSideBar" class="column is-one-fifth-widescreen is-one-quarter-desktop is-one-quarter-tablet is-half-mobile is-fullheight">
+        <div id="iSideBar" class="column is-one-fifth-widescreen is-one-quarter-desktop is-one-quarter-tablet is-half-mobile has-background-lightgray">
           <div id="menu">
             <ul class="l0">
-              <li :title="`Select a ${show2D ? '2D' : '3D'} compartment network to show`">Compartments<span>&nbsp;&#9656;</span>
+              <li :title="`Select a ${dim.toUpperCase()} compartment network to show`">Compartments<span>&nbsp;&#9656;</span>
                 <ul class="vhs l1" title="">
                   <li @click="showMap()" class="has-background-grey-dark clickable"><i>Clear selection</i></li>
                   <div v-if="!has2DCompartmentMaps || show3D">
@@ -34,7 +34,7 @@
                   </div>
                 </ul>
               </li>
-              <li :title="`Select a ${show2D ? '2D' : '3D'} subsystem network to show`">Subsystems<span>&nbsp;&#9656;</span>
+              <li :title="`Select a ${dim.toUpperCase()} subsystem network to show`">Subsystems<span>&nbsp;&#9656;</span>
                 <ul class="vhs l1" title="">
                   <li @click="showMap()" class="has-background-grey-dark clickable"><i>Clear selection</i></li>
                   <div v-if="!has2DSubsystemMaps || show3D">
@@ -56,23 +56,11 @@
                   </div>
                 </ul>
               </li>
-              <li :class="{'clickable' : true, 'disable' : disabledRNAlvl }"
-                :title="getRNATitle()">RNA levels from <i style="color: lightblue">proteinAtlas.org</i>
-                <span v-show="HPATissue.length !== 0">&nbsp;&#9656;</span>
-                <ul class="vhs l1" title="">
-                  <li v-show="HPATissue.length !== 0" @click="loadHPARNAlevels('None')"  class="has-background-grey-dark clickable"><i>Clear selection</i></li>
-                  <li v-for="tissue in HPATissue" class="clickable is-capitalized" @click="loadHPARNAlevels(tissue)"
-                    :class="{'has-text-warning': tissue === loadedTissue }">
-                    {{ tissue }}
-                  </li>
-                </ul>
-              </li>
             </ul>
           </div>
           <sidebar-data-panels
             :model="model"
-            :dim="show2D ? '2d' : '3d'"
-            :tissue="loadedTissue"
+            :dim="dim"
             :mapType="currentDisplayedType"
             :mapName="currentDisplayedName"
             :mapsData="show2D ? mapsData2D : mapsData3D"
@@ -84,28 +72,26 @@
           <p class="is-size-5 has-text-centered" style="padding: 10%;">Choose a compartment or subsystem map from the menu on the left</p>
         </div>
         <div id="graphframe" v-show="!showOverviewScreen" class="column is-unselectable">
-          <div class="is-fullheight">
-            <svgmap v-show="show2D" :model="model" :mapsData="mapsData2D"
-              @loadComplete="handleLoadComplete"
-              @loading="showLoader=true">
-            </svgmap>
-            <d3dforce v-show="show3D" :model="model"
-              @loadComplete="handleLoadComplete"
-              @loading="showLoader=true">
-            </d3dforce>
-          </div>
+          <svgmap v-show="show2D" :model="model" :mapsData="mapsData2D"
+            @loadComplete="handleLoadComplete"
+            @loading="showLoader=true">
+          </svgmap>
+          <d3dforce v-show="show3D" :model="model"
+            @loadComplete="handleLoadComplete"
+            @loading="showLoader=true">
+          </d3dforce>
           <div id="iLoader" class="loading" v-show="showLoader">
             <a class="button is-loading"></a>
           </div>
           <div id="iSwitch" class="overlay">
             <span class="button" @click="switchDimension" :disabled="!activeSwitch"
-            :title="activeSwitch ? `Reload the current network in ${show2D ? '3D' : '2D'}` : ''">
+            :title="activeSwitch ? `Reload the current network in ${ show2D ? '3D' : '2D' }` : ''">
               <template v-if="activeSwitch">
-                Switch to&nbsp;<b>{{ show3D ? '2D' : '3D' }}</b>
+                Switch to&nbsp;<b>{{ show2D ? '3D' : '2D' }}</b>
               </template>
               <template v-else>
                 <template v-if="!disabled2D">
-                  Switch to&nbsp;<b>{{ show3D ? '2D' : '3D' }}</b>
+                  Switch to&nbsp;<b>{{ show2D ? '3D' : '2D' }}</b>
                 </template>
                 <template v-else>
                   2D disabled
@@ -126,6 +112,22 @@
             </article>
           </transition>
         </div>
+        <div id="dataOverlayBar" class="column is-narrow has-text-white is-unselectable" :class="{
+          'is-paddingless': toggleDataOverlayPanel }" v-show="!showLoader" title="Click to show the data overlay panel" @click="toggleDataOverlayPanel = !toggleDataOverlayPanel">
+          <p class="is-size-5 has-text-centered has-text-weight-bold">
+            <span class="icon">
+                <i class="fa" :class="{ 'fa-arrow-left': !toggleDataOverlayPanel, 'fa-arrow-right': toggleDataOverlayPanel}"></i>
+            </span><br>
+              D<br>A<br>T<br>A<br><br>
+              O<br>V<br>E<br>R<br>L<br>A<br>Y<br>
+            <span class="icon">
+              <i class="fa" :class="{ 'fa-arrow-left': !toggleDataOverlayPanel, 'fa-arrow-right': toggleDataOverlayPanel}"></i>
+            </span>
+          </p>
+        </div>
+        <DataOverlay :model="model" :mapType="currentDisplayedType" :dim="dim"
+          :mapName="currentDisplayedName" v-show="toggleDataOverlayPanel">
+        </DataOverlay>
       </template>
     </div>
   </div>
@@ -135,6 +137,7 @@
 import $ from 'jquery';
 import axios from 'axios';
 import SidebarDataPanels from '@/components/explorer/mapViewer/SidebarDataPanels';
+import DataOverlay from '@/components/explorer/mapViewer/DataOverlay.vue';
 import Svgmap from '@/components/explorer/mapViewer/Svgmap';
 import D3dforce from '@/components/explorer/mapViewer/D3dforce';
 import { default as EventBus } from '../../event-bus';
@@ -145,6 +148,7 @@ export default {
   props: ['model'],
   components: {
     SidebarDataPanels,
+    DataOverlay,
     Svgmap,
     D3dforce,
   },
@@ -187,10 +191,7 @@ export default {
       },
       showSelectionLoader: false,
       isHoverMenuItem: false,
-
-      HPATissue: [],
-      requestedTissue: '',
-      loadedTissue: '',
+      toggleDataOverlayPanel: false,
       messages,
     };
   },
@@ -212,8 +213,8 @@ export default {
       const altID = this.mapsData3D.subsystems[this.currentDisplayedName].alternateDim;
       return !(altID in this.mapsData2D.subsystems && this.mapsData2D.subsystems[altID].sha);
     },
-    disabledRNAlvl() {
-      return !this.currentDisplayedName || this.HPATissue.length === 0;
+    dim() {
+      return this.show2D ? '2d' : '3d';
     },
   },
   watch: {
@@ -235,7 +236,6 @@ export default {
     EventBus.$off('loadRNAComplete');
 
     EventBus.$on('showAction', (type, name, ids, forceReload) => {
-      // console.log(`showAction ${type} ${name} ${ids} ${forceReload}`);
       if (this.showLoader) {
         return;
       }
@@ -265,7 +265,6 @@ export default {
     EventBus.$on('endSelectedElement', (isSuccess) => {
       this.showSelectionLoader = false;
       this.selectionData.error = !isSuccess;
-      // this.showSelectedElementPanelError = !isSuccess;
     });
     EventBus.$on('loadRNAComplete', (isSuccess, errorMessage) => {
       if (!isSuccess) {
@@ -275,14 +274,13 @@ export default {
           this.loadErrorMesssage = messages.unknownError;
         }
         this.showLoader = false;
-        this.loadedTissue = '';
-        this.requestedTissue = '';
+        EventBus.$emit('unselectFirstTissue');
+        EventBus.$emit('unselectSecondTissue');
         setTimeout(() => {
           this.loadErrorMesssage = '';
         }, 3000);
         return;
       }
-      this.loadedTissue = this.requestedTissue;
       this.showLoader = false;
     });
   },
@@ -328,7 +326,6 @@ export default {
         return;
       }
       this.getSubComptData(this.model);
-      this.getHPATissue(this.model);
     },
     hideDropleftMenus() {
       $('#menu ul.l1, #menu ul.l2').hide();
@@ -341,8 +338,6 @@ export default {
       this.show2D = !this.show2D;
       this.selectedElement = null;
       this.selectionData.data = null;
-      this.requestedTissue = '';
-      this.loadedTissue = '';
       if (!this.currentDisplayedType || !this.currentDisplayedName) {
         return;
       }
@@ -379,9 +374,10 @@ export default {
       }
       this.updateURL(this.currentDisplayedType, this.currentDisplayedName, this.URLID);
       this.showLoader = false;
-      if (this.loadedTissue) {
-        this.loadHPARNAlevels(this.loadedTissue);
-      }
+
+      this.$nextTick(() => {
+        EventBus.$emit('reloadGeneExpressionData');
+      });
     },
     showMessage(errorMessage, messageType) {
       this.loadErrorMesssage = errorMessage;
@@ -412,7 +408,6 @@ export default {
           this.compartmentMapping.dim3D[c.compartment] = c.name_id;
         }
         this.has2DCompartmentMaps = Object.keys(this.mapsData2D.compartments).length !== 0;
-        // this.mapsData2D.compartments.sort();
         this.mapsData3D.subsystems = {};
         for (const s of response.data.subsystem) {
           this.mapsData3D.subsystems[s.name_id] = s;
@@ -461,36 +456,11 @@ export default {
     },
     updateURL(type, mapID, URLID) {
       this.watchURL = false;
-      const dim = this.show2D ? '2d' : '3d';
       if (URLID && false) {
         // no reaction id in url for now
-        this.$router.push(`/explore/map-viewer/${this.model.database_name}/${type}/${mapID}/${URLID}?dim=${dim}`);
+        this.$router.push(`/explore/map-viewer/${this.model.database_name}/${type}/${mapID}/${URLID}?dim=${this.dim}`);
       } else {
-        this.$router.push(`/explore/map-viewer/${this.model.database_name}/${type}/${mapID}?dim=${dim}`);
-      }
-    },
-    getHPATissue(model) {
-      axios.get(`${model.database_name}/gene/hpa_tissue/`)
-        .then((response) => {
-          this.HPATissue = response.data;
-        })
-        .catch((error) => {
-          switch (error.response.status) {
-            default:
-              this.loadErrorMesssage = messages.unknownError;
-          }
-        });
-    },
-    loadHPARNAlevels(tissue) {
-      this.requestedTissue = tissue;
-      if (this.requestedTissue === 'None') {
-        this.requestedTissue = '';
-        this.loadedTissue = '';
-      }
-      if (this.show2D) {
-        EventBus.$emit('load2DHPARNAlevels', this.currentDisplayedType, tissue);
-      } else {
-        EventBus.$emit('load3DHPARNAlevels', this.currentDisplayedType, tissue);
+        this.$router.push(`/explore/map-viewer/${this.model.database_name}/${type}/${mapID}?dim=${this.dim}`);
       }
     },
     checkValidRequest(displayType, displayName) {
@@ -522,37 +492,70 @@ export default {
       if (compartmentOrSubsystemID) {
         EventBus.$emit('showAction', type, compartmentOrSubsystemID, [], false);
       } else {
-        this.loadedTissue = null;
-        this.requestedTissue = null;
+        this.loadedTissue1 = '';
+        this.requestedTissue1 = '';
+        this.loadedTissue2 = '';
+        this.requestedTissue2 = '';
         this.showOverviewScreen = true;
         this.$router.push(`/explore/map-viewer/${this.model.database_name}/`);
         // keep the loaded 2D map, and data info in the 'back', to quickly reload it
       }
-    },
-    getRNATitle() {
-      if (this.HPATissue.length === 0) {
-        return `RNA expression levels not available for ${this.model.short_name}`;
-      }
-      return this.disabledRNAlvl ? 'RNA expression levels disabled, select a map first' : 'Select a tissue from the list to color genes according their expression levels in that tissue';
     },
   },
 };
 </script>
 
 <style lang="scss">
-
-$navbar-height: 2.5rem;
-$footer-height: 4.55rem;
-
 #mapViewer {
-  .is-fullheight {
-    min-height: calc(100vh - #{$navbar-height} - #{$footer-height});
-    max-height: calc(100vh - #{$navbar-height} - #{$footer-height});
-    height: calc(100vh - #{$navbar-height} - #{$footer-height});
+  #menu {
+    background: $primary;
+    color: $white;
+    position: relative;
+    font-size: 16px;
+    ul {
+      list-style: none;
+      &.vhs, &.l2 {
+        max-height: 65vh;
+        overflow-y: auto;
+      }
+    }
+
+    ul.l1, ul.l2 {
+      display: none;
+      border-left: 1px solid white;
+      position: absolute;
+      top: 0;
+      left: 100%;
+      width: 100%;
+      background: $primary;
+      z-index: 11;
+      box-shadow: 5px 5px 5px #222222;
+    }
+
+    li {
+      padding: 17px 15px 17px 20px;
+      border-bottom: 1px solid $grey-lighter;
+      user-select: none;
+      &:hover {
+        background: $primary-light;
+      }
+      span {
+        position: absolute;
+        right: 10px;
+      }
+      &.disable {
+        cursor: not-allowed;
+        background: $primary;
+        color: $grey;
+      }
+    }
   }
 
   #iMainPanel {
     margin-bottom: 0;
+    min-height: calc(100vh - #{$navbar-height} - #{$footer-height});
+    max-height: calc(100vh - #{$navbar-height} - #{$footer-height});
+    height: calc(100vh - #{$navbar-height} - #{$footer-height});
   }
 
   #iSwitch {
@@ -562,7 +565,6 @@ $footer-height: 4.55rem;
 
   #iSideBar {
     padding: 0.75rem 0 0 0.75rem;
-    background: lightgray;
   }
 
   #iLoader {
@@ -592,6 +594,24 @@ $footer-height: 4.55rem;
     padding: 0;
     margin: 0;
     overflow: hidden;
+  }
+
+
+  #dataOverlayBar {
+    display: flex;
+    align-items: center;
+    background: $primary;
+    cursor: pointer;
+    line-height: 17px;
+    padding: 0.25rem;
+    .icon {
+      padding-bottom: 20px;
+      padding-top: 20px;
+    }
+    &:hover{
+      background: $primary-light;
+    }
+    padding-right: 1rem;
   }
 
   .overlay {
