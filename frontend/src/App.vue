@@ -4,7 +4,7 @@
     <nav id="navbar" class="navbar has-background-primary-lighter" role="navigation" aria-label="main navigation">
       <div class="container">
         <div class="navbar-brand">
-          <router-link id="logo" class="navbar-item" to="/">
+          <router-link class="navbar-item" to="/">
             <img :src="require('./assets/logo.png')"/>
           </router-link>
           <div class="navbar-burger" :class="{ 'is-active': isMobileMenu }"
@@ -219,10 +219,6 @@ export default {
   margin: 0.75rem;
 }
 
-#logo {
-  margin-left: 0.5rem;
-}
-
 m, .clickable {
   cursor: pointer;
 }
@@ -293,10 +289,7 @@ m, .clickable {
   }
   .navbar-burger{
     height: 4rem;
-    margin-right: 1.5rem;
-    width: 5rem;
-    padding-left: auto;
-    padding-right: auto;
+    padding-right: 0.5rem;
     span {
       height: 2px;
     }
