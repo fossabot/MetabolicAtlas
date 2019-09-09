@@ -90,7 +90,7 @@
       </div>
     </footer>
     <div v-if="showCookieMsg" id="cookies" class="has-background-grey">
-      <div class="column has-text-centered">
+      <div class="column has-text-centered" style="padding: 0.25rem">
         <div class="has-text-white">
           We use cookies to enhance the usability of our website. By continuing you are agreeing to our <router-link class="has-text-white has-text-weight-bold" :to="{path: '/about', hash: 'privacy'}">Privacy Notice and Terms of Use</router-link>&emsp;
           <p class="button is-small is-rounded has-background-danger has-text-white has-text-weight-bold" @click="showCookieMsg=false; acceptCookiePolicy()">
