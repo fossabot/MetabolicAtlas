@@ -495,13 +495,14 @@ m, .clickable {
 }
 
 .box.selectedBoxModel {
-  box-shadow: 0 2px 3px gray, 0 0 0 1px $primary;
+  box-shadow: 0 2px 3px $primary-light, 0 0 0 1px $primary-light;
+
 }
 
 #gem-browser-tiles {
   .tile.is-child {
     &:hover {
-      box-shadow: 0 2px 3px gray, 0 0 0 1px gray;
+      box-shadow: 0 2px 3px $primary-light, 0 0 0 1px $primary-light;
     }
     ul {
       list-style-type: disc;

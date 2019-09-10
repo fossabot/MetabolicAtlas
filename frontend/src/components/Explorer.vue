@@ -9,36 +9,37 @@
       <template v-if="model" v-else>
         <div class="columns has-text-centered">
           <div class="column">
-            <h4 class="is-size-3 has-text-weight-bold">Explore a model</h4>
+            <h4 class="is-size-3 has-text-weight-bold">Explore the integrated models</h4>
           </div>
         </div>
         <div class="columns">
-          <div class="column">
+          <div class="column has-text-centered-tablet">
             <p class="has-text-weight-bold is-size-5">
               Select a model:
             </p>
           </div>
         </div>
         <div class="columns is-centered">
-          <div class="column is-three-fifths-desktop is-three-quarters-tablet is-fullwidth-mobile">
-            <div :class="cmodel.database_name === model.database_name ? 'selectedBoxModel' : ''" class="box has-text-centered clickable" 
-            v-for="cmodel, k in Object.values(models).sort((a, b) => (a.short_name.toLowerCase() < b.short_name.toLowerCase() ? -1 : 1))" 
-            @mousedown.prevent="selectModel(cmodel); showModelList = false" 
+          <div class="column is-8-widescreen is-10-desktop is-fullwidth-tablet is-size-5">
+            <div :class="cmodel.database_name === model.database_name ? 'selectedBoxModel' : ''" class="box has-text-centered clickable"
+            v-for="cmodel, k in Object.values(models).sort((a, b) => (a.short_name.toLowerCase() < b.short_name.toLowerCase() ? -1 : 1))"
+            @mousedown.prevent="selectModel(cmodel); showModelList = false"
             :title="`Select ${cmodel.short_name} as model to explore`"
             v-html="getModelDescription(cmodel)">
             </div>
           </div>
         </div>
+        <br>
         <div class="columns">
-          <div class="column">
+          <div class="column has-text-centered-tablet">
             <p class="has-text-weight-bold is-size-5">
               Select a tool:
             </p>
           </div>
         </div>
-        <div id="toolsSelect" class="columns is-multiline">
-          <template v-for="tool, i in explorerTools">
-            <div class="column is-5" :class="i === 0 ? 'is-offset-1' : ''">
+        <div class="columns is-centered">
+          <template v-for="tool in explorerTools">
+            <div class="column is-4-widescreen is-5-desktop">
               <router-link :to="{ path: `${tool.url}/${model.database_name }` }" :title="`Click to access the ${tool.name} for ${model.short_name} model`">
                 <div class="card card-fullheight card-selectable has-text-justified">
                   <header class="card-header">
