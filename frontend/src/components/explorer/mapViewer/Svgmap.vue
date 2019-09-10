@@ -14,6 +14,7 @@
         </i>
       </span>
       <span class="button" v-on:click="toggleFullScreen()" title="Toggle fullscreen" :disabled="isFullScreenDisabled"><i class="fa" :class="{ 'fa-compress': isFullscreen, 'fa-arrows-alt': !isFullscreen}"></i></span>
+      <span class="button" v-on:click="downloadMap()" title="Download as SVG"><i class="fa fa-download"></i></span>
     </div>
     <div id="svgSearch" class="overlay">
       <div class="control" :class="{ 'is-loading' : isLoadingSearch }">
@@ -41,6 +42,7 @@ import axios from 'axios';
 import $ from 'jquery';
 import JQPanZoom from 'jquery.panzoom';
 import JQMouseWheel from 'jquery-mousewheel';
+import { default as FileSaver } from 'file-saver';
 import { default as EventBus } from '../../../event-bus';
 import { default as messages } from '../../../helpers/messages';
 import { reformatChemicalReactionHTML } from '../../../helpers/utils';
@@ -343,6 +345,12 @@ export default {
         }
         this.$emit('loadComplete', true, '');
       }
+    },
+    downloadMap() {
+      const blob = new Blob([document.getElementById('svg-wrapper').innerHTML], {
+        type: 'data:text/tsv;charset=utf-8',
+      });
+      FileSaver.saveAs(blob, `${this.loadedMap.name_id}.svg`);
     },
     applyHPARNAlevelsOnMap(RNAlevels) {
       // console.log('apply RNAlevel with', Object.keys(RNAlevels).length);
