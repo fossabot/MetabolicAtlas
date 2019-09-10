@@ -172,8 +172,8 @@
 
           <br>
           <span class="has-text-weight-bold lab">Host:</span> <a href="https://ftp.metabolicatlas.org"> ftp.metabolicatlas.org</a><br>
-          <span class="has-text-weight-bold lab">Login:</span> (leave it empty)<br>
-          <span class="has-text-weight-bold lab">Password:</span> (leave it empty)<br>
+          <span class="has-text-weight-bold lab">Login:</span> (leave empty)<br>
+          <span class="has-text-weight-bold lab">Password:</span> (leave empty)<br>
           <span class="has-text-weight-bold lab">Port:</span> 21
 
           <hr>
@@ -181,7 +181,7 @@
           Lists of the most relevant software tools, algorithms, or databases published by the SysBio group. To navigate to the corresponding pages, click on the image on the left of its description.
 
           <h5 id="API">API</h5>
-          We have a dedicated interface to facilite the use of the API, with output provided in JSON format. The API is still under developpement and subject to change without notice.
+          We have a <a href="/api" target="_blank">dedicated interface to facilite the use of the API</a>, with output provided in JSON format. The API is still undergoing development and it might change without prior notice.
         </div>
       </div>
     </div>

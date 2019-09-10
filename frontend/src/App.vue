@@ -4,7 +4,7 @@
     <nav id="navbar" class="navbar has-background-primary-lighter" role="navigation" aria-label="main navigation">
       <div class="container">
         <div class="navbar-brand">
-          <router-link id="logo" class="navbar-item" to="/">
+          <router-link class="navbar-item" to="/">
             <img :src="require('./assets/logo.png')"/>
           </router-link>
           <div class="navbar-burger" :class="{ 'is-active': isMobileMenu }"
@@ -90,7 +90,7 @@
       </div>
     </footer>
     <div v-if="showCookieMsg" id="cookies" class="has-background-grey">
-      <div class="column has-text-centered">
+      <div class="column has-text-centered" style="padding: 0.25rem">
         <div class="has-text-white">
           We use cookies to enhance the usability of our website. By continuing you are agreeing to our <router-link class="has-text-white has-text-weight-bold" :to="{path: '/about', hash: 'privacy'}">Privacy Notice and Terms of Use</router-link>&emsp;
           <p class="button is-small is-rounded has-background-danger has-text-white has-text-weight-bold" @click="showCookieMsg=false; acceptCookiePolicy()">
@@ -219,10 +219,6 @@ export default {
   margin: 0.75rem;
 }
 
-#logo {
-  margin-left: 0.5rem;
-}
-
 m, .clickable {
   cursor: pointer;
 }
@@ -293,10 +289,7 @@ m, .clickable {
   }
   .navbar-burger{
     height: 4rem;
-    margin-right: 1.5rem;
-    width: 5rem;
-    padding-left: auto;
-    padding-right: auto;
+    padding-right: 0.5rem;
     span {
       height: 2px;
     }
@@ -324,54 +317,6 @@ m, .clickable {
 .metabolite-table, .model-table, .reaction-table, .subsystem-table {
   .main-table tr td.td-key, #ed-table tr td.td-key {
     width: 150px;
-  }
-}
-
-#home {
-  .menu-list li {
-    &:first-child {
-      margin-top: 1em;
-    }
-    &:last-child {
-      margin-bottom: 1em;
-    }
-    a {
-      color: $white-bis;
-      padding-left: 1.5em;
-      line-height: 2;
-    }
-    a:hover {
-      color: $white-bis;
-      background-color: $primary-light;
-      border-radius: 0;
-    }
-    .is-active {
-      color: $black;
-      background-color: $white;
-      border-radius: 0;
-    }
-  }
-  .margin-fix {
-    margin-top: 1rem;
-    margin-bottom: 1rem;
-    margin-left: 0;
-  }
-  .more-padding {
-    @media only screen and (min-width: $desktop) {
-      padding: 1.5rem 2rem 1.5rem 2rem;
-    }
-  }
-  .card-header > .card-content {
-    padding-top: 0.5em;
-    padding-bottom: 0.5em;
-  }
-  .is-v-aligned {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  #mobileMenu {
-    margin-right: 0;
   }
 }
 

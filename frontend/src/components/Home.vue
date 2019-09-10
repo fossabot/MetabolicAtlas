@@ -136,7 +136,7 @@ export default {
           ],
         },
         { title: 'Community',
-          text: [['', '<p>We are grateful for the efforts of scientists all over the world into in creating the knowledge required to assemble high quality genome scale metabolic models and are passionate about continuing on this journey of open curation of models.<br><br>We invite you to explore the world of GEMs through Metabolic Atlas, and hope it will enhance your interest in this field. We wish to continuously improve Metabolic Atlas for the community. Contact us with any feedback, suggestions, or requests.</p>']],
+          text: [['', '<p>We are grateful for the efforts of scientists all over the world into in creating the knowledge required to assemble high quality genome scale metabolic models and are passionate about continuing on this journey of open curation of models.<br><br>We invite you to explore the world of GEMs through Metabolic Atlas, and hope it will enhance your interest in this field. We wish to continuously improve Metabolic Atlas for the community. Contact us with any feedback, suggestions, or requests.</p>']],
         },
       ],
     };
@@ -153,4 +153,64 @@ export default {
 
 </script>
 <style lang="scss">
+
+#home {
+  #mobileMenu {
+    .column:first-child {
+      outline: 1px solid $primary;
+    }
+  }
+  .menu-list li {
+    &:first-child {
+      margin-top: 1em;
+    }
+    &:last-child {
+      margin-bottom: 1em;
+    }
+    a {
+      color: $white-bis;
+      padding-left: 1.5em;
+      line-height: 2;
+    }
+    a:hover {
+      color: $white-bis;
+      background-color: $primary-light;
+      border-radius: 0;
+    }
+    .is-active {
+      color: $black;
+      background-color: $white;
+      border-radius: 0;
+    }
+  }
+  .margin-fix {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    margin-left: 0;
+  }
+  .more-padding {
+    @media only screen and (min-width: $desktop) {
+      padding: 1.5rem 2rem 1.5rem 2rem;
+    }
+  }
+  .card-header > .card-content {
+    padding-top: 0.5em;
+    padding-bottom: 0.5em;
+  }
+  .is-v-aligned {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  #mobileMenu {
+    margin-right: 0;
+  }
+}
+
+#newsandcommunity {
+  .card-header {
+    outline: 1px solid $primary;
+  }
+}
+
 </style>

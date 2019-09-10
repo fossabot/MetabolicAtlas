@@ -157,6 +157,7 @@
 <script>
 
 import axios from 'axios';
+import $ from 'jquery';
 import { default as FileSaver } from 'file-saver';
 import Loader from '@/components/Loader';
 import { VueGoodTable } from 'vue-good-table';
@@ -449,6 +450,9 @@ export default {
     this.searchedTerm = to.query.term;
     this.validateSearch(to.query.term);
     next();
+  },
+  mounted() {
+    $('#search').focus();
   },
   methods: {
     formulaFormater(formula, charge) {
