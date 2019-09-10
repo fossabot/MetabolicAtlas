@@ -1,7 +1,7 @@
 <template>
   <div ref="graphParent">
     <div id="graph3D"></div>
-    <div id="forceOption" class="overlay">
+    <div class="canvasOption overlay">
       <span class="button" v-on:click="initDownload()" title="Download as PNG"><i class="fa fa-download"></i></span>
     </div>
   </div>
@@ -316,15 +316,6 @@ export default {
  height: 100%;
  width: 100%;
  overflow: hidden;
-}
-
-#forceOption {
-  position: absolute;
-  top: 7.25rem;
-  left: 2.25rem;
-  span {
-    display: block;
-  }
 }
 
 </style>

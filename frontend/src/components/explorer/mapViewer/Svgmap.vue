@@ -2,7 +2,7 @@
   <div class="svgbox">
     <div id="svg-wrapper" v-html="svgContent">
     </div>
-    <div id="svgOption" class="overlay">
+    <div class="canvasOption overlay">
       <span class="button" v-on:click="zoomOut(false)" title="Zoom in"><i class="fa fa-search-plus"></i></span>
       <span class="button" v-on:click="zoomOut(true)" title="Zoom out"><i class="fa fa-search-minus"></i></span>
       <span class="button" style="padding: 4.25px;" @click="toggleGenes()" title="Show/Hide genes">
@@ -602,18 +602,6 @@ export default {
     height:100%;
     &.fullscreen {
       background: white;
-    }
-  }
-
-  #svgOption {
-    position: absolute;
-    top: 7.25rem;
-    left: 2.25rem;
-    span {
-      display: block;
-      &:not(:last-child) {
-        margin-bottom: 5px;
-      }
     }
   }
 
