@@ -417,7 +417,6 @@ m, .clickable {
    margin-top: 2.75rem;
 }
 
-
 span.sc {
   border-radius: 10px;
   background: lightgray;
