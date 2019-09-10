@@ -6,7 +6,7 @@
           <component v-bind:is="currentShowComponent" :model="model"></component>
         </keep-alive>
       </template>
-      <template v-if="model" v-else>
+      <template v-else>
         <div class="columns has-text-centered">
           <div class="column">
             <h4 class="is-size-3 has-text-weight-bold">Explore the integrated models</h4>
@@ -21,11 +21,19 @@
         </div>
         <div class="columns is-centered">
           <div class="column is-8-widescreen is-10-desktop is-fullwidth-tablet is-size-5">
-            <div :class="cmodel.database_name === model.database_name ? 'selectedBoxModel' : ''" class="box has-text-centered clickable"
+            <div id="selectedModel"
+            :class="cmodel.database_name === model.database_name ? 'selectedBox' : ''" class="box has-text-centered clickable"
             v-for="cmodel, k in Object.values(models).sort((a, b) => (a.short_name.toLowerCase() < b.short_name.toLowerCase() ? -1 : 1))"
-            @mousedown.prevent="selectModel(cmodel); showModelList = false"
-            :title="`Select ${cmodel.short_name} as model to explore`"
-            v-html="getModelDescription(cmodel)">
+            @mousedown.prevent="selectModel(cmodel)"
+            :title="`Select ${cmodel.short_name} as the model to explore`">
+              <div>
+                <span class="has-text-primary has-text-weight-bold">{{cmodel.short_name}} v{{cmodel.version}}</span> - {{cmodel.full_name}}
+              </div>
+              <div class="has-text-grey">
+                {{cmodel.reaction_count}} reactions -
+                {{cmodel.metabolite_count}} metabolites -
+                {{cmodel.gene_count}} genes
+              </div>
             </div>
           </div>
         </div>
@@ -91,7 +99,6 @@ export default {
       ],
       model: null,
       models: {},
-      showModelList: false,
       extendWindow: false,
       currentShowComponent: '',
 
@@ -172,7 +179,7 @@ export default {
             models[model.database_name] = model;
           }
           this.models = models;
-          let defaultModel = this.models.human1 || this.models.hmr2 || this.models.yeast8;
+          let defaultModel = this.models.human1;
           if (this.$route.params.model && this.$route.params.model in this.models) {
             defaultModel = this.models[this.$route.params.model];
           }
@@ -182,14 +189,6 @@ export default {
         .catch(() => {
           this.errorMessage = messages.unknownError;
         });
-    },
-    getModelDescription(model) {
-      return `<div><span class="has-text-primary has-text-weight-bold">${model.short_name} v${model.version}</span> - ${model.full_name}<div>
-      <div class="has-text-grey">
-        ${model.reaction_count} reactions -
-        ${model.metabolite_count} metabolites -
-        ${model.gene_count} genes
-      </div>`;
     },
     selectModel(model) {
       if (!this.model || model.database_name !== this.model.database_name) {
@@ -212,9 +211,8 @@ export default {
 
 <style lang="scss">
 
-.box.selectedBoxModel {
-  box-shadow: 0 2px 3px $primary-light, 0 0 0 1px $primary-light;
-
+#selectedModel.selectedBox {
+  box-shadow: 0 2px 3px $primary, 0 0 0 1px $primary;
 }
 
 </style>
