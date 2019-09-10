@@ -9,7 +9,6 @@
 import axios from 'axios';
 import forceGraph3D from '3d-force-graph';
 import { default as EventBus } from '../../../event-bus';
-import { getExpressionColor } from '../../../expression-sources/hpa';
 import { reformatChemicalReactionHTML } from '../../../helpers/utils';
 
 export default {
@@ -33,8 +32,7 @@ export default {
       selectedItemHistory: {},
       selectElementID: null,
       selectElementIDfull: null,
-      geneRNAlevels: {},
-      HPARNAlevelsHistory: {},
+      HPARNAlevels: {},
       defaultGeneColor: '#feb',
       tissue: 'None',
       focusOnID: null,
@@ -44,7 +42,7 @@ export default {
     EventBus.$off('show3Dnetwork');
     EventBus.$off('destroy3Dnetwork');
     EventBus.$off('update3DLoadedComponent');
-    EventBus.$off('load3DHPARNAlevels');
+    EventBus.$off('apply3DHPARNAlevels');
 
     EventBus.$on('show3Dnetwork', (type, name, ids) => {
       if (name.toLowerCase().substr(0, 7) === 'cytosol') {
@@ -95,14 +93,14 @@ export default {
       this.loadedComponentName = name;
     });
 
-    EventBus.$on('load3DHPARNAlevels', (mapType, tissue) => {
-      this.loadHPAlevelsOnMap(mapType, tissue);
+    EventBus.$on('apply3DHPARNAlevels', (RNAlevels) => {
+      this.applyHPARNAlevelsOnMap(RNAlevels);
     });
   },
   methods: {
     getJson() {
       this.$emit('loading');
-      this.tissue = 'None';
+      this.HPARNAlevels = {};
       axios.get(`/${this.model.database_name}/json/${this.loadedComponentType}/${this.loadedComponentName}`)
         .then((response) => {
           this.network = response.data;
@@ -146,14 +144,15 @@ export default {
             return 'red';
           }
           if (n.g === 'e') {
-            if (this.tissue === 'None') {
+            if (Object.keys(this.HPARNAlevels).length === 0) {
               return this.defaultGeneColor;
             }
             const partialID = n.id.split('-')[0];
-            if (this.geneRNAlevels[partialID] !== undefined) {
-              return getExpressionColor(this.geneRNAlevels[partialID]);
+            if (this.HPARNAlevels[partialID] !== undefined) {
+              return this.HPARNAlevels[partialID][0];
+            } else {
+              return this.HPARNAlevels['n/a'][0];
             }
-            return 'whitesmoke';
           } else if (n.g === 'r') {
             return '#fff';
           }
@@ -228,8 +227,8 @@ export default {
             data.equation = this.reformatChemicalReactionHTML(data, true);
           } else if (type === 'gene') {
             // add the RNA level if any
-            if (id in this.geneRNAlevels) {
-              data.rnaLvl = this.geneRNAlevels[id];
+            if (id in this.HPARNAlevels) {
+              data.rnaLvl = this.HPARNAlevels[id];
             }
           }
           selectionData.data = data;
@@ -283,52 +282,12 @@ export default {
       this.graph.emitLoadComplete = emitLoadComplete;
       this.graph.nodeRelSize(4);
     },
-    loadHPAlevelsOnMap(mapType, tissue) {
-      if (this.loadedComponentName in this.HPARNAlevelsHistory) {
-        this.tissue = tissue;
-        this.readHPARNAlevels(tissue);
-        return;
-      }
-      axios.get(`${this.model.database_name}/gene/hpa_rna_levels/${mapType}/3d/${this.loadedComponentName}`)
-        .then((response) => {
-          this.HPARNAlevelsHistory[this.loadedComponentName] = response.data;
-          this.tissue = tissue;
-          setTimeout(() => {
-            this.readHPARNAlevels(tissue);
-          }, 0);
-        })
-        .catch(() => {
-          EventBus.$emit('loadRNAComplete', false, '');
-        });
-    },
-    readHPARNAlevels(tissue) {
-      if (tissue === 'None') {
-        this.geneRNAlevels = {};
-        this.updateGeometries(false);
-        return;
-      }
-      const index = this.HPARNAlevelsHistory[this.loadedComponentName].tissues.indexOf(tissue);
-      if (index === -1) {
-        EventBus.$emit('loadRNAComplete', false, '');
-        return;
-      }
-
-      const levels = this.HPARNAlevelsHistory[this.loadedComponentName].levels;
-      for (const array of levels) {
-        const enzID = array[0];
-        let level = Math.log2(parseFloat(array[1].split(',')[index]) + 1);
-        level = Math.round((level + 0.00001) * 100) / 100;
-        this.geneRNAlevels[enzID] = level;
-      }
-
-      // update cached selected elements
-      for (const id of Object.keys(this.selectedItemHistory)) {
-        if (this.geneRNAlevels[id] !== undefined) {
-          this.selectedItemHistory[id].rnaLvl = this.geneRNAlevels[id];
-        }
-      }
+    applyHPARNAlevelsOnMap(RNAlevels) {
+      this.HPARNAlevels = RNAlevels;
       this.updateGeometries(false);
-      EventBus.$emit('loadRNAComplete', true, '');
+      if (Object.keys(this.HPARNAlevels).length !== 0) {
+        EventBus.$emit('loadRNAComplete', true, '');
+      }
     },
     reformatChemicalReactionHTML,
   },

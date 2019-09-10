@@ -53,7 +53,7 @@
           </tr>
         </table>
         <template v-if="hasExternalID">
-          <h4 class="title is-4">External links</h4>
+          <h4 class="title is-4">External databases</h4>
           <table v-if="reaction && Object.keys(reaction).length != 0" id="ed-table" class="table is-fullwidth">
             <tr v-for="el in externalIDTableKey[model.database_name]" v-if="reaction[el.name] && reaction[el.link]">
               <td v-if="'display' in el" class="td-key has-background-primary has-text-white-bis" v-html="el.display"></td>
@@ -139,7 +139,7 @@ export default {
           { name: 'kegg_id', display: 'KEGG', link: 'kegg_link' },
           { name: 'bigg_id', display: 'BiGG', link: 'bigg_link' },
           { name: 'reactome_id', display: 'Reactome', link: 'reactome_link' },
-          { name: 'mnxref_id', display: 'MNXref', link: 'mnxref_link' },
+          { name: 'metanetx_id', display: 'MetaNetX', link: 'metanetx_link' },
         ],
         yeast8: [],
       },

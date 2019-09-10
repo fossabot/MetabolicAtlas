@@ -46,7 +46,7 @@
                 <router-link :to="{ path: `${tool.url}/${model.database_name }` }" :title="`Click to access the ${tool.name} for ${model.short_name} model`">
                   <div class="card card-fullheight card-selectable has-text-justified">
                     <header class="card-header">
-                      <p class="card-header-title is-size-5">{{ tool.name }}</p>
+                      <p class="card-header-title is-centered is-size-5">{{ tool.name }}</p>
                     </header>
                     <div class="card-content">
                       <div class="content">
