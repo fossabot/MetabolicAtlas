@@ -1,6 +1,9 @@
 <template>
   <div ref="graphParent">
     <div id="graph3D"></div>
+    <div id="forceOption" class="overlay">
+      <span class="button" v-on:click="initDownload()" title="Download as PNG"><i class="fa fa-download"></i></span>
+    </div>
   </div>
 </template>
 
@@ -8,6 +11,7 @@
 
 import axios from 'axios';
 import forceGraph3D from '3d-force-graph';
+import { default as FileSaver } from 'file-saver';
 import { default as EventBus } from '../../../event-bus';
 import { reformatChemicalReactionHTML } from '../../../helpers/utils';
 
@@ -36,6 +40,8 @@ export default {
       defaultGeneColor: '#feb',
       tissue: 'None',
       focusOnID: null,
+
+      animFrame: null,
     };
   },
   created() {
@@ -192,6 +198,16 @@ export default {
         }
       }, 0);
     },
+    initDownload() {
+      this.animFrame = requestAnimationFrame(this.downloadMap);
+    },
+    downloadMap() {
+      document.getElementById('graph3D')
+        .getElementsByTagName('canvas')[0]
+          .toBlob((blob) => {
+        FileSaver.saveAs(blob, `${this.loadedComponentName}.png`);
+      });
+    },
     getElementIdAndType(element) {
       if (element.g === 'r') {
         return [element.id, 'reaction'];
@@ -300,6 +316,15 @@ export default {
  height: 100%;
  width: 100%;
  overflow: hidden;
+}
+
+#forceOption {
+  position: absolute;
+  top: 7.25rem;
+  left: 2.25rem;
+  span {
+    display: block;
+  }
 }
 
 </style>
