@@ -622,6 +622,18 @@ export default {
     background: rgba(22, 22, 22, 0.8);
   }
 
+  .canvasOption {
+    top: 7.25rem;
+    left: 2.25rem;
+    span {
+      display: block;
+      &:not(:last-child) {
+        margin-bottom: 5px;
+      }
+    }
+  }
+
+
   #errorBar {
     z-index: 11;
     position: absolute;
