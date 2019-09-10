@@ -2,7 +2,7 @@
   <div ref="graphParent">
     <div id="graph3D"></div>
     <div class="canvasOption overlay">
-      <span class="button" v-on:click="initDownload()" title="Download as PNG"><i class="fa fa-download"></i></span>
+      <span class="button" v-on:click="downloadPNG()" title="Download as PNG"><i class="fa fa-download"></i></span>
     </div>
   </div>
 </template>
@@ -40,8 +40,6 @@ export default {
       defaultGeneColor: '#feb',
       tissue: 'None',
       focusOnID: null,
-
-      animFrame: null,
     };
   },
   created() {
@@ -198,14 +196,13 @@ export default {
         }
       }, 0);
     },
-    initDownload() {
-      this.animFrame = requestAnimationFrame(this.downloadMap);
-    },
-    downloadMap() {
-      document.getElementById('graph3D')
-        .getElementsByTagName('canvas')[0]
-          .toBlob((blob) => {
-        FileSaver.saveAs(blob, `${this.loadedComponentName}.png`);
+    downloadPNG() {
+      window.requestAnimationFrame(() => {
+        document.getElementById('graph3D')
+          .getElementsByTagName('canvas')[0]
+            .toBlob((blob) => {
+          FileSaver.saveAs(blob, `${this.loadedComponentName}.png`);
+        });
       });
     },
     getElementIdAndType(element) {
