@@ -22,9 +22,9 @@ const mrr = 147; // right red
 const mrg = 1; // right green
 const mrb = 1; // right blue
 
-export const singleLeftColor = `rgb(${slr},${slg},${slb})`; // single left color
-export const singleMiddleColor = `rgb(${smr},${smg},${smb})`; // single right color
-export const singleRightColor = `rgb(${srr},${srg},${srb})`; // single right color
+const singleLeftColor = `rgb(${slr},${slg},${slb})`; // single left color
+const singleMiddleColor = `rgb(${smr},${smg},${smb})`; // single right color
+const singleRightColor = `rgb(${srr},${srg},${srb})`; // single right color
 const multipleLeftColor = `rgb(${mlr},${mlg},${mlb})`; // multiple left color
 const multipleMiddleColor = `rgb(${mmr},${mmg},${mmb})`; // multiple middle color
 const multipleRightColor = `rgb(${mrr},${mrg},${mrb})`; // multiple right color
