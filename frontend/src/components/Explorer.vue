@@ -7,70 +7,61 @@
         </keep-alive>
       </template>
       <template v-else>
-        <div>
-          <div class="columns has-text-centered">
-            <div class="column">
-              <h4 v-if="model" class="is-size-4 has-text-weight-bold">
-                Explore a model: <i>{{ model.short_name }} v{{ model.version }}</i>
-              </h4>
-              <p class="has-text-weight-bold">
-                Select a model and start browsing or navigate on the maps
-              </p>
-            </div>
+        <div class="columns has-text-centered">
+          <div class="column">
+            <h4 class="is-size-3 has-text-weight-bold">Explore the integrated models</h4>
           </div>
-          <div class="columns is-centered">
-            <div class="column is-three-fifths-desktop is-three-quarters-tablet is-fullwidth-mobile has-text-centered">
-              <div class="dropdown" :class="{'is-active' : showModelList}">
-                <div class="dropdown-trigger">
-                  <button v-if="model" class="button is-medium is-fullwidth"
-                          aria-haspopup="true" aria-controls="dropdown-menu"
-                          title="Click to view the list of integrated models" @click="showModelList = true"
-                          @blur="showModelList = false">
-                    <span>Model:
-                      <span class="tag is-primary has-text-weight-bold is-medium">
-                        {{ model.short_name }} v{{ model.version }}
-                      </span>
-                    </span>
-                    <span class="icon is-small">
-                      <i class="fa fa-angle-down" aria-hidden="true"></i>
-                    </span>
-                  </button>
-                </div>
-                <div id="dropdown-menu" ref="dropdownmenu"
-                     class="dropdown-menu"
-                     role="menu">
-                  <div class="dropdown-content">
-                    <a v-for="m in models" :key="m.short_name"
-                       class="dropdown-item has-text-centered is-size-6"
-                       @mousedown.prevent="selectModel(m); showModelList = false" v-html="getModelDescription(m)">
-                    </a>
-                  </div>
-                </div>
+        </div>
+        <div class="columns">
+          <div class="column has-text-centered-tablet">
+            <p class="has-text-weight-bold is-size-5">
+              Select a model:
+            </p>
+          </div>
+        </div>
+        <div class="columns is-centered">
+          <div class="column is-8-widescreen is-10-desktop is-fullwidth-tablet is-size-5">
+            <div id="selectedModel"
+            :class="cmodel.database_name === model.database_name ? 'selectedBox' : ''" class="box has-text-centered clickable"
+            v-for="cmodel, k in Object.values(models).sort((a, b) => (a.short_name.toLowerCase() < b.short_name.toLowerCase() ? -1 : 1))"
+            @mousedown.prevent="selectModel(cmodel)"
+            :title="`Select ${cmodel.short_name} as the model to explore`">
+              <div>
+                <span class="has-text-primary has-text-weight-bold">{{cmodel.short_name}} v{{cmodel.version}}</span> - {{cmodel.full_name}}
+              </div>
+              <div class="has-text-grey">
+                {{cmodel.reaction_count}} reactions -
+                {{cmodel.metabolite_count}} metabolites -
+                {{cmodel.gene_count}} genes
               </div>
             </div>
           </div>
-          <br>
-          <div v-if="model" id="toolsSelect" class="columns is-multiline">
-            <template v-for="tool in explorerTools">
-              <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
-              <div class="column is-12-tablet is-half-desktop">
-                <router-link
-                  :to="{ path: `${tool.url}/${model.database_name }` }"
-                  :title="`Click to access the ${tool.name} for ${model.short_name} model`">
-                  <div class="card card-fullheight card-selectable has-text-justified">
-                    <header class="card-header">
-                      <p class="card-header-title is-centered is-size-5">{{ tool.name }}</p>
-                    </header>
-                    <div class="card-content">
-                      <div class="content">
+        </div>
+        <br>
+        <div class="columns">
+          <div class="column has-text-centered-tablet">
+            <p class="has-text-weight-bold is-size-5">
+              Select a tool:
+            </p>
+          </div>
+        </div>
+        <div class="columns is-centered">
+          <template v-for="tool in explorerTools">
+            <div class="column is-4-widescreen is-5-desktop">
+              <router-link :to="{ path: `${tool.url}/${model.database_name }` }" :title="`Click to access the ${tool.name} for ${model.short_name} model`">
+                <div class="card card-fullheight card-selectable has-text-justified">
+                  <header class="card-header">
+                    <p class="card-header-title is-size-5">{{ tool.name }}</p>
+                  </header>
+                  <div class="card-content">
+                    <div class="content">
                         <img :src="tool.img" />
-                      </div>
                     </div>
                   </div>
-                </router-link>
-              </div>
-            </template>
-          </div>
+                </div>
+            </router-link>
+            </div>
+          </template>
         </div>
       </template>
     </div>
@@ -107,7 +98,6 @@ export default {
       ],
       model: null,
       models: {},
-      showModelList: false,
       extendWindow: false,
       currentShowComponent: '',
 
@@ -188,7 +178,7 @@ export default {
             models[model.database_name] = model;
           });
           this.models = models;
-          let defaultModel = this.models.human1 || this.models.hmr2 || this.models.yeast8;
+          let defaultModel = this.models.human1;
           if (this.$route.params.model && this.$route.params.model in this.models) {
             defaultModel = this.models[this.$route.params.model];
           }
@@ -198,14 +188,6 @@ export default {
         .catch(() => {
           this.errorMessage = messages.unknownError;
         });
-    },
-    getModelDescription(model) {
-      return `<div>${model.short_name} v${model.version} - ${model.full_name}<div>
-      <div class="has-text-grey">
-        ${model.reaction_count} reactions -
-        ${model.metabolite_count} metabolites -
-        ${model.gene_count} genes
-      </div>`;
     },
     selectModel(model) {
       if (!this.model || model.database_name !== this.model.database_name) {
@@ -228,8 +210,8 @@ export default {
 
 <style lang="scss">
 
-.dropdown, .dropdown-trigger, #dropdown-menu {
-  width: 100%;
+#selectedModel.selectedBox {
+  box-shadow: 0 2px 3px $primary, 0 0 0 1px $primary;
 }
 
 </style>

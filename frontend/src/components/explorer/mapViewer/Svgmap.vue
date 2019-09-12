@@ -2,12 +2,10 @@
   <div class="svgbox">
     <div id="svg-wrapper" v-html="svgContent">
     </div>
-    <div id="svgOption" class="overlay">
-      <span class="button" title="Zoom in" @click="zoomOut(false)"><i class="fa fa-search-plus"></i></span>
-      <span class="button" title="Zoom out" @click="zoomOut(true)"><i class="fa fa-search-minus"></i></span>
-      <span class="button" style="padding: 4.25px;"
-            title="Show/Hide genes"
-            @click="toggleGenes()">
+    <div class="canvasOption overlay">
+      <span class="button" v-on:click="zoomOut(false)" title="Zoom in"><i class="fa fa-search-plus"></i></span>
+      <span class="button" v-on:click="zoomOut(true)" title="Zoom out"><i class="fa fa-search-minus"></i></span>
+      <span class="button" style="padding: 4.25px;" @click="toggleGenes()" title="Show/Hide genes">
         <i class="fa fa-eye-slash">&thinsp;G
         </i>
       </span>
@@ -17,13 +15,8 @@
         <i class="fa fa-eye-slash">&thinsp;S
         </i>
       </span>
-      <span class="button" title="Toggle fullscreen"
-            :disabled="isFullScreenDisabled"
-            @click="toggleFullScreen()">
-        <i class="fa"
-           :class="{ 'fa-compress': isFullscreen, 'fa-arrows-alt': !isFullscreen}">
-        </i>
-      </span>
+      <span class="button" v-on:click="toggleFullScreen()" title="Toggle fullscreen" :disabled="isFullScreenDisabled"><i class="fa" :class="{ 'fa-compress': isFullscreen, 'fa-arrows-alt': !isFullscreen}"></i></span>
+      <span class="button" v-on:click="downloadMap()" title="Download as SVG"><i class="fa fa-download"></i></span>
     </div>
     <div id="svgSearch" class="overlay">
       <div class="control" :class="{ 'is-loading' : isLoadingSearch }">
@@ -60,6 +53,7 @@ import axios from 'axios';
 import $ from 'jquery';
 import JQPanZoom from 'jquery.panzoom';
 import JQMouseWheel from 'jquery-mousewheel';
+import { default as FileSaver } from 'file-saver';
 import { default as EventBus } from '../../../event-bus';
 import { default as messages } from '../../../helpers/messages';
 import { reformatChemicalReactionHTML } from '../../../helpers/utils';
@@ -370,6 +364,12 @@ export default {
         this.$emit('loadComplete', true, '');
       }
     },
+    downloadMap() {
+      const blob = new Blob([document.getElementById('svg-wrapper').innerHTML], {
+        type: 'data:text/tsv;charset=utf-8',
+      });
+      FileSaver.saveAs(blob, `${this.loadedMap.name_id}.svg`);
+    },
     applyHPARNAlevelsOnMap(RNAlevels) {
       this.HPARNAlevels = RNAlevels;
       if (Object.keys(this.HPARNAlevels).length === 0) {
@@ -621,18 +621,6 @@ export default {
     height:100%;
     &.fullscreen {
       background: white;
-    }
-  }
-
-  #svgOption {
-    position: absolute;
-    top: 7.25rem;
-    left: 2.25rem;
-    span {
-      display: block;
-      &:not(:last-child) {
-        margin-bottom: 5px;
-      }
     }
   }
 

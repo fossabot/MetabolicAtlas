@@ -1,56 +1,24 @@
 <template>
-  <div class="card">
+  <div class="card" title="Click on any of the links to directly load a map">
     <header class="card-header has-text-centered">
       <p class="card-header-title has-text-primary has-text-weight-bold is-size-5">
         <span class="icon is-medium"><i class="fa fa-map-o"></i></span>&nbsp;
         <span>{{ messages.mapViewerName }}</span>
       </p>
     </header>
-    <div class="card-content" style="padding: 0.5rem;">
-      <div v-if="Object.keys(mapsAvailable).length !== 0" class="content has-text-left is-paddingless">
-        <template v-if="type === 'reaction'">
-          Locate this reaction on:
+    <div v-if="mapsAvailable" class="card-content" style="padding: 0.5rem;">
+      <div v-for="mapKey in ['2d', '3d']" class="content has-text-left is-paddingless" style="padding-bottom: 1rem">
+        <template v-if="mapsAvailable[mapKey]['count'] !== 0">{{mapKey.toUpperCase()}} maps
+          <ul style="margin: 0 1rem">
+            <template v-for="map in mapsAvailable[mapKey]['compartment'].concat(mapsAvailable[mapKey]['subsystem'])">
+              <li><router-link  :to="{ path: `/explore/map-viewer/${model.database_name}/${map[2]}/${map[0]}/${elementID}?dim=${mapKey}` }">
+                {{ map[1] }}
+              </router-link></li>
+            </template>
+          </ul>
         </template>
-        <ul v-if="mapsAvailable['2d']['count'] !== 0">2D maps
-          <template v-for="map in mapsAvailable['2d']['compartment']">
-            <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
-            <li><router-link
-              :to="{ path: `/explore/map-viewer/${model.database_name}/${map[2]}/${map[0]}/${elementID}?dim=2d` }"
-            >
-              {{ map[1] }}
-            </router-link></li>
-          </template>
-          <template v-for="map in mapsAvailable['2d']['subsystem']">
-            <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
-            <li><router-link
-              :to="{ path: `/explore/map-viewer/${model.database_name}/${map[2]}/${map[0]}/${elementID}?dim=2d` }"
-            >
-              {{ map[1] }}
-            </router-link></li>
-          </template>
-        </ul>
-        <ul v-if="mapsAvailable['3d']['count'] !== 0">3D maps
-          <template v-for="map in mapsAvailable['3d']['compartment']">
-            <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
-            <li><router-link
-              :to="{ path: `/explore/map-viewer/${model.database_name}/${map[2]}/${map[0]}/${elementID}?dim=3d` }"
-            >
-              {{ map[1] }}
-            </router-link></li>
-          </template>
-          <template v-for="map in mapsAvailable['3d']['subsystem']">
-            <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
-            <li><router-link
-              :to="{ path: `/explore/map-viewer/${model.database_name}/${map[2]}/${map[0]}/${elementID}?dim=3d` }"
-            >
-              {{ map[1] }}
-            </router-link></li>
-          </template>
-        </ul>
       </div>
     </div>
-    <footer class="card-footer">
-    </footer>
   </div>
 </template>
 
@@ -68,7 +36,7 @@ export default {
   },
   data() {
     return {
-      mapsAvailable: {},
+      mapsAvailable: '',
       messages,
     };
   },
@@ -92,5 +60,4 @@ export default {
 };
 </script>
 
-<style lang="scss">
-</style>
+<style lang="scss"></style>

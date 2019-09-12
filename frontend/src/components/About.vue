@@ -75,21 +75,8 @@
             There are two types of cookies that are set by Metabolic Atlas:
             functionality cookies and tracking cookies.<br>
             Functionality cookies are used to personalize the appearence of the Metabolic Atlas.<br>
-            Tracking cookies are used by our private analytics to track the users on our website.
-            We use these to observe the anonymized behaviour on our website in order to improve it.
-            We store partial IP, operating system, browser and browser language.
-            This information is stored permanently and is not shared with any third party.
-            To opt out, please set your browser to use the "DoNotTrack" header;
-            doing this will disable the tracking.<br>
-            Additionally, we use the services of HotJar.com.
-            This is an additional independent tracking service,
-            which can produce a screen capture of the interactions on our website.
-            We use it for the purpose of figuring out how to improve our website.
-            The data is stored only for 1 year, after which it is deleted.
-            To opt out, see the
-            <a href="https://www.hotjar.com/legal/compliance/opt-out" target="_blank">
-              instructions on their website</a>. HotJar adheres to GDPR,
-            <a href="https://www.hotjar.com/legal/compliance/gdpr-commitment" target="_blank">see more on their website.</a>
+            Tracking cookies are used by our private analytics to track the users on our website. We use these to observe the anonymized behaviour on our website in order to improve it. We store partial IP, operating system, browser and browser language. This information is stored permanently and is not shared with any third party. To opt out, please set your browser to use the "DoNotTrack" header; doing this will disable the tracking.<br>
+            Additionally, we use the services of HotJar.com. This is an additional independent tracking service, which can produce a screen capture of the interactions on our website. We use it for the purpose of figuring out how to improve our website. The data is stored for at most 3 months. To opt out, see the <a href="https://www.hotjar.com/legal/compliance/opt-out" target="_blank">instructions on their website</a>. HotJar adheres to GDPR, <a href="https://www.hotjar.com/legal/compliance/gdpr-commitment" target="_blank">see more on their website.</a>
           </p>
 
           <h4>Terms of Use</h4>

@@ -74,26 +74,31 @@
             </tr>
           </table>
         </template>
-        <template v-if="formattedRef.length !== 0">
-          <h4 class="title is-size-4">PMID References</h4>
-          <table class="main-table table">
-            <tr v-for="oneRef in formattedRef" :key="oneRef.pmid">
-              <td v-if="oneRef.title" class="td-key has-background-primary has-text-white-bis">{{ oneRef.pmid }}</td>
-              <td>
-                <a :href="oneRef.link" target="_blank">
-                  <template v-for="author in oneRef.authors">
-                    {{ author }},
-                  </template>
-                  {{ oneRef.year }}. <i>{{ oneRef.title }}</i>
-                  {{ oneRef.journal }}
-                </a>
-              </td>
-            </tr>
-          </table>
-        </template>
-        <template v-else-if="reaction.pmids && reaction.pmids.length === 0">
-          <p>No PMID references found</p>
-        </template>
+        <h4 class="title is-size-4">References via PubMed ID</h4>
+        <table class="main-table table is-fullwidth">
+          <template v-if="unformattedRefs.length === 0">
+            <p>This reaction has no associated references.</p>
+          </template>
+          <template v-else>
+              <tr v-for="oneRef in unformattedRefs">
+                <td class="td-key has-background-primary has-text-white-bis">{{ oneRef.pmid }}</td>
+                <template v-if="formattedRefs[oneRef.pmid]">
+                  <td v-for="refData in [formattedRefs[oneRef.pmid]]">
+                    <a :href="refData.link" target="_blank">
+                      <template v-for="author in refData.authors">
+                        {{ author }},
+                      </template>
+                      {{ refData.year }}. <i>{{ refData.title }}</i>
+                      {{ refData.journal }}
+                    </a>
+                  </td>
+                </template>
+                <template v-else>
+                  <td></td>
+                </template>
+              </tr>
+          </template>
+        </table>
       </div>
       <div class="column is-2-widescreen is-3-desktop is-full-tablet has-text-centered">
         <maps-available :id="rId" :model="model"
@@ -162,7 +167,8 @@ export default {
       errorMessage: '',
       showLoader: true,
       mapsAvailable: {},
-      formattedRef: [],
+      unformattedRefs: [],
+      formattedRefs: {},
     };
   },
   computed: {
@@ -204,17 +210,18 @@ export default {
     },
     load() {
       axios.get(`${this.model.database_name}/get_reaction/${this.rId}/`)
-        .then((response) => {
-          this.showLoader = false;
-          this.reaction = response.data.reaction;
-          if (response.data.pmids.length !== 0) {
-            this.reformatRefs(response.data.pmids);
-          }
-          this.getRelatedReactions();
-        })
-        .catch(() => {
-          this.errorMessage = messages.notFoundError;
-        });
+      .then((response) => {
+        this.showLoader = false;
+        this.reaction = response.data.reaction;
+        if (response.data.pmids.length !== 0) {
+          this.unformattedRefs = response.data.pmids;
+          this.reformatRefs();
+        }
+        this.getRelatedReactions();
+      })
+      .catch(() => {
+        this.errorMessage = messages.notFoundError;
+      });
     },
     getRelatedReactions() {
       axios.get(`${this.model.database_name}/get_reaction/${this.rId}/related`)
@@ -292,36 +299,38 @@ export default {
       return `${compartmentEq}`;
     },
     reformatReversible() { return this.reaction.is_reversible ? 'Yes' : 'No'; },
-    reformatRefs(refs) {
-      const queryIDs = `(EXT_ID:"${refs.map(e => e.pmid).join('"+OR+EXT_ID:"')}")`;
+    reformatRefs() {
+      this.formattedRefs = {};
+      const queryIDs = `(EXT_ID:"${this.unformattedRefs.map(e => e.pmid).join('"+OR+EXT_ID:"')}")`;
       axios.get(`https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=${queryIDs}&resultType=core&format=json`)
-        .then((response) => {
-          response.data.resultList.result.forEach((details) => {
-            try {
-              const newRef = {};
-              newRef.pmid = details.id;
-              newRef.link = details.fullTextUrlList.fullTextUrl.filter(e => e.documentStyle === 'html' && e.site === 'Europe_PMC');
-              if (newRef.link.length === 0) {
-                newRef.link = details.fullTextUrlList.fullTextUrl.filter(
-                  e => e.documentStyle === 'doi' || e.documentStyle === 'abs')[0].url;
-              } else {
-                newRef.link = newRef.link[0].url;
-              }
-              if (details.pubYear) {
-                newRef.year = details.pubYear;
-              }
-              newRef.authors = details.authorList.author.map(e => e.fullName);
-              newRef.journal = details.journalInfo.journal.title;
-              newRef.title = details.title;
-              this.formattedRef.push(newRef);
-            } catch (e) {
-            // pass
+      .then((response) => {
+        const newFormattedRefs = {};
+        for (const details of response.data.resultList.result) {
+          try {
+            const refDetails = {};
+            refDetails.link = details.fullTextUrlList.fullTextUrl.filter(e => e.documentStyle === 'html' && e.site === 'Europe_PMC');
+            if (refDetails.link.length === 0) {
+              refDetails.link = details.fullTextUrlList.fullTextUrl.filter(
+                e => e.documentStyle === 'doi' || e.documentStyle === 'abs')[0].url;
+            } else {
+              refDetails.link = refDetails.link[0].url;
             }
-          });
-        })
-        .catch(() => {
-          this.errorMessage = messages.notFoundError;
-        });
+            if (details.pubYear) {
+              refDetails.year = details.pubYear;
+            }
+            refDetails.authors = details.authorList.author.map(e => e.fullName);
+            refDetails.journal = details.journalInfo.journal.title;
+            refDetails.title = details.title;
+            newFormattedRefs[details.id] = refDetails;
+          } catch (e) {
+            // pass
+          }
+        }
+        this.formattedRefs = newFormattedRefs;
+      })
+      .catch(() => {
+        this.errorMessage = messages.notFoundError;
+      });
     },
     viewReactionOnMap(reactionID) {
       EventBus.$emit('viewReactionOnMap', reactionID);
