@@ -3,32 +3,51 @@
     <div id="svg-wrapper" v-html="svgContent">
     </div>
     <div id="svgOption" class="overlay">
-      <span class="button" v-on:click="zoomOut(false)" title="Zoom in"><i class="fa fa-search-plus"></i></span>
-      <span class="button" v-on:click="zoomOut(true)" title="Zoom out"><i class="fa fa-search-minus"></i></span>
-      <span class="button" style="padding: 4.25px;" @click="toggleGenes()" title="Show/Hide genes">
+      <span class="button" title="Zoom in" @click="zoomOut(false)"><i class="fa fa-search-plus"></i></span>
+      <span class="button" title="Zoom out" @click="zoomOut(true)"><i class="fa fa-search-minus"></i></span>
+      <span class="button" style="padding: 4.25px;"
+            title="Show/Hide genes"
+            @click="toggleGenes()">
         <i class="fa fa-eye-slash">&thinsp;G
         </i>
       </span>
-      <span class="button" style="padding: 4.25px;" @click="toggleSubsystems()" title="Show/Hide subsystem">
+      <span class="button" style="padding: 4.25px;"
+            title="Show/Hide subsystem"
+            @click="toggleSubsystems()">
         <i class="fa fa-eye-slash">&thinsp;S
         </i>
       </span>
-      <span class="button" v-on:click="toggleFullScreen()" title="Toggle fullscreen" :disabled="isFullScreenDisabled"><i class="fa" :class="{ 'fa-compress': isFullscreen, 'fa-arrows-alt': !isFullscreen}"></i></span>
+      <span class="button" title="Toggle fullscreen"
+            :disabled="isFullScreenDisabled"
+            @click="toggleFullScreen()">
+        <i class="fa"
+           :class="{ 'fa-compress': isFullscreen, 'fa-arrows-alt': !isFullscreen}">
+        </i>
+      </span>
     </div>
     <div id="svgSearch" class="overlay">
       <div class="control" :class="{ 'is-loading' : isLoadingSearch }">
-        <input id="searchInput" title="Exact search by id, name, alias. Press Enter for results"
-          class="input" type="text" :class="searchInputClass" v-model.trim="searchTerm"
-          v-on:keyup.enter="searchComponentIDs()" :disabled="!loadedMap"
-          placeholder="Exact search by id, name, alias"/>
+        <input id="searchInput" v-model.trim="searchTerm"
+               title="Exact search by id, name, alias. Press Enter for results" class="input"
+               type="text" :class="searchInputClass"
+               :disabled="!loadedMap" placeholder="Exact search by id, name, alias"
+               @keyup.enter="searchComponentIDs()" />
       </div>
       <template v-if="searchTerm && totalSearchMatch">
-        <span id="searchResCount" class="button has-text-dark" @click="centerElementOnSVG(0)" title="Click to center on current match">
-          {{ this.currentSearchMatch }} of {{this.totalSearchMatch }}
+        <span id="searchResCount" class="button has-text-dark"
+              title="Click to center on current match"
+              @click="centerElementOnSVG(0)">
+          {{ currentSearchMatch }} of {{ totalSearchMatch }}
         </span>
-        <span class="button has-text-dark" @click="centerElementOnSVG(-1)" title="Go to previous"><i class="fa fa-angle-left"></i></span>
-        <span class="button has-text-dark" @click="centerElementOnSVG(1)" title="Go to next"><i class="fa fa-angle-right"></i></span>
-        <span class="button has-text-dark" @click="highlightElementsFound" title="Highlight all matches">Highlight all</span>
+        <span class="button has-text-dark"
+              title="Go to previous"
+              @click="centerElementOnSVG(-1)"><i class="fa fa-angle-left"></i></span>
+        <span class="button has-text-dark"
+              title="Go to next"
+              @click="centerElementOnSVG(1)"><i class="fa fa-angle-right"></i></span>
+        <span class="button has-text-dark"
+              title="Highlight all matches"
+              @click="highlightElementsFound">Highlight all</span>
       </template>
     </div>
     <div id="tooltip" ref="tooltip"></div>
@@ -58,8 +77,11 @@ $.fn.extend({
 
 
 export default {
-  name: 'svgmap',
-  props: ['model', 'mapsData'],
+  name: 'Svgmap',
+  props: {
+    model: Object,
+    mapsData: Object,
+  },
   data() {
     return {
       errorMessage: '',
@@ -101,6 +123,17 @@ export default {
       defaultGeneColor: '#feb',
     };
   },
+  computed: {
+    isFullScreenDisabled() {
+      if ((document.fullScreenElement !== undefined && document.fullScreenElement === null)
+        || (document.msFullscreenElement !== undefined && document.msFullscreenElement === null)
+        || (document.mozFullScreen !== undefined && !document.mozFullScreen)
+        || (document.webkitIsFullScreen !== undefined && !document.webkitIsFullScreen)) {
+        return false;
+      }
+      return true;
+    },
+  },
   watch: {
     searchTerm() {
       if (!this.searchTerm) {
@@ -108,15 +141,6 @@ export default {
         this.totalSearchMatch = 0;
         this.searchInputClass = 'is-info';
       }
-    },
-  },
-  computed: {
-    isFullScreenDisabled() {
-      const elem = $('.svgbox').first()[0];
-      if ((document.fullScreenElement !== undefined && document.fullScreenElement === null) || (document.msFullscreenElement !== undefined && document.msFullscreenElement === null) || (document.mozFullScreen !== undefined && !document.mozFullScreen) || (document.webkitIsFullScreen !== undefined && !document.webkitIsFullScreen)) {
-        return false;
-      }
-      return true;
     },
   },
   created() {
@@ -133,7 +157,7 @@ export default {
         if (name) {
           this.idsFound = ids;
           if (ids.length === 1) {
-            this.searchTerm = ids[0];
+            this.searchTerm = ids[0]; // eslint-disable-line prefer-destructuring
             this.loadSVG(name, this.searchComponentIDs);
           } else {
             this.loadSVG(name, null);
@@ -150,23 +174,23 @@ export default {
   },
   mounted() {
     const self = this;
-    for (const aClass of ['.met', '.enz', '.rea', '.subsystem']) {
+    ['.met', '.enz', '.rea', '.subsystem'].forEach((aClass) => {
       $('#svg-wrapper').on('click', aClass, function f() {
         self.selectElement($(this));
       });
-    }
+    });
     $('#svg-wrapper').on('mouseover', '.enz', function f(e) {
       const id = $(this).attr('class').split(' ')[1].trim();
       if (id in self.HPARNAlevels) {
         if (self.HPARNAlevels[id].length === 2) {
-          self.$refs.tooltip.innerHTML = `RNA log<sub>2</sub>(TPM): ${self.HPARNAlevels[id][1]}`;
+          self.$refs.tooltip.innerHTML = `RNA log<sub>2</sub>(TPM+1): ${self.HPARNAlevels[id][1]}`;
         } else {
-          self.$refs.tooltip.innerHTML = `RNA log<sub>2</sub>(TPM<sub>T1</sub>): ${self.HPARNAlevels[id][2]}<br>`;
-          self.$refs.tooltip.innerHTML += `RNA log<sub>2</sub>(TPM<sub>T2</sub>): ${self.HPARNAlevels[id][3]}<br>`;
+          self.$refs.tooltip.innerHTML = `RNA log<sub>2</sub>(TPM<sub>T1</sub>+1): ${self.HPARNAlevels[id][2]}<br>`;
+          self.$refs.tooltip.innerHTML += `RNA log<sub>2</sub>(TPM<sub>T2</sub>+1): ${self.HPARNAlevels[id][3]}<br>`;
           self.$refs.tooltip.innerHTML += `RNA log<sub>2</sub>(TPM ratio): ${self.HPARNAlevels[id][1]}<br>`;
         }
       } else if (Object.keys(self.HPARNAlevels).length !== 0) {
-        self.$refs.tooltip.innerHTML = `RNA log<sub>2</sub>(TPM): ${self.HPARNAlevels['n/a'][1]}`;
+        self.$refs.tooltip.innerHTML = `RNA log<sub>2</sub>(TPM+1): ${self.HPARNAlevels['n/a'][1]}`;
       } else {
         return;
       }
@@ -179,15 +203,14 @@ export default {
       self.$refs.tooltip.style.display = 'none';
     });
     $('.svgbox').on('webkitfullscreenchange mozfullscreenchange fullscreenchange mozFullScreen MSFullscreenChange', (e) => {
-        $('.svgbox').first().toggleClass('fullscreen');
-        $('#svgSearch').toggleClass('fullscreen');
-        e.stopPropagation();
+      $('.svgbox').first().toggleClass('fullscreen');
+      $('#svgSearch').toggleClass('fullscreen');
+      e.stopPropagation();
     });
-    $(document).on('mozfullscreenchange', (e) => {
-        $('.svgbox').first().toggleClass('fullscreen');
-        $('#svgSearch').toggleClass('fullscreen');
+    $(document).on('mozfullscreenchange', () => {
+      $('.svgbox').first().toggleClass('fullscreen');
+      $('#svgSearch').toggleClass('fullscreen');
     });
-
   },
   methods: {
     toggleGenes() {
@@ -209,7 +232,10 @@ export default {
         return;
       }
       const elem = $('.svgbox').first()[0];
-      if ((document.fullScreenElement !== undefined && document.fullScreenElement === null) || (document.msFullscreenElement !== undefined && document.msFullscreenElement === null) || (document.mozFullScreen !== undefined && !document.mozFullScreen) || (document.webkitIsFullScreen !== undefined && !document.webkitIsFullScreen)) {
+      if ((document.fullScreenElement !== undefined && document.fullScreenElement === null)
+        || (document.msFullscreenElement !== undefined && document.msFullscreenElement === null)
+        || (document.mozFullScreen !== undefined && !document.mozFullScreen)
+        || (document.webkitIsFullScreen !== undefined && !document.webkitIsFullScreen)) {
         if (elem.requestFullScreen) {
           elem.requestFullScreen();
         } else if (elem.mozRequestFullScreen) {
@@ -254,7 +280,7 @@ export default {
       }
       setTimeout(() => {
         const minZoomScale = Math.min($('.svgbox').width() / $('#svg-wrapper svg').width(),
-                                 $('.svgbox').height() / $('#svg-wrapper svg').height());
+          $('.svgbox').height() / $('#svg-wrapper svg').height());
         const focusX = ($('#svg-wrapper svg').width() / 2) - ($('.svgbox').width() / 2);
         const focusY = ($('#svg-wrapper svg').height() / 2) - ($('.svgbox').height() / 2);
         this.$panzoom.panzoom('pan', -focusX, -focusY);
@@ -271,7 +297,7 @@ export default {
           const zoomOut = delta ? delta < 0 : e.originalEvent.deltaY > 0;
           this.$panzoom.panzoom('zoom', zoomOut, { focal: e });
         });
-        this.$panzoom.on('panzoomzoom', (e, panzoom, scale) => { // ignored opts param
+        this.$panzoom.on('panzoomzoom', (e, panzoom, scale) => { // eslint-disable-line no-unused-vars
           this.currentZoomScale = scale;
         });
         this.unHighlight();
@@ -345,30 +371,32 @@ export default {
       }
     },
     applyHPARNAlevelsOnMap(RNAlevels) {
-      // console.log('apply RNAlevel with', Object.keys(RNAlevels).length);
       this.HPARNAlevels = RNAlevels;
-      // this.HPARNAlevelsHistory[this.svgName] = response.data;
       if (Object.keys(this.HPARNAlevels).length === 0) {
         $('#svg-wrapper .enz .shape').attr('fill', this.defaultGeneColor);
         return;
       }
 
       const allGenes = $('#svg-wrapper .enz');
-      for (const oneEnz of allGenes) {
-        const ID = oneEnz.classList[1];
-        if (this.HPARNAlevels[ID] !== undefined) {
-          oneEnz.children[0].setAttribute('fill', this.HPARNAlevels[ID][0]); // 0 is the float value, 1 the color hex
-        } else {
-          oneEnz.children[0].setAttribute('fill', this.HPARNAlevels['n/a'][0]);
+      Object.values(allGenes).forEach((oneEnz) => {
+        try {
+          const ID = oneEnz.classList[1];
+          if (this.HPARNAlevels[ID] !== undefined) {
+            oneEnz.children[0].setAttribute('fill', this.HPARNAlevels[ID][0]); // 0 is the float value, 1 the color hex
+          } else {
+            oneEnz.children[0].setAttribute('fill', this.HPARNAlevels['n/a'][0]);
+          }
+        } catch {
+          // .values() get the prop length, we don't want that
         }
-      }
+        return true;
+      });
 
       // update cached selected elements
-      for (const ID of Object.keys(this.selectedItemHistory)) {
-        if (this.HPARNAlevels[ID] !== undefined) {
+      Object.keys(this.selectedItemHistory).filter(id => this.HPARNAlevels[id] !== undefined)
+        .forEach((ID) => {
           this.selectedItemHistory[ID].rnaLvl = this.HPARNAlevels[ID];
-        }
-      }
+        });
       EventBus.$emit('loadRNAComplete', true, '');
     },
     searchComponentIDs() {
@@ -379,22 +407,21 @@ export default {
       }
       this.isLoadingSearch = true;
       axios.get(`${this.model.database_name}/get_id/${this.searchTerm}`)
-      .then((response) => {
-        this.searchInputClass = 'is-success';
-        this.idsFound = response.data;
-        this.findElementsOnSVG(true);
-      })
-      .catch((error) => {
-        this.isLoadingSearch = false;
-        const status = error.status || error.response.status;
-        if (status !== 404) {
-          this.$emit('loadComplete', false, messages.unknownError, 'danger');
-          this.searchInputClass = 'is-info';
-        } else {
-          this.searchInputClass = 'is-danger';
-        }
-        return;
-      });
+        .then((response) => {
+          this.searchInputClass = 'is-success';
+          this.idsFound = response.data;
+          this.findElementsOnSVG(true);
+        })
+        .catch((error) => {
+          this.isLoadingSearch = false;
+          const status = error.status || error.response.status;
+          if (status !== 404) {
+            this.$emit('loadComplete', false, messages.unknownError, 'danger');
+            this.searchInputClass = 'is-info';
+          } else {
+            this.searchInputClass = 'is-danger';
+          }
+        });
     },
     findElementsOnSVG(zoomOn) {
       if (!this.idsFound) {
@@ -461,18 +488,18 @@ export default {
     highlight(elements) {
       this.unHighlight();
       this.elmHL = [];
-      for (const el of elements) {
+      elements.forEach((el) => {
         $(el).addClass('hl');
         this.elmHL.push(el);
         if (el.hasClass('rea')) {
           const selectors = `#svg-wrapper .met.${el.attr('id')}`;
           const elms = $(selectors);
-          for (const con of elms) {
+          elms.forEach((con) => {
             $(con).addClass('hl');
             this.elmHL.push(con);
-          }
+          });
         }
-      }
+      });
     },
     unHighlight() { // un-highlight elements
       if (this.elmHL) {
@@ -485,9 +512,9 @@ export default {
     getElementIdAndType(element) {
       if (element.hasClass('rea')) {
         return [element.attr('id'), 'reaction'];
-      } else if (element.hasClass('enz')) {
+      } if (element.hasClass('enz')) {
         return [element.attr('class').split(' ')[1], 'gene'];
-      } else if (element.hasClass('met')) {
+      } if (element.hasClass('met')) {
         return [element.attr('class').split(' ')[1], 'metabolite'];
       }
       return [element.attr('id'), 'subsystem'];
@@ -521,25 +548,25 @@ export default {
       }
       EventBus.$emit('startSelectedElement');
       axios.get(`${this.model.database_name}/${type === 'reaction' ? 'get_reaction' : type}/${id}`)
-      .then((response) => {
-        let data = response.data;
-        if (type === 'reaction') {
-          data = data.reaction;
-          data.equation = this.reformatChemicalReactionHTML(data, true);
-        } else if (type === 'gene') {
+        .then((response) => {
+          let { data } = response;
+          if (type === 'reaction') {
+            data = data.reaction;
+            data.equation = this.reformatChemicalReactionHTML(data, true);
+          } else if (type === 'gene') {
           // add the RNA level if any
-          if (id in this.HPARNAlevels) {
-            data.rnaLvl = this.HPARNAlevels[id];
+            if (id in this.HPARNAlevels) {
+              data.rnaLvl = this.HPARNAlevels[id];
+            }
           }
-        }
-        selectionData.data = data;
-        EventBus.$emit('updatePanelSelectionData', selectionData);
-        this.selectedItemHistory[id] = selectionData.data;
-        EventBus.$emit('endSelectedElement', true);
-      })
-      .catch(() => {
-        EventBus.$emit('endSelectedElement', false);
-      });
+          selectionData.data = data;
+          EventBus.$emit('updatePanelSelectionData', selectionData);
+          this.selectedItemHistory[id] = selectionData.data;
+          EventBus.$emit('endSelectedElement', true);
+        })
+        .catch(() => {
+          EventBus.$emit('endSelectedElement', false);
+        });
     },
     unSelectElement() {
       this.unHighlight();

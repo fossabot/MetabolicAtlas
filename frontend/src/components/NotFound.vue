@@ -1,7 +1,7 @@
 <template>
   <section class="section extended-section">
     <div class="container">
-      <div class="columns" id="home">
+      <div id="home" class="columns">
         <div class="column has-text-centered is-4 is-offset-4">
           <div class="box notification content">
             <p>The page requested does not exist on this<br><b>new version of Metabolic Atlas</b></p>
@@ -17,7 +17,7 @@
 <script>
 
 export default {
-  name: 'not-found',
+  name: 'NotFound',
 };
 
 </script>

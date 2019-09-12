@@ -13,23 +13,25 @@
             <h3 class="title is-3 is-marginless" v-html="`${messages.interPartName} for ${title}`"></h3>
           </div>
           <div class="column">
-            <div class="dropdown" id="dropdownMenuExport">
+            <div id="dropdownMenuExport" class="dropdown">
               <div class="dropdown-trigger">
-                <button class="button is-primary" aria-haspopup="true" aria-controls="dropdown-menu"
-                @click="showMenuExport=!showMenuExport" v-show="showNetworkGraph">
+                <button v-show="showNetworkGraph" class="button is-primary"
+                        aria-haspopup="true"
+                        aria-controls="dropdown-menu" @click="showMenuExport=!showMenuExport">
                   <span>Export graph</span>
                   <span class="icon is-small">
                     &#9663;
                   </span>
                 </button>
               </div>
-              <div class="dropdown-menu" id="dropdown-menu" role="menu" v-show="showMenuExport"
-              v-on:mouseleave="showMenuExport = false">
+              <div v-show="showMenuExport" id="dropdown-menu"
+                   class="dropdown-menu" role="menu"
+                   @mouseleave="showMenuExport = false">
                 <div class="dropdown-content">
-                  <a class="dropdown-item" v-on:click="exportGraphml">
+                  <a class="dropdown-item" @click="exportGraphml">
                     Graphml
                   </a>
-                  <a class="dropdown-item" v-on:click="exportPNG">
+                  <a class="dropdown-item" @click="exportPNG">
                     PNG
                   </a>
                 </div>
@@ -39,22 +41,24 @@
         </div>
         <div v-show="showGraphContextMenu && showNetworkGraph" id="contextMenuGraph" ref="contextMenuGraph">
           <span v-show="clickedElmId !== id"
-          class="button is-dark" v-on:click="navigate">Load {{ messages.interPartName }}</span>
+                class="button is-dark" @click="navigate">Load {{ messages.interPartName }}</span>
           <span v-show="!expandedIds.includes(clickedElmId)"
-          class="button is-dark" v-on:click="loadExpansion">Expand {{ messages.interPartName }}</span>
+                class="button is-dark" @click="loadExpansion">Expand {{ messages.interPartName }}</span>
           <div v-show="clickedElm">
             <span class="button is-dark">Highlight reaction:</span>
           </div>
           <div>
             <template v-if="clickedElm !== null && clickedElm['reaction']">
-               <template v-for="r, index of Array.from(clickedElm.reaction).slice(0,16)">
-                <span class="button is-dark is-small has-margin-left" v-on:click="highlightReaction(r)" v-if="index != 15">
+              <template v-for="(r, index) in Array.from(clickedElm.reaction).slice(0,16)">
+                <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
+                <span v-if="index != 15" class="button is-dark is-small has-margin-left" @click="highlightReaction(r)">
                   {{ r }}
                 </span>
+                <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
                 <span v-else class="has-margin-left">
                   {{ `${Array.from(clickedElm.reaction).length - 15} others reaction(s)...` }}
                 </span>
-               </template>
+              </template>
             </template>
           </div>
         </div>
@@ -62,7 +66,7 @@
           <div v-show="showNetworkGraph" class="container columns">
             <div class="column is-8">
               <transition name="slide-fade">
-                <article id="errorExpBar" class="message is-danger" v-if="errorExpMessage">
+                <article v-if="errorExpMessage" id="errorExpBar" class="message is-danger">
                   <div class="message-header">
                     <i class="fa fa-warning"></i>
                   </div>
@@ -72,33 +76,39 @@
                 </article>
               </transition>
               <div id="graphOption">
-                <span class="button" v-bind:class="[{ 'is-active': showGraphLegend }, '']"
-                v-on:click="toggleGraphLegend" title="Options"><i class="fa fa-cog"></i></span>
-                <span class="button" v-on:click="zoomGraph(true)" title="Zoom In"><i class="fa fa-search-plus"></i></span>
-                <span class="button" v-on:click="zoomGraph(false)" title="Zoom Out"><i class="fa fa-search-minus"></i></span>
-                <span class="button" v-on:click="fitGraph()" title="Fit to frame"><i class="fa fa-arrows-alt"></i></span>
-                <span class="button" v-on:click="resetGraph(true)" title="Reload"><i class="fa fa-refresh"></i></span>
-                <span class="button" v-on:click="resetGraph(false)" title="Clean selection/highlight"><i class="fa fa-eraser"></i></span>
+                <span class="button" :class="[{ 'is-active': showGraphLegend }, '']"
+                      title="Options" @click="toggleGraphLegend"><i class="fa fa-cog"></i></span>
+                <span class="button" title="Zoom In" @click="zoomGraph(true)"><i class="fa fa-search-plus"></i></span>
+                <span class="button" title="Zoom Out" @click="zoomGraph(false)">
+                  <i class="fa fa-search-minus"></i>
+                </span>
+                <span class="button" title="Fit to frame" @click="fitGraph()"><i class="fa fa-arrows-alt"></i></span>
+                <span class="button" title="Reload" @click="resetGraph(true)"><i class="fa fa-refresh"></i></span>
+                <span class="button" title="Clean selection/highlight" @click="resetGraph(false)">
+                  <i class="fa fa-eraser"></i>
+                </span>
               </div>
               <div v-show="showGraphLegend" id="contextGraphLegend" ref="contextGraphLegend">
-                <button class="delete" v-on:click="toggleGraphLegend"></button>
+                <button class="delete" @click="toggleGraphLegend"></button>
                 <span class="label">Gene</span>
                 <div class="comp">
                   <span>Shape:</span>
                   <div class="select">
                     <select v-model="nodeDisplayParams.geneNodeShape"
-                    v-on:change="redrawGraph()">
-                      <option v-for="shape in availableNodeShape">
-                      {{ shape }}
+                            @change="redrawGraph()">
+                      <option v-for="shape in availableNodeShape" :key="shape">
+                        {{ shape }}
                       </option>
                     </select>
                   </div>
                   <span>Color:</span>
                   <span class="color-span clickable"
-                    v-bind:style="{ background: nodeDisplayParams.geneNodeColor.hex }"
-                    v-on:click="toggleGeneColorPicker()">
+                        :style="{ background: nodeDisplayParams.geneNodeColor.hex }"
+                        @click="toggleGeneColorPicker()">
                     <compact-picker v-show="showColorPickerEnz"
-                    v-model="nodeDisplayParams.geneNodeColor" @input="updateExpAndredrawGraph(false, 'gene')"></compact-picker>
+                                    v-model="nodeDisplayParams.geneNodeColor"
+                                    @input="updateExpAndredrawGraph(false, 'gene')">
+                    </compact-picker>
                   </span>
                 </div>
                 <br>
@@ -107,18 +117,20 @@
                   <span>Shape:</span>
                   <div class="select">
                     <select v-model="nodeDisplayParams.metaboliteNodeShape"
-                    v-on:change="redrawGraph()">
-                      <option v-for="shape in availableNodeShape">
-                      {{ shape }}
+                            @change="redrawGraph()">
+                      <option v-for="shape in availableNodeShape" :key="shape">
+                        {{ shape }}
                       </option>
                     </select>
                   </div>
                   <span>Color:</span>
-                   <span class="color-span clickable"
-                    v-bind:style="{ background: nodeDisplayParams.metaboliteNodeColor.hex }"
-                    v-on:click="toggleMetaboliteColorPicker()">
+                  <span class="color-span clickable"
+                        :style="{ background: nodeDisplayParams.metaboliteNodeColor.hex }"
+                        @click="toggleMetaboliteColorPicker()">
                     <compact-picker v-show="showColorPickerMeta"
-                    v-model="nodeDisplayParams.metaboliteNodeColor" @input="updateExpAndredrawGraph(false, 'metabolite')"></compact-picker>
+                                    v-model="nodeDisplayParams.metaboliteNodeColor"
+                                    @input="updateExpAndredrawGraph(false, 'metabolite')">
+                    </compact-picker>
                   </span>
                 </div>
               </div>
@@ -126,32 +138,36 @@
               </div>
             </div>
             <div class="column">
-              <div class="card " v-if="model.database_name === 'human1'">
+              <div v-if="model.database_name === 'human1'" class="card ">
                 <header class="card-header">
                   <p class="card-header-title">
                     <label class="checkbox is-unselectable"
-                    :title="`Click to ${toggleGeneExpLevel ? 'disable' : 'activate'} expression RNA levels`">
-                      <input type="checkbox" v-model="toggleGeneExpLevel" :disabled="disableExpLvl"
-                      @click="applyLevels('gene', 'HPA', 'RNA', selectedSample)">
+                           :title="`Click to ${toggleGeneExpLevel ? 'disable' : 'activate'} expression RNA levels`">
+                      <input v-model="toggleGeneExpLevel" type="checkbox"
+                             :disabled="disableExpLvl"
+                             @click="applyLevels('gene', 'HPA', 'RNA', selectedSample)">
                       Enable <a href="https://www.proteinatlas.org/" target="_blank">proteinAtlas.org</a>&nbsp;RNA levels
                     </label>
                   </p>
                 </header>
-                <div class="card-content" v-show="toggleGeneExpLevel">
+                <div v-show="toggleGeneExpLevel" class="card-content">
                   <RNALegend></RNALegend>
                   <br>
-                  <div class="select is-fullwidth" :class="{ 'is-loading' : loadingHPA && toggleGeneExpLevel}" v-show="toggleGeneExpLevel && !disableExpLvl">
-                    <select id="enz-select" ref="enzHPAselect" v-model="selectedSample" :disabled="!toggleGeneExpLevel"
-                    @change.prevent="applyLevels('gene', 'HPA', 'RNA', selectedSample)"
-                    title="Select a tissue type">
+                  <div v-show="toggleGeneExpLevel && !disableExpLvl"
+                       class="select is-fullwidth"
+                       :class="{ 'is-loading' : loadingHPA && toggleGeneExpLevel}">
+                    <select id="enz-select" ref="enzHPAselect"
+                            v-model="selectedSample" :disabled="!toggleGeneExpLevel"
+                            title="Select a tissue type"
+                            @change.prevent="applyLevels('gene', 'HPA', 'RNA', selectedSample)">
                       <optgroup label="HPA - RNA levels - Tissues">
-                       <!--  <option value="None">None</option> -->
-                        <option v-for="tissue in tissues['HPA']" :value="tissue">
+                        <!--  <option value="None">None</option> -->
+                        <option v-for="tissue in tissues['HPA']" :key="tissue" :value="tissue">
                           {{ tissue }}
                         </option>
                       </optgroup>
-                      <optgroup label="HPA - RNA levels - Cell-type" v-if="false">
-                        <option v-for="cellType in cellLines['HPA']" :value="cellType">
+                      <optgroup v-if="false" label="HPA - RNA levels - Cell-type">
+                        <option v-for="cellType in cellLines['HPA']" :key="cellType" :value="cellType">
                           {{ cellType }}
                         </option>
                       </optgroup>
@@ -160,7 +176,7 @@
                 </div>
               </div>
               <br>
-              <div class="card" v-if="compartmentList.length != 0 || subsystemList.length != 0">
+              <div v-if="compartmentList.length !== 0 || subsystemList.length != 0" class="card">
                 <header class="card-header">
                   <p class="card-header-title">
                     Highlight
@@ -168,35 +184,45 @@
                 </header>
                 <div class="card-content">
                   <div class="select is-fullwidth">
-                    <select v-model="compartmentHL" @change.prevent="highlightCompartment" :disabled="disableCompartmentHL">
-                      <option value="" disabled v-if="!disableCompartmentHL">Select a compartment</option>
-                      <option v-for="compartment in compartmentList" :value="disableCompartmentHL ? '' : compartment">
+                    <select v-model="compartmentHL"
+                            :disabled="disableCompartmentHL"
+                            @change.prevent="highlightCompartment">
+                      <option v-if="!disableCompartmentHL" value="" disabled>Select a compartment</option>
+                      <option v-for="compartment in compartmentList"
+                              :key="compartment"
+                              :value="disableCompartmentHL ? '' : compartment">
                         {{ compartment }}
                       </option>
                     </select>
                   </div>
-                  <div v-show="subsystemList.length != 0">
+                  <div v-show="subsystemList.length !== 0">
                     <br>
                     <div class="select is-fullwidth">
                       <select v-model="subsystemHL" @change.prevent="highlightSubsystem">
                         <option value="" disabled>Select a subsystem</option>
-                        <option v-for="sub in subsystemList" :value="sub">
+                        <option v-for="sub in subsystemList" :key="sub" :value="sub">
                           {{ sub }}
                         </option>
                       </select>
                     </div>
                   </div>
-                 </div>
+                </div>
               </div>
               <br>
-              <sidebar id="sidebar" :selectedElm="clickedElm" :view="'interaction'" :model="model"></sidebar>
+              <sidebar id="sidebar" :selected-elm="clickedElm"
+                       :view="'interaction'"
+                       :model="model"></sidebar>
             </div>
           </div>
           <div v-show="!showNetworkGraph" class="container columns">
             <div class="column is-4 is-offset-4 notification is-warning has-text-centered">
-              <div>Warning: The query has returned too many elements to be displayed.<br>The network has not been generated.</div>
+              <div>
+                Warning: The query has returned too many elements to be displayed.
+                <br>
+                The network has not been generated.
+              </div>
               <span v-show="nodeCount <= maxNodeCount"
-              class="button" v-on:click="generateGraph(fitGraph)">Generate</span>
+                    class="button" @click="generateGraph(fitGraph)">Generate</span>
             </div>
             <br>
           </div>
@@ -245,7 +271,7 @@ import { default as messages } from '../../../helpers/messages';
 
 
 export default {
-  name: 'closest-interaction-partners',
+  name: 'ClosestInteractionPartners',
   components: {
     Sidebar,
     CytoscapeTable,
@@ -253,7 +279,9 @@ export default {
     'compact-picker': Compact,
     RNALegend,
   },
-  props: ['model'],
+  props: {
+    model: Object,
+  },
   data() {
     return {
       loading: true,
@@ -321,7 +349,6 @@ export default {
         'roundrectangle',
         'cutrectangle',
         'ellipse',
-        'rectangle',
         'triangle',
         'pentagon',
         'hexagon',
@@ -434,7 +461,7 @@ export default {
         .then((response) => {
           this.loading = false;
           this.showGraphContextMenu = false;
-          const component = response.data.component;
+          const { component } = response.data;
           this.reactions = response.data.reactions;
 
           this.componentName = component.name || component.id;
@@ -445,13 +472,16 @@ export default {
           } else {
             this.title = this.componentName;
             if (component.uniprot != null) {
+              /* eslint-disable-next-line max-len */
               this.title = `${this.title} (<a href="${component.uniprot_link}" target="_blank">${component.uniprot}</a>)`;
             }
             component.type = 'gene';
           }
 
-          [this.rawElms, this.rawRels, this.compartmentList, this.subsystemList] =
-            transform(component, this.reactions, null, null, null, null);
+          [this.rawElms,
+            this.rawRels,
+            this.compartmentList,
+            this.subsystemList] = transform(component, this.reactions, null, null, null, null);
           if (this.compartmentList.length === 1) {
             this.compartmentHL = '';
             this.disableCompartmentHL = true;
@@ -500,12 +530,14 @@ export default {
           this.errorMessage = null;
           this.showGraphContextMenu = false;
 
-          const component = response.data.component;
-          const reactions = response.data.reactions;
+          const { component } = response.data;
+          const { reactions } = response.data;
           this.reactions = this.reactions.concat(reactions);
-          [this.rawElms, this.rawRels, this.compartmentList, this.subsystemList] =
-            transform(component, reactions, this.rawElms, this.rawRels,
-             this.compartmentList, this.subsystemList);
+          [this.rawElms,
+            this.rawRels,
+            this.compartmentList,
+            this.subsystemList] = transform(component, reactions, this.rawElms, this.rawRels,
+            this.compartmentList, this.subsystemList);
           if (this.compartmentList.length === 1) {
             this.compartmentHL = '';
             this.disableCompartmentHL = true;
@@ -553,8 +585,8 @@ export default {
         });
     },
     isCompartmentSubsystemHLDisabled() {
-      return ((this.compartmentHL === '' && this.subsystemHL === '') ||
-        (this.compartmentList.length < 2 && this.subsystemList.length === 0));
+      return ((this.compartmentHL === '' && this.subsystemHL === '')
+        || (this.compartmentList.length < 2 && this.subsystemList.length === 0));
     },
     highlightReaction(rid) {
       if (this.cy) {
@@ -582,7 +614,7 @@ export default {
     },
     fixEnzSelectOption() {
       const option = document.getElementById('enz-select')
-      .getElementsByTagName('optgroup')[0].childNodes[0];
+        .getElementsByTagName('optgroup')[0].childNodes[0];
       option.selected = 'selected';
       this.nodeDisplayParams.geneExpSample = option.label;
     },
@@ -595,8 +627,8 @@ export default {
           }
         }
         if (!usingExpressionLevel) {
-          if ((nodeType === 'gene' && this.toggleGeneExpLevel) ||
-            (nodeType === 'metabolite' && this.toggleMetaboliteExpLevel)) {
+          if ((nodeType === 'gene' && this.toggleGeneExpLevel)
+            || (nodeType === 'metabolite' && this.toggleMetaboliteExpLevel)) {
             return;
           }
         }
@@ -628,7 +660,7 @@ export default {
     redrawGraph() {
       const stylesheet = graph(this.id,
         this.rawElms, this.rawRels, this.nodeDisplayParams,
-         this.reactionHL, this.compartmentHL, this.subsystemHL)[1];
+        this.reactionHL, this.compartmentHL, this.subsystemHL)[1];
       const cyzoom = this.cy.zoom();
       const cypan = this.cy.pan();
       this.cy.style(stylesheet);
@@ -712,7 +744,7 @@ export default {
         // infinite layout options
         infinite: false, // overrides all other options for a forces-all-the-time mode
       };
-      const id = this.id;
+      const { id } = this;
       this.cy = cytoscape({
         container: this.$refs.cy,
         elements,
@@ -761,7 +793,7 @@ export default {
         });
       });
 
-      const contextMenuGraph = this.$refs.contextMenuGraph;
+      const { contextMenuGraph } = this.$refs;
       this.showGraphContextMenu = false;
       this.showNetworkGraph = true;
 
@@ -840,7 +872,7 @@ export default {
       document.body.removeChild(a);
     },
     applyLevels(componentType, expSource, expType, expSample) {
-      setTimeout(() => {  // wait this.toggleGeneExpLevel
+      setTimeout(() => { // wait this.toggleGeneExpLevel
         if (this.disableExpLvl) {
           return;
         }
@@ -853,8 +885,8 @@ export default {
               this.nodeDisplayParams.geneExpSource = expSource;
               this.nodeDisplayParams.geneExpType = expType;
               // check if this source for ths type of component have been already loaded
-              if (!Object.keys(this.expSourceLoaded[componentType]).length === 0 ||
-                !this.expSourceLoaded[componentType][expSource]) {
+              if (!Object.keys(this.expSourceLoaded[componentType]).length === 0
+                || !this.expSourceLoaded[componentType][expSource]) {
                 // sources that load all exp type
                 if (expSource === 'HPA') {
                   this.getHPAexpression(this.rawElms, expSample);
@@ -908,8 +940,8 @@ export default {
         lvl = this.maxZoom;
       }
 
-      if ((lvl === this.maxZoom && zoom === this.maxZoom) ||
-        (lvl === this.minZoom && zoom === this.minZoom)) {
+      if ((lvl === this.maxZoom && zoom === this.maxZoom)
+        || (lvl === this.minZoom && zoom === this.minZoom)) {
         return;
       }
 
@@ -919,7 +951,7 @@ export default {
     },
     viewReactionComponent(type) {
       EventBus.$emit('GBnavigateTo', type,
-       this.selectedElm.real_id ? this.selectedElm.real_id : this.selectedElm.id);
+        this.selectedElm.real_id ? this.selectedElm.real_id : this.selectedElm.id);
     },
     viewReaction(ID) {
       EventBus.$emit('GBnavigateTo', 'reaction', ID);
@@ -943,55 +975,55 @@ export default {
       const geneIDs = genes.map(k => rawElms[k].id);
 
       axios.post(`${this.model.database_name}/gene/hpa_rna_levels/`, { data: geneIDs })
-      .then((response) => {
-        const matLevels = response.data.levels;
-        for (let i = 0; i < matLevels.length; i += 1) {
-          const array = matLevels[i];
-          const enzID = array[0];
+        .then((response) => {
+          const matLevels = response.data.levels;
+          for (let i = 0; i < matLevels.length; i += 1) {
+            const array = matLevels[i];
+            const enzID = array[0];
 
-          if (!(enzID in this.rawElms)) {
-            continue; // eslint-disable-line no-continue
-          }
+            if (!(enzID in this.rawElms)) {
+              continue; // eslint-disable-line no-continue
+            }
 
-          if (!this.rawElms[enzID].expressionLvl) {
-            this.rawElms[enzID].expressionLvl = {};
-          }
-          if (!this.rawElms[enzID].expressionLvl.HPA) {
-            this.rawElms[enzID].expressionLvl.HPA = {};
-          }
-          if (!this.rawElms[enzID].expressionLvl.HPA.RNA) {
-            this.rawElms[enzID].expressionLvl.HPA.RNA = {};
-          }
+            if (!this.rawElms[enzID].expressionLvl) {
+              this.rawElms[enzID].expressionLvl = {};
+            }
+            if (!this.rawElms[enzID].expressionLvl.HPA) {
+              this.rawElms[enzID].expressionLvl.HPA = {};
+            }
+            if (!this.rawElms[enzID].expressionLvl.HPA.RNA) {
+              this.rawElms[enzID].expressionLvl.HPA.RNA = {};
+            }
 
-          for (let j = 0; j < this.tissues.HPA.length; j += 1) {
-            const tissue = this.tissues.HPA[j];
-            let level = Math.log2(parseFloat(array[1].split(',')[j]) + 1);
-            level = Math.round((level + 0.00001) * 100) / 100;
-            this.rawElms[enzID].expressionLvl.HPA.RNA[tissue] = getSingleRNAExpressionColor(level);
+            for (let j = 0; j < this.tissues.HPA.length; j += 1) {
+              const tissue = this.tissues.HPA[j];
+              let level = Math.log2(parseFloat(array[1].split(',')[j]) + 1);
+              level = Math.round((level + 0.00001) * 100) / 100;
+              this.rawElms[enzID].expressionLvl.HPA.RNA[tissue] = getSingleRNAExpressionColor(level);
+            }
           }
-        }
-        this.expSourceLoaded.gene.HPA = {};
-        this.expSourceLoaded.gene.HPA.RNA = true;
-        this.disableExpLvl = false;
-        this.loadingHPA = false;
-        setTimeout(() => {
+          this.expSourceLoaded.gene.HPA = {};
+          this.expSourceLoaded.gene.HPA.RNA = true;
+          this.disableExpLvl = false;
+          this.loadingHPA = false;
+          setTimeout(() => {
           // if ((expSource && expType) && !expSample) {
             // fix option selection! because of optgroup?
             // if (this.toggleGeneExpLevel) {
-          this.fixEnzSelectOption();
+            this.fixEnzSelectOption();
             // }
-          //  }
-          this.redrawGraph(true);
-        }, 0);
-      })
-      .catch(() => {
-        this.loadingHPA = false;
-        this.toggleGeneExpLevel = false;
-        this.disableExpLvl = true;
-        this.nodeDisplayParams.geneExpSource = false;
-        this.nodeDisplayParams.geneExpType = false;
-        this.nodeDisplayParams.geneExpSample = false;
-      });
+            //  }
+            this.redrawGraph(true);
+          }, 0);
+        })
+        .catch(() => {
+          this.loadingHPA = false;
+          this.toggleGeneExpLevel = false;
+          this.disableExpLvl = true;
+          this.nodeDisplayParams.geneExpSource = false;
+          this.nodeDisplayParams.geneExpType = false;
+          this.nodeDisplayParams.geneExpSample = false;
+        });
     },
     toggleGeneColorPicker() {
       this.showColorPickerMeta = false;

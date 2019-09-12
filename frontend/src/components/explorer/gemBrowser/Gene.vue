@@ -9,7 +9,7 @@
       <div class="container columns">
         <div class="column">
           <h3 class="title is-3">
-          Gene {{ gene.geneName }}
+            Gene {{ gene.geneName }}
           </h3>
         </div>
       </div>
@@ -18,10 +18,14 @@
           <div class="columns is-multiline is-variable is-8">
             <div id="gene-details" class="reaction-table column is-10-widescreen is-9-desktop is-full-tablet">
               <table v-if="gene && Object.keys(gene).length != 0" class="table main-table is-fullwidth">
-                <tr v-for="el in mainTableKey[model.database_name]">
-                  <td v-if="'display' in el" class="td-key has-background-primary has-text-white-bis" v-html="el.display"></td>
-                  <td v-else-if="el.name == 'id'" class="td-key has-background-primary has-text-white-bis">{{ model.short_name }} ID</td>
-                  <td v-else class="td-key has-background-primary has-text-white-bis">{{ reformatTableKey(el.name) }}</td>
+                <tr v-for="el in mainTableKey[model.database_name]" :key="el.name">
+                  <td v-if="'display' in el"
+                      class="td-key has-background-primary has-text-white-bis"
+                      v-html="el.display"></td>
+                  <td v-else-if="el.name == 'id'"
+                      class="td-key has-background-primary has-text-white-bis">{{ model.short_name }} ID</td>
+                  <td v-else
+                      class="td-key has-background-primary has-text-white-bis">{{ reformatTableKey(el.name) }}</td>
                   <td v-if="gene[el.name]">
                     <span v-if="'modifier' in el" v-html="el.modifier(gene)">
                     </span>
@@ -35,34 +39,43 @@
               <template v-if="hasExternalID">
                 <h4 class="title is-4">External databases</h4>
                 <table v-if="gene && Object.keys(gene).length != 0" id="ed-table" class="table is-fullwidth">
-                  <tr v-for="el in externalIDTableKey[model.database_name]" v-if="gene[el.name] && gene[el.link]">
-                    <td v-if="'display' in el" class="td-key has-background-primary has-text-white-bis" v-html="el.display"></td>
-                    <td v-else class="td-key has-background-primary has-text-white-bis">{{ reformatTableKey(el.name) }}</td>
-                    <td>
-                      <a :href="`${gene[el.link]}`" target="_blank">{{ gene[el.name] }}</a>
-                    </td>
+                  <tr v-for="el in externalIDTableKey[model.database_name]" :key="el.name">
+                    <template v-if="gene[el.name] && gene[el.link]">
+                      <td v-if="'display' in el"
+                          class="td-key has-background-primary has-text-white-bis"
+                          v-html="el.display"></td>
+                      <td v-else
+                          class="td-key has-background-primary has-text-white-bis">
+                        {{ reformatTableKey(el.name) }}
+                      </td>
+                      <td>
+                        <a :href="`${gene[el.link]}`" target="_blank">{{ gene[el.name] }}</a>
+                      </td>
+                    </template>
                   </tr>
                 </table>
               </template>
             </div>
             <div class="column is-2-widescreen is-3-desktop is-full-tablet has-text-centered">
               <router-link class="button is-info is-fullwidth is-outlined"
-                :to="{ path: `/explore/gem-browser/${model.database_name}/interaction/${gene.id}` }">
+                           :to="{ path: `/explore/gem-browser/${model.database_name}/interaction/${gene.id}` }">
                 <span class="icon"><i class="fa fa-connectdevelop fa-lg"></i></span>&nbsp;
                 <span>{{ messages.interPartName }}</span>
               </router-link>
             </div>
           </div>
-          <template v-if="!this.showLoader">
+          <template v-if="!showLoader">
             <h4 class="title is-4">Reactions</h4>
           </template>
           <div class="columns">
             <div class="column">
-              <template v-if="!this.showLoader && this.showReactionLoader">
+              <template v-if="!showLoader && showReactionLoader">
                 <loader></loader>
               </template>
-              <template v-else-if="!this.showReactionLoader">
-                <reaction-table :reactions="this.reactions" :showSubsystem="true" :model="this.model" :limit="this.limitReaction"></reaction-table>
+              <template v-else-if="!showReactionLoader">
+                <reaction-table :reactions="reactions" :show-subsystem="true"
+                                :model="model"
+                                :limit="limitReaction"></reaction-table>
               </template>
             </div>
           </div>
@@ -80,12 +93,14 @@ import { reformatTableKey } from '../../../helpers/utils';
 import { default as messages } from '../../../helpers/messages';
 
 export default {
-  name: 'gene',
+  name: 'Gene',
   components: {
     ReactionTable,
     Loader,
   },
-  props: ['model'],
+  props: {
+    model: Object,
+  },
   data() {
     return {
       messages,
@@ -124,6 +139,17 @@ export default {
       limitReaction: 200,
     };
   },
+  computed: {
+    hasExternalID() {
+      for (let i = 0; i < this.externalIDTableKey[this.model.database_name].length; i += 1) {
+        const item = this.externalIDTableKey[this.model.database_name][i];
+        if (this.gene[item.name] && this.gene[item.link]) {
+          return true;
+        }
+      }
+      return false;
+    },
+  },
   watch: {
     /* eslint-disable quote-props */
     '$route': function watchSetup() {
@@ -134,15 +160,8 @@ export default {
       }
     },
   },
-  computed: {
-    hasExternalID() {
-      for (const item of this.externalIDTableKey[this.model.database_name]) {
-        if (this.gene[item.name] && this.gene[item.link]) {
-          return true;
-        }
-      }
-      return false;
-    },
+  beforeMount() {
+    this.setup();
   },
   methods: {
     setup() {
@@ -189,9 +208,6 @@ export default {
           this.reactions = [];
         });
     },
-  },
-  beforeMount() {
-    this.setup();
   },
 };
 

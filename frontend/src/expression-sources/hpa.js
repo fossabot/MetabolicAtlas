@@ -32,7 +32,9 @@ export function getSingleRNAExpressionColor(value) {
   const ratio = value / 7;
   if (Number.isNaN(value)) {
     return notDetectedColor;
-  } else if (ratio > 1) {
+  }
+
+  if (ratio > 1) {
     return singleRightColor;
   }
   const r = slr + ratio * (srr - slr);
@@ -44,7 +46,9 @@ export function getSingleRNAExpressionColor(value) {
 export function getComparisonRNAExpressionColor(value) {
   if (Number.isNaN(value)) {
     return notDetectedColor;
-  } else if (value >= 0) {
+  }
+
+  if (value >= 0) {
     if (value > 5) {
       return multipleRightColor;
     }
@@ -53,14 +57,14 @@ export function getComparisonRNAExpressionColor(value) {
     const g = mmg + ratio * (mrg - mmg);
     const b = mmb + ratio * (mrb - mmb);
     return `rgb(${r},${g},${b})`;
-  } else {
-    if (value < -5) {
-      return multipleLeftColor;
-    }
-    const ratio = 1 - value / -5;
-    const r = mlr + ratio * (mmr - mlr);
-    const g = mlg + ratio * (mmg - mlg);
-    const b = mlb + ratio * (mmb - mlb);
-    return `rgb(${r},${g},${b})`;
   }
+
+  if (value < -5) {
+    return multipleLeftColor;
+  }
+  const ratio = 1 - value / -5;
+  const r = mlr + ratio * (mmr - mlr);
+  const g = mlg + ratio * (mmg - mlg);
+  const b = mlb + ratio * (mmb - mlb);
+  return `rgb(${r},${g},${b})`;
 }
