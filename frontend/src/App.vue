@@ -207,6 +207,10 @@ export default {
   flex: 1;
 }
 
+.has-background-primary-light {
+  background-color: $primary-light;
+}
+
 .has-background-primary-lighter {
   background-color: $primary-lighter;
 }

@@ -52,7 +52,7 @@
         <div id="newsandcommunity" class="columns is-variable is-6">
           <div class="column is-half" v-for="card in cards">
             <div class="card card-fullheight is-size-5">
-              <header class="card-header has-background-primary">
+              <header class="card-header has-background-primary-light">
                 <p class="card-content has-text-weight-bold has-text-white">{{ card.title }}</p>
               </header>
               <div class="card-content has-text-justified">
@@ -124,6 +124,7 @@ export default {
       cards: [
         { title: 'Latest news',
           text: [
+            ['2019.09.05', 'Metabolic Atlas v1.4 enables gene expression comparison'],
             ['2019.08.01', 'Metabolic Atlas v1.3'],
             ['2019.06.25', 'Metabolic Atlas is upgraded to v1.2 with Human1 updated to v1.1'],
             ['2019.05.29', 'Metabolic Atlas is upgraded to v1.1'],
