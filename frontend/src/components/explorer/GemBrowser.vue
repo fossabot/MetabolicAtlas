@@ -38,12 +38,10 @@
                   </tile>
                   <div class="tile">
                     <tile type="gene" size="is-6"
-                          :model="model"
-                          :data="starredComponents.genes[0]">
+                          :model="model" :data="starredComponents.genes[0]">
                     </tile>
                     <tile type="metabolite" size="is-6"
-                          :model="model"
-                          :data="starredComponents.metabolites[0]">
+                          :model="model" :data="starredComponents.metabolites[0]">
                     </tile>
                   </div>
                 </div>
@@ -56,12 +54,10 @@
                   </div>
                   <div class="tile">
                     <tile type="metabolite" size="is-6"
-                          :model="model"
-                          :data="starredComponents.metabolites[1]">
+                          :model="model" :data="starredComponents.metabolites[1]">
                     </tile>
                     <tile type="gene" size="is-6"
-                          :model="model"
-                          :data="starredComponents.genes[1]">
+                          :model="model" :data="starredComponents.genes[1]">
                     </tile>
                   </div>
                 </div>

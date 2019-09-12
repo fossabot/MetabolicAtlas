@@ -3,21 +3,17 @@
     <div id="svg-wrapper" v-html="svgContent">
     </div>
     <div class="canvasOption overlay">
-      <span class="button" title="Zoom in"
-            @click="zoomOut(false)"><i class="fa fa-search-plus"></i></span>
-      <span class="button" title="Zoom out"
-            @click="zoomOut(true)"><i class="fa fa-search-minus"></i></span>
+      <span class="button" title="Zoom in" @click="zoomOut(false)"><i class="fa fa-search-plus"></i></span>
+      <span class="button" title="Zoom out" @click="zoomOut(true)"><i class="fa fa-search-minus"></i></span>
       <span class="button" title="Show/Hide genes"
             style="padding: 4.25px;"
             @click="toggleGenes()">
-        <i class="fa fa-eye-slash">&thinsp;G
-        </i>
+        <i class="fa fa-eye-slash">&thinsp;G</i>
       </span>
       <span class="button" style="padding: 4.25px;"
             title="Show/Hide subsystem"
             @click="toggleSubsystems()">
-        <i class="fa fa-eye-slash">&thinsp;S
-        </i>
+        <i class="fa fa-eye-slash">&thinsp;S</i>
       </span>
       <span class="button" title="Toggle fullscreen"
             :disabled="isFullScreenDisabled"
