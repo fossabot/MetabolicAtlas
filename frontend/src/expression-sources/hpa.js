@@ -35,9 +35,11 @@ export const multipleColors = `${multipleLeftColor}, ${multipleMiddleColor}, ${m
 export function getSingleRNAExpressionColor(value) {
   if (Number.isNaN(value)) {
     return notDetectedColor;
-  } else if (value > 7) {
+  }
+  if (value > 7) {
     return singleRightColor;
-  } else if (value < 3.5) {
+  }
+  if (value < 3.5) {
     const ratio = value / 3.5;
     const r = slr + ratio * (smr - slr);
     const g = slg + ratio * (smg - slg);

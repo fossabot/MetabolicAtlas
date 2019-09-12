@@ -122,9 +122,8 @@
                         {{ "" }}
                       </template>
                       <template v-for="(sub, i) in props.formattedRow[props.column.field]" v-else>
-                        <template v-if="i != 0">; </template>
-                         <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key max-len -->
-                        <router-link :to="{ path: `/explore/gem-browser/${props.row.model.id}/subsystem/${idfy(sub)}` }">{{ sub }}</router-link>
+                        <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key max-len -->
+                        <template v-if="i != 0">; </template><router-link :to="{ path: `/explore/gem-browser/${props.row.model.id}/subsystem/${idfy(sub)}` }">{{ sub }}</router-link>
                       </template>
                     </template>
                     <template v-else-if="props.column.field === 'compartment'">

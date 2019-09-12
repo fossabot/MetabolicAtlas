@@ -2,7 +2,7 @@
   <div ref="graphParent">
     <div id="graph3D"></div>
     <div class="canvasOption overlay">
-      <span class="button" v-on:click="downloadPNG()" title="Download as PNG"><i class="fa fa-download"></i></span>
+      <span class="button" title="Download as PNG" @click="downloadPNG()"><i class="fa fa-download"></i></span>
     </div>
   </div>
 </template>
@@ -199,9 +199,9 @@ export default {
       window.requestAnimationFrame(() => {
         document.getElementById('graph3D')
           .getElementsByTagName('canvas')[0]
-            .toBlob((blob) => {
-          FileSaver.saveAs(blob, `${this.loadedComponentName}.png`);
-        });
+          .toBlob((blob) => {
+            FileSaver.saveAs(blob, `${this.loadedComponentName}.png`);
+          });
       });
     },
     getElementIdAndType(element) {

@@ -15,32 +15,36 @@
       </span>
     </div>
     <div class="table-container">
-      <table class="table is-bordered is-striped is-narrow is-fullwidth" ref="table">
+      <table ref="table" class="table is-bordered is-striped is-narrow is-fullwidth">
         <thead>
           <tr class="has-background-white-ter">
-            <th class="is-unselectable clickable"
-            v-for="f in fields" v-show="showCol(f.name)"
-              @click="sortTable(f.name, null, null)"
-              :title="`Sort by ${f.display}`">
-                {{ f.display.replace(' ', '&nbsp;') }}
-              </th>
+            <th v-for="f in fields" :key="f.name"
+                v-show="showCol(f.name)" class="is-unselectable clickable"
+                :title="`Sort by ${f.display}`"
+                @click="sortTable(f.name, null, null)">
+              {{ f.display.replace(' ', '&nbsp;') }}
+            </th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(r, index) in sortedReactions">
+          <tr v-for="r in sortedReactions" :key="r.id">
             <td>
-              <router-link :to="{path: `/explore/gem-browser/${model.database_name}/reaction/${r.id}` }">{{ r.id }}</router-link>
+              <router-link
+                :to="{path: `/explore/gem-browser/${model.database_name}/reaction/${r.id}` }">
+                {{ r.id }}
+              </router-link>
             </td>
             <td v-html="getReformatChemicalReactionHTML(r)"></td>
             <td>
-              <template v-for="(m, index) in r.genes">{{ index == 0 ? '' : ', '}}<router-link :to="{ path: `/explore/gem-browser/${model.database_name}/gene/${m.id}` }">{{ m.name || m.id }}</router-link>
+              <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key max-len -->
+              <template v-for="(m, index) in r.genes">{{ index == 0 ? '' : ', ' }}<router-link :to="{ path: `/explore/gem-browser/${model.database_name}/gene/${m.id}` }">{{ m.name || m.id }}</router-link>
               </template>
             </td>
             <td v-show="showCP">{{ r.cp }}</td>
             <td v-show="showSubsystem">
               <template v-if="r.subsystem_str">
-                <template v-for="(s, index) in r.subsystem_str.split('; ')">
-                {{ index == 0 ? '' : '; '}}<router-link :to="{ path: `/explore/gem-browser/${model.database_name}/subsystem/${idfy(s)}` }">{{ s }}</router-link>
+                <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key max-len -->
+                <template v-for="(s, index) in r.subsystem_str.split('; ')">{{ index == 0 ? '' : '; ' }}<router-link :to="{ path: `/explore/gem-browser/${model.database_name}/subsystem/${idfy(s)}` }">{{ s }}</router-link>
                 </template>
               </template>
             </td>
@@ -49,7 +53,8 @@
                 <template v-if="i != 0">{{ r.is_reversible ? ' &#8660; ' : ' &#8658; ' }}</template>
                 <template v-for="(compo, j) in RP.split(' + ')">
                   <template v-if="j != 0"> + </template>
-                  <router-link :to="{ path: `/explore/gem-browser/${model.database_name}/compartment/${idfy(compo)}` }"> {{ compo }}</router-link>
+                  <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key max-len -->
+                  <router-link :to="{ path: `/explore/gem-browser/${model.database_name}/compartment/${idfy(compo)}` }">{{ compo }}</router-link>
                 </template>
               </template>
             </td>

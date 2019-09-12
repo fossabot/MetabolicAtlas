@@ -289,7 +289,7 @@ export default {
       if (this.mode === 'single') {
         RNAlevels = Object.keys(this.firstRNAlevels).length === 0 ? this.secondRNAlevels : this.firstRNAlevels;
         Object.keys(RNAlevels).forEach((enzID) => {
-          let level = this.roundValue(Math.log2(RNAlevels[enzID] + 1));
+          const level = this.roundValue(Math.log2(RNAlevels[enzID] + 1));
           this.computedRNAlevels[enzID] = [getSingleRNAExpressionColor(level), level];
         });
         this.computedRNAlevels['n/a'] = [getSingleRNAExpressionColor(NaN), 'n/a'];
@@ -300,7 +300,9 @@ export default {
           Object.keys(this.firstRNAlevels).forEach((enzID) => {
             const log2tpm1 = this.roundValue(Math.log2(this.firstRNAlevels[enzID] + 1));
             const log2tpm2 = this.roundValue(Math.log2(this.secondRNAlevels[enzID] + 1));
-            let level = this.roundValue( Math.log2((this.secondRNAlevels[enzID] + 1) / (this.firstRNAlevels[enzID] + 1)) );
+            const level = this.roundValue(
+              Math.log2((this.secondRNAlevels[enzID] + 1) / (this.firstRNAlevels[enzID] + 1))
+            );
             this.computedRNAlevels[enzID] = [getComparisonRNAExpressionColor(level), level, log2tpm1, log2tpm2];
           });
         } else {
@@ -309,7 +311,9 @@ export default {
             const log2tpm1 = this.roundValue(Math.log2(this.firstRNAlevels[enzID] + 1));
             if (enzID in this.secondRNAlevels) {
               const log2tpm2 = this.roundValue(Math.log2(this.secondRNAlevels[enzID] + 1));
-              let level = this.roundValue( Math.log2((this.secondRNAlevels[enzID] + 1) / (this.firstRNAlevels[enzID] + 1)) );
+              const level = this.roundValue(
+                Math.log2((this.secondRNAlevels[enzID] + 1) / (this.firstRNAlevels[enzID] + 1))
+              );
               this.computedRNAlevels[enzID] = [getComparisonRNAExpressionColor(level), level, log2tpm1, log2tpm2];
             } else {
               this.computedRNAlevels[enzID] = [getComparisonRNAExpressionColor(NaN), 'n/a', log2tpm1, 'n/a'];

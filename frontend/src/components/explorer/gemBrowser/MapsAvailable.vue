@@ -7,13 +7,19 @@
       </p>
     </header>
     <div v-if="mapsAvailable" class="card-content" style="padding: 0.5rem;">
-      <div v-for="mapKey in ['2d', '3d']" class="content has-text-left is-paddingless" style="padding-bottom: 1rem">
-        <template v-if="mapsAvailable[mapKey]['count'] !== 0">{{mapKey.toUpperCase()}} maps
+      <div v-for="mapKey in ['2d', '3d']"
+           :key="mapKey"
+           class="content has-text-left is-paddingless" style="padding-bottom: 1rem">
+        <template v-if="mapsAvailable[mapKey]['count'] !== 0">{{ mapKey.toUpperCase() }} maps
           <ul style="margin: 0 1rem">
             <template v-for="map in mapsAvailable[mapKey]['compartment'].concat(mapsAvailable[mapKey]['subsystem'])">
-              <li><router-link  :to="{ path: `/explore/map-viewer/${model.database_name}/${map[2]}/${map[0]}/${elementID}?dim=${mapKey}` }">
-                {{ map[1] }}
-              </router-link></li>
+              <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
+              <li>
+                <!-- eslint-disable-next-line max-len -->
+                <router-link :to="{ path: `/explore/map-viewer/${model.database_name}/${map[2]}/${map[0]}/${elementID}?dim=${mapKey}` }">
+                  {{ map[1] }}
+                </router-link>
+              </li>
             </template>
           </ul>
         </template>

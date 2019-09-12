@@ -3,9 +3,13 @@
     <div id="svg-wrapper" v-html="svgContent">
     </div>
     <div class="canvasOption overlay">
-      <span class="button" v-on:click="zoomOut(false)" title="Zoom in"><i class="fa fa-search-plus"></i></span>
-      <span class="button" v-on:click="zoomOut(true)" title="Zoom out"><i class="fa fa-search-minus"></i></span>
-      <span class="button" style="padding: 4.25px;" @click="toggleGenes()" title="Show/Hide genes">
+      <span class="button" title="Zoom in"
+            @click="zoomOut(false)"><i class="fa fa-search-plus"></i></span>
+      <span class="button" title="Zoom out"
+            @click="zoomOut(true)"><i class="fa fa-search-minus"></i></span>
+      <span class="button" title="Show/Hide genes"
+            style="padding: 4.25px;"
+            @click="toggleGenes()">
         <i class="fa fa-eye-slash">&thinsp;G
         </i>
       </span>
@@ -15,8 +19,12 @@
         <i class="fa fa-eye-slash">&thinsp;S
         </i>
       </span>
-      <span class="button" v-on:click="toggleFullScreen()" title="Toggle fullscreen" :disabled="isFullScreenDisabled"><i class="fa" :class="{ 'fa-compress': isFullscreen, 'fa-arrows-alt': !isFullscreen}"></i></span>
-      <span class="button" v-on:click="downloadMap()" title="Download as SVG"><i class="fa fa-download"></i></span>
+      <span class="button" title="Toggle fullscreen"
+            :disabled="isFullScreenDisabled"
+            @click="toggleFullScreen()">
+        <i class="fa" :class="{ 'fa-compress': isFullscreen, 'fa-arrows-alt': !isFullscreen}"></i>
+      </span>
+      <span class="button" title="Download as SVG" @click="downloadMap()"><i class="fa fa-download"></i></span>
     </div>
     <div id="svgSearch" class="overlay">
       <div class="control" :class="{ 'is-loading' : isLoadingSearch }">
@@ -413,6 +421,7 @@ export default {
           this.findElementsOnSVG(true);
         })
         .catch((error) => {
+          console.log(error);
           this.isLoadingSearch = false;
           const status = error.status || error.response.status;
           if (status !== 404) {
@@ -488,18 +497,18 @@ export default {
     highlight(elements) {
       this.unHighlight();
       this.elmHL = [];
-      elements.forEach((el) => {
+      for (const el of elements) { // eslint-disable-line no-restricted-syntax
         $(el).addClass('hl');
         this.elmHL.push(el);
         if (el.hasClass('rea')) {
           const selectors = `#svg-wrapper .met.${el.attr('id')}`;
           const elms = $(selectors);
-          elms.forEach((con) => {
+          for (const con of elms) { // eslint-disable-line no-restricted-syntax
             $(con).addClass('hl');
             this.elmHL.push(con);
-          });
+          }
         }
-      });
+      }
     },
     unHighlight() { // un-highlight elements
       if (this.elmHL) {

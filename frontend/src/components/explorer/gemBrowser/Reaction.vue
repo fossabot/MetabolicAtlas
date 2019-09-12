@@ -80,23 +80,23 @@
             <p>This reaction has no associated references.</p>
           </template>
           <template v-else>
-              <tr v-for="oneRef in unformattedRefs">
-                <td class="td-key has-background-primary has-text-white-bis">{{ oneRef.pmid }}</td>
-                <template v-if="formattedRefs[oneRef.pmid]">
-                  <td v-for="refData in [formattedRefs[oneRef.pmid]]">
-                    <a :href="refData.link" target="_blank">
-                      <template v-for="author in refData.authors">
-                        {{ author }},
-                      </template>
-                      {{ refData.year }}. <i>{{ refData.title }}</i>
-                      {{ refData.journal }}
-                    </a>
-                  </td>
-                </template>
-                <template v-else>
-                  <td></td>
-                </template>
-              </tr>
+            <tr v-for="oneRef in unformattedRefs" :key="oneRef.pmid">
+              <td class="td-key has-background-primary has-text-white-bis">{{ oneRef.pmid }}</td>
+              <template v-if="formattedRefs[oneRef.pmid]">
+                <td v-for="refData in [formattedRefs[oneRef.pmid]]" :key="refData.id">
+                  <a :href="refData.link" target="_blank">
+                    <template v-for="author in refData.authors">
+                      {{ author }},
+                    </template>
+                    {{ refData.year }}. <i>{{ refData.title }}</i>
+                    {{ refData.journal }}
+                  </a>
+                </td>
+              </template>
+              <template v-else>
+                <td></td>
+              </template>
+            </tr>
           </template>
         </table>
       </div>
@@ -210,18 +210,18 @@ export default {
     },
     load() {
       axios.get(`${this.model.database_name}/get_reaction/${this.rId}/`)
-      .then((response) => {
-        this.showLoader = false;
-        this.reaction = response.data.reaction;
-        if (response.data.pmids.length !== 0) {
-          this.unformattedRefs = response.data.pmids;
-          this.reformatRefs();
-        }
-        this.getRelatedReactions();
-      })
-      .catch(() => {
-        this.errorMessage = messages.notFoundError;
-      });
+        .then((response) => {
+          this.showLoader = false;
+          this.reaction = response.data.reaction;
+          if (response.data.pmids.length !== 0) {
+            this.unformattedRefs = response.data.pmids;
+            this.reformatRefs();
+          }
+          this.getRelatedReactions();
+        })
+        .catch(() => {
+          this.errorMessage = messages.notFoundError;
+        });
     },
     getRelatedReactions() {
       axios.get(`${this.model.database_name}/get_reaction/${this.rId}/related`)
@@ -303,34 +303,35 @@ export default {
       this.formattedRefs = {};
       const queryIDs = `(EXT_ID:"${this.unformattedRefs.map(e => e.pmid).join('"+OR+EXT_ID:"')}")`;
       axios.get(`https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=${queryIDs}&resultType=core&format=json`)
-      .then((response) => {
-        const newFormattedRefs = {};
-        for (const details of response.data.resultList.result) {
-          try {
-            const refDetails = {};
-            refDetails.link = details.fullTextUrlList.fullTextUrl.filter(e => e.documentStyle === 'html' && e.site === 'Europe_PMC');
-            if (refDetails.link.length === 0) {
-              refDetails.link = details.fullTextUrlList.fullTextUrl.filter(
-                e => e.documentStyle === 'doi' || e.documentStyle === 'abs')[0].url;
-            } else {
-              refDetails.link = refDetails.link[0].url;
-            }
-            if (details.pubYear) {
-              refDetails.year = details.pubYear;
-            }
-            refDetails.authors = details.authorList.author.map(e => e.fullName);
-            refDetails.journal = details.journalInfo.journal.title;
-            refDetails.title = details.title;
-            newFormattedRefs[details.id] = refDetails;
-          } catch (e) {
+        .then((response) => {
+          const newFormattedRefs = {};
+          response.data.resultList.result.forEach((details) => {
+            try {
+              const refDetails = {};
+              refDetails.link = details.fullTextUrlList.fullTextUrl
+                .filter(e => e.documentStyle === 'html' && e.site === 'Europe_PMC');
+              if (refDetails.link.length === 0) {
+                refDetails.link = details.fullTextUrlList.fullTextUrl.filter(
+                  e => e.documentStyle === 'doi' || e.documentStyle === 'abs')[0].url;
+              } else {
+                refDetails.link = refDetails.link[0].url;
+              }
+              if (details.pubYear) {
+                refDetails.year = details.pubYear;
+              }
+              refDetails.authors = details.authorList.author.map(e => e.fullName);
+              refDetails.journal = details.journalInfo.journal.title;
+              refDetails.title = details.title;
+              newFormattedRefs[details.id] = refDetails;
+            } catch (e) {
             // pass
-          }
-        }
-        this.formattedRefs = newFormattedRefs;
-      })
-      .catch(() => {
-        this.errorMessage = messages.notFoundError;
-      });
+            }
+          });
+          this.formattedRefs = newFormattedRefs;
+        })
+        .catch(() => {
+          this.errorMessage = messages.notFoundError;
+        });
     },
     viewReactionOnMap(reactionID) {
       EventBus.$emit('viewReactionOnMap', reactionID);

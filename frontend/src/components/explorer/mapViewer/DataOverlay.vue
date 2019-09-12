@@ -44,7 +44,8 @@
           <div class="select is-fullwidth">
             <select v-model="HPATissue1" @change="setFirstTissue('HPA')">
               <option>None</option>
-              <option v-for="tissue in HPATissues" class="clickable is-capitalized">{{ tissue }}</option>
+              <option v-for="tissue in HPATissues" :key="tissue"
+                      class="clickable is-capitalized">{{ tissue }}</option>
             </select>
           </div>
         </div>
@@ -52,11 +53,12 @@
         <div class="control">
           <div class="select is-fullwidth">
             <select
-            :disabled="disabledCustomSelectData"
-            v-model="customTissue1"
-            @change="setFirstTissue('custom')">
+              v-model="customTissue1"
+              :disabled="disabledCustomSelectData"
+              @change="setFirstTissue('custom')">
               <option v-if="!disabledCustomSelectData">None</option>
-              <option v-for="tissue in customTissues" class="clickable is-capitalized">{{ tissue }}</option>
+              <option v-for="tissue in customTissues" :key="tissue"
+                      class="clickable is-capitalized">{{ tissue }}</option>
             </select>
           </div>
         </div>
@@ -70,7 +72,8 @@
           <div class="select is-fullwidth">
             <select v-model="HPATissue2" @change="setSecondTissue('HPA')">
               <option>None</option>
-              <option v-for="tissue in HPATissues" :key="tissue" class="clickable is-capitalized">{{ tissue }}</option>
+              <option v-for="tissue in HPATissues" :key="tissue"
+                      class="clickable is-capitalized">{{ tissue }}</option>
             </select>
           </div>
         </div>
