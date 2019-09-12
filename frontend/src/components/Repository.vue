@@ -72,14 +72,10 @@
         <br>
         <loader v-show="showLoader"></loader>
         <div v-if="GEMS.length != 0">
-          <vue-good-table
-            :columns="columns" :rows="GEMS"
-            :search-options="{
-              enabled: true
-            }"
+          <vue-good-table :columns="columns" :rows="GEMS"
+            :search-options="{ enabled: true }"
             :sort-options="{ enabled: true }" style-class="vgt-table striped bordered"
-            :pagination-options="tablePaginationOpts"
-            @on-row-click="getModel">
+            :pagination-options="tablePaginationOpts" @on-row-click="getModel">
           </vue-good-table>
         </div>
         <div v-else>
@@ -89,25 +85,16 @@
         <div id="gem-list-modal" class="modal" :class="{ 'is-active': showModelTable }">
           <div class="modal-background" @click="showModelTable = false"></div>
           <div class="modal-content column is-6-fullhd is-8-desktop is-10-tablet is-full-mobile has-background-white"
-               tabindex="0"
-               @keyup.esc="showModelTable = false">
+               tabindex="0" @keyup.esc="showModelTable = false">
             <div id="modal-info" class="model-table">
               <h2 class="title">
                 <template v-if="selectedModel.database_name">
                   {{ selectedModel.full_name }}
                 </template>
                 <template v-else>
-                  <template v-if="selectedModel.tag
-                    || selectedModel.tissue
-                    || selectedModel.cell_type
-                    || selectedModel.cell_line">
-                    {{ selectedModel.set_name }} -
-                    {{ selectedModel.tag || selectedModel.tissue
-                      || selectedModel.cell_type || selectedModel.cell_line }}
-                  </template>
-                  <template v-else>
-                    {{ selectedModel.set_name }}
-                  </template>
+                  {{ selectedModel.set_name }} -
+                  {{ selectedModel.tag || selectedModel.tissue
+                    || selectedModel.cell_type || selectedModel.cell_line || "" }}
                 </template>
               </h2>
               {{ selectedModel.description }}<br><br>
@@ -133,22 +120,16 @@
                           :rowspan="selectedModel.authors.length">
                         Author(s)
                       </td>
-                      <td>
-                        {{ a.given_name }} {{ a.family_name }}
-                      </td>
+                      <td>{{ a.given_name }} {{ a.family_name }}</td>
                     </tr>
                   </template>
                   <tr v-if="selectedModel.date">
                     <td class="td-key has-background-primary has-text-white-bis">Date</td>
-                    <td>
-                      {{ selectedModel.date }}
-                    </td>
+                    <td>{{ selectedModel.date }}</td>
                   </tr>
                   <tr v-if="selectedModel.link">
                     <td class="td-key has-background-primary has-text-white-bis">URL</td>
-                    <td>
-                      <a :href="selectedModel.link" target="_blank">{{ selectedModel.link }}</a>
-                    </td>
+                    <td><a :href="selectedModel.link" target="_blank">{{ selectedModel.link }}</a></td>
                   </tr>
                   <tr v-if="selectedModel.ref && selectedModel.ref.length !== 0">
                     <td class="td-key has-background-primary has-text-white-bis">Reference(s)</td>
