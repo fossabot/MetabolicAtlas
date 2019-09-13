@@ -31,8 +31,7 @@
             :class="[{'is-active has-text-weight-semibold': showTab(tab) && resultsCount[tab] !== 0 }, { 'is-disabled': resultsCount[tab] === 0 }]"
             v-for="tab in tabs" @click="resultsCount[tab] !== 0 ? showTabType=tab : ''">
               <a class="is-capitalized">
-                {{ tab }}s&nbsp;
-                <span v-if="resultsCount[tab] !== 0">({{ resultsCount[tab] }})</span>
+                {{ tab }}s&nbsp;({{ resultsCount[tab] }})
               </a>
             </li>
           </ul>
