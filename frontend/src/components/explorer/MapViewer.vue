@@ -1,6 +1,6 @@
 <template>
   <div id="mapViewer" class="extended-section">
-    <div class="columns" id="iMainPanel">
+    <div id="iMainPanel" class="columns">
       <template v-if="errorMessage">
         <div class="column">
           <br><br>
@@ -12,47 +12,69 @@
         </div>
       </template>
       <template v-else>
-        <div id="iSideBar" class="column is-one-fifth-widescreen is-one-quarter-desktop is-one-quarter-tablet is-half-mobile has-background-lightgray">
+        <div id="iSideBar" class="column is-one-fifth-widescreen is-one-quarter-desktop
+        is-one-quarter-tablet is-half-mobile has-background-lightgray">
           <div id="menu">
             <ul class="l0">
-              <li :title="`Select a ${dim.toUpperCase()} compartment network to show`">Compartments<span>&nbsp;&#9656;</span>
+              <li :title="`Select a ${dim.toUpperCase()} compartment network to show`">
+                Compartments<span>&nbsp;&#9656;</span>
                 <ul class="vhs l1" title="">
-                  <li @click="showMap()" class="has-background-grey-dark clickable"><i>Clear selection</i></li>
+                  <li class="has-background-grey-dark clickable" @click="showMap()"><i>Clear selection</i></li>
                   <div v-if="!has2DCompartmentMaps || show3D">
-                    <li v-for="cKey in Object.keys(mapsData3D.compartments).sort()" class="clickable"
-                      :class="{'has-text-warning': cKey === currentDisplayedName }"
-                      @click="showMap(mapsData3D.compartments[cKey].name_id)">
-                      {{ mapsData3D.compartments[cKey].name }} {{ mapsData3D.compartments[cKey].reaction_count != 0 ? `(${mapsData3D.compartments[cKey].reaction_count})` : '' }}
+                    <li v-for="cKey in Object.keys(mapsData3D.compartments).sort()" :key="cKey"
+                        class="clickable"
+                        :class="{'has-text-warning': cKey === currentDisplayedName }"
+                        @click="showMap(mapsData3D.compartments[cKey].name_id)">
+                      {{ mapsData3D.compartments[cKey].name }}
+                      {{ mapsData3D.compartments[cKey].reaction_count != 0 ?
+                        `(${mapsData3D.compartments[cKey].reaction_count})` : '' }}
                     </li>
                   </div>
                   <div v-else>
-                    <li v-for="cKey in Object.keys(mapsData2D.compartments).sort()" class="clickable"
-                      :class="{ 'disable' : !mapsData2D.compartments[cKey].sha, 'has-text-warning': cKey === currentDisplayedName }"
-                      @click="showMap(mapsData2D.compartments[cKey].name_id)">
-                      {{ mapsData2D.compartments[cKey].name }} {{ mapsData2D.compartments[cKey].reaction_count != 0 ? `(${mapsData2D.compartments[cKey].reaction_count})` : '' }}
+                    <li v-for="cKey in Object.keys(mapsData2D.compartments).sort()" :key="cKey"
+                        class="clickable"
+                        :class="{ 'disable' : !mapsData2D.compartments[cKey].sha,
+                                  'has-text-warning': cKey === currentDisplayedName }"
+                        @click="showMap(mapsData2D.compartments[cKey].name_id)">
+                      {{ mapsData2D.compartments[cKey].name }}
+                      {{ mapsData2D.compartments[cKey].reaction_count != 0 ?
+                        `(${mapsData2D.compartments[cKey].reaction_count})` : '' }}
                     </li>
                   </div>
                 </ul>
               </li>
-              <li :title="`Select a ${dim.toUpperCase()} subsystem network to show`">Subsystems<span>&nbsp;&#9656;</span>
+              <li :title="`Select a ${dim.toUpperCase()} subsystem network to show`">
+                Subsystems<span>&nbsp;&#9656;</span>
                 <ul class="vhs l1" title="">
-                  <li @click="showMap()" class="has-background-grey-dark clickable"><i>Clear selection</i></li>
+                  <li class="has-background-grey-dark clickable" @click="showMap()"><i>Clear selection</i></li>
                   <div v-if="!has2DSubsystemMaps || show3D">
-                    <li v-for="sKey in Object.keys(mapsData3D.subsystems).sort()" class="clickable"
-                      :class="{'has-text-warning': sKey === currentDisplayedName }"
-                      @click="showMap(mapsData3D.subsystems[sKey].name_id, 'subsystem')">
-                        {{ mapsData3D.subsystems[sKey].name }} {{ mapsData3D.subsystems[sKey].reaction_count != 0 ? `(${mapsData3D.subsystems[sKey].reaction_count})` : '' }}
+                    <li v-for="sKey in Object.keys(mapsData3D.subsystems).sort()" :key="sKey"
+                        class="clickable"
+                        :class="{'has-text-warning': sKey === currentDisplayedName }"
+                        @click="showMap(mapsData3D.subsystems[sKey].name_id, 'subsystem')">
+                      {{ mapsData3D.subsystems[sKey].name }}
+                      {{ mapsData3D.subsystems[sKey].reaction_count != 0 ?
+                        `(${mapsData3D.subsystems[sKey].reaction_count})` : '' }}
                     </li>
                   </div>
                   <div v-else>
-                    <li v-for="sKey in Object.keys(mapsData2D.subsystems).sort()" class="clickable"
-                      :class="{'has-text-warning': sKey === currentDisplayedName }"
-                      v-if="mapsData2D.subsystems[sKey].name_id && mapsData2D.subsystems[sKey].sha" @click="showMap(mapsData2D.subsystems[sKey].name_id, 'subsystem')">
-                        {{ mapsData2D.subsystems[sKey].name }} {{ mapsData2D.subsystems[sKey].reaction_count != 0 ? `(${mapsData2D.subsystems[sKey].reaction_count})` : '' }}
-                    </li>
-                    <li v-else class="disable">
-                       {{ mapsData2D.subsystems[sKey].name }}
-                    </li>
+                    <template v-for="sKey in Object.keys(mapsData2D.subsystems).sort()">
+                      <template v-if="mapsData2D.subsystems[sKey].name_id && mapsData2D.subsystems[sKey].sha">
+                        <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
+                        <li class="clickable" :class="{'has-text-warning': sKey === currentDisplayedName }"
+                            @click="showMap(mapsData2D.subsystems[sKey].name_id, 'subsystem')">
+                          {{ mapsData2D.subsystems[sKey].name }}
+                          {{ mapsData2D.subsystems[sKey].reaction_count != 0 ?
+                            `(${mapsData2D.subsystems[sKey].reaction_count})` : '' }}
+                        </li>
+                      </template>
+                      <template v-else>
+                        <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
+                        <li class="disable">
+                          {{ mapsData2D.subsystems[sKey].name }}
+                        </li>
+                      </template>
+                    </template>
                   </div>
                 </ul>
               </li>
@@ -61,31 +83,35 @@
           <sidebar-data-panels
             :model="model"
             :dim="dim"
-            :mapType="currentDisplayedType"
-            :mapName="currentDisplayedName"
-            :mapsData="show2D ? mapsData2D : mapsData3D"
-            :selectionData="selectionData"
+            :map-type="currentDisplayedType"
+            :map-name="currentDisplayedName"
+            :maps-data="show2D ? mapsData2D : mapsData3D"
+            :selection-data="selectionData"
             :loading="showSelectionLoader">
           </sidebar-data-panels>
         </div>
         <div v-show="showOverviewScreen" class="column">
-          <p class="is-size-5 has-text-centered" style="padding: 10%;">Choose a compartment or subsystem map from the menu on the left</p>
+          <p class="is-size-5 has-text-centered" style="padding: 10%;">
+            Choose a compartment or subsystem map from the menu on the left
+          </p>
         </div>
-        <div id="graphframe" v-show="!showOverviewScreen" class="column is-unselectable">
-          <svgmap v-show="show2D" :model="model" :mapsData="mapsData2D"
-            @loadComplete="handleLoadComplete"
-            @loading="showLoader=true">
+        <div v-show="!showOverviewScreen" id="graphframe" class="column is-unselectable">
+          <svgmap v-show="show2D" :model="model"
+                  :maps-data="mapsData2D"
+                  @loadComplete="handleLoadComplete"
+                  @loading="showLoader=true">
           </svgmap>
           <d3dforce v-show="show3D" :model="model"
-            @loadComplete="handleLoadComplete"
-            @loading="showLoader=true">
+                    @loadComplete="handleLoadComplete"
+                    @loading="showLoader=true">
           </d3dforce>
-          <div id="iLoader" class="loading" v-show="showLoader">
+          <div v-show="showLoader" id="iLoader" class="loading">
             <a class="button is-loading"></a>
           </div>
           <div id="iSwitch" class="overlay">
-            <span class="button" @click="switchDimension" :disabled="!activeSwitch"
-            :title="activeSwitch ? `Reload the current network in ${ show2D ? '3D' : '2D' }` : ''">
+            <span class="button" :disabled="!activeSwitch"
+                  :title="activeSwitch ? `Reload the current network in ${ show2D ? '3D' : '2D' }` : ''"
+                  @click="switchDimension">
               <template v-if="activeSwitch">
                 Switch to&nbsp;<b>{{ show2D ? '3D' : '2D' }}</b>
               </template>
@@ -100,11 +126,12 @@
             </span>
           </div>
           <transition name="slide-fade">
-            <article id="errorBar" class="message" v-if="loadErrorMesssage"
-              :class="loadErrorTypeMesssage === 'danger' ? 'is-danger' : 'is-info'">
+            <article v-if="loadErrorMesssage" id="errorBar"
+                     class="message"
+                     :class="loadErrorTypeMesssage === 'danger' ? 'is-danger' : 'is-info'">
               <div class="message-header">
                 <i class="fa"
-                :class="loadErrorTypeMesssage === 'danger' ? 'is-danger' : 'is-info'"></i>
+                   :class="loadErrorTypeMesssage === 'danger' ? 'is-danger' : 'is-info'"></i>
               </div>
               <div class="message-body">
                 <h5 class="title is-5">{{ loadErrorMesssage }}</h5>
@@ -112,21 +139,26 @@
             </article>
           </transition>
         </div>
-        <div id="dataOverlayBar" class="column is-narrow has-text-white is-unselectable" :class="{
-          'is-paddingless': toggleDataOverlayPanel }" v-show="!showLoader" title="Click to show the data overlay panel" @click="toggleDataOverlayPanel = !toggleDataOverlayPanel">
+        <div v-show="!showLoader" id="dataOverlayBar"
+             class="column is-narrow has-text-white is-unselectable" :class="{
+               'is-paddingless': toggleDataOverlayPanel }"
+             title="Click to show the data overlay panel" @click="toggleDataOverlayPanel = !toggleDataOverlayPanel">
           <p class="is-size-5 has-text-centered has-text-weight-bold">
             <span class="icon">
-                <i class="fa" :class="{ 'fa-arrow-left': !toggleDataOverlayPanel, 'fa-arrow-right': toggleDataOverlayPanel}"></i>
+              <i class="fa"
+                 :class="{ 'fa-arrow-left': !toggleDataOverlayPanel, 'fa-arrow-right': toggleDataOverlayPanel}"></i>
             </span><br>
-              D<br>A<br>T<br>A<br><br>
-              O<br>V<br>E<br>R<br>L<br>A<br>Y<br>
+            D<br>A<br>T<br>A<br><br>
+            O<br>V<br>E<br>R<br>L<br>A<br>Y<br>
             <span class="icon">
-              <i class="fa" :class="{ 'fa-arrow-left': !toggleDataOverlayPanel, 'fa-arrow-right': toggleDataOverlayPanel}"></i>
+              <i class="fa"
+                 :class="{ 'fa-arrow-left': !toggleDataOverlayPanel, 'fa-arrow-right': toggleDataOverlayPanel}"></i>
             </span>
           </p>
         </div>
-        <DataOverlay :model="model" :mapType="currentDisplayedType" :dim="dim"
-          :mapName="currentDisplayedName" v-show="toggleDataOverlayPanel">
+        <DataOverlay v-show="toggleDataOverlayPanel" :model="model"
+                     :map-type="currentDisplayedType"
+                     :dim="dim" :map-name="currentDisplayedName">
         </DataOverlay>
       </template>
     </div>
@@ -144,13 +176,15 @@ import { default as EventBus } from '../../event-bus';
 import { default as messages } from '../../helpers/messages';
 
 export default {
-  name: 'map-viewer',
-  props: ['model'],
+  name: 'MapViewer',
   components: {
     SidebarDataPanels,
     DataOverlay,
     Svgmap,
     D3dforce,
+  },
+  props: {
+    model: Object,
   },
   data() {
     return {
@@ -314,7 +348,7 @@ export default {
       self.isHoverMenuItem = true;
     });
 
-    $('#graphframe').on('click', function f() {
+    $('#graphframe').on('click', () => {
       $('#menu ul.l1, #menu ul.l2').hide();
     });
   },
@@ -392,48 +426,53 @@ export default {
     },
     getSubComptData(model) {
       axios.get(`${model.database_name}/viewer/`)
-      .then((response) => {
-        this.mapsData3D.compartments = {};
-        for (const c of response.data.compartment) {
-          this.mapsData3D.compartments[c.name_id] = c;
-          this.mapsData3D.compartments[c.name_id].id = c.name_id;
-          this.mapsData3D.compartments[c.name_id].alternateDim = c.compartment_svg;
-          this.compartmentMapping.dim2D[c.compartment_svg] = c.name_id;
-        }
-        this.mapsData2D.compartments = {};
-        for (const c of response.data.compartmentsvg) {
-          this.mapsData2D.compartments[c.name_id] = c;
-          this.mapsData2D.compartments[c.name_id].id = c.compartment;
-          this.mapsData2D.compartments[c.name_id].alternateDim = c.compartment;
-          this.compartmentMapping.dim3D[c.compartment] = c.name_id;
-        }
-        this.has2DCompartmentMaps = Object.keys(this.mapsData2D.compartments).length !== 0;
-        this.mapsData3D.subsystems = {};
-        for (const s of response.data.subsystem) {
-          this.mapsData3D.subsystems[s.name_id] = s;
-          this.mapsData3D.subsystems[s.name_id].id = s.name_id;
-          this.mapsData3D.subsystems[s.name_id].alternateDim = s.subsystem_svg;
-        }
-        this.mapsData2D.subsystems = {};
-        for (const s of response.data.subsystemsvg) {
-          this.mapsData2D.subsystems[s.name_id] = s;
-          this.mapsData2D.subsystems[s.name_id].id = s.subsystem;
-          this.mapsData2D.subsystems[s.name_id].alternateDim = s.subsystem;
-        }
-        this.has2DSubsystemMaps = Object.keys(this.mapsData2D.subsystems).length !== 0;
+        .then((response) => {
+          this.mapsData3D.compartments = {};
+          response.data.compartment.forEach((c) => {
+            this.mapsData3D.compartments[c.name_id] = c;
+            this.mapsData3D.compartments[c.name_id].id = c.name_id;
+            this.mapsData3D.compartments[c.name_id].alternateDim = c.compartment_svg;
+            this.compartmentMapping.dim2D[c.compartment_svg] = c.name_id;
+          });
 
-        if (!this.has2DCompartmentMaps && !this.has2DSubsystemMaps) {
-          this.show3D = true;
-          this.show2D = false;
-        }
-        this.checkRoute();
-      })
-      .catch((error) => {
-        switch (error.response.status) {
-          default:
-            this.errorMessage = messages.unknownError;
-        }
-      });
+          this.mapsData2D.compartments = {};
+          response.data.compartmentsvg.forEach((c) => {
+            this.mapsData2D.compartments[c.name_id] = c;
+            this.mapsData2D.compartments[c.name_id].id = c.compartment;
+            this.mapsData2D.compartments[c.name_id].alternateDim = c.compartment;
+            this.compartmentMapping.dim3D[c.compartment] = c.name_id;
+          });
+
+          this.has2DCompartmentMaps = Object.keys(this.mapsData2D.compartments).length !== 0;
+
+          this.mapsData3D.subsystems = {};
+          response.data.subsystem.forEach((s) => {
+            this.mapsData3D.subsystems[s.name_id] = s;
+            this.mapsData3D.subsystems[s.name_id].id = s.name_id;
+            this.mapsData3D.subsystems[s.name_id].alternateDim = s.subsystem_svg;
+          });
+
+          this.mapsData2D.subsystems = {};
+          response.data.subsystemsvg.forEach((s) => {
+            this.mapsData2D.subsystems[s.name_id] = s;
+            this.mapsData2D.subsystems[s.name_id].id = s.subsystem;
+            this.mapsData2D.subsystems[s.name_id].alternateDim = s.subsystem;
+          });
+
+          this.has2DSubsystemMaps = Object.keys(this.mapsData2D.subsystems).length !== 0;
+
+          if (!this.has2DCompartmentMaps && !this.has2DSubsystemMaps) {
+            this.show3D = true;
+            this.show2D = false;
+          }
+          this.checkRoute();
+        })
+        .catch((error) => {
+          switch (error.response.status) {
+            default:
+              this.errorMessage = messages.unknownError;
+          }
+        });
     },
     checkRoute() {
       // load maps from url if contains map_id, the url is then cleaned of the id
@@ -441,7 +480,7 @@ export default {
         const type = this.$route.name.includes('Compartment') ? 'compartment' : 'subsystem';
         const mapID = this.$route.params.id;
         this.URLID = this.$route.params.rid;
-        const dim = this.$route.query.dim;
+        const { dim } = this.$route.query;
         if (!dim) {
           this.show2D = false;
         } else {
@@ -451,17 +490,14 @@ export default {
         this.$nextTick(() => {
           EventBus.$emit('showAction', type, mapID, this.URLID ? [this.URLID] : [], false);
         });
-        this.updateURL(type, mapID, this.URLID);
+        this.updateURL(type, mapID);
       }
     },
-    updateURL(type, mapID, URLID) {
+    updateURL(type, mapID) {
       this.watchURL = false;
-      if (URLID && false) {
-        // no reaction id in url for now
-        this.$router.push(`/explore/map-viewer/${this.model.database_name}/${type}/${mapID}/${URLID}?dim=${this.dim}`);
-      } else {
-        this.$router.push(`/explore/map-viewer/${this.model.database_name}/${type}/${mapID}?dim=${this.dim}`);
-      }
+      // no reaction id in url for now
+      // this.$router.push(`/explore/map-viewer/${this.model.database_name}/${type}/${mapID}/${URLID}?dim=${this.dim}`);
+      this.$router.push(`/explore/map-viewer/${this.model.database_name}/${type}/${mapID}?dim=${this.dim}`);
     },
     checkValidRequest(displayType, displayName) {
       this.requestedType = displayType;
@@ -473,8 +509,8 @@ export default {
           }
           return this.requestedName in this.mapsData2D.compartments;
         }
-        return this.requestedName in this.mapsData2D.subsystems &&
-         this.mapsData2D.subsystems[this.requestedName].sha;
+        return this.requestedName in this.mapsData2D.subsystems
+         && this.mapsData2D.subsystems[this.requestedName].sha;
       }
       if (displayType === 'compartment') {
         if (displayName in this.compartmentMapping.dim2D) {

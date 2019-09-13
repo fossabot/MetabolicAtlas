@@ -6,7 +6,7 @@ const CompressionPlugin = require("compression-webpack-plugin");
 
 module.exports = {
   productionSourceMap: false,
-  lintOnSave: IS_DEV,
+  lintOnSave: 'default',
   css: {
     loaderOptions: {
       sass: {

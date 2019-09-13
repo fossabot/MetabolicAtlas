@@ -1,17 +1,18 @@
 <template>
   <div class="container cytoscape-table">
     <div class="columns">
-      <div class="column" style="padding-bottom: 0">
+      <div class="column"
+           style="padding-bottom: 0">
         <cytoscape-table-search
           :reset="resetTable"
-          @search="searchTable($event)"
           class="is-10"
-        ></cytoscape-table-search>
+          @search="searchTable($event)" />
       </div>
-      <div class="column is-2" style="padding-bottom: 0">
+      <div class="column is-2"
+           style="padding-bottom: 0">
         <div class="columns">
           <div class="column">
-            <a class="button is-primary is-pulled-right" @click="exportToTSV" >
+            <a class="button is-primary is-pulled-right" @click="exportToTSV">
               <span class="icon is-large"><i class="fa fa-download"></i></span>
               <span>Export to TSV</span>
             </a>
@@ -23,7 +24,7 @@
       <div class="column">
         <div class="field">
           <span class="tag">
-             # Reaction(s): {{ filteredReactions.length }}
+            # Reaction(s): {{ filteredReactions.length }}
           </span>
           <span>
             &nbsp;
@@ -34,68 +35,86 @@
           <span v-show="geneCount">
             &nbsp;
           </span>
-          <span class="tag" v-show="geneCount">
-             # Unique Gene(s): {{ geneCount }}
+          <span v-show="geneCount" class="tag">
+            # Unique Gene(s): {{ geneCount }}
           </span>
-          <span class="is-pulled-right" v-show="isGraphVisible">
-             Click on a <span class="tag is-rounded"><span class="is-size-6">label</span></span> to highlight the corresponding element on the graph
+          <span v-show="isGraphVisible" class="is-pulled-right">
+            Click on a <span class="tag is-rounded"><span class="is-size-6">label</span></span>
+            to highlight the corresponding element on the graph
           </span>
         </div>
-        <table id="cytoTable" class="table is-bordered is-narrow is-fullwidth" ref="table">
+        <table id="cytoTable" ref="table" class="table is-bordered is-narrow is-fullwidth">
           <thead>
             <tr style="background: #F8F4F4">
-              <th class="is-unselectable clickable"
-                v-for="s in columns"
-                @click="sortBy(s.field)"
+              <th v-for="s in columns" :key="s.field"
+                  class="is-unselectable clickable"
+                  @click="sortBy(s.field)"
               >{{ s.display }}</th>
             </tr>
           </thead>
           <tbody id="machingTableBody" ref="machingTableBody">
-            <tr v-for="r in matchingReactions">
-              <td v-for="s in columns" v-if="'modifier' in s" v-html="applyModifier(s, r)"></td>
-              <td v-else-if="s.field === 'id'">
-                <template v-if="isGraphVisible">
-                  <span class="tag is-rounded clickable" @click="HLreaction(r.id)" 
-                  :class="[{ 'hl': isSelected(r.id) }, '']">
-                    <span class="is-size-6">{{ r.id }}</span>
-                  </span>
+            <tr v-for="r in matchingReactions" :key="r.id">
+              <td v-for="s in columns" :key="s.field">
+                <template v-if="s.field === 'id'">
+                  <template v-if="isGraphVisible">
+                    <span class="tag is-rounded clickable" :class="[{ 'hl': isSelected(r.id) }, '']"
+                          @click="HLreaction(r.id)">
+                      <span class="is-size-6">{{ r.id }}</span>
+                    </span>
+                  </template>
+                  <template v-else>
+                    {{ r.id }}
+                  </template>
+                </template>
+                <template v-else-if="['reactants', 'products', 'genes'].includes(s.field)">
+                  <template v-for="el in r[s.field]">
+                    <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
+                    <span class="tag is-rounded clickable is-medium"
+                          :title="s.field !== 'genes' ? `${el.id} - ${el.compartment_str}` : el.id"
+                          :class="[{ 'hl': isSelected(el.id) }, '']" @click="highlight(el.id)">
+                      <span class="">{{ el.name || el.id }}</span>
+                    </span>
+                  </template>
+                </template>
+                <template v-else-if="'modifier' in s">
+                  <span v-html="applyModifier(s, r)"></span>
                 </template>
                 <template v-else>
-                 {{ r.id }}
+                  {{ r[s.field] }}
                 </template>
-              </td>
-              <td v-else-if="['reactants', 'products', 'genes'].includes(s.field)">
-                <template v-for="el in r[s.field]">
-                  <span class="tag is-rounded clickable is-medium" :title="s.field !== 'genes' ? `${el.id} - ${el.compartment_str}` : el.id"
-                    @click="highlight(el.id)" :class="[{ 'hl': isSelected(el.id) }, '']">
-                    <span class="">{{ el.name || el.id }}</span>
-                  </span>
-                </template>
-              </td>
-              <td v-else>
-                {{ r[s.field] }}
               </td>
             </tr>
           </tbody>
           <tbody id="unmachingTableBody" ref="unmachingTableBody">
-            <tr v-for="r in unMatchingReactions">
-              <td v-for="s in columns" v-if="'modifier' in s" v-html="applyModifier(s, r)"></td>
-              <td v-else-if="s.field === 'id'">
-                <span class="tag is-rounded clickable" @click="HLreaction(r.id)" 
-                :class="[{ 'hl': isSelected(r.id) }, '']">
-                  <span class="is-size-6">{{ r.id }}</span>
-                </span>
-              </td>
-              <td v-else-if="['reactants', 'products', 'genes'].includes(s.field)">
-                <template v-for="el in r[s.field]">
-                  <span class="tag is-rounded clickable" :title="s.field !== 'genes' ? `${el.id} - ${el.compartment_str}` : el.id"
-                    @click="highlight(el.id)" :class="[{ 'hl': isSelected(el.id) }, '']">
-                    <span class="is-size-6">{{ el.name || el.id }}</span>
-                  </span>&nbsp;
+            <tr v-for="r in unMatchingReactions" :key="r.id">
+              <td v-for="s in columns" :key="s.field">
+                <template v-if="s.field === 'id'">
+                  <template v-if="isGraphVisible">
+                    <span class="tag is-rounded clickable" :class="[{ 'hl': isSelected(r.id) }, '']"
+                          @click="HLreaction(r.id)">
+                      <span class="is-size-6">{{ r.id }}</span>
+                    </span>
+                  </template>
+                  <template v-else>
+                    {{ r.id }}
+                  </template>
                 </template>
-              </td>
-              <td v-else>
-                {{ r[s.field] }}
+                <template v-else-if="['reactants', 'products', 'genes'].includes(s.field)">
+                  <template v-for="el in r[s.field]">
+                    <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
+                    <span class="tag is-rounded clickable is-medium"
+                          :title="s.field !== 'genes' ? `${el.id} - ${el.compartment_str}` : el.id"
+                          :class="[{ 'hl': isSelected(el.id) }, '']" @click="highlight(el.id)">
+                      <span class="">{{ el.name || el.id }}</span>
+                    </span>
+                  </template>
+                </template>
+                <template v-else-if="'modifier' in s">
+                  <span v-html="applyModifier(s, r)"></span>
+                </template>
+                <template v-else>
+                  {{ r[s.field] }}
+                </template>
               </td>
             </tr>
           </tbody>
@@ -115,11 +134,18 @@ import { reformatEqSign } from '../../../helpers/utils';
 
 
 export default {
-  name: 'cytoscape-table',
+  name: 'CytoscapeTable',
   components: {
     CytoscapeTableSearch,
   },
-  props: ['reactions', 'selectedElmId', 'selectedReactionId', 'isGraphVisible', 'filename', 'sheetname'],
+  props: {
+    reactions: Array,
+    selectedElmId: String,
+    selectedReactionId: String,
+    isGraphVisible: Boolean,
+    filename: String,
+    sheetname: String,
+  },
   data() {
     return {
       columns: [
@@ -137,30 +163,30 @@ export default {
       errorMessage: '',
     };
   },
-  watch: {
-    reactions() {
-      this.sortedReactions = this.filteredReactions;
-      this.matchingReactions = this.sortedReactions;
-    },
-  },
   computed: {
     filteredReactions: function f() {
-      return this.reactions.map(e => e);
+      return this.reactions;
     },
     geneCount() {
       const genes = new Set();
-      for (const r of this.reactions) {
+      this.reactions.forEach((r) => {
         r.genes.forEach((e) => { genes.add(e.id); });
-      }
+      });
       return genes.size;
     },
     metaboliteCount() {
       const metabolites = new Set();
-      for (const r of this.reactions) {
+      this.reactions.forEach((r) => {
         r.reactants.forEach((e) => { metabolites.add(e.id); });
         r.products.forEach((e) => { metabolites.add(e.id); });
-      }
+      });
       return metabolites.size;
+    },
+  },
+  watch: {
+    reactions() {
+      this.sortedReactions = this.filteredReactions;
+      this.matchingReactions = this.sortedReactions;
     },
   },
   methods: {
@@ -205,14 +231,14 @@ export default {
         this.matchingReactions = [];
         this.unMatchingReactions = [];
         const t = this.tableSearchTerm.toLowerCase();
-        for (const elm of this.sortedReactions) {
+        this.sortedReactions.forEach((elm) => {
           let matches = false;
-          for (const s of this.columns) {
+          this.columns.every((s) => {
             const val = elm[s.field];
             if (typeof val === 'object' && ['reactants', 'products', 'genes'].includes(s.field)) {
               let match = false;
-              for (const el of val) {
-                for (const k of Object.keys(el)) {
+              val.every((el) => {
+                Object.keys(el).every((k) => {
                   if (k === 'id') {
                     match = el[k].toLowerCase() === t;
                   } else {
@@ -220,25 +246,23 @@ export default {
                   }
                   if (match) {
                     matches = match;
-                    break;
                   }
-                }
-                if (matches) {
-                  break;
-                }
-              }
+                  return !matches;
+                });
+                return !matches;
+              });
             } else if (!matches && val && val.toLowerCase().includes(t)) {
               matches = true;
-              break;
             }
-          }
-
+            return !matches;
+          });
           if (matches) {
             this.matchingReactions.push(elm);
           } else {
             this.unMatchingReactions.push(elm);
           }
-        }
+        });
+
         // fix disappearing row/cell borders
         if (this.matchingReactions.length === 0) {
           this.$refs.machingTableBody.style.display = 'none';

@@ -3,7 +3,7 @@
     <div :class="{ 'container': !extendWindow }">
       <template v-if="currentShowComponent">
         <keep-alive>
-          <component v-bind:is="currentShowComponent" :model="model"></component>
+          <component :is="currentShowComponent" :model="model"></component>
         </keep-alive>
       </template>
       <template v-else>
@@ -21,18 +21,23 @@
         </div>
         <div class="columns is-centered">
           <div class="column is-8-widescreen is-10-desktop is-fullwidth-tablet is-size-5">
-            <div id="selectedModel"
-            :class="cmodel.database_name === model.database_name ? 'selectedBox' : ''" class="box has-text-centered clickable"
-            v-for="cmodel, k in Object.values(models).sort((a, b) => (a.short_name.toLowerCase() < b.short_name.toLowerCase() ? -1 : 1))"
-            @mousedown.prevent="selectModel(cmodel)"
-            :title="`Select ${cmodel.short_name} as the model to explore`">
+            <div v-for="cmodel in Object.values(models).sort((a, b) =>
+                   (a.short_name.toLowerCase() < b.short_name.toLowerCase() ? -1 : 1))"
+                 id="selectedModel"
+                 :key="cmodel.database_name"
+                 :class="cmodel.database_name === model.database_name ? 'selectedBox' : ''"
+                 class="box has-text-centered clickable"
+                 :title="`Select ${cmodel.short_name} as the model to explore`"
+                 @mousedown.prevent="selectModel(cmodel)">
               <div>
-                <span class="has-text-primary has-text-weight-bold">{{cmodel.short_name}} v{{cmodel.version}}</span> - {{cmodel.full_name}}
+                <span class="has-text-primary has-text-weight-bold">
+                  {{ cmodel.short_name }} v{{ cmodel.version }}
+                </span> - {{ cmodel.full_name }}
               </div>
               <div class="has-text-grey">
-                {{cmodel.reaction_count}} reactions -
-                {{cmodel.metabolite_count}} metabolites -
-                {{cmodel.gene_count}} genes
+                {{ cmodel.reaction_count }} reactions -
+                {{ cmodel.metabolite_count }} metabolites -
+                {{ cmodel.gene_count }} genes
               </div>
             </div>
           </div>
@@ -45,26 +50,27 @@
             </p>
           </div>
         </div>
-        <div class="columns is-centered">
+        <div v-if="model" class="columns is-centered">
           <template v-for="tool in explorerTools">
+            <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
             <div class="column is-4-widescreen is-5-desktop">
-              <router-link :to="{ path: `${tool.url}/${model.database_name }` }" :title="`Click to access the ${tool.name} for ${model.short_name} model`">
+              <router-link :to="{ path: `${tool.url}/${model.database_name }` }"
+                           :title="`Click to access the ${tool.name} for ${model.short_name} model`">
                 <div class="card card-fullheight card-selectable has-text-justified">
                   <header class="card-header">
                     <p class="card-header-title is-size-5">{{ tool.name }}</p>
                   </header>
                   <div class="card-content">
                     <div class="content">
-                        <img :src="tool.img" />
+                      <img :src="tool.img" />
                     </div>
                   </div>
                 </div>
-            </router-link>
+              </router-link>
             </div>
           </template>
         </div>
       </template>
-      </div>
     </div>
   </section>
 </template>
@@ -79,14 +85,14 @@ import { default as EventBus } from '../event-bus';
 import { default as messages } from '../helpers/messages';
 
 export default {
-  name: 'explorer',
+  name: 'Explorer',
   components: {
     GemBrowser,
     MapViewer,
   },
   data() {
     return {
-      /* eslint-disable global-require*/
+      /* eslint-disable global-require */
       explorerTools: [
         { name: messages.gemBrowserName,
           img: require('../assets/gemBrowser.jpg'),
@@ -107,12 +113,12 @@ export default {
     };
   },
   watch: {
-    /* eslint-disable quote-props */
+    /* eslint-disable-next-line quote-props */
     '$route': function watchSetup() {
       this.setup();
     },
   },
-  beforeRouteUpdate(to, from, next) {
+  beforeRouteUpdate(to, from, next) { // eslint-disable-line no-unused-vars
     this.setup();
     next();
   },
@@ -175,9 +181,9 @@ export default {
       axios.get('models/')
         .then((response) => {
           const models = {};
-          for (const model of response.data) {
+          response.data.forEach((model) => {
             models[model.database_name] = model;
-          }
+          });
           this.models = models;
           let defaultModel = this.models.human1;
           if (this.$route.params.model && this.$route.params.model in this.models) {

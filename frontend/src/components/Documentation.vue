@@ -1,4 +1,5 @@
 <template>
+    <!-- eslint-disable max-len -->
   <section class="section section-no-top extended-section">
     <div class="container">
       <h2 class="title is-2">Documentation</h2>
@@ -126,9 +127,9 @@
           <h5 id="Data overlay">Data overlay</h5>
           <div class="columns is-marginless">
             <div class="column is-paddingless is-8 content">
-            Gene expression levels for genes from <a href="https://www.proteinatlas.org" target="_blank">The Human Protein Atlas</a> can be loaded using the <i>Data overlay</i> sidebar on the right side. Once selected, the RNA levels corresponding to the chosen tissue will be used to color each gene on the respective map, as shown in the legend. To clear the RNA levels, select the <i>None</i> option. RNA levels are available for both the 2D and 3D Map Viewer. The data is obtained from version 18 of the Protein Atlas with the units in log<sub>2</sub>(TPM+1) associated with a gradient colorbar.<br>
-            The <i>Data overlay</i> sidebar allows for the upload of user-generated data in TSV format. If the file is parsed correctly, the file name will be highlighted green; in case errors are detected, it will be highlighted red. The expected format is at least two columns with headers using tab delimiters. For an exact description of the TSV file format <a target="_blank" href="https://en.wikipedia.org/wiki/Tab-separated_values">see the Wiki page</a>. The first column has to contain the gene IDs, identical to the ones in the model. Any missing genes or missing values will be assigned an "n/a" value and highlighted in gray. The rest of the columns act as data series, with each column being a new series, as shown in the example to the right. The headers of these data series will be shown automatically in the dropdown options for the uploaded data. The values are expected in TPM.<br>
-            If multiple data are selected in the <i>Data overlay</i> sidebar, the overlay will switch to the comparison mode, using a differently colored legend for the log fold change between the selected data.<br>
+              Gene expression levels for genes from <a href="https://www.proteinatlas.org" target="_blank">The Human Protein Atlas</a> can be loaded using the <i>Data overlay</i> sidebar on the right side. Once selected, the RNA levels corresponding to the chosen tissue will be used to color each gene on the respective map, as shown in the legend. To clear the RNA levels, select the <i>None</i> option. RNA levels are available for both the 2D and 3D Map Viewer. The data is obtained from version 18 of the Protein Atlas with the units in log<sub>2</sub>(TPM+1) associated with a gradient colorbar.<br>
+              The <i>Data overlay</i> sidebar allows for the upload of user-generated data in TSV format. If the file is parsed correctly, the file name will be highlighted green; in case errors are detected, it will be highlighted red. The expected format is at least two columns with headers using tab delimiters. For an exact description of the TSV file format <a target="_blank" href="https://en.wikipedia.org/wiki/Tab-separated_values">see the Wiki page</a>. The first column has to contain the gene IDs, identical to the ones in the model. Any missing genes or missing values will be assigned an "n/a" value and highlighted in gray. The rest of the columns act as data series, with each column being a new series, as shown in the example to the right. The headers of these data series will be shown automatically in the dropdown options for the uploaded data. The values are expected in TPM.<br>
+              If multiple data are selected in the <i>Data overlay</i> sidebar, the overlay will switch to the comparison mode, using a differently colored legend for the log fold change between the selected data.<br>
             </div>
             <div class="column">
               <blockquote>
@@ -139,7 +140,9 @@
               </blockquote>
               <RNALegend></RNALegend>
               <br>
-              <RNALegend text="log<sub>2</sub>(TPM<sub>T2</sub>+1 / TPM<sub>T1</sub>+1)" leftValue="-5" rightValue="5" :gradient="`${multipleColors}`"></RNALegend>
+              <RNALegend text="log<sub>2</sub>(TPM<sub>T2</sub>+1 / TPM<sub>T1</sub>+1)" left-value="-5"
+                         right-value="5"
+                         :gradient="`${multipleColors}`"></RNALegend>
             </div>
           </div>
 
@@ -181,7 +184,7 @@
           Lists of the most relevant software tools, algorithms, or databases published by the SysBio group. To navigate to the corresponding pages, click on the image on the left of its description.
 
           <h5 id="API">API</h5>
-          We have a <a href="/api/" target="_blank">dedicated interface to facilite the use of the API</a>, with output provided in JSON format. The API is still undergoing development and it might change without prior notice.
+          We have a <a href="/api/" target="_blank">dedicated interface to facilite the use of the API</a>, with output provided in JSON format. When using this service, we kindly ask users to limit request to 10 per second. The API is still undergoing development; while it is covers the entire content of the models, it might change without prior notice.
         </div>
       </div>
     </div>
@@ -194,15 +197,15 @@ import RNALegend from '@/components/explorer/mapViewer/RNALegend.vue';
 import { multipleColors } from '@/expression-sources/hpa';
 
 export default {
-  name: 'help',
+  name: 'Help',
   components: {
     RNALegend,
   },
   data() {
     return {
       multipleColors,
-    }
-  }
+    };
+  },
 };
 </script>
 

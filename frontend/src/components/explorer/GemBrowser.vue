@@ -6,62 +6,72 @@
       </div>
     </template>
     <template v-else>
-      <div class="columns" v-if="!selectedType">
+      <div v-if="!selectedType" class="columns">
         <div class="column container has-text-centered">
           <h4 class="title is-4">Explore {{ model.short_name }} with the {{ messages.gemBrowserName }}</h4>
         </div>
       </div>
       <div class="columns is-centered">
-        <gem-search :model="model" ref="gemSearch"></gem-search>
+        <gem-search ref="gemSearch" :model="model"></gem-search>
       </div>
       <div v-if="selectedType === ''">
         <div class="columns is-centered">
           <div class="column is-10 is-size-5 has-text-centered">
             <p>Use the search field above to look for your element of interest.</p>
-            <p>A selection of &thinsp;<button id="randomButton" class="button is-rounded" @click="get_tiles_data()" title="Fetch another random set of elements"><b>random</b></button>&thinsp; elements of {{ model.short_name }} is shown below.</p><br>
+            <p>A selection of &thinsp;
+              <button id="randomButton" class="button is-rounded"
+                      title="Fetch another random set of elements"
+                      @click="get_tiles_data()"><b>random</b>
+              </button>&thinsp; elements of {{ model.short_name }} is shown below.
+            </p>
+            <br>
           </div>
         </div>
-        <div id="gem-browser-tiles" class="tile is-ancestor is-size-5" v-if="starredComponents">
-            <div class="tile">
-              <div class="tile is-vertical is-9">
-                <div class="tile">
-                  <tile type="reaction" :model="model" :data="starredComponents.reactions[0]">
+        <div v-if="starredComponents" id="gem-browser-tiles" class="tile is-ancestor is-size-5">
+          <div class="tile">
+            <div class="tile is-vertical is-9">
+              <div class="tile">
+                <tile type="reaction" :model="model" :data="starredComponents.reactions[0]">
+                </tile>
+                <div class="tile is-vertical is-8">
+                  <tile type="subsystem" :model="model" :data="starredComponents.subsystems[0]">
                   </tile>
-                  <div class="tile is-vertical is-8">
-                    <tile type="subsystem" :model="model" :data="starredComponents.subsystems[0]">
+                  <div class="tile">
+                    <tile type="gene" size="is-6"
+                          :model="model" :data="starredComponents.genes[0]">
                     </tile>
-                    <div class="tile">
-                      <tile type="gene" size="is-6" :model="model" :data="starredComponents.genes[0]">
-                      </tile>
-                      <tile type="metabolite" size="is-6" :model="model" :data="starredComponents.metabolites[0]">
-                      </tile>
-                    </div>
-                  </div>
-                </div>
-                <div class="tile">
-                  <div class="tile is-vertical is-8">
-                    <div class="tile">
-                      <tile type="subsystem" :model="model" :data="starredComponents.subsystems[1]">
-                      </tile>
-                    </div>
-                    <div class="tile">
-                      <tile type="metabolite" size="is-6" :model="model" :data="starredComponents.metabolites[1]">
-                      </tile>
-                      <tile type="gene" size="is-6" :model="model" :data="starredComponents.genes[1]">
-                      </tile>
-                    </div>
-                  </div>
-                  <div class="tile is-4">
-                    <tile type="reaction" :model="model" :data="starredComponents.reactions[1]">
+                    <tile type="metabolite" size="is-6"
+                          :model="model" :data="starredComponents.metabolites[0]">
                     </tile>
                   </div>
                 </div>
               </div>
-              <div class="tile is-vertical">
-                <tile type="compartment" :model="model" :data="starredComponents.compartment">
-                </tile>
+              <div class="tile">
+                <div class="tile is-vertical is-8">
+                  <div class="tile">
+                    <tile type="subsystem" :model="model" :data="starredComponents.subsystems[1]">
+                    </tile>
+                  </div>
+                  <div class="tile">
+                    <tile type="metabolite" size="is-6"
+                          :model="model" :data="starredComponents.metabolites[1]">
+                    </tile>
+                    <tile type="gene" size="is-6"
+                          :model="model" :data="starredComponents.genes[1]">
+                    </tile>
+                  </div>
+                </div>
+                <div class="tile is-4">
+                  <tile type="reaction" :model="model" :data="starredComponents.reactions[1]">
+                  </tile>
+                </div>
               </div>
             </div>
+            <div class="tile is-vertical">
+              <tile type="compartment" :model="model" :data="starredComponents.compartment">
+              </tile>
+            </div>
+          </div>
         </div>
       </div>
       <div v-else>
@@ -92,8 +102,7 @@ import { idfy } from '../../helpers/utils';
 
 
 export default {
-  name: 'gem-browser',
-  props: ['model'],
+  name: 'GemBrowser',
   components: {
     ClosestInteractionPartners,
     Gene,
@@ -103,6 +112,9 @@ export default {
     Compartment,
     GemSearch,
     Tile,
+  },
+  props: {
+    model: Object,
   },
   data() {
     return {
@@ -163,12 +175,12 @@ export default {
     },
     get_tiles_data() {
       axios.get(`${this.model.database_name}/gem_browser_tiles/`)
-      .then((response) => {
-        this.starredComponents = response.data;
-      })
-      .catch(() => {
-        this.errorMessage = messages.unknownError;
-      });
+        .then((response) => {
+          this.starredComponents = response.data;
+        })
+        .catch(() => {
+          this.errorMessage = messages.unknownError;
+        });
     },
   },
 };

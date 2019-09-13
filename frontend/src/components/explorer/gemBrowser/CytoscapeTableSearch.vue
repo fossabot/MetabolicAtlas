@@ -2,8 +2,9 @@
   <div class="columns table-search" style="margin-bottom: 0; padding-bottom: 0">
     <div class="column">
       <p class="control">
-        <input v-model="term" @input="search"
-          class="input" type="text" placeholder="Search in table">
+        <input v-model="term" class="input"
+               type="text" placeholder="Search in table"
+               @input="search">
       </p>
     </div>
     <div class="column is-1">
@@ -15,8 +16,10 @@
 <script>
 
 export default {
-  name: 'cytoscape-table-search',
-  props: ['reset'],
+  name: 'CytoscapeTableSearch',
+  props: {
+    reset: Function,
+  },
   data() {
     return {
       term: '',
@@ -31,11 +34,7 @@ export default {
     },
     search() {
       this.$emit('search', this.term);
-      if (this.term) {
-        this.isSearching = true;
-      } else {
-        this.isSearching = false;
-      }
+      this.isSearching = this.term; // used as true/false
     },
   },
 };
