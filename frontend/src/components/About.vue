@@ -5,6 +5,16 @@
       <div class="columns is-variable is-8">
         <div class="column is-half has-text-justified">
           <p>
+            <div class="box is-hidden-tablet">
+              <p class="subtitle has-text-weight-bold is-size-4 has-text-primary has-text-centered">Citing Metabolic Atlas</p>
+              <i>Article under consideration</i>
+              <!-- <p>
+                <a href="" target="_blank">APA style reference with DOI</a><br><br>
+                Abstract here
+                <br><br>
+                Genome scale metabolic model in the publication <a @click="viewGem()">Human1</a>
+              </p> -->
+            </div>
             The Metabolic Atlas project is headed by <a href="https://www.sysbio.se/labs/nielsen" target="_new">Professor Jens Nielsen</a>, <a href="https://www.sysbio.se">Division of Systems and Synthetic Biology</a>, Department of Biology and Biological Engineering at the <a href="https://www.chalmers.se" target="_new">Chalmers University of Technology</a>. The platform is developed by members of <a href="https://www.chalmers.se/en/researchinfrastructure/csb/Pages/default.aspx">Computational Systems Biology Infrastructure</a> at Chalmers University of Technology and <a href="https://nbis.se" target="blank">National Bioinformatics Infrastructure Sweden</a>.<br><br>
 
             Metabolic Atlas is a freely available resource containing detailed information about a set of open-source  Genome-Scale Metabolic Models (GEMs), specifically <router-link :to="{ name: 'browserRoot', params: {model: 'human1'} }">Human1</router-link> and <router-link :to="{ name: 'browserRoot', params: {model: 'yeast8'} }">Yeast8</router-link>. These are two reference models containing all possible reactions that could occur in human, and yeast, respectively.<br><br>
@@ -19,7 +29,7 @@
           </p>
         </div>
         <div class="column is-half has-text-justified content">
-          <div class="box">
+          <div class="box is-hidden-mobile">
             <p class="subtitle has-text-weight-bold is-size-4 has-text-primary has-text-centered">Citing Metabolic Atlas</p>
             <i>Article under consideration</i>
             <!-- <p>
