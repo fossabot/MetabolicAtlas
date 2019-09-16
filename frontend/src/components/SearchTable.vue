@@ -1,100 +1,97 @@
 <template>
   <section class="extended-section">
-    <div class="container">
-      <div id="search-table">
-        <div class="columns">
-          <div class="column has-text-centered content">
-            <br>
-            <h3 class="title is-3">Search within all integrated GEMs</h3>
-            <h4 class="subtitle is-4 has-text-weight-normal">
-              for reactions, metabolites, genes, subsystems and compartments
-            </h4>
+    <div id="search-table" class="container">
+      <div class="columns">
+        <div class="column has-text-centered content">
+          <br>
+          <h3 class="title is-3">Search within all integrated GEMs</h3>
+          <h4 class="subtitle is-4 has-text-weight-normal">
+            for reactions, metabolites, genes, subsystems and compartments
+          </h4>
+        </div>
+      </div>
+      <div class="columns is-centered">
+        <div class="column is-three-fifths-desktop is-three-quarters-tablet is-fullwidth-mobile control">
+          <div id="input-wrapper">
+            <p class="control has-icons-right has-icons-left">
+              <input id="search" v-model="searchTerm"
+                     class="input" type="text"
+                     placeholder="Example: uracil, SULT1A3, ATP => cAMP + PPi, Acyl-CoA hydrolysis"
+                     @keyup.enter="updateSearch()">
+              <span v-show="showSearchCharAlert"
+                    class="has-text-danger icon is-small is-right"
+                    style="width: 200px">
+                Type at least 2 characters
+              </span>
+              <span class="icon is-medium is-left">
+                <i class="fa fa-search"></i>
+              </span>
+            </p>
           </div>
         </div>
-        <div class="columns is-centered">
-          <div class="column is-three-fifths-desktop is-three-quarters-tablet is-fullwidth-mobile control">
-            <div id="input-wrapper">
-              <p class="control has-icons-right has-icons-left">
-                <input id="search" v-model="searchTerm"
-                       class="input" type="text"
-                       placeholder="Example: uracil, SULT1A3, ATP => cAMP + PPi, Acyl-CoA hydrolysis"
-                       @keyup.enter="updateSearch()">
-                <span v-show="showSearchCharAlert"
-                      class="has-text-danger icon is-small is-right"
-                      style="width: 200px">
-                  Type at least 2 characters
-                </span>
-                <span class="icon is-medium is-left">
-                  <i class="fa fa-search"></i>
-                </span>
-              </p>
-            </div>
-          </div>
+      </div>
+      <div>
+        <div v-if="showTabType" class="tabs is-boxed is-fullwidth">
+          <ul>
+            <li v-for="tab in tabs" :key="tab"
+                :disabled="resultsCount[tab] === 0"
+                :class="[{'is-active has-text-weight-semibold': showTab(tab) && resultsCount[tab] !== 0 },
+                         { 'is-disabled': resultsCount[tab] === 0 }]"
+                @click="resultsCount[tab] !== 0 ? showTabType=tab : ''">
+              <a class="is-capitalized">
+                {{ tab }}s&nbsp;({{ resultsCount[tab] }})
+              </a>
+            </li>
+          </ul>
         </div>
-        <div>
-          <div v-if="showTabType" class="tabs is-boxed is-fullwidth">
-            <ul>
-              <li v-for="tab in tabs" :key="tab"
-                  :disabled="resultsCount[tab] === 0"
-                  :class="[{'is-active has-text-weight-semibold': showTab(tab) && resultsCount[tab] !== 0 },
-                           { 'is-disabled': resultsCount[tab] === 0 }]"
-                  @click="resultsCount[tab] !== 0 ? showTabType=tab : ''">
-                <a class="is-capitalized">
-                  {{ tab }}s&nbsp;
-                  <span v-if="resultsCount[tab] !== 0">({{ resultsCount[tab] }})</span>
-                </a>
-              </li>
-            </ul>
-          </div>
-          <loader v-show="loading && searchTerm !== ''"></loader>
-          <div v-show="!loading">
-            <div v-if="Object.keys(searchResults).length === 0" class="column is-offset-3 is-6">
-              <div v-if="searchedTerm" class="has-text-centered notification">
-                {{ messages.searchNoResult }} for <i>{{ searchedTerm }}</i>
-              </div>
-              <div class="content">
-                <div class="has-text-centered">Search using the following parameters:</div>
-                <span>Metabolites by:</span>
-                <ul>
-                  <li>ID</li>
-                  <li>Name or aliases</li>
-                  <li>Formula (without charge)</li>
-                  <li>External identifiers</li>
-                </ul>
-                <span>Genes by:</span>
-                <ul>
-                  <li>ID</li>
-                  <li>Name or aliases</li>
-                  <li>External identifiers</li>
-                </ul>
-                <span>Reactions by:</span>
-                <ul>
-                  <li>ID</li>
-                  <li>Equation (view the
-                    <router-link :to="{ 'path': '/documentation', hash:'Global-search'}">documentation</router-link>
-                    for more information)</li>
-                  <li>EC code</li>
-                  <li>External identifiers</li>
-                </ul>
-                <span>Subsystem and compartment by:</span>
-                <ul>
-                  <li>name</li>
-                  <li>External identifiers (subsystem only)</li>
-                </ul>
-                <br>
-                <div class="has-text-centered">
-                  <u>External identifiers and aliases may be missing if they are not provided with the models.</u>
-                </div>
+        <loader v-show="loading && searchTerm !== ''"></loader>
+        <div v-show="!loading">
+          <div v-if="Object.keys(searchResults).length === 0" class="column is-offset-3 is-6">
+            <div v-if="searchedTerm" class="has-text-centered notification">
+              {{ messages.searchNoResult }} for <i>{{ searchedTerm }}</i>
+            </div>
+            <div class="content">
+              <div class="has-text-centered">Search using the following parameters:</div>
+              <span>Metabolites by:</span>
+              <ul>
+                <li>ID</li>
+                <li>Name or aliases</li>
+                <li>Formula (without charge)</li>
+                <li>External identifiers</li>
+              </ul>
+              <span>Genes by:</span>
+              <ul>
+                <li>ID</li>
+                <li>Name or aliases</li>
+                <li>External identifiers</li>
+              </ul>
+              <span>Reactions by:</span>
+              <ul>
+                <li>ID</li>
+                <li>Equation (view the
+                  <router-link :to="{ 'path': '/documentation', hash:'Global-search'}">documentation</router-link>
+                  for more information)</li>
+                <li>EC code</li>
+                <li>External identifiers</li>
+              </ul>
+              <span>Subsystem and compartment by:</span>
+              <ul>
+                <li>name</li>
+                <li>External identifiers (subsystem only)</li>
+              </ul>
+              <br>
+              <div class="has-text-centered">
+                <u>External identifiers and aliases may be missing if they are not provided with the models.</u>
               </div>
             </div>
-            <template v-for="(header, index) in tabs">
-              <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
-              <div v-show="showTab(header) && resultsCount[header] !== 0">
-                <vue-good-table ref="searchTables"
-                                :columns="columns[header]" :rows="rows[header]"
-                                :sort-options="{ enabled: true }" style-class="vgt-table striped bordered"
-                                :pagination-options="tablePaginationOpts">
-
+          </div>
+          <template v-for="(header, index) in tabs">
+            <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
+            <div v-show="showTab(header) && resultsCount[header] !== 0">
+              <vue-good-table ref="searchTables"
+                              :columns="columns[header]" :rows="rows[header]"
+                              :sort-options="{ enabled: true }" style-class="vgt-table striped bordered"
+                              :pagination-options="tablePaginationOpts">
                 <div slot="table-actions">
                   <a class="button is-primary" style="margin: 0.3rem 1rem;" @click="exportToTSV(header, index)">
                     <span class="icon is-large"><i class="fa fa-download"></i></span>
@@ -102,6 +99,7 @@
                   </a>
                 </div>
                 <template slot="table-row" slot-scope="props">
+                  <!-- eslint-disable max-len -->
                   <template v-if="props.column.field == 'model'">
                     {{ props.formattedRow[props.column.field].name }}
                   </template>
@@ -122,9 +120,10 @@
                     </template>
                     <template v-else v-for="(sub, i) in props.formattedRow[props.column.field]">
                       <template v-if="i != 0">; </template>
+                      <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key max-len -->
                       <router-link :to="{ path: `/explore/gem-browser/${props.row.model.id}/subsystem/${idfy(sub)}` }"> {{ sub }}</router-link>
                     </template>
-                    <template v-else-if="['name', 'id'].includes(props.column.field)">
+                    <template v-if="['name', 'id'].includes(props.column.field)">
                       <router-link
                         :to="{ path: `/explore/gem-browser/${props.row.model.id}/${header}/${props.row.id}` }">
                         {{ props.row.name || props.row.id }}
@@ -176,7 +175,7 @@
                       {{ props.formattedRow[props.column.field].join("; ") }}
                     </template>
                     <template v-else>
-                       <router-link :to="{ path: `/explore/gem-browser/${props.row.model.id}/compartment/${idfy(props.formattedRow[props.column.field])}` }"> {{ props.formattedRow[props.column.field] }}</router-link>
+                      <router-link :to="{ path: `/explore/gem-browser/${props.row.model.id}/compartment/${idfy(props.formattedRow[props.column.field])}` }"> {{ props.formattedRow[props.column.field] }}</router-link>
                     </template>
                   </template>
                   <template v-else-if="Array.isArray(props.formattedRow[props.column.field])">
