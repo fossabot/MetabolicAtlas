@@ -1,48 +1,60 @@
 <template>
   <div id="app">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-    <nav id="navbar" class="navbar has-background-primary-lighter" role="navigation" aria-label="main navigation">
+    <nav id="navbar" class="navbar has-background-primary-lighter"
+         role="navigation" aria-label="main navigation">
       <div class="container">
         <div class="navbar-brand">
           <router-link class="navbar-item" to="/">
             <img :src="require('./assets/logo.png')"/>
           </router-link>
           <div class="navbar-burger" :class="{ 'is-active': isMobileMenu }"
-            @click="isMobileMenu = !isMobileMenu">
+               @click="isMobileMenu = !isMobileMenu">
             <span aria-hidden="true"></span>
             <span aria-hidden="true"></span>
             <span aria-hidden="true"></span>
           </div>
         </div>
         <div id="#nav-menu" class="navbar-menu" :class="{ 'is-active': isMobileMenu }">
-          <div class="navbar-start has-text-centered" v-show="model" title="Click to toggle between the GEM Browser and the Map Viewer">
-            <router-link v-if="activeViewerBut || activeBrowserBut" :to="{ path: '/explore'}" class="navbar-item is-size-3 has-text-primary has-text-weight-bold is-unselectable"
-              title="Current selected model, click to change your selection">{{ model ? model.short_name : '' }}
+          <div v-show="model" class="navbar-start has-text-centered"
+               title="Click to toggle between the GEM Browser and the Map Viewer">
+            <router-link v-if="activeViewerBut || activeBrowserBut" :to="{ path: '/explore'}"
+                         class="navbar-item is-size-3 has-text-primary has-text-weight-bold is-unselectable"
+                         title="Current selected model, click to change your selection">
+              {{ model ? model.short_name : '' }}
             </router-link>
-            <a class="navbar-item is-unselectable underline" v-if="activeViewerBut || activeBrowserBut"
-              :class="{ 'is-active': activeBrowserBut }" @click="goToGemBrowser()">
-                GEM Browser
+            <a v-if="activeViewerBut || activeBrowserBut" class="navbar-item is-unselectable underline"
+               :class="{ 'is-active': activeBrowserBut }" @click="goToGemBrowser()">
+              GEM Browser
             </a>
-            <a class="navbar-item is-unselectable underline" v-if="activeViewerBut || activeBrowserBut"
-              :class="{ 'is-active': activeViewerBut }" @click="goToMapViewer()">
-                Map Viewer
+            <a v-if="activeViewerBut || activeBrowserBut" class="navbar-item is-unselectable underline"
+               :class="{ 'is-active': activeViewerBut }" @click="goToMapViewer()">
+              Map Viewer
             </a>
           </div>
           <div class="navbar-end has-background-primary-lighter">
             <template v-for="(menuPath, menuName) in menuElems">
               <template v-if="typeof menuPath === 'string'">
-                <router-link class="navbar-item is-unselectable underline"  :to="{ path: menuPath }"
-                  :class="{ 'is-active': isActiveRoute(menuPath, true) }" v-html="menuName">
+                <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
+                <router-link class="navbar-item is-unselectable underline"
+                             :to="{ path: menuPath }"
+                             :class="{ 'is-active': isActiveRoute(menuPath, true) }" v-html="menuName">
                 </router-link>
               </template>
               <template v-else>
                 <template v-for="(submenus, menuurl) in menuPath">
+                  <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
                   <div class="navbar-item has-dropdown is-hoverable is-unselectable has-background-primary-lighter">
-                    <a class="navbar-link underline" :class="{ 'is-active': isActiveRoute(menuurl) }"> {{ menuName }} </a>
+                    <a class="navbar-link underline"
+                       :class="{ 'is-active': isActiveRoute(menuurl) }"> {{ menuName }} </a>
                     <div class="navbar-dropdown has-background-primary-lighter">
                       <template v-for="submenu in submenus">
                         <template v-for="(submenuPath, submenuName) in submenu">
-                          <router-link class="navbar-item is-unselectable has-background-primary-lighter" :to="{ path: submenuPath }" :class="{ 'is-active': isActiveRoute(submenuPath) }" v-html="submenuName">
+                          <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
+                          <router-link class="navbar-item is-unselectable has-background-primary-lighter"
+                                       :to="{ path: submenuPath }"
+                                       :class="{ 'is-active': isActiveRoute(submenuPath) }"
+                                       v-html="submenuName">
                           </router-link>
                         </template>
                       </template>
@@ -79,7 +91,7 @@
                 <img src="./assets/wpcr.jpg" />
               </a>
               <a href="https://nbis.se/">
-                <img src="./assets/nbislogo-green.png" title="National Bioinformatics Infrastructure Sweden"/>
+                <img src="./assets/nbislogo-green.png" title="National Bioinformatics Infrastructure Sweden" />
               </a>
               <a href="https://www.scilifelab.se" title="Science for Life Laboratory (SciLifeLab)">
                 <img src="./assets/scilifelab-green.png" />
@@ -92,8 +104,14 @@
     <div v-if="showCookieMsg" id="cookies" class="has-background-grey">
       <div class="column has-text-centered" style="padding: 0.25rem">
         <div class="has-text-white">
-          We use cookies to enhance the usability of our website. By continuing you are agreeing to our <router-link class="has-text-white has-text-weight-bold" :to="{path: '/about', hash: 'privacy'}">Privacy Notice and Terms of Use</router-link>&emsp;
-          <p class="button is-small is-rounded has-background-danger has-text-white has-text-weight-bold" @click="showCookieMsg=false; acceptCookiePolicy()">
+          We use cookies to enhance the usability of our website.
+          By continuing you are agreeing to our
+          <router-link class="has-text-white has-text-weight-bold"
+                       :to="{path: '/about', hash: 'privacy'}">
+            Privacy Notice and Terms of Use
+          </router-link>&emsp;
+          <p class="button is-small is-rounded has-background-danger has-text-white has-text-weight-bold"
+             @click="showCookieMsg=false; acceptCookiePolicy()">
             <span class="icon is-small"><i class="fa fa-check"></i></span>
             <span>OKAY</span>
           </p>
@@ -109,7 +127,7 @@ import { default as EventBus } from './event-bus';
 import { isCookiePolicyAccepted, acceptCookiePolicy } from './helpers/store';
 
 export default {
-  name: 'app',
+  name: 'App',
   data() {
     return {
       /* eslint-disable quote-props */

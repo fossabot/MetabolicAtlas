@@ -3,7 +3,9 @@
     <div class="container">
       <h3 class="title is-size-3">GEM Comparison</h3>
       <template v-for="c in comparison">
+        <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
         <h4 class="title is-size-4">{{ c.models.A.modelId }} vs. {{ c.models.B.modelId }}</h4>
+        <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
         <table class="is-fullwidth table is-narrow">
           <thead>
             <tr>
@@ -16,7 +18,7 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(model, key) in c.models">
+            <tr v-for="model in c.models" :key="model.modeName">
               <td>{{ model.modelId }}</td>
               <td v-html="model.modelName"></td>
               <td>{{ model.totalReactions }}</td>
@@ -26,7 +28,7 @@
             </tr>
           </tbody>
         </table>
-
+        <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
         <div class="columns is-variable is-8">
           <div class="column">
             <h5 class="title is-size-5">Exclusive reactions by compartment</h5>
@@ -40,7 +42,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="subsys in c.compartments">
+                <tr v-for="subsys in c.compartments" :key="subsys.name">
                   <td>{{ subsys.name }}</td>
                   <td>{{ subsys.totalMissing }}</td>
                   <td>{{ subsys.missingReactionsFromA }}</td>
@@ -63,7 +65,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="subsys in c.subsystems">
+                <tr v-for="subsys in c.subsystems" :key="subsys.name">
                   <td>{{ subsys.name }}</td>
                   <td>{{ subsys.totalMissing }}</td>
                   <td>{{ subsys.missingReactionsFromA }}</td>
@@ -73,6 +75,7 @@
             </table>
           </div>
         </div>
+        <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
         <br>
       </template>
     </div>
@@ -83,7 +86,7 @@
 <script>
 
 export default {
-  name: 'compare-models',
+  name: 'CompareModels',
   data() {
     return {
       comparison: [{

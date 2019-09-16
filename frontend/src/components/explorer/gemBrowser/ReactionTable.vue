@@ -15,32 +15,36 @@
       </span>
     </div>
     <div class="table-container">
-      <table class="table is-bordered is-striped is-narrow is-fullwidth" ref="table">
+      <table ref="table" class="table is-bordered is-striped is-narrow is-fullwidth">
         <thead>
           <tr class="has-background-white-ter">
-            <th class="is-unselectable clickable"
-            v-for="f in fields" v-show="showCol(f.name)"
-              @click="sortTable(f.name, null, null)"
-              :title="`Sort by ${f.display}`">
-                {{ f.display.replace(' ', '&nbsp;') }}
-              </th>
+            <th v-for="f in fields" :key="f.name"
+                v-show="showCol(f.name)" class="is-unselectable clickable"
+                :title="`Sort by ${f.display}`"
+                @click="sortTable(f.name, null, null)">
+              {{ f.display.replace(' ', '&nbsp;') }}
+            </th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(r, index) in sortedReactions">
+          <tr v-for="r in sortedReactions" :key="r.id">
             <td>
-              <router-link :to="{path: `/explore/gem-browser/${model.database_name}/reaction/${r.id}` }">{{ r.id }}</router-link>
+              <router-link
+                :to="{path: `/explore/gem-browser/${model.database_name}/reaction/${r.id}` }">
+                {{ r.id }}
+              </router-link>
             </td>
             <td v-html="getReformatChemicalReactionHTML(r)"></td>
             <td>
-              <template v-for="(m, index) in r.genes">{{ index == 0 ? '' : ', '}}<router-link :to="{ path: `/explore/gem-browser/${model.database_name}/gene/${m.id}` }">{{ m.name || m.id }}</router-link>
+              <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key max-len -->
+              <template v-for="(m, index) in r.genes">{{ index == 0 ? '' : ', ' }}<router-link :to="{ path: `/explore/gem-browser/${model.database_name}/gene/${m.id}` }">{{ m.name || m.id }}</router-link>
               </template>
             </td>
             <td v-show="showCP">{{ r.cp }}</td>
             <td v-show="showSubsystem">
               <template v-if="r.subsystem_str">
-                <template v-for="(s, index) in r.subsystem_str.split('; ')">
-                {{ index == 0 ? '' : '; '}}<router-link :to="{ path: `/explore/gem-browser/${model.database_name}/subsystem/${idfy(s)}` }">{{ s }}</router-link>
+                <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key max-len -->
+                <template v-for="(s, index) in r.subsystem_str.split('; ')">{{ index == 0 ? '' : '; ' }}<router-link :to="{ path: `/explore/gem-browser/${model.database_name}/subsystem/${idfy(s)}` }">{{ s }}</router-link>
                 </template>
               </template>
             </td>
@@ -49,7 +53,8 @@
                 <template v-if="i != 0">{{ r.is_reversible ? ' &#8660; ' : ' &#8658; ' }}</template>
                 <template v-for="(compo, j) in RP.split(' + ')">
                   <template v-if="j != 0"> + </template>
-                  <router-link :to="{ path: `/explore/gem-browser/${model.database_name}/compartment/${idfy(compo)}` }"> {{ compo }}</router-link>
+                  <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key max-len -->
+                  <router-link :to="{ path: `/explore/gem-browser/${model.database_name}/compartment/${idfy(compo)}` }">{{ compo }}</router-link>
                 </template>
               </template>
             </td>
@@ -67,11 +72,16 @@ import { chemicalReaction } from '../../../helpers/chemical-formatters';
 import { reformatCompEqString, idfy, reformatChemicalReactionHTML } from '../../../helpers/utils';
 
 export default {
-  name: 'reaction-table',
-  props: ['reactions', 'selectedElmId', 'showSubsystem', 'model', 'limit'],
+  name: 'ReactionTable',
+  props: {
+    model: Object,
+    reactions: Array,
+    selectedElmId: String,
+    limit: Number,
+    showSubsystem: Boolean,
+  },
   data() {
     return {
-      showCP: false,
       fields: [{
         display: 'Reaction ID',
         name: 'id',
@@ -98,26 +108,21 @@ export default {
       reformatCompEqString,
     };
   },
-  updated() {
-    if (this.selectedElmId) {
-      // when the table is from the selectedElmId page (metabolite)
-      // do not color the selectedElmId is the reaction equations
-      $('m').css('color', '');
-      $(`.${this.selectedElmId}`).addClass('cms');
-    }
-  },
   computed: {
+    showCP() {
+      return this.selectedElmId; // true or false
+    },
     transportReactionCount() {
       return this.reactions.filter(r => r.is_transport).length;
     },
     sortedReactions() {
+      /* eslint-disable no-param-reassign */
       if (this.reactions.length === 0) {
         return [];
       }
       // create consume/produce column
       if (this.selectedElmId) {
-        this.showCP = true;
-        for (const reaction of this.reactions) {
+        this.reactions.forEach((reaction) => {
           if (reaction.is_reversible) {
             reaction.cp = 'consume/produce';
           } else {
@@ -133,11 +138,19 @@ export default {
               }
             }
           }
-        }
+        });
       }
-      return this.reactions.sort(
-         compare(this.sortBy, this.sortPattern, this.sortOrder));
+      return this.reactions.concat().sort(
+        compare(this.sortBy, this.sortPattern, this.sortOrder));
     },
+  },
+  updated() {
+    if (this.selectedElmId) {
+      // when the table is from the selectedElmId page (metabolite)
+      // do not color the selectedElmId is the reaction equations
+      $('m').css('color', '');
+      $(`.${this.selectedElmId}`).addClass('cms');
+    }
   },
   methods: {
     formatChemicalReaction(v, r) { return chemicalReaction(v, r); },
@@ -156,9 +169,7 @@ export default {
       this.sortPattern = pattern;
     },
     showCol(name) {
-      if (name === 'cp' && !this.showCP) {
-        return false;
-      } else if (name === 'subsystem_str' && !this.showSubsystem) {
+      if ((name === 'cp' && !this.showCP) || (name === 'subsystem_str' && !this.showSubsystem)) {
         return false;
       }
       return true;

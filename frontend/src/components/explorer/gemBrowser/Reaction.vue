@@ -10,15 +10,19 @@
         <h3 class="title is-size-3">Reaction {{ reaction.id }}</h3>
       </div>
     </div>
-    <div class="columns" v-show="showLoader">
+    <div v-show="showLoader" class="columns">
       <loader></loader>
     </div>
-    <div class="columns is-multiline is-variable is-8" v-show="!showLoader">
+    <div v-show="!showLoader" class="columns is-multiline is-variable is-8">
       <div class="reaction-table column is-10-widescreen is-9-desktop is-full-tablet">
         <table v-if="reaction && Object.keys(reaction).length != 0" class="table main-table is-fullwidth">
-          <tr v-for="el in mainTableKey[model.database_name]">
-            <td v-if="'display' in el" class="td-key has-background-primary has-text-white-bis" v-html="el.display"></td>
-            <td v-else-if="el.name == 'id'" class="td-key has-background-primary has-text-white-bis">{{ model.short_name }} ID</td>
+          <tr v-for="el in mainTableKey[model.database_name]" :key="el.name">
+            <td v-if="'display' in el"
+                class="td-key has-background-primary has-text-white-bis"
+                v-html="el.display"></td>
+            <td v-else-if="el.name == 'id'"
+                class="td-key has-background-primary has-text-white-bis">
+              {{ model.short_name }} ID</td>
             <td v-else class="td-key has-background-primary has-text-white-bis">{{ reformatTableKey(el.name) }}</td>
             <td v-if="'isComposite' in el">
               <span v-html="el.modifier()"></span>
@@ -39,10 +43,12 @@
           <tr v-if="relatedReactions.length !== 0">
             <td class="td-key has-background-primary has-text-white-bis">Related reaction(s)</td>
             <td>
-              <template v-for="(rr, i) in relatedReactions">
+              <template v-for="rr in relatedReactions">
+                <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
                 <router-link :to="{ path: `/explore/gem-browser/${model.database_name}/reaction/${rr.id}`}">
                   {{ rr.id }}
                 </router-link>
+                <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
                 <div style="margin-left: 30px">
                   <span v-html="reformatChemicalReactionHTML(rr, true)"></span>
                   (<span v-html="reformatEqSign(rr.compartment, rr.is_reversible)">
@@ -55,12 +61,16 @@
         <template v-if="hasExternalID">
           <h4 class="title is-4">External databases</h4>
           <table v-if="reaction && Object.keys(reaction).length != 0" id="ed-table" class="table is-fullwidth">
-            <tr v-for="el in externalIDTableKey[model.database_name]" v-if="reaction[el.name] && reaction[el.link]">
-              <td v-if="'display' in el" class="td-key has-background-primary has-text-white-bis" v-html="el.display"></td>
-              <td v-else class="td-key has-background-primary has-text-white-bis">{{ reformatTableKey(el.name) }}</td>
-              <td>
-                <a :href="`${reaction[el.link]}`" target="_blank">{{ reaction[el.name] }}</a>
-              </td>
+            <tr v-for="el in externalIDTableKey[model.database_name]" :key="el.name">
+              <template v-if="reaction[el.name] && reaction[el.link]">
+                <td v-if="'display' in el"
+                    class="td-key has-background-primary has-text-white-bis"
+                    v-html="el.display"></td>
+                <td v-else class="td-key has-background-primary has-text-white-bis">{{ reformatTableKey(el.name) }}</td>
+                <td>
+                  <a :href="`${reaction[el.link]}`" target="_blank">{{ reaction[el.name] }}</a>
+                </td>
+              </template>
             </tr>
           </table>
         </template>
@@ -70,28 +80,30 @@
             <p>This reaction has no associated references.</p>
           </template>
           <template v-else>
-              <tr v-for="oneRef in unformattedRefs">
-                <td class="td-key has-background-primary has-text-white-bis">{{ oneRef.pmid }}</td>
-                <template v-if="formattedRefs[oneRef.pmid]">
-                  <td v-for="refData in [formattedRefs[oneRef.pmid]]">
-                    <a :href="refData.link" target="_blank">
-                      <template v-for="author in refData.authors">
-                        {{ author }},
-                      </template>
-                      {{ refData.year }}. <i>{{ refData.title }}</i>
-                      {{ refData.journal }}
-                    </a>
-                  </td>
-                </template>
-                <template v-else>
-                  <td></td>
-                </template>
-              </tr>
+            <tr v-for="oneRef in unformattedRefs" :key="oneRef.pmid">
+              <td class="td-key has-background-primary has-text-white-bis">{{ oneRef.pmid }}</td>
+              <template v-if="formattedRefs[oneRef.pmid]">
+                <td v-for="refData in [formattedRefs[oneRef.pmid]]" :key="refData.id">
+                  <a :href="refData.link" target="_blank">
+                    <template v-for="author in refData.authors">
+                      {{ author }},
+                    </template>
+                    {{ refData.year }}. <i>{{ refData.title }}</i>
+                    {{ refData.journal }}
+                  </a>
+                </td>
+              </template>
+              <template v-else>
+                <td></td>
+              </template>
+            </tr>
           </template>
         </table>
       </div>
       <div class="column is-2-widescreen is-3-desktop is-full-tablet has-text-centered">
-        <maps-available :model="model" :type="'reaction'" :id="rId" :elementID="rId"></maps-available>
+        <maps-available :id="rId" :model="model"
+                        :type="'reaction'"
+                        :element-i-d="rId"></maps-available>
       </div>
     </div>
   </div>
@@ -107,11 +119,13 @@ import { reformatTableKey, addMassUnit, reformatECLink, reformatCompEqString, re
 import { default as messages } from '../../../helpers/messages';
 
 export default {
-  name: 'reaction',
-  props: ['model'],
+  name: 'Reaction',
   components: {
     Loader,
     MapsAvailable,
+  },
+  props: {
+    model: Object,
   },
   data() {
     return {
@@ -157,16 +171,16 @@ export default {
       formattedRefs: {},
     };
   },
-  created() {
-    $('body').on('click', 'a.e', function f() {
-      EventBus.$emit('GBnavigateTo', 'gene', $(this).attr('name'));
-    });
-    $('body').on('click', 'a.s', function f() {
-      EventBus.$emit('GBnavigateTo', 'subsystem', $(this).attr('name'));
-    });
-  },
-  beforeMount() {
-    this.setup();
+  computed: {
+    hasExternalID() {
+      for (let i = 0; i < this.externalIDTableKey[this.model.database_name].length; i += 1) {
+        const item = this.externalIDTableKey[this.model.database_name][i];
+        if (this.reaction[item.name] && this.reaction[item.link]) {
+          return true;
+        }
+      }
+      return false;
+    },
   },
   watch: {
     /* eslint-disable quote-props */
@@ -178,15 +192,16 @@ export default {
       }
     },
   },
-  computed: {
-    hasExternalID() {
-      for (const item of this.externalIDTableKey[this.model.database_name]) {
-        if (this.reaction[item.name] && this.reaction[item.link]) {
-          return true;
-        }
-      }
-      return false;
-    },
+  created() {
+    $('body').on('click', 'a.e', function f() {
+      EventBus.$emit('GBnavigateTo', 'gene', $(this).attr('name'));
+    });
+    $('body').on('click', 'a.s', function f() {
+      EventBus.$emit('GBnavigateTo', 'subsystem', $(this).attr('name'));
+    });
+  },
+  beforeMount() {
+    this.setup();
   },
   methods: {
     setup() {
@@ -195,28 +210,28 @@ export default {
     },
     load() {
       axios.get(`${this.model.database_name}/get_reaction/${this.rId}/`)
-      .then((response) => {
-        this.showLoader = false;
-        this.reaction = response.data.reaction;
-        if (response.data.pmids.length !== 0) {
-          this.unformattedRefs = response.data.pmids;
-          this.reformatRefs();
-        }
-        this.getRelatedReactions();
-      })
-      .catch(() => {
-        this.errorMessage = messages.notFoundError;
-      });
+        .then((response) => {
+          this.showLoader = false;
+          this.reaction = response.data.reaction;
+          if (response.data.pmids.length !== 0) {
+            this.unformattedRefs = response.data.pmids;
+            this.reformatRefs();
+          }
+          this.getRelatedReactions();
+        })
+        .catch(() => {
+          this.errorMessage = messages.notFoundError;
+        });
     },
     getRelatedReactions() {
       axios.get(`${this.model.database_name}/get_reaction/${this.rId}/related`)
-      .then((response) => {
-        this.relatedReactions = response.data;
-        this.relatedReactions.sort((a, b) => (a.compartment < b.compartment ? -1 : 1));
-      })
-      .catch(() => {
-        this.relatedReactions = [];
-      });
+        .then((response) => {
+          this.relatedReactions = response.data;
+          this.relatedReactions.sort((a, b) => (a.compartment < b.compartment ? -1 : 1));
+        })
+        .catch(() => {
+          this.relatedReactions = [];
+        });
     },
     reformatEquation() { return reformatChemicalReactionHTML(this.reaction); },
     reformatGenes() {
@@ -247,9 +262,9 @@ export default {
     },
     reformatSubsystemList(substr) {
       let str = '';
-      for (const s of substr.split('; ')) {
+      substr.split('; ').forEach((s) => {
         str = str.concat(`<a class="s" name="${s}">`, s, '</a><br>');
-      }
+      });
       if (str) {
         str = str.slice(0, -4);
       }
@@ -258,7 +273,7 @@ export default {
     formatQuantFieldName(name) { return `${name}:&nbsp;`; },
     reformatQuant() {
       const data = [];
-      for (const key of ['lower_bound', 'upper_bound', 'objective_coefficient']) {
+      ['lower_bound', 'upper_bound', 'objective_coefficient'].forEach((key) => {
         if (this.reaction[key] != null) {
           data.push(this.formatQuantFieldName(this.reformatTableKey(key)));
           if (key === 'objective_coefficient') {
@@ -268,7 +283,7 @@ export default {
           }
           data.push('<span>&nbsp;&dash;&nbsp;</span>');
         }
-      }
+      });
       let s = data.join(' ');
       if (s.endsWith('<span>&nbsp;&dash;&nbsp;</span>')) {
         s = s.slice(0, -31);
@@ -276,8 +291,8 @@ export default {
       return s;
     },
     reformatCompartment() {
-      const compartmentEq =
-        this.reformatCompEqString(this.reaction.compartment, this.reaction.is_reversible);
+      const compartmentEq = this.reformatCompEqString(
+        this.reaction.compartment, this.reaction.is_reversible);
       if (this.reaction.is_transport) {
         return `${compartmentEq} (transport reaction)`;
       }
@@ -288,34 +303,35 @@ export default {
       this.formattedRefs = {};
       const queryIDs = `(EXT_ID:"${this.unformattedRefs.map(e => e.pmid).join('"+OR+EXT_ID:"')}")`;
       axios.get(`https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=${queryIDs}&resultType=core&format=json`)
-      .then((response) => {
-        const newFormattedRefs = {};
-        for (const details of response.data.resultList.result) {
-          try {
-            const refDetails = {};
-            refDetails.link = details.fullTextUrlList.fullTextUrl.filter(e => e.documentStyle === 'html' && e.site === 'Europe_PMC');
-            if (refDetails.link.length === 0) {
-              refDetails.link = details.fullTextUrlList.fullTextUrl.filter(
-                e => e.documentStyle === 'doi' || e.documentStyle === 'abs')[0].url;
-            } else {
-              refDetails.link = refDetails.link[0].url;
-            }
-            if (details.pubYear) {
-              refDetails.year = details.pubYear;
-            }
-            refDetails.authors = details.authorList.author.map(e => e.fullName);
-            refDetails.journal = details.journalInfo.journal.title;
-            refDetails.title = details.title;
-            newFormattedRefs[details.id] = refDetails;
-          } catch (e) {
+        .then((response) => {
+          const newFormattedRefs = {};
+          response.data.resultList.result.forEach((details) => {
+            try {
+              const refDetails = {};
+              refDetails.link = details.fullTextUrlList.fullTextUrl
+                .filter(e => e.documentStyle === 'html' && e.site === 'Europe_PMC');
+              if (refDetails.link.length === 0) {
+                refDetails.link = details.fullTextUrlList.fullTextUrl.filter(
+                  e => e.documentStyle === 'doi' || e.documentStyle === 'abs')[0].url;
+              } else {
+                refDetails.link = refDetails.link[0].url;
+              }
+              if (details.pubYear) {
+                refDetails.year = details.pubYear;
+              }
+              refDetails.authors = details.authorList.author.map(e => e.fullName);
+              refDetails.journal = details.journalInfo.journal.title;
+              refDetails.title = details.title;
+              newFormattedRefs[details.id] = refDetails;
+            } catch (e) {
             // pass
-          }
-        }
-        this.formattedRefs = newFormattedRefs;
-      })
-      .catch(() => {
-        this.errorMessage = messages.notFoundError;
-      });
+            }
+          });
+          this.formattedRefs = newFormattedRefs;
+        })
+        .catch(() => {
+          this.errorMessage = messages.notFoundError;
+        });
     },
     viewReactionOnMap(reactionID) {
       EventBus.$emit('viewReactionOnMap', reactionID);

@@ -14,9 +14,12 @@
       <div class="columns is-multiline metabolite-table is-variable is-8">
         <div class="column is-10-widescreen is-9-desktop is-full-tablet">
           <table v-if="metabolite && Object.keys(metabolite).length !== 0" class="table main-table is-fullwidth">
-            <tr v-for="el in mainTableKey[model.database_name]">
+            <tr v-for="el in mainTableKey[model.database_name]" :key="el.name">
               <td v-if="el.display" class="td-key has-background-primary has-text-white-bis" v-html="el.display"></td>
-              <td v-else-if="el.name === 'id'" class="td-key has-background-primary has-text-white-bis">{{ model.short_name }} ID</td>
+              <td v-else-if="el.name === 'id'"
+                  class="td-key has-background-primary has-text-white-bis">
+                {{ model.short_name }} ID
+              </td>
               <td v-else class="td-key has-background-primary has-text-white-bis">{{ reformatTableKey(el.name) }}</td>
               <td v-if="metabolite[el.name] !== null">
                 <span v-if="el.name === 'formula'" v-html="chemicalFormula(metabolite[el.name], metabolite.charge)">
@@ -24,7 +27,9 @@
                 <span v-else-if="el.modifier" v-html="el.modifier(metabolite[el.name])">
                 </span>
                 <span v-else-if="el.name === 'compartment'">
-                  <router-link :to="{ path: `/explore/gem-browser/${model.database_name}/compartment/${idfy(metabolite[el.name])}` }">{{ metabolite[el.name] }}</router-link>
+                  <!-- eslint-disable-next-line max-len -->
+                  <router-link :to="{ path: `/explore/gem-browser/${model.database_name}/compartment/${idfy(metabolite[el.name])}` }"
+                  >{{ metabolite[el.name] }}</router-link>
                 </span>
                 <span v-else>
                   {{ metabolite[el.name] }}
@@ -36,7 +41,9 @@
               <td class="td-key has-background-primary has-text-white-bis">Related metabolite(s)</td>
               <td>
                 <template v-for="(rm, i) in relatedMetabolites">
+                  <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
                   <br v-if="i !== 0 ">
+                  <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
                   <router-link :to="{ path: `/explore/gem-browser/${model.database_name}/metabolite/${rm.id}`}">
                     {{ rm.full_name }}
                   </router-link> in {{ rm.compartment_str }}
@@ -47,27 +54,35 @@
           <template v-if="hasExternalID">
             <h4 class="title is-4">External databases</h4>
             <table v-if="metabolite && Object.keys(metabolite).length !== 0" id="ed-table" class="table is-fullwidth">
-              <tr v-for="el in externalIDTableKey[model.database_name]" v-if="metabolite[el.name] && metabolite[el.link]">
-                <td v-if="'display' in el" class="td-key has-background-primary has-text-white-bis" v-html="el.display"></td>
-                <td v-else class="td-key has-background-primary has-text-white-bis">{{ reformatTableKey(el.name) }}</td>
-                <td>
-                  <a :href="`${metabolite[el.link]}`" target="_blank">{{ metabolite[el.name] }}</a>
-                </td>
+              <tr v-for="el in externalIDTableKey[model.database_name]" :key="el.name">
+                <template v-if="metabolite[el.name] && metabolite[el.link]">
+                  <td v-if="'display' in el"
+                      class="td-key has-background-primary has-text-white-bis"
+                      v-html="el.display"></td>
+                  <td v-else
+                      class="td-key has-background-primary has-text-white-bis">
+                    {{ reformatTableKey(el.name) }}
+                  </td>
+                  <td>
+                    <a :href="`${metabolite[el.link]}`" target="_blank">{{ metabolite[el.name] }}</a>
+                  </td>
+                </template>
               </tr>
             </table>
           </template>
         </div>
         <div class="column is-2-widescreen is-3-desktop is-full-tablet has-text-centered">
           <router-link class="button is-info is-fullwidth is-outlined"
-            :to="{path: `/explore/gem-browser/${model.database_name}/interaction/${this.mId}`}">
+                       :to="{path: `/explore/gem-browser/${model.database_name}/interaction/${mId}`}">
             <span class="icon"><i class="fa fa-connectdevelop fa-lg"></i></span>&nbsp;
             <span>{{ messages.interPartName }}</span>
           </router-link>
         </div>
       </div>
       <div class="columns">
-        <reactome v-show="showReactome" id="metabolite-reactome" :model="model" :metaboliteID="metaboliteID"
-        :disableBut="this.relatedMetabolites.length === 0"></reactome>
+        <reactome v-show="showReactome" id="metabolite-reactome"
+                  :model="model" :metabolite-i-d="metaboliteID"
+                  :disable-but="relatedMetabolites.length === 0"></reactome>
       </div>
     </div>
   </div>
@@ -81,11 +96,13 @@ import { reformatTableKey, reformatStringToLink, addMassUnit, idfy } from '../..
 import { default as messages } from '../../../helpers/messages';
 
 export default {
-  name: 'metabolite',
+  name: 'Metabolite',
   components: {
     Reactome,
   },
-  props: ['model'],
+  props: {
+    model: Object,
+  },
   data() {
     return {
       messages,
@@ -135,6 +152,17 @@ export default {
       showReactome: false,
     };
   },
+  computed: {
+    hasExternalID() {
+      for (let i = 0; i < this.externalIDTableKey[this.model.database_name].length; i += 1) {
+        const item = this.externalIDTableKey[this.model.database_name][i];
+        if (this.metabolite[item.name] && this.metabolite[item.link]) {
+          return true;
+        }
+      }
+      return false;
+    },
+  },
   watch: {
     /* eslint-disable quote-props */
     '$route': function watchSetup() {
@@ -143,16 +171,6 @@ export default {
           this.setup();
         }
       }
-    },
-  },
-  computed: {
-    hasExternalID() {
-      for (const item of this.externalIDTableKey[this.model.database_name]) {
-        if (this.metabolite[item.name] && this.metabolite[item.link]) {
-          return true;
-        }
-      }
-      return false;
     },
   },
   beforeMount() {
@@ -167,26 +185,26 @@ export default {
     },
     load() {
       axios.get(`${this.model.database_name}/metabolite/${this.mId}/`)
-      .then((response) => {
-        this.metaboliteID = this.mId;
-        this.metabolite = response.data;
-        this.showReactome = true;
-        this.getRelatedMetabolites();
-      })
-      .catch(() => {
-        this.errorMessage = messages.notFoundError;
-        this.showReactome = false;
-      });
+        .then((response) => {
+          this.metaboliteID = this.mId;
+          this.metabolite = response.data;
+          this.showReactome = true;
+          this.getRelatedMetabolites();
+        })
+        .catch(() => {
+          this.errorMessage = messages.notFoundError;
+          this.showReactome = false;
+        });
     },
     getRelatedMetabolites() {
       axios.get(`${this.model.database_name}/metabolite/${this.mId}/related`)
-      .then((response) => {
-        this.relatedMetabolites = response.data;
-        this.relatedMetabolites.sort((a, b) => (a.compartment_str < b.compartment_str ? -1 : 1));
-      })
-      .catch(() => {
-        this.relatedMetabolites = [];
-      });
+        .then((response) => {
+          this.relatedMetabolites = response.data;
+          this.relatedMetabolites.sort((a, b) => (a.compartment_str < b.compartment_str ? -1 : 1));
+        })
+        .catch(() => {
+          this.relatedMetabolites = [];
+        });
     },
     reformatTableKey(k) { return reformatTableKey(k); },
     reformatLink(s, link) { return reformatStringToLink(s, link); },

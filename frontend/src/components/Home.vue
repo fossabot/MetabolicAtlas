@@ -2,8 +2,10 @@
   <div class="extended-section">
     <section class="hero video container" style="max-width:100%; width:100%;">
       <div class="hero-video is-transparent">
-        <video poster="../assets/banner_video.jpg" playsinline autoplay muted loop>
-          <!-- <source src="https://ftp.metabolicatlas.org/.static/banner_video.mp4" type="video/mp4"> -->
+        <video poster="../assets/banner_video.jpg"
+               playsinline autoplay
+               muted loop>
+               <!-- <source src="https://ftp.metabolicatlas.org/.static/banner_video.mp4" type="video/mp4"> -->
         </video>
       </div>
       <div class="hero-body">
@@ -24,8 +26,9 @@
                 <div class="column is-narrow is-full-mobile has-background-primary has-text-weight-bold is-paddingless">
                   <aside class="menu">
                     <ul class="menu-list is-size-5 is-unselectable">
-                      <li v-for="menuItem in menu">
-                        <a @click="selectMenu(menuItem)" :class="[ {'is-active' : menuItem.title === currentMenu.title}]">{{ menuItem.title}}</a>
+                      <li v-for="menuItem in menu" :key="menuItem.title">
+                        <a :class="[ {'is-active' : menuItem.title === currentMenu.title}]"
+                           @click="selectMenu(menuItem)">{{ menuItem.title }}</a>
                       </li>
                     </ul>
                   </aside>
@@ -36,7 +39,7 @@
                 <div class="column is-full-mobile more-padding is-v-aligned">
                   <router-link :to="currentMenu.url">
                     <div class="card" :class="{ 'card-selectable': currentMenu.cardLink}">
-                      <img :src="currentMenu.img" :alt="currentMenu.title"/>
+                      <img :src="currentMenu.img" :alt="currentMenu.title" />
                       <template v-if="currentMenu.cardLink">
                         <footer class="card-footer has-text-centered has-background-primary-lighter">
                           <a class="card-footer-item is-size-5 has-text-weight-bold">{{ currentMenu.cardLink }}</a>
@@ -50,13 +53,13 @@
           </div>
         </div>
         <div id="newsandcommunity" class="columns is-variable is-6">
-          <div class="column is-half" v-for="card in cards">
+          <div v-for="card in cards" :key="card.title" class="column is-half">
             <div class="card card-fullheight is-size-5">
               <header class="card-header has-background-primary-light">
                 <p class="card-content has-text-weight-bold has-text-white">{{ card.title }}</p>
               </header>
               <div class="card-content has-text-justified">
-                <p v-for="el in card.text">
+                <p v-for="el in card.text" :key="el[0]">
                   <span v-if="el[0]"><b>{{ el[0] }}</b> - </span><span v-html="el[1]"></span>
                 </p>
               </div>
@@ -71,9 +74,9 @@
 <script>
 import { default as messages } from '../helpers/messages';
 
-/* eslint-disable global-require*/
+/* eslint-disable global-require */
 export default {
-  name: 'home',
+  name: 'Home',
   data() {
     return {
       menu: [
@@ -98,7 +101,7 @@ export default {
           cardLink: 'Explore Human1 on the Map Viewer',
           url: { name: 'viewer', params: { model: 'human1' } } },
         { title: 'Search',
-          text: 'The menu bar contains a shortcut to the <b>Global search</b> function, which enables users to easily search cellular components across all the integrated models. Further filtering is also available, based on result type (e.g. metabolite) and its parameters (e.g. compartment).<br><br>For retrieving larger subsets of the model, model we recommend experienced users to use our the API. Alternatively, models can be downloaded from the <b>GEM Repository</b> page or from their original repository on GitHub.<br><br>',
+          text: 'The menu bar contains a shortcut to the <b>Global search</b> function, which enables users to easily search cellular components across all the integrated models. Further filtering is also available, based on result type (e.g. metabolite) and its parameters (e.g. compartment).<br><br>For retrieving larger subsets of the model, we recommend experienced users to use our the API. Alternatively, models can be downloaded from the <b>GEM Repository</b> page or from their original repository on GitHub.<br><br>',
           img: require('../assets/search.jpg'),
           cardLink: 'Global search',
           url: { name: 'search', query: { term: '' } } },
@@ -143,7 +146,7 @@ export default {
     };
   },
   beforeMount() {
-    this.currentMenu = this.menu[0];
+    this.currentMenu = this.menu[0]; // eslint-disable-line prefer-destructuring
   },
   methods: {
     selectMenu(newMenu) {
