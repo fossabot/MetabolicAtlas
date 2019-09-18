@@ -16,6 +16,7 @@ import axios from 'axios';
 import { default as EventBus } from '../../../event-bus';
 import RNALegend from '@/components/explorer/mapViewer/RNALegend.vue';
 import { getSingleRNAExpressionColor, getComparisonRNAExpressionColor, multipleColors } from '@/expression-sources/hpa';
+import { parseFiledata } from '../../../helpers/file';
 import { default as messages } from '../../../helpers/messages';
 
 export default {
@@ -200,66 +201,15 @@ export default {
 
       // assigning handler
       reader.onloadend = (evt) => {
-        const lines = evt.target.result.split(/\r?\n/);
-        let indexLine = 1;
-        // fetch Tissue
-        if (lines[0].split('\t').length !== 1) {
-          const arrLine = lines[0].split('\t');
-          const v = Number(arrLine[1]);
-          if (Number.isNaN(v)) {
-            this.customTissues = lines[0].split('\t');
-            this.customTissues.shift();
-            lines.shift();
-          } else {
-            this.customTissues = [];
-            for (let i = 1; i < arrLine.length; i += 1) {
-              this.customTissues.push(`serie${i}`);
-            }
-          }
-        } else {
-          this.$emit('errorCustomFile', 'Error: invalid TSV format, expect at least two columns');
+        const info = parseFiledata(evt.target.result);
+        if (info.error) {
+          this.$emit('errorCustomFile', info.error);
           return;
         }
 
-        // parse lines
-        const data = {};
-        // make tissues key;
-        for (let i = 0; i < this.customTissues.length; i += 1) {
-          const tissue = this.customTissues[i];
-          if (tissue in data) {
-            this.$emit('errorCustomFile', `Error: duplicated column '${tissue}'`);
-            return;
-          }
-          data[tissue] = {};
-        }
-
-        let entriesCount = 0;
-        for (let k = 0; k < lines.length; k += 1) {
-          const line = lines[k];
-          if (line) {
-            const arrLine = line.split('\t');
-            if (arrLine.length !== this.customTissues.length + 1) {
-              this.$emit('errorCustomFile', `Error: invalid number of values line ${indexLine}`);
-              return;
-            }
-            for (let i = 1; i < arrLine.length; i += 1) {
-              if (arrLine[i]) {
-                const v = Number(arrLine[i]);
-                if (Number.isNaN(v)) {
-                  this.$emit('errorCustomFile', `Error: invalid value line ${indexLine}`);
-                  return;
-                }
-                data[this.customTissues[i - 1]][arrLine[0]] = v;
-              }
-            }
-            entriesCount += 1;
-          }
-          indexLine += 1;
-        }
-        this.customRNALevels = data;
-        // return the columns loaded
-        const info = { tissues: this.customTissues, entries: entriesCount, series: this.customTissues.length };
-        this.$emit('loadedCustomTissues', info);
+        this.customTissues = info.header;
+        this.customRNALevels = info.data;
+        this.$emit('loadedCustomTissues', { header: info.header, rowCount: info.rowCount });
       };
 
       // start reading

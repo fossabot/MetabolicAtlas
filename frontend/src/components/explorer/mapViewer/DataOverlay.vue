@@ -7,7 +7,7 @@
     <button class="button is-fullwidth" @click="loadeComponent='MetaboliteData'">Metabolites</button>
     <div class="columns">
       <component
-        :is="loadeComponent">
+        :is="loadeComponent"
         :model="model"
         :map-type="mapType"
         :map-name="mapName"

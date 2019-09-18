@@ -215,10 +215,10 @@ export default {
       this.HPATissues = tissues;
     },
     setCustomTissues(info) {
-      this.customTissues = info.tissues;
+      this.customTissues = info.header;
       this.customTissue1 = 'None';
       this.customTissue2 = 'None';
-      this.customFileInfo = `Entries found: ${info.entries} - Series loaded: ${info.series}`;
+      this.customFileInfo = `Entries found: ${info.rowCount} - Series loaded: ${info.header.length}`;
       this.showFileLoader = false;
     },
     setFirstTissue(source) {
