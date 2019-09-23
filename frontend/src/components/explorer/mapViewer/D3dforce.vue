@@ -46,7 +46,7 @@ export default {
     EventBus.$off('show3Dnetwork');
     EventBus.$off('destroy3Dnetwork');
     EventBus.$off('update3DLoadedComponent');
-    EventBus.$off('apply3DHPARNAlevels');
+    EventBus.$off('apply3DGeneExplevels');
 
     EventBus.$on('show3Dnetwork', (type, name, ids) => {
       if (name.toLowerCase().substr(0, 7) === 'cytosol') {
@@ -97,8 +97,8 @@ export default {
       this.loadedComponentName = name;
     });
 
-    EventBus.$on('apply3DHPARNAlevels', (RNAlevels) => {
-      this.applyHPARNAlevelsOnMap(RNAlevels);
+    EventBus.$on('apply3DGeneExplevels', (RNAlevels) => {
+      this.apply3DGeneExplevelsOnMap(RNAlevels);
     });
   },
   methods: {
@@ -294,12 +294,9 @@ export default {
       this.graph.emitLoadComplete = emitLoadComplete;
       this.graph.nodeRelSize(4);
     },
-    applyHPARNAlevelsOnMap(RNAlevels) {
+    apply3DGeneExplevelsOnMap(RNAlevels) {
       this.HPARNAlevels = RNAlevels;
       this.updateGeometries(false);
-      if (Object.keys(this.HPARNAlevels).length !== 0) {
-        EventBus.$emit('loadRNAComplete', true, '');
-      }
     },
     reformatChemicalReactionHTML,
   },

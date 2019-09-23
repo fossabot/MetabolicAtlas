@@ -980,7 +980,7 @@ def processData(database, map_type, map_directory, svg_map_metadata_file):
                     sinfo = SubsystemSvg(name_id=si[0], subsystem=sub[0], name=si[2], filename=si[3])
                     sinfo.save(using=database)
 
-                #add reverse relation: subsystem -> subsystem svg
+                # add reverse relation: subsystem -> subsystem svg
                 Subsystem.objects.using(database).filter(id=sub[0].id).update(subsystem_svg=sinfo)
 
                 svg_path = os.path.join(map_directory, si[3])

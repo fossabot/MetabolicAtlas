@@ -48,7 +48,7 @@ export function parseFiledata(data, separator = '\t', colName = 'serie', valueMo
       }
     }
   } else {
-    info.error = 'Error: invalid TSV format, expect at least two columns';
+    info.error = 'Error: invalid format, expect at least two columns';
     return info;
   }
 
@@ -57,7 +57,7 @@ export function parseFiledata(data, separator = '\t', colName = 'serie', valueMo
   // make tissues key;
   for (let i = 0; i < info.header.length; i += 1) {
     const col = info.header[i];
-    if (col in data) {
+    if (col in info.data) {
       info.error = `Error: duplicated column '${col}'`;
       return info;
     }

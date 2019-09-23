@@ -143,7 +143,7 @@ export default {
   },
   created() {
     EventBus.$off('showSVGmap');
-    EventBus.$off('apply2DHPARNAlevels');
+    EventBus.$off('apply2DGeneExplevels');
 
     EventBus.$on('showSVGmap', (type, name, ids, forceReload) => {
       if (forceReload) {
@@ -166,8 +166,8 @@ export default {
       }
     });
 
-    EventBus.$on('apply2DHPARNAlevels', (levels) => {
-      this.applyHPARNAlevelsOnMap(levels);
+    EventBus.$on('apply2DGeneExplevels', (levels) => {
+      this.apply2DGeneExplevelsOnMap(levels);
     });
   },
   mounted() {
@@ -374,7 +374,7 @@ export default {
       });
       FileSaver.saveAs(blob, `${this.loadedMap.name_id}.svg`);
     },
-    applyHPARNAlevelsOnMap(RNAlevels) {
+    apply2DGeneExplevelsOnMap(RNAlevels) {
       this.HPARNAlevels = RNAlevels;
       if (Object.keys(this.HPARNAlevels).length === 0) {
         $('#svg-wrapper .enz .shape').attr('fill', this.defaultGeneColor);
@@ -386,12 +386,12 @@ export default {
         try {
           const ID = oneEnz.classList[1];
           if (this.HPARNAlevels[ID] !== undefined) {
-            oneEnz.children[0].setAttribute('fill', this.HPARNAlevels[ID][0]); // 0 is the float value, 1 the color hex
+            oneEnz.children[0].setAttribute('fill', this.HPARNAlevels[ID][0]); // 0 is the rgb value, 1 the float value
           } else {
             oneEnz.children[0].setAttribute('fill', this.HPARNAlevels['n/a'][0]);
           }
         } catch {
-          // .values() get the prop length, we don't want that
+          // Object.values() returns also the prop ".length", skip it here
         }
         return true;
       });
@@ -401,7 +401,6 @@ export default {
         .forEach((ID) => {
           this.selectedItemHistory[ID].rnaLvl = this.HPARNAlevels[ID];
         });
-      EventBus.$emit('loadRNAComplete', true, '');
     },
     searchComponentIDs() {
       // get the correct IDs from the backend

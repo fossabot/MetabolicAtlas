@@ -1,5 +1,5 @@
 <template>
-  <div class="card is-unselectable">
+  <div class="card card-margin is-unselectable"> <!-- fix card-margin -->
     <div class="card-content card-content-compact">
       <div class="title is-6 has-text-centered" v-html="text"></div>
       <div class="columns is-gapless" style="margin-bottom: 10px;">
@@ -23,34 +23,26 @@
 
 <script>
 
-import { singleColors, notDetectedColor } from '@/expression-sources/hpa';
-
 export default {
-  name: 'RNALegend',
+  name: 'Legend',
   props: {
     text: {
       type: String,
-      default: 'log<sub>2</sub>(TPM+1)',
     },
     gradient: {
       type: String,
-      default: `${singleColors}`,
     },
     leftValue: {
       type: String,
-      default: '0',
     },
     rightValue: {
       type: String,
-      default: '7+',
     },
     nacolor: {
       type: String,
-      default: `${notDetectedColor}`,
     },
     natext: {
       type: String,
-      default: 'n/a',
     },
   },
 };

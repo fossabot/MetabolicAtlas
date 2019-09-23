@@ -1,5 +1,5 @@
 <template>
-    <!-- eslint-disable max-len -->
+  <!-- eslint-disable max-len -->
   <section class="section section-no-top extended-section">
     <div class="container">
       <h2 class="title is-2">Documentation</h2>
@@ -138,11 +138,19 @@
                 ENSG00000175535&emsp;572<br>
                 ENSG00000187021&emsp;3498&emsp;1768
               </blockquote>
-              <RNALegend></RNALegend>
+              <Legend text="log<sub>2</sub>(TPM+1)"
+                      :gradient="singleColors"
+                      left-value="0"
+                      right-value="7+"
+                      :nacolor="notDetectedColor"
+                      natext="n/a"></Legend>
               <br>
-              <RNALegend text="log<sub>2</sub>(TPM<sub>T2</sub>+1 / TPM<sub>T1</sub>+1)" left-value="-5"
-                         right-value="5"
-                         :gradient="`${multipleColors}`"></RNALegend>
+              <Legend text="log<sub>2</sub>(TPM<sub>T2</sub>+1 / TPM<sub>T1</sub>+1)"
+                      :gradient="multipleColors"
+                      left-value="-5"
+                      right-value="5"
+                      :nacolor="notDetectedColor"
+                      natext="n/a"></Legend>
             </div>
           </div>
 
@@ -193,17 +201,19 @@
 
 <script>
 
-import RNALegend from '@/components/explorer/mapViewer/RNALegend.vue';
-import { multipleColors } from '@/expression-sources/hpa';
+import Legend from '@/components/explorer/mapViewer/Legend.vue';
+import { singleColors, multipleColors, notDetectedColor } from '@/expression-sources/hpa';
 
 export default {
   name: 'Help',
   components: {
-    RNALegend,
+    Legend,
   },
   data() {
     return {
+      singleColors,
       multipleColors,
+      notDetectedColor,
     };
   },
 };

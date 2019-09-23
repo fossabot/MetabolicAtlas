@@ -151,7 +151,12 @@
                   </p>
                 </header>
                 <div v-show="toggleGeneExpLevel" class="card-content">
-                  <RNALegend></RNALegend>
+                  <Legend text="log<sub>2</sub>(TPM+1)"
+                          :gradient="singleColors"
+                          left-value="0"
+                          right-value="7+"
+                          :nacolor="notDetectedColor"
+                          natext="n/a"></Legend>
                   <br>
                   <div v-show="toggleGeneExpLevel && !disableExpLvl"
                        class="select is-fullwidth"
@@ -256,7 +261,7 @@ import { default as FileSaver } from 'file-saver';
 import Sidebar from '@/components/explorer/gemBrowser/Sidebar';
 import CytoscapeTable from '@/components/explorer/gemBrowser/CytoscapeTable';
 import Loader from '@/components/Loader';
-import RNALegend from '@/components/explorer/mapViewer/RNALegend.vue';
+import Legend from '@/components/explorer/mapViewer/Legend.vue';
 
 import { default as EventBus } from '../../../event-bus';
 
@@ -266,7 +271,7 @@ import { default as graph } from '../../../graph-stylers/hmr-closest-interaction
 import { chemicalName } from '../../../helpers/chemical-formatters';
 import { default as convertGraphML } from '../../../helpers/graph-ml-converter';
 
-import { getSingleRNAExpressionColor } from '../../../expression-sources/hpa';
+import { singleColors, notDetectedColor, getSingleRNAExpressionColor } from '../../../expression-sources/hpa';
 import { default as messages } from '../../../helpers/messages';
 
 
@@ -277,7 +282,7 @@ export default {
     CytoscapeTable,
     Loader,
     'compact-picker': Compact,
-    RNALegend,
+    Legend,
   },
   props: {
     model: Object,
@@ -400,6 +405,8 @@ export default {
       minZoom: 0.1,
       factorZoom: 0.08,
       messages,
+      singleColors,
+      notDetectedColor,
     };
   },
   computed: {

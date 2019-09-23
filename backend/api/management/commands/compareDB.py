@@ -14,7 +14,6 @@ def compare(type, db1, db2):
 
 
 def compare_model(Model, unique_field, db1, db2):
-
     missing_in_db1 = 0
     missing_id_db1 = []
     missing_in_db2 = 0

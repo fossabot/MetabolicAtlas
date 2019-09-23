@@ -267,7 +267,6 @@ export default {
     EventBus.$off('unSelectedElement');
     EventBus.$off('startSelectedElement');
     EventBus.$off('endSelectedElement');
-    EventBus.$off('loadRNAComplete');
 
     EventBus.$on('showAction', (type, name, ids, forceReload) => {
       if (this.showLoader) {
@@ -299,23 +298,6 @@ export default {
     EventBus.$on('endSelectedElement', (isSuccess) => {
       this.showSelectionLoader = false;
       this.selectionData.error = !isSuccess;
-    });
-    EventBus.$on('loadRNAComplete', (isSuccess, errorMessage) => {
-      if (!isSuccess) {
-        // show error
-        this.loadErrorMesssage = errorMessage;
-        if (!this.loadErrorMesssage) {
-          this.loadErrorMesssage = messages.unknownError;
-        }
-        this.showLoader = false;
-        EventBus.$emit('unselectFirstTissue');
-        EventBus.$emit('unselectSecondTissue');
-        setTimeout(() => {
-          this.loadErrorMesssage = '';
-        }, 3000);
-        return;
-      }
-      this.showLoader = false;
     });
   },
   beforeMount() {
