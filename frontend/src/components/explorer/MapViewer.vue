@@ -392,7 +392,7 @@ export default {
       this.showLoader = false;
 
       this.$nextTick(() => {
-        EventBus.$emit('reloadGeneExpressionData');
+        EventBus.$emit('modulesComputeData');
       });
     },
     showMessage(errorMessage, messageType) {
