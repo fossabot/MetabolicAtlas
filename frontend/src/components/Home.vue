@@ -29,7 +29,12 @@
                     <ul class="menu-list is-size-5 is-unselectable">
                       <li v-for="menuItem in menu" :key="menuItem.title">
                         <a :class="[ {'is-active' : menuItem.title === currentMenu.title}]"
-                           @click="selectMenu(menuItem)">{{ menuItem.title }}</a>
+                           @click="selectMenu(menuItem)">
+                          <span class="icon is-medium">
+                            <i :class="`fa fa-${menuItem.icon}`"></i>
+                          </span>
+                          {{ menuItem.title }}
+                        </a>
                       </li>
                     </ul>
                   </aside>
@@ -212,14 +217,14 @@ export default {
     outline: 1px solid $primary;
     li {
       &:first-child {
-        margin-top: 1em;
+        margin-top: 0.75em;
       }
       &:last-child {
-        margin-bottom: 1em;
+        margin-bottom: 0.75em;
       }
       a {
         color: $white-bis;
-        padding-left: 1.5em;
+        padding-left: 0.5em;
         line-height: 2;
       }
       a:hover {
