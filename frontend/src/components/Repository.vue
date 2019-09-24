@@ -278,7 +278,7 @@ export default {
       tablePaginationOpts: {
         enabled: true,
         perPage: 50,
-        position: 'both',
+        position: 'bottom',
         perPageDropdown: [25, 50, 100, 200],
         dropdownAllowAll: false,
         setCurrentPage: 1,

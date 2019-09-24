@@ -55,7 +55,7 @@
         <div id="newsandcommunity" class="columns is-variable is-6">
           <div v-for="card in cards" :key="card.title" class="column is-half">
             <div class="card card-fullheight is-size-5">
-              <header class="card-header has-background-primary">
+              <header class="card-header has-background-primary-light">
                 <p class="card-content has-text-weight-bold has-text-white">{{ card.title }}</p>
               </header>
               <div class="card-content has-text-justified">
@@ -90,25 +90,21 @@ export default {
           img: require('../assets/gemBrowser.jpg'),
           cardLink: 'Explore Human1 on the GEM Browser',
           url: { name: 'browserRoot', params: { model: 'human1' } } },
-        { title: messages.interPartName,
-          text: `The <b>Interaction Partners</b> graph shows connectivity between metabolites and genes based on their associated reactions.<br><br>The graph is dynamically generated and is customizable. One can interact with a restricted part of the metabolic network, or further expand the interaction partners of any element already on the graph. Moreover, RNA expression data from the Human Protein Atlas can be overlaid onto the graph. <br><br>This feature is available only for metabolites and genes, and is accessible via the <b>${messages.gemBrowserName}</b>.`,
-          img: require('../assets/interaction.png'),
-          cardLink: 'View glyoxalate[p] in Interaction Partners',
-          url: { path: '/explore/gem-browser/human1/interaction/m02007p' } },
         { title: messages.mapViewerName,
           text: 'For easy visualization, <b>Metabolic Atlas</b> handles both 2D and 3D maps. For each of the integrated models, the website automatically generates 3D graphs at both compartment and subsystem level.<br><br>Both compartment and subsystem 2D maps of the Human-GEM have been created by the contributors to Human-GEM and are manually curated. On these maps, one can search for reactions, metabolites or genes. Moreover, RNA expression data from Human Protein Atlas can be overlaid.<br><br>By clicking on an element on the map, more information of that element will be shown on the left sidebar. From there, one can navigate back to the <b>GEM Browser</b> for detailed information.',
           img: require('../assets/mapViewer.jpg'),
           cardLink: 'Explore Human1 on the Map Viewer',
           url: { name: 'viewer', params: { model: 'human1' } } },
+        { title: messages.interPartName,
+          text: `The <b>Interaction Partners</b> graph shows connectivity between metabolites and genes based on their associated reactions.<br><br>The graph is dynamically generated and is customizable. One can interact with a restricted part of the metabolic network, or further expand the interaction partners of any element already on the graph. Moreover, RNA expression data from the Human Protein Atlas can be overlaid onto the graph. <br><br>This feature is available only for metabolites and genes, and is accessible via the <b>${messages.gemBrowserName}</b>.`,
+          img: require('../assets/interaction.png'),
+          cardLink: 'View glyoxalate[p] in Interaction Partners',
+          url: { path: '/explore/gem-browser/human1/interaction/m02007p' } },
         { title: 'Search',
           text: 'The menu bar contains a shortcut to the <b>Global search</b> function, which enables users to easily search cellular components across all the integrated models. Further filtering is also available, based on result type (e.g. metabolite) and its parameters (e.g. compartment).<br><br>For retrieving larger subsets of the model, we recommend experienced users to use our the API. Alternatively, models can be downloaded from the <b>GEM Repository</b> page or from their original repository on GitHub.<br><br>',
           img: require('../assets/search.jpg'),
           cardLink: 'Global search',
           url: { name: 'search', query: { term: '' } } },
-        { title: 'Export',
-          text: '<b>Metabolic Atlas</b> provides open access to the models and associated annotations. Most of the data provided on <b>Metabolic Atlas</b> is convenient to export, look for export buttons.<br><br>For the ones interested in extracting data in JSON format, we have documented our API. When using images or files obtained from our website, use the following reference:<br><br><i>Article under consideration</i>',
-          img: require('../assets/export.jpg'),
-          url: '' },
         { title: 'Analyze',
           text: 'Gene expression data from the Human Protein Atlas can be viewed in the 2D and 3D maps and Interaction Partners. User data can also be overlaid onto the maps, with the option of comparing datasets, for example against normal tissue.<br><br>Additional types of omics integrations are under development.',
           img: require('../assets/analyze.jpg'),
@@ -118,6 +114,10 @@ export default {
           img: require('../assets/gems.jpg'),
           cardLink: 'GEM Repository',
           url: { name: 'gems' } },
+        { title: 'Export',
+          text: '<b>Metabolic Atlas</b> provides open access to the models and associated annotations. Most of the data provided on <b>Metabolic Atlas</b> is convenient to export, look for export buttons.<br><br>For the ones interested in extracting data in JSON format, we have documented our API. When using images or files obtained from our website, use the following reference:<br><br><i>Article under consideration</i>',
+          img: require('../assets/export.jpg'),
+          url: '' },
         { title: 'Resources',
           text: 'Working with metabolic models requires a set of tools and external databases, which we have collected together for one-click access.<br><br>Additionally, Metabolic Atlas is open to further integrations.',
           img: require('../assets/resources.jpg'),
@@ -127,6 +127,7 @@ export default {
       cards: [
         { title: 'Latest news',
           text: [
+            ['2019.09.05', 'Metabolic Atlas v1.4 enables gene expression comparison'],
             ['2019.08.01', 'Metabolic Atlas v1.3'],
             ['2019.06.25', 'Metabolic Atlas is upgraded to v1.2 with Human1 updated to v1.1'],
             ['2019.05.29', 'Metabolic Atlas is upgraded to v1.1'],
