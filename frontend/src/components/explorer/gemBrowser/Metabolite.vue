@@ -8,7 +8,10 @@
     <div v-else>
       <div class="columns">
         <div class="column">
-          <h3 class="title is-3">Metabolite {{ metabolite.name }}</h3>
+          <h3 class="title is-3">
+            Metabolite {{ metabolite.name }}
+            <span class="is-size-5 has-text-grey">{{ metabolite.compartment }}</span>
+          </h3>
         </div>
       </div>
       <div class="columns is-multiline metabolite-table is-variable is-8">
@@ -145,7 +148,9 @@ export default {
         yeast8: [
         ],
       },
-      metabolite: {},
+      metabolite: {
+        compartment: '',
+      },
       relatedMetabolites: [],
       errorMessage: '',
       activePanel: 'table',

@@ -105,6 +105,8 @@
 </template>
 
 <script>
+
+import $ from 'jquery';
 import RNAexpression from '@/components/explorer/mapViewer/RNAexpression.vue';
 import { default as EventBus } from '../../../event-bus';
 
@@ -210,6 +212,7 @@ export default {
         this.errorCustomFileMsg = '';
         this.customFileInfo = '';
         EventBus.$emit('loadCustomGeneExpData', e.target.files[0]);
+        $('.file-input')[0].value = '';
       } else {
         this.customFileName = '';
       }
