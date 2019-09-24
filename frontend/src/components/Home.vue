@@ -23,9 +23,10 @@
           <div class="column">
             <div class="card">
               <div class="columns is-mobile is-multiline margin-fix">
-                <div class="column is-narrow has-background-primary has-text-weight-bold is-paddingless">
+                <div id="menu-desktop"
+                     class="column is-narrow has-background-primary has-text-weight-bold is-paddingless">
                   <aside class="menu">
-                    <ul id="menu-desktop" class="is-size-5 is-unselectable">
+                    <ul class="menu-list is-size-5 is-unselectable">
                       <li v-for="menuItem in menu" :key="menuItem.title">
                         <a :class="[ {'is-active' : menuItem.title === currentMenu.title}]"
                            @click="selectMenu(menuItem)">{{ menuItem.title }}</a>
@@ -207,27 +208,30 @@ export default {
 <style lang="scss">
 
 #home {
-  #menu-desktop li {
-    &:first-child {
-      margin-top: 1em;
-    }
-    &:last-child {
-      margin-bottom: 1em;
-    }
-    a {
-      color: $white-bis;
-      padding-left: 1.5em;
-      line-height: 2;
-    }
-    a:hover {
-      color: $white-bis;
-      background-color: $primary-light;
-      border-radius: 0;
-    }
-    .is-active {
-      color: $black;
-      background-color: $white;
-      border-radius: 0;
+  #menu-desktop {
+    outline: 1px solid $primary;
+    li {
+      &:first-child {
+        margin-top: 1em;
+      }
+      &:last-child {
+        margin-bottom: 1em;
+      }
+      a {
+        color: $white-bis;
+        padding-left: 1.5em;
+        line-height: 2;
+      }
+      a:hover {
+        color: $white-bis;
+        background-color: $primary-light;
+        border-radius: 0;
+      }
+      .is-active {
+        color: $black;
+        background-color: $white;
+        border-radius: 0;
+      }
     }
   }
   #menu-mobile li {
