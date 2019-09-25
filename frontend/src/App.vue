@@ -132,7 +132,7 @@ export default {
     return {
       /* eslint-disable quote-props */
       menuElems: {
-        '<span class="icon is-large"><i class="fa fa-search fa-lg"></i></span>': '/search?term=',
+        '<span class="icon is-large"><i id="search-icon" class="fa fa-search"></i></span>': '/search?term=',
         'Explore': '/explore',
         'GEM': {
           '/gems/': [
@@ -225,6 +225,10 @@ export default {
   flex: 1;
 }
 
+.has-text-primary-light {
+  color: $primary-light;
+}
+
 .has-background-primary-light {
   background-color: $primary-light;
 }
@@ -258,10 +262,8 @@ m, .clickable {
   height: 100%;
 }
 
-.card-selectable {
-  &:hover {
-    border: solid 1px gray;
-  }
+.hoverable:hover {
+  box-shadow: $shadow-primary-light;
 }
 
 .section-no-top {
@@ -321,6 +323,10 @@ m, .clickable {
   }
   .navbar-link:not(.is-arrowless)::after {
     border-color: $grey-darker;
+  }
+
+  #search-icon {
+    font-size: 1.85rem;
   }
 }
 

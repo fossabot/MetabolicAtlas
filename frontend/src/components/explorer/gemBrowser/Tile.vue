@@ -1,8 +1,9 @@
 <template>
   <router-link class="tile is-parent" :class="size"
                :to="{ path: `/explore/gem-browser/${model.database_name}/${type}/${data.id}`}">
-    <div class="tile is-child clickable box" :title="`Click to view ${data.name}`">
-      <p class="is-capitalized title has-text-primary">{{ type }}</p>
+    <div class="tile is-child clickable box hoverable" :title="`Click to view ${data.name}`">
+      <p class="is-capitalized subtitle is-size-2-widescreen is-size-3-tablet is-size-4-mobile
+         has-text-weight-light has-text-grey-light">{{ type }}</p>
       <template v-if="type == 'metabolite'">
         <span class="is-capitalized"><b>{{ data.name }}</b></span>
         with {{ model.short_name }} ID <b>{{ data.id }}</b> is in

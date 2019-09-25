@@ -9,28 +9,29 @@
       <template v-else>
         <div class="columns has-text-centered">
           <div class="column">
-            <h4 class="is-size-3 has-text-weight-bold">Explore the integrated models</h4>
+            <h3 class="title is-size-3">Explore the integrated models</h3>
           </div>
         </div>
         <div class="columns">
           <div class="column has-text-centered-tablet">
-            <p class="has-text-weight-bold is-size-5">
-              Select a model:
-            </p>
+            <p class="has-text-weight-bold is-size-5">1. Select a model:</p>
           </div>
         </div>
         <div class="columns is-centered">
           <div class="column is-8-widescreen is-10-desktop is-fullwidth-tablet is-size-5">
             <div v-for="cmodel in Object.values(models).sort((a, b) =>
                    (a.short_name.toLowerCase() < b.short_name.toLowerCase() ? -1 : 1))"
-                 id="selectedModel"
-                 :key="cmodel.database_name"
+                 id="selectedModel" :key="cmodel.database_name"
+                 class="box has-text-centered clickable hoverable"
                  :class="cmodel.database_name === model.database_name ? 'selectedBox' : ''"
-                 class="box has-text-centered clickable"
                  :title="`Select ${cmodel.short_name} as the model to explore`"
                  @mousedown.prevent="selectModel(cmodel)">
               <div>
-                <span class="has-text-primary has-text-weight-bold">
+                <span :class="cmodel.database_name === model.database_name ?
+                              'has-text-primary has-text-weight-bold' : ''">
+                  <span v-if="cmodel.database_name === model.database_name"
+                        class="icon"><i class="fa fa-check-square-o"></i></span>
+                  <span v-else><i class="fa fa-square-o"></i></span>
                   {{ cmodel.short_name }} v{{ cmodel.version }}
                 </span> - {{ cmodel.full_name }}
               </div>
@@ -45,20 +46,18 @@
         <br>
         <div class="columns">
           <div class="column has-text-centered-tablet">
-            <p class="has-text-weight-bold is-size-5">
-              Select a tool:
-            </p>
+            <p class="has-text-weight-bold is-size-5">2. Select a tool:</p>
           </div>
         </div>
         <div v-if="model" class="columns is-centered">
           <template v-for="tool in explorerTools">
             <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
-            <div class="column is-4-widescreen is-5-desktop">
+            <div class="column is-4-widescreen is-5-desktop is-size-5">
               <router-link :to="{ path: `${tool.url}/${model.database_name }` }"
                            :title="`Click to access the ${tool.name} for ${model.short_name} model`">
-                <div class="card card-fullheight card-selectable has-text-justified">
+                <div class="card card-fullheight hoverable">
                   <header class="card-header">
-                    <p class="card-header-title is-size-5">{{ tool.name }}</p>
+                    <p class="card-header-title is-centered">{{ tool.name }}: {{ model.short_name }}</p>
                   </header>
                   <div class="card-content">
                     <div class="content">
@@ -218,7 +217,7 @@ export default {
 <style lang="scss">
 
 #selectedModel.selectedBox {
-  box-shadow: 0 2px 3px $primary, 0 0 0 1px $primary;
+  box-shadow: $shadow-primary-light;
 }
 
 </style>

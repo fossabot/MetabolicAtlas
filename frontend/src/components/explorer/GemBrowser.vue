@@ -8,7 +8,7 @@
     <template v-else>
       <div v-if="!selectedType" class="columns">
         <div class="column container has-text-centered">
-          <h4 class="title is-4">Explore {{ model.short_name }} with the {{ messages.gemBrowserName }}</h4>
+          <h4 class="title is-size-4">Explore {{ model.short_name }} with the {{ messages.gemBrowserName }}</h4>
         </div>
       </div>
       <div class="columns is-centered">
@@ -19,7 +19,7 @@
           <div class="column is-10 is-size-5 has-text-centered">
             <p>Use the search field above to look for your element of interest.</p>
             <p>A selection of &thinsp;
-              <button id="randomButton" class="button is-rounded"
+              <button id="randomButton" class="button is-rounded is-outlined is-primary"
                       title="Fetch another random set of elements"
                       @click="get_tiles_data()"><b>random</b>
               </button>&thinsp; elements of {{ model.short_name }} is shown below.
@@ -192,16 +192,10 @@ export default {
 #gem-browser-tiles {
   word-wrap: anywhere;
   .tile.is-child {
-    &:hover {
-      box-shadow: 0 2px 3px $primary-light, 0 0 0 1px $primary-light;
-    }
     ul {
       list-style-type: disc;
       margin-left: 2rem;
     }
-  }
-  .box {
-    box-shadow: 0 2px 3px lightgray, 0 0 0 1px lightgray;
   }
 }
 

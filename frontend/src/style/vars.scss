@@ -13,6 +13,8 @@ $widescreen: 1384px !default;
 $fullhd: 1576px !default;
 $navbar-breakpoint: 1000px;
 
+$shadow-primary-light: 0 2px 3px $primary, 0 0 0 1px $primary;
+
 // default Bulma
 $white: hsl(0, 0%, 100%);
 $white-bis: hsl(0, 0%, 98%);
