@@ -39,7 +39,9 @@
                          { 'is-disabled': resultsCount[tab] === 0 }]"
                 @click="resultsCount[tab] !== 0 ? showTabType=tab : ''">
               <a class="is-capitalized">
-                {{ tab }}s&nbsp;({{ resultsCount[tab] }})
+                <p>{{ tab }}s
+                  <span :class="{'has-text-danger': resultsCount[tab] !== 0 }">({{ resultsCount[tab] }})</span>
+                </p>
               </a>
             </li>
           </ul>
