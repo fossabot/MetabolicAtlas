@@ -57,7 +57,10 @@
                            :title="`Click to access the ${tool.name} for ${model.short_name} model`">
                 <div class="card card-fullheight hoverable">
                   <header class="card-header">
-                    <p class="card-header-title is-centered">{{ tool.name }}: {{ model.short_name }}</p>
+                    <p class="card-header-title is-centered">
+                      <span class="icon is-medium"><i :class="`fa fa-${tool.icon}`"></i></span>
+                      &nbsp;{{ tool.name }}: {{ model.short_name }}
+                    </p>
                   </header>
                   <div class="card-content">
                     <div class="content">
@@ -96,11 +99,11 @@ export default {
         { name: messages.gemBrowserName,
           img: require('../assets/gemBrowser.jpg'),
           url: '/explore/gem-browser',
-        },
+          icon: 'table' },
         { name: messages.mapViewerName,
           img: require('../assets/mapViewer.jpg'),
           url: '/explore/map-viewer',
-        },
+          icon: 'map-o' },
       ],
       model: null,
       models: {},
