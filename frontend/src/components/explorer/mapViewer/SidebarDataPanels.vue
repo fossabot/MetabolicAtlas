@@ -12,7 +12,7 @@
       <footer class="card-footer">
         <router-link class="is-paddingless is-info is-outlined card-footer-item has-text-centered"
                      :to="{ path: `/explore/gem-browser/${model.database_name}/${mapType}/${ mapsData.compartments[mapName] ? mapsData.compartments[mapName].id : mapsData.subsystems[mapName] ? mapsData.subsystems[mapName].id : '' }`}">  <!-- eslint-disable-line max-len -->
-          <span class="icon is-large"><i class="fa fa-database fa-lg"></i></span>
+          <span class="icon is-large"><i class="fa fa-table fa-lg"></i></span>
           <span>{{ messages.gemBrowserName }}</span>
         </router-link>
       </footer>
@@ -33,7 +33,7 @@
         <footer v-if="!selectionData.error" class="card-footer">
           <router-link class="is-paddingless is-info is-outlined card-footer-item has-text-centered"
                        :to="{ path: `/explore/gem-browser/${model.database_name}/${selectionData.type}/${idfy(selectionData.data.id)}`}">  <!-- eslint-disable-line max-len -->
-            <span class="icon is-large"><i class="fa fa-database fa-lg"></i></span>
+            <span class="icon is-large"><i class="fa fa-table fa-lg"></i></span>
             <span>{{ messages.gemBrowserName }}</span>
           </router-link>
           <div class="is-paddingless is-primary is-outlined card-footer-item has-text-centered"
@@ -129,7 +129,7 @@
         <footer v-if="!selectionData.error" class="card-footer">
           <router-link class="is-paddingless is-info is-outlined card-footer-item has-text-centered"
                        :to="{ path: `/explore/gem-browser/${model.database_name}/${selectionData.type}/${idfy(selectionData.data.id)}`}"> <!-- eslint-disable-line max-len -->
-            <span class="icon is-large"><i class="fa fa-database fa-lg"></i></span>
+            <span class="icon is-large"><i class="fa fa-table fa-lg"></i></span>
             <span>{{ messages.gemBrowserName }}</span>
           </router-link>
         </footer>
