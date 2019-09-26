@@ -131,7 +131,7 @@ export default {
           img: require('../assets/explorer.jpg'),
           cardLink: 'Explore',
           url: { name: 'explorerRoot' },
-          icon: 'user-circle-o' },
+          icon: 'home' },
         { title: messages.gemBrowserName,
           text: 'The <b>GEM Browser</b> enables powerful query and exploration of model content in tabular format.<br><br>A wide range of attributes, including reaction equations, metabolite formulas, gene rules and subsystem contents, are presented as a detailed network of individual model components. They are highly interconnected and rationally associated to easily navigate and switch between them.<br><br>Visit the documentation to learn about the different functionalities provided by the GEM Browser.',
           img: require('../assets/gemBrowser.jpg'),
