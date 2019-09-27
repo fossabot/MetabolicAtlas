@@ -47,7 +47,7 @@
           </ul>
         </div>
         <loader v-show="loading && searchTerm !== ''"></loader>
-        <div v-show="!loading" class="columns is-centered">
+        <div v-show="!loading">
           <div v-if="Object.keys(searchResults).length === 0"
                class="column is-three-fifths-desktop is-three-quarters-tablet is-fullwidth-mobile">
             <div v-if="searchedTerm" class="has-text-centered notification">
