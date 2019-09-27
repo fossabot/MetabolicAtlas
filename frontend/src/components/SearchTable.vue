@@ -124,7 +124,7 @@
                       <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key max-len -->
                       <router-link :to="{ path: `/explore/gem-browser/${props.row.model.id}/subsystem/${idfy(sub)}` }"> {{ sub }}</router-link>
                     </template>
-                    <template v-if="['name', 'id'].includes(props.column.field)">
+                    <template v-else-if="['name', 'id'].includes(props.column.field)">
                       <router-link
                         :to="{ path: `/explore/gem-browser/${props.row.model.id}/${header}/${props.row.id}` }">
                         {{ props.row.name || props.row.id }}
