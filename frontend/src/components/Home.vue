@@ -44,7 +44,7 @@
                 </div>
                 <div class="column more-padding is-v-aligned">
                   <router-link :to="currentMenu.url">
-                    <div class="card" :class="{ 'card-selectable': currentMenu.cardLink}">
+                    <div class="card" :class="{ 'hoverable': currentMenu.cardLink}">
                       <img :src="currentMenu.img" :alt="currentMenu.title" />
                       <template v-if="currentMenu.cardLink">
                         <footer class="card-footer has-text-centered has-background-primary-lighter">
@@ -131,7 +131,7 @@ export default {
           img: require('../assets/explorer.jpg'),
           cardLink: 'Explore',
           url: { name: 'explorerRoot' },
-          icon: 'user-circle-o' },
+          icon: 'home' },
         { title: messages.gemBrowserName,
           text: 'The <b>GEM Browser</b> enables powerful query and exploration of model content in tabular format.<br><br>A wide range of attributes, including reaction equations, metabolite formulas, gene rules and subsystem contents, are presented as a detailed network of individual model components. They are highly interconnected and rationally associated to easily navigate and switch between them.<br><br>Visit the documentation to learn about the different functionalities provided by the GEM Browser.',
           img: require('../assets/gemBrowser.jpg'),

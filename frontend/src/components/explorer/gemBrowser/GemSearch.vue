@@ -3,11 +3,11 @@
     <div class="control">
       <div id="input-wrapper">
         <p class="control has-icons-right has-icons-left">
+          <!-- eslint-disable max-len -->
           <input id="search" ref="searchInput"
                  v-model="searchTermString"
                  class="input" type="text"
-                 placeholder="Search by metabolite (uracil),
-    gene (SULT1A3), or reaction (ATP => cAMP + PPi) or subsystem"
+                 placeholder="Search by metabolite (uracil), gene (SULT1A3), reaction (ATP => cAMP + PPi), subsystem or compartment"
                  @input="searchDebounce"
                  @keyup.esc="showResults = false"
                  @focus="showResults = true"

@@ -5,7 +5,7 @@
          role="navigation" aria-label="main navigation">
       <div class="container">
         <div class="navbar-brand">
-          <router-link class="navbar-item" to="/">
+          <router-link class="navbar-item" to="/" @click.native="isMobileMenu = false">
             <img :src="require('./assets/logo.png')"/>
           </router-link>
           <div class="navbar-burger" :class="{ 'is-active': isMobileMenu }"
@@ -37,7 +37,7 @@
               <template v-if="typeof menuPath === 'string'">
                 <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
                 <router-link class="navbar-item is-unselectable underline"
-                             :to="{ path: menuPath }"
+                             :to="{ path: menuPath }" @click.native="isMobileMenu = false"
                              :class="{ 'is-active': isActiveRoute(menuPath, true) }" v-html="menuName">
                 </router-link>
               </template>
@@ -47,14 +47,14 @@
                   <div class="navbar-item has-dropdown is-hoverable is-unselectable has-background-primary-lighter">
                     <a class="navbar-link underline"
                        :class="{ 'is-active': isActiveRoute(menuurl) }"> {{ menuName }} </a>
-                    <div class="navbar-dropdown has-background-primary-lighter">
+                    <div class="navbar-dropdown has-background-primary-lighter is-paddingless">
                       <template v-for="submenu in submenus">
                         <template v-for="(submenuPath, submenuName) in submenu">
                           <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
                           <router-link class="navbar-item is-unselectable has-background-primary-lighter"
                                        :to="{ path: submenuPath }"
                                        :class="{ 'is-active': isActiveRoute(submenuPath) }"
-                                       v-html="submenuName">
+                                       v-html="submenuName" @click.native="isMobileMenu = false">
                           </router-link>
                         </template>
                       </template>
@@ -132,7 +132,7 @@ export default {
     return {
       /* eslint-disable quote-props */
       menuElems: {
-        '<span class="icon is-large"><i class="fa fa-search fa-lg"></i></span>': '/search?term=',
+        '<span class="icon is-large"><i id="search-icon" class="fa fa-search"></i></span>': '/search?term=',
         'Explore': '/explore',
         'GEM': {
           '/gems/': [
@@ -225,6 +225,10 @@ export default {
   flex: 1;
 }
 
+.has-text-primary-light {
+  color: $primary-light;
+}
+
 .has-background-primary-light {
   background-color: $primary-light;
 }
@@ -258,10 +262,8 @@ m, .clickable {
   height: 100%;
 }
 
-.card-selectable {
-  &:hover {
-    border: solid 1px gray;
-  }
+.hoverable:hover {
+  box-shadow: $shadow-primary-light;
 }
 
 .section-no-top {
@@ -321,6 +323,10 @@ m, .clickable {
   }
   .navbar-link:not(.is-arrowless)::after {
     border-color: $grey-darker;
+  }
+
+  #search-icon {
+    font-size: 1.85rem;
   }
 }
 

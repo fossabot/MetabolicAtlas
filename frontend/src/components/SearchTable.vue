@@ -39,50 +39,51 @@
                          { 'is-disabled': resultsCount[tab] === 0 }]"
                 @click="resultsCount[tab] !== 0 ? showTabType=tab : ''">
               <a class="is-capitalized">
-                {{ tab }}s&nbsp;({{ resultsCount[tab] }})
+                <p>{{ tab }}s
+                  <span :class="{'has-text-danger': resultsCount[tab] !== 0 }">({{ resultsCount[tab] }})</span>
+                </p>
               </a>
             </li>
           </ul>
         </div>
         <loader v-show="loading && searchTerm !== ''"></loader>
-        <div v-show="!loading">
-          <div v-if="Object.keys(searchResults).length === 0" class="column is-offset-3 is-6">
+        <div v-show="!loading" class="columns is-centered">
+          <div v-if="Object.keys(searchResults).length === 0"
+               class="column is-three-fifths-desktop is-three-quarters-tablet is-fullwidth-mobile">
             <div v-if="searchedTerm" class="has-text-centered notification">
-              {{ messages.searchNoResult }} for <i>{{ searchedTerm }}</i>
+              {{ messages.searchNoResult }} for <b><i>{{ searchedTerm }}</i></b><br>
+              If this is an alias or external identifier, it means it is not present in any of the models.
             </div>
-            <div class="content">
-              <div class="has-text-centered">Search using the following parameters:</div>
-              <span>Metabolites by:</span>
+            <div class="content is-size-5">
+              <br>
+              Search by:<br><br>
+              <span>Metabolites</span>
               <ul>
                 <li>ID</li>
                 <li>Name or aliases</li>
-                <li>Formula (without charge)</li>
+                <li>Formula without charge</li>
                 <li>External identifiers</li>
               </ul>
-              <span>Genes by:</span>
+              <span>Genes</span>
               <ul>
                 <li>ID</li>
                 <li>Name or aliases</li>
                 <li>External identifiers</li>
               </ul>
-              <span>Reactions by:</span>
+              <span>Reactions</span>
               <ul>
                 <li>ID</li>
-                <li>Equation (view the
+                <li>Equation (see the
                   <router-link :to="{ 'path': '/documentation', hash:'Global-search'}">documentation</router-link>
                   for more information)</li>
                 <li>EC code</li>
                 <li>External identifiers</li>
               </ul>
-              <span>Subsystem and compartment by:</span>
+              <span>Subsystems and compartments</span>
               <ul>
-                <li>name</li>
+                <li>Name</li>
                 <li>External identifiers (subsystem only)</li>
               </ul>
-              <br>
-              <div class="has-text-centered">
-                <u>External identifiers and aliases may be missing if they are not provided with the models.</u>
-              </div>
             </div>
           </div>
           <template v-for="(header, index) in tabs">

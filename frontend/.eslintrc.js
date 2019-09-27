@@ -13,7 +13,7 @@ module.exports = {
     'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
     'vue/singleline-html-element-content-newline': 'off',
     'vue/max-attributes-per-line': ["error", {
-      "singleline": 3,
+      "singleline": 5,
       "multiline": {
         "max": 2,
         "allowFirstLine": true,
