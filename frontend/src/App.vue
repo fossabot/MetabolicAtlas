@@ -326,7 +326,7 @@ m, .clickable {
   }
 
   #search-icon {
-    font-size: 1.85rem;
+    font-size: 1.8rem;
   }
 }
 
