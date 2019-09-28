@@ -152,7 +152,7 @@
                 </header>
                 <div v-show="toggleGeneExpLevel" class="card-content">
                   <Legend text="log<sub>2</sub>(TPM+1)"
-                          :gradient="singleColors"
+                          :gradient="singleColorsGradient"
                           left-value="0"
                           right-value="7+"
                           :nacolor="notDetectedColor"
@@ -271,7 +271,7 @@ import { default as graph } from '../../../graph-stylers/hmr-closest-interaction
 import { chemicalName } from '../../../helpers/chemical-formatters';
 import { default as convertGraphML } from '../../../helpers/graph-ml-converter';
 
-import { singleColors, notDetectedColor, getSingleRNAExpressionColor } from '../../../expression-sources/hpa';
+import { singleColorsGradient, notDetectedColor, getSingleRNAExpressionColor } from '../../../expression-sources/hpa';
 import { default as messages } from '../../../helpers/messages';
 
 
@@ -405,7 +405,7 @@ export default {
       minZoom: 0.1,
       factorZoom: 0.08,
       messages,
-      singleColors,
+      singleColorsGradient,
       notDetectedColor,
     };
   },

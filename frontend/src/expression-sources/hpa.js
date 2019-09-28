@@ -28,8 +28,8 @@ const singleRightColor = `rgb(${srr},${srg},${srb})`; // single right color
 const multipleLeftColor = `rgb(${mlr},${mlg},${mlb})`; // multiple left color
 const multipleMiddleColor = `rgb(${mmr},${mmg},${mmb})`; // multiple middle color
 const multipleRightColor = `rgb(${mrr},${mrg},${mrb})`; // multiple right color
-export const singleColors = `${singleLeftColor}, ${singleMiddleColor}, ${singleRightColor}`;
-export const multipleColors = `${multipleLeftColor}, ${multipleMiddleColor}, ${multipleRightColor}`;
+export const singleColorsGradient = `${singleLeftColor}, ${singleMiddleColor}, ${singleRightColor}`;
+export const multipleColorsGradient = `${multipleLeftColor}, ${multipleMiddleColor}, ${multipleRightColor}`;
 
 
 export function getSingleRNAExpressionColor(value) {

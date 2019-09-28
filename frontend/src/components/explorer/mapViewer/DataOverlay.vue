@@ -23,7 +23,7 @@
 import axios from 'axios';
 import DataOverlayPanel from '@/components/explorer/mapViewer/dataOverlay/DataOverlayPanel.vue';
 import { default as messages } from '../../../helpers/messages';
-import { singleColors, notDetectedColor, getSingleRNAExpressionColor, getComparisonRNAExpressionColor, multipleColors } from '@/expression-sources/hpa';
+import { singleColorsGradient, notDetectedColor, getSingleRNAExpressionColor, getComparisonRNAExpressionColor, multipleColorsGradient } from '@/expression-sources/hpa';
 import { default as EventBus } from '../../../event-bus';
 
 export default {
@@ -89,7 +89,7 @@ export default {
           legend: {
             single: {
               text: 'log<sub>2</sub>(TPM+1)',
-              gradient: `${singleColors}`,
+              gradient: `${singleColorsGradient}`,
               leftValue: '0',
               rightValue: '7+',
               nacolor: `${notDetectedColor}`,
@@ -97,7 +97,7 @@ export default {
             },
             comparison: {
               text: 'log<sub>2</sub>(TPM<sub>T2</sub>+1 / TPM<sub>T1</sub>+1)',
-              gradient: `${multipleColors}`,
+              gradient: `${multipleColorsGradient}`,
               leftValue: '-5',
               rightValue: '5',
               nacolor: `${notDetectedColor}`,

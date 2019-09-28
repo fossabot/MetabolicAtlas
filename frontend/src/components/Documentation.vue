@@ -139,14 +139,14 @@
                 ENSG00000187021&emsp;3498&emsp;1768
               </blockquote>
               <Legend text="log<sub>2</sub>(TPM+1)"
-                      :gradient="singleColors"
+                      :gradient="singleColorsGradient"
                       left-value="0"
                       right-value="7+"
                       :nacolor="notDetectedColor"
                       natext="n/a"></Legend>
               <br>
               <Legend text="log<sub>2</sub>(TPM<sub>T2</sub>+1 / TPM<sub>T1</sub>+1)"
-                      :gradient="multipleColors"
+                      :gradient="multipleColorsGradient"
                       left-value="-5"
                       right-value="5"
                       :nacolor="notDetectedColor"
@@ -202,7 +202,7 @@
 <script>
 
 import Legend from '@/components/explorer/mapViewer/Legend.vue';
-import { singleColors, multipleColors, notDetectedColor } from '@/expression-sources/hpa';
+import { singleColorsGradient, multipleColorsGradient, notDetectedColor } from '@/expression-sources/hpa';
 
 export default {
   name: 'Help',
@@ -211,8 +211,8 @@ export default {
   },
   data() {
     return {
-      singleColors,
-      multipleColors,
+      singleColorsGradient,
+      multipleColorsGradient,
       notDetectedColor,
     };
   },
