@@ -5,9 +5,9 @@
         <div class="column has-text-centered content">
           <br>
           <h3 class="title is-3">Search within all integrated GEMs</h3>
-          <h4 class="subtitle is-5 has-text-weight-normal">
+          <h5 class="subtitle is-5 has-text-weight-normal">
             for reactions, metabolites, genes, subsystems and compartments
-          </h4>
+          </h5>
         </div>
       </div>
       <div class="columns is-centered">
@@ -24,7 +24,7 @@
                 Type at least 2 characters
               </span>
               <span class="icon is-medium is-left">
-                <i class="fa fa-search"></i>
+                <i class="fa fa-search is-primary"></i>
               </span>
             </p>
           </div>
@@ -471,7 +471,7 @@ export default {
     this.validateSearch(to.query.term);
     next();
   },
-  mounted() {
+  updated() {
     $('#search').focus();
   },
   methods: {

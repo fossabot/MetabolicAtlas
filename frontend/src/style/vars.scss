@@ -1,5 +1,6 @@
 $primary: #25543C;
 $primary-light: #4C735F;
+$success: $primary-light;
 $primary-lighter: #EEF0EF;
 $link: #00549E;
 $warning: #FFC67D;
@@ -13,6 +14,10 @@ $widescreen: 1384px !default;
 $fullhd: 1576px !default;
 
 $shadow-primary-light: 0 2px 3px $primary, 0 0 0 1px $primary;
+$input-focus-border-color: $primary-light;
+$input-focus-box-shadow-size: 0 0 0 0.150em;
+$input-focus-box-shadow-color: rgba($primary-light, 0.5);
+$input-icon-active-color: $primary-light;
 
 // default Bulma
 $white: hsl(0, 0%, 100%);
