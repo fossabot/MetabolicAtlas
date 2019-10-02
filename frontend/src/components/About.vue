@@ -64,10 +64,11 @@
           <p>For any questions, comments or suggestions please email us <a href="mailto:">contact [at] metabolicatlas [dot] org</a> .</p>
         </div>
       </div>
+      <br>
       <h2 class="title is-2">News</h2>
-      <div class="timeline">
+      <div class="timeline is-centered">
         <header class="timeline-header">
-          <span class="tag is-large has-text-primary has-text-weight-bold">2020</span>
+          <span class="tag is-large has-text-primary has-text-weight-bold">today</span>
         </header>
         <template v-for="year in Object.keys(news).reverse()">
           <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
@@ -77,7 +78,7 @@
               <div class="timeline-marker is-primary" :class="{ 'is-icon' : newsItem.icon }">
                 <i v-if="newsItem.icon" :class="`fa fa-${newsItem.icon}`"></i>
               </div>
-              <div class="timeline-content">
+              <div :id="newsItem.date" class="timeline-content">
                 <p class="heading">{{ newsItem.date }}</p>
                 <p v-html="newsItem.text"></p>
               </div>
@@ -89,7 +90,7 @@
           </header>
         </template>
       </div>
-      <br>
+      <br><br>
       <div class="columns is-variable is-8">
         <div class="column has-text-justified content">
           <h2 id="privacy" class="title is-2">Privacy Notice</h2>
@@ -121,18 +122,18 @@ export default {
       news: {
         2019: [
           { date: '5 September 2019',
-            text: 'Metabolic Atlas v1.4 enables gene expression comparison [will add more details]' },
+            text: '<b>Metabolic Atlas v1.4</b> is out. The major feature of this release is the <i>Data Overlay</i> panel on the <i>Map Viewer</i>, currently enabling data upload and comparison for gene expression. Other small tweaks on the <i>Map Viwewer</i> are: the fullscreen mode, hiding subsystem highlights, some button layout changes. The RNA legend was refactored but maintains the same functionality. The _GEM Browser_ tiles can be randomized by clicking a button. More details can be found in <a href="https://github.com/SysBioChalmers/MetabolicAtlas/releases/tag/v1.4" target="_blank">on GitHub</a>.' },
           { date: '1 August 2019',
-            text: 'Metabolic Atlas v1.3 [will add more details]' },
+            text: '<b>Metabolic Atlas v1.3</b> loads much faster. Across the website <i>enzyme</i> has been renamed to <i>gene</i>, and the <i>Global search</i> gives results in order, downloadable in TSV format. Among the minor tweaks are: notice on 404 page,  <i>Interaction partners</i> layout and <i>API</i> layout. More details can be found in <a href="https://github.com/SysBioChalmers/MetabolicAtlas/releases/tag/v1.3" target="_blank">on GitHub</a>.' },
           { date: '25 June 2019',
-            text: 'Metabolic Atlas is upgraded to v1.2 with Human1 updated to v1.1 [will add more details]' },
+            text: '<b>Metabolic Atlas v1.2</b> adds more interaction on the 3D <i>Map Viewer</i>, and improves the <i>GEM Comparison</i> tables. It also contains several bug fixes. More details can be found in <a href="https://github.com/SysBioChalmers/MetabolicAtlas/releases/tag/v1.2" target="_blank">on GitHub</a>.All details are under #367. Moreover, <i>Human1</i> updated to v1.1.' },
           { date: '29 May 2019',
-            text: 'Metabolic Atlas is upgraded to v1.1 [will add more details]' },
+            text: '<b>Metabolic Atlas v1.1</b> has minor UI improvements, mainly around documentation, resources, <i>Interaction Partners</i> and <i>Map Viewe</i>, alongside deployment improvements with a focus on reducing downtime. More details can be found in <a href="https://github.com/SysBioChalmers/MetabolicAtlas/releases/tag/v1.1" target="_blank">on GitHub</a>.' },
           { date: '17 May 2019',
-            text: 'Metabolic Atlas is publicly available as v1.0 [will add more details]',
+            text: '<b>Metabolic Atlas v1.0</b> is publicly available. We have finalized two main tools, the <i>GEM Browser</i> (including <i>Interaction Partners</i>) and <i>Map Viewer</i>. Additionally, Metabolic Atlas is hosting GEMs in a repository. More details can be found in <a href="https://github.com/SysBioChalmers/MetabolicAtlas/releases/tag/v1.0" target="_blank">on GitHub</a>.',
             icon: 'flag' },
           { date: '5 May 2019',
-            text: '<i>Human1</i> is integrated, with complete compartment maps, and a significant coverage of the subsystem maps.' },
+            text: '<i>Human1</i> is integrated, with complete compartment maps, and a significant number of the subsystem maps.' },
         ],
         2018: [
           { date: 'December 2018',
