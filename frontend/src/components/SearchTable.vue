@@ -5,18 +5,18 @@
         <div class="column has-text-centered content">
           <br>
           <h3 class="title is-3">Search within all integrated GEMs</h3>
-          <h4 class="subtitle is-4 has-text-weight-normal">
+          <h5 class="subtitle is-5 has-text-weight-normal">
             for reactions, metabolites, genes, subsystems and compartments
-          </h4>
+          </h5>
         </div>
       </div>
       <div class="columns is-centered">
         <div class="column is-three-fifths-desktop is-three-quarters-tablet is-fullwidth-mobile control">
-          <div id="input-wrapper">
+          <div id="input-wrapper is-size-3">
             <p class="control has-icons-right has-icons-left">
               <input id="search" v-model="searchTerm"
-                     class="input" type="text"
-                     placeholder="Example: uracil, SULT1A3, ATP => cAMP + PPi, Acyl-CoA hydrolysis"
+                     class="input is-medium" type="text"
+                     placeholder="uracil, SULT1A3, ATP => cAMP + PPi, Acyl-CoA hydrolysis"
                      @keyup.enter="updateSearch()">
               <span v-show="showSearchCharAlert"
                     class="has-text-danger icon is-small is-right"
@@ -24,66 +24,67 @@
                 Type at least 2 characters
               </span>
               <span class="icon is-medium is-left">
-                <i class="fa fa-search"></i>
+                <i class="fa fa-search is-primary"></i>
               </span>
             </p>
           </div>
         </div>
       </div>
+      <br>
       <div>
         <div v-if="showTabType" class="tabs is-boxed is-fullwidth">
           <ul>
             <li v-for="tab in tabs" :key="tab"
                 :disabled="resultsCount[tab] === 0"
-                :class="[{'is-active has-text-weight-semibold': showTab(tab) && resultsCount[tab] !== 0 },
+                :class="[{'is-active has-text-weight-bold': showTab(tab) && resultsCount[tab] !== 0 },
                          { 'is-disabled': resultsCount[tab] === 0 }]"
                 @click="resultsCount[tab] !== 0 ? showTabType=tab : ''">
               <a class="is-capitalized">
                 <p>{{ tab }}s
-                  <span :class="{'has-text-danger': resultsCount[tab] !== 0 }">({{ resultsCount[tab] }})</span>
+                  <span :class="{'has-text-info': resultsCount[tab] !== 0 }">({{ resultsCount[tab] }})</span>
                 </p>
               </a>
             </li>
           </ul>
         </div>
         <loader v-show="loading && searchTerm !== ''"></loader>
-        <div v-show="!loading" class="columns is-centered">
-          <div v-if="Object.keys(searchResults).length === 0"
-               class="column is-three-fifths-desktop is-three-quarters-tablet is-fullwidth-mobile">
-            <div v-if="searchedTerm" class="has-text-centered notification">
-              {{ messages.searchNoResult }} for <b><i>{{ searchedTerm }}</i></b><br>
-              If this is an alias or external identifier, it means it is not present in any of the models.
-            </div>
-            <div class="content is-size-5">
-              <br>
-              Search by:<br><br>
-              <span>Metabolites</span>
-              <ul>
-                <li>ID</li>
-                <li>Name or aliases</li>
-                <li>Formula without charge</li>
-                <li>External identifiers</li>
-              </ul>
-              <span>Genes</span>
-              <ul>
-                <li>ID</li>
-                <li>Name or aliases</li>
-                <li>External identifiers</li>
-              </ul>
-              <span>Reactions</span>
-              <ul>
-                <li>ID</li>
-                <li>Equation (see the
-                  <router-link :to="{ 'path': '/documentation', hash:'Global-search'}">documentation</router-link>
-                  for more information)</li>
-                <li>EC code</li>
-                <li>External identifiers</li>
-              </ul>
-              <span>Subsystems and compartments</span>
-              <ul>
-                <li>Name</li>
-                <li>External identifiers (subsystem only)</li>
-              </ul>
+        <div v-show="!loading">
+          <div class="columns is-centered">
+            <div v-if="Object.keys(searchResults).length === 0"
+                 class="column is-three-fifths-desktop is-three-quarters-tablet is-fullwidth-mobile">
+              <div v-if="searchedTerm" class="has-text-centered notification">
+                {{ messages.searchNoResult }} for <b><i>{{ searchedTerm }}</i></b><br>
+                If this is an alias or external identifier, it means it is not present in any of the models.
+              </div>
+              <div class="content">
+                <span>Metabolites</span>
+                <ul>
+                  <li>ID</li>
+                  <li>Name or aliases</li>
+                  <li>Formula without charge</li>
+                  <li>External identifiers</li>
+                </ul>
+                <span>Genes</span>
+                <ul>
+                  <li>ID</li>
+                  <li>Name or aliases</li>
+                  <li>External identifiers</li>
+                </ul>
+                <span>Reactions</span>
+                <ul>
+                  <li>ID</li>
+                  <li>Equation (see the
+                    <router-link :to="{ 'path': '/documentation', hash:'Global-search'}">documentation</router-link>
+                    for more information)</li>
+                  <li>EC code</li>
+                  <li>External identifiers</li>
+                </ul>
+                <span>Subsystems and compartments</span>
+                <ul>
+                  <li>Name</li>
+                  <li>External identifiers (subsystem only)</li>
+                </ul>
+              </div>
             </div>
           </div>
           <template v-for="(header, index) in tabs">
@@ -121,64 +122,42 @@
                     <template v-if="props.formattedRow[props.column.field].length === 0">
                       {{ "" }}
                     </template>
-                    <template v-else v-for="(sub, i) in props.formattedRow[props.column.field]">
+                    <template v-for="(sub, i) in props.formattedRow[props.column.field]" v-else>
                       <template v-if="i != 0">; </template>
                       <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key max-len -->
                       <router-link :to="{ path: `/explore/gem-browser/${props.row.model.id}/subsystem/${idfy(sub)}` }"> {{ sub }}</router-link>
                     </template>
-                    <template v-if="['name', 'id'].includes(props.column.field)">
-                      <router-link
-                        :to="{ path: `/explore/gem-browser/${props.row.model.id}/${header}/${props.row.id}` }">
-                        {{ props.row.name || props.row.id }}
-                      </router-link>
+                  </template>
+                  <template v-else-if="props.column.field === 'compartment'">
+                    <template v-if="props.formattedRow[props.column.field].length === 0">
+                      {{ "" }}
                     </template>
-                    <template v-else-if="props.column.field === 'subsystem'">
-                      <template v-if="props.formattedRow[props.column.field].length === 0">
-                        {{ "" }}
-                      </template>
-                      <template v-for="(sub, i) in props.formattedRow[props.column.field]" v-else>
-                        <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key max-len -->
-                        <template v-if="i != 0">; </template><router-link :to="{ path: `/explore/gem-browser/${props.row.model.id}/subsystem/${idfy(sub)}` }">{{ sub }}</router-link>
+                    <template v-else-if="['subsystem', 'gene'].includes(header)">
+                      <template v-for="(comp, i) in props.formattedRow[props.column.field]">
+                        <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
+                        <template v-if="i != 0">; </template><router-link :to="{ path: `/explore/gem-browser/${props.row.model.id}/compartment/${idfy(comp)}` }">{{ comp }}</router-link>
                       </template>
                     </template>
-                    <template v-else-if="props.column.field === 'compartment'">
-                      <template v-if="props.formattedRow[props.column.field].length === 0">
-                        {{ "" }}
-                      </template>
-                      <template v-else-if="['subsystem', 'gene'].includes(header)">
-                        <template v-for="(comp, i) in props.formattedRow[props.column.field]">
-                          <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key max-len -->
-                          <template v-if="i != 0">; </template><router-link :to="{ path: `/explore/gem-browser/${props.row.model.id}/compartment/${idfy(comp)}` }">{{ comp }}</router-link>
+                    <template v-else-if="header === 'reaction'">
+                      <template v-for="(RP, i) in props.formattedRow[props.column.field].split(' => ')">
+                        <template v-if="i != 0"> &#8658; </template>
+                        <template v-for="(compo, j) in RP.split(' + ')">
+                          <template v-if="j != 0"> + </template>
+                          <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
+                          <router-link
+                            :to="{ path: `/explore/gem-browser/${props.row.model.id}/compartment/${idfy(compo)}` }">
+                            {{ compo }}
+                          </router-link>
                         </template>
-                      </template>
-                      <template v-else-if="header === 'reaction'">
-                        <template v-for="(RP, i) in props.formattedRow[props.column.field].split(' => ')">
-                          <template v-if="i != 0"> &#8658; </template>
-                          <template v-for="(compo, j) in RP.split(' + ')">
-                            <template v-if="j != 0"> + </template>
-                            <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
-                            <router-link
-                              :to="{ path: `/explore/gem-browser/${props.row.model.id}/compartment/${idfy(compo)}` }">
-                              {{ compo }}
-                            </router-link>
-                          </template>
-                        </template>
-                      </template>
-                      <template v-else-if="Array.isArray(props.formattedRow[props.column.field])">
-                        {{ props.formattedRow[props.column.field].join("; ") }}
-                      </template>
-                      <template v-else>
-                        <!-- eslint-disable-next-line max-len -->
-                        <router-link :to="{ path: `/explore/gem-browser/${props.row.model.id}/compartment/${idfy(props.formattedRow[props.column.field])}` }">
-                          {{ props.formattedRow[props.column.field] }}
-                        </router-link>
                       </template>
                     </template>
                     <template v-else-if="Array.isArray(props.formattedRow[props.column.field])">
                       {{ props.formattedRow[props.column.field].join("; ") }}
                     </template>
                     <template v-else>
-                      <router-link :to="{ path: `/explore/gem-browser/${props.row.model.id}/compartment/${idfy(props.formattedRow[props.column.field])}` }"> {{ props.formattedRow[props.column.field] }}</router-link>
+                      <router-link :to="{ path: `/explore/gem-browser/${props.row.model.id}/compartment/${idfy(props.formattedRow[props.column.field])}` }">
+                        {{ props.formattedRow[props.column.field] }}
+                      </router-link>
                     </template>
                   </template>
                   <template v-else-if="Array.isArray(props.formattedRow[props.column.field])">
@@ -495,7 +474,7 @@ export default {
     this.validateSearch(to.query.term);
     next();
   },
-  mounted() {
+  updated() {
     $('#search').focus();
   },
   methods: {

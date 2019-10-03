@@ -225,14 +225,6 @@ export default {
   flex: 1;
 }
 
-.has-text-primary-light {
-  color: $primary-light;
-}
-
-.has-background-primary-light {
-  background-color: $primary-light;
-}
-
 .has-background-primary-lighter {
   background-color: $primary-lighter;
 }
@@ -326,7 +318,7 @@ m, .clickable {
   }
 
   #search-icon {
-    font-size: 1.85rem;
+    font-size: 1.8rem;
   }
 }
 
