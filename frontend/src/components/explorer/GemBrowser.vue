@@ -8,7 +8,10 @@
     <template v-else>
       <div v-if="!selectedType" class="columns">
         <div class="column container has-text-centered">
-          <h4 class="title is-size-4">Explore {{ model.short_name }} with the {{ messages.gemBrowserName }}</h4>
+          <h3 class="title is-3">Explore {{ model.short_name }} with the {{ messages.gemBrowserName }}</h3>
+          <h5 class="subtitle is-5 has-text-weight-normal">
+            use the search field to find the component of interest
+          </h5>
         </div>
       </div>
       <div class="columns is-centered">
@@ -17,13 +20,14 @@
       <div v-if="selectedType === ''">
         <div class="columns is-centered">
           <div class="column is-10 is-size-5 has-text-centered">
-            <p>Use the search field above to look for your element of interest.</p>
-            <p>A selection of &thinsp;
-              <button id="randomButton" class="button is-rounded is-outlined is-primary"
-                      title="Fetch another random set of elements"
-                      @click="get_tiles_data()"><b>random</b>
-              </button>&thinsp; elements of {{ model.short_name }} is shown below.
-            </p>
+            <br><br>
+            <a id="randomButton" class="button is-rounded is-outlined is-size-5 is-success"
+               title="Fetch another random set of components" @click="get_tiles_data()">
+              <span class="icon">
+                <i class="fa fa-random"></i>
+              </span>
+              <b>random components of {{ model.short_name }}</b>
+            </a>
             <br>
           </div>
         </div>

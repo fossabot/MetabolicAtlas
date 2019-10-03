@@ -36,15 +36,21 @@
             <span class="icon is-large"><i class="fa fa-table fa-lg"></i></span>
             <span>{{ messages.gemBrowserName }}</span>
           </router-link>
-          <div class="is-paddingless is-primary is-outlined card-footer-item has-text-centered"
-               :disabled="!mapsData.subsystems[idfy(selectionData.data.id)]
-                 || !mapsData.subsystems[idfy(selectionData.data.id)].sha"
-               @click="(mapsData.subsystems[idfy(selectionData.data.id)]
-                 && mapsData.subsystems[idfy(selectionData.data.id)].sha)
-                 && showSubsystem(idfy(selectionData.data.id))">
-            <span class="icon is-large"><i class="fa fa-map-o fa-lg"></i></span>
-            <span>Load map</span>
-          </div>
+          <template v-if="isAvailableSubsystemMap(selectionData.data.id)">
+            <router-link
+              class="is-paddingless is-primary is-outlined card-footer-item has-text-centered"
+              :to="{ path: `/explore/map-viewer/${model.database_name}/${selectionData.type}/${idfy(selectionData.data.id)}?dim=2d` }">  <!-- eslint-disable-line max-len -->
+              <span class="icon is-large"><i class="fa fa-map-o fa-lg"></i></span>
+              <span>Load map</span>
+            </router-link>
+          </template>
+          <template v-else>
+            <div class="is-paddingless is-primary is-outlined card-footer-item has-text-centered" disabled
+                 title="Subsystem map not available">
+              <span class="icon is-large"><i class="fa fa-map-o fa-lg"></i></span>
+              <span :style="{ cursor: 'not-allowed' }">Load map</span>
+            </div>
+          </template>
         </footer>
       </div>
       <div v-else-if="selectionData.data && ['metabolite', 'gene', 'reaction'].includes(selectionData.type)"
@@ -142,7 +148,6 @@
 import { capitalize, reformatStringToLink, idfy } from '../../../helpers/utils';
 import { chemicalFormula, chemicalReaction } from '../../../helpers/chemical-formatters';
 import { default as messages } from '../../../helpers/messages';
-import { default as EventBus } from '../../../event-bus';
 
 export default {
   name: 'SidebarDataPanels',
@@ -231,8 +236,9 @@ export default {
       }
       return true;
     },
-    showSubsystem(id) {
-      EventBus.$emit('showAction', 'subsystem', id, [], false);
+    isAvailableSubsystemMap(name) {
+      return this.mapsData.subsystems[idfy(name)]
+        && this.mapsData.subsystems[idfy(name)].sha;
     },
     capitalize,
     reformatStringToLink,
