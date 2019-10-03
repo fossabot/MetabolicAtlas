@@ -6,8 +6,8 @@
           <!-- eslint-disable max-len -->
           <input id="search" ref="searchInput"
                  v-model="searchTermString"
-                 class="input" type="text"
-                 placeholder="Search by metabolite (uracil), gene (SULT1A3), reaction (ATP => cAMP + PPi), subsystem or compartment"
+                 class="input is-medium" type="text"
+                 placeholder="uracil, SULT1A3, ATP => cAMP + PPi, subsystem or compartment"
                  @input="searchDebounce"
                  @keyup.esc="showResults = false"
                  @focus="showResults = true"
