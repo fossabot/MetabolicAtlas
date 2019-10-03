@@ -12,10 +12,11 @@
            style="padding-bottom: 0">
         <div class="columns">
           <div class="column">
-            <a class="button is-primary is-pulled-right" @click="exportToTSV">
-              <span class="icon is-large"><i class="fa fa-download"></i></span>
-              <span>Export to TSV</span>
-            </a>
+            <ExportTSV
+              class="is-pulled-right"
+              :filename="`${filename}.tsv`"
+              :format-function="formatToTSV"
+            ></ExportTSV>
           </div>
         </div>
       </div>
@@ -126,8 +127,8 @@
 
 <script>
 
-import { default as FileSaver } from 'file-saver';
 import CytoscapeTableSearch from '@/components/explorer/gemBrowser/CytoscapeTableSearch';
+import ExportTSV from '@/components/explorer/gemBrowser/ExportTSV';
 import { default as compare } from '../../../helpers/compare';
 import { default as EventBus } from '../../../event-bus';
 import { reformatEqSign } from '../../../helpers/utils';
@@ -137,6 +138,7 @@ export default {
   name: 'CytoscapeTable',
   components: {
     CytoscapeTableSearch,
+    ExportTSV,
   },
   props: {
     reactions: Array,
@@ -271,24 +273,17 @@ export default {
         }
       }
     },
-    exportToTSV() {
-      try {
-        let tsvContent = `${this.columns.map(e => e.display).join('\t')}\n`;
-        tsvContent += this.sortedReactions.map(d => [
-          d.id,
-          d.reactants.map(e => e.name || e.id).join('; '),
-          d.products.map(e => e.name || e.id).join('; '),
-          d.genes.map(e => e.name || e.id).join('; '),
-          d.compartment,
-        ].join('\t')
-        ).join('\n');
-        const blob = new Blob([tsvContent], {
-          type: 'text/tsv;charset=utf-8',
-        });
-        FileSaver.saveAs(blob, `${this.filename}.tsv`);
-      } catch (_) {
-        // this.errorMessage = e;
-      }
+    formatToTSV() {
+      let tsvContent = `${this.columns.map(e => e.display).join('\t')}\n`;
+      tsvContent += this.sortedReactions.map(d => [
+        d.id,
+        d.reactants.map(e => e.name || e.id).join('; '),
+        d.products.map(e => e.name || e.id).join('; '),
+        d.genes.map(e => e.name || e.id).join('; '),
+        d.compartment,
+      ].join('\t')
+      ).join('\n');
+      return tsvContent;
     },
     reformatEqSign,
   },
