@@ -10,6 +10,12 @@
           {{ transportReactionCount }} transport reactions
         </span>
       </template>
+      <ExportTSV
+        class="is-pulled-right"
+        :style="{ 'margin-left': '1rem' }"
+        :filename="`reaction_${sourceName}.tsv`"
+        :format-function="formatToTSV"
+      ></ExportTSV>
       <span v-show="reactions.length == limit" class="tag is-medium is-warning is-pulled-right">
         The number of reactions displayed is limited to {{ limit }}.
       </span>
@@ -34,7 +40,7 @@
                 {{ r.id }}
               </router-link>
             </td>
-            <td v-html="getReformatChemicalReactionHTML(r)"></td>
+            <td v-html="reformatChemicalReactionHTML(r)"></td>
             <td>
               <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key max-len -->
               <template v-for="(m, index) in r.genes">{{ index == 0 ? '' : ', ' }}<router-link :to="{ path: `/explore/gem-browser/${model.database_name}/gene/${m.id}` }">{{ m.name || m.id }}</router-link>
@@ -68,13 +74,17 @@
 <script>
 import $ from 'jquery';
 import { default as compare } from '../../../helpers/compare';
-import { chemicalReaction } from '../../../helpers/chemical-formatters';
-import { reformatCompEqString, idfy, reformatChemicalReactionHTML } from '../../../helpers/utils';
+import ExportTSV from '@/components/explorer/gemBrowser/ExportTSV';
+import { reformatCompEqString, idfy, reformatChemicalReactionHTML, getChemicalReaction } from '../../../helpers/utils';
 
 export default {
   name: 'ReactionTable',
+  components: {
+    ExportTSV,
+  },
   props: {
     model: Object,
+    sourceName: String,
     reactions: Array,
     selectedElmId: String,
     limit: Number,
@@ -153,10 +163,6 @@ export default {
     }
   },
   methods: {
-    formatChemicalReaction(v, r) { return chemicalReaction(v, r); },
-    getReformatChemicalReactionHTML(r) {
-      return reformatChemicalReactionHTML(r);
-    },
     sortTable(field, pattern, order) {
       if (order) {
         this.sortOrder = order;
@@ -173,6 +179,30 @@ export default {
         return false;
       }
       return true;
+    },
+    formatToTSV() {
+      let tsvContent = `${this.fields.filter((e) => {
+        if ((e.name === 'cp' && !this.showCP)
+          || (e.name === 'subsystem_str' && !this.showSubsystem)) {
+          return false;
+        }
+        return true;
+      }).map(e => e.display).join('\t')}\n`;
+      tsvContent += this.sortedReactions.map((r) => {
+        const arr = [];
+        arr.push(r.id);
+        arr.push(getChemicalReaction(r));
+        arr.push(r.genes.map(g => g.name || g.id).join('; '));
+        if (this.showCP) {
+          arr.push(r.cp);
+        }
+        if (this.showSubsystem) {
+          arr.push(r.subsystem_str);
+        }
+        arr.push(r.compartment);
+        return arr.join('\t');
+      }).join('\n');
+      return tsvContent;
     },
     idfy,
     reformatChemicalReactionHTML,

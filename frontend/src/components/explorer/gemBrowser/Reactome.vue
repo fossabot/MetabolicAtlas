@@ -9,7 +9,9 @@
       </p>
       <reaction-table v-show="!showLoader" :show-subsystem="true"
                       :model="model" :limit="200"
-                      :reactions="!expandAllCompartment ? reactions : reactionsAllcompartment" :selected-elm-id="ID">
+                      :reactions="!expandAllCompartment ? reactions : reactionsAllcompartment"
+                      :selected-elm-id="ID"
+                      :source-name="metaboliteID">
       </reaction-table>
       <div v-if="errorMessage" class="columns">
         <div class="column notification is-danger is-half is-offset-one-quarter has-text-centered">

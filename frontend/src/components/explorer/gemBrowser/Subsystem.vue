@@ -87,7 +87,9 @@
           <loader></loader>
         </template>
         <template v-else-if="!showReactionLoader">
-          <reaction-table :reactions="reactions" :show-subsystem="false" :model="model" :limit="limitReaction">
+          <reaction-table :source-name="sName" :reactions="reactions"
+                          :show-subsystem="false" :model="model"
+                          :limit="limitReaction">
           </reaction-table>
         </template>
       </div>
