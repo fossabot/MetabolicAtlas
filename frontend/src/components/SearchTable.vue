@@ -55,6 +55,14 @@
               <div v-if="searchedTerm" class="has-text-centered notification">
                 {{ messages.searchNoResult }} for <b><i>{{ searchedTerm }}</i></b><br>
                 If this is an alias or external identifier, it means it is not present in any of the models.
+                <template v-if="notFoundSuggestions.length !== 0">
+                  <br>Suggested term(s):
+                  <template v-for="(v, index) in notFoundSuggestions">
+                    <template v-if="index !== 0">{{ ', ' }}</template>
+                    <!-- eslint-disable-next-line vue/valid-v-for -->
+                    <router-link :to="{ name: 'search', query: { term: v }}"> {{ v }}</router-link>
+                  </template>
+                </template>
               </div>
               <div class="content">
                 <span>Metabolites</span>
@@ -457,6 +465,7 @@ export default {
         subsystem: [],
         compartment: [],
       },
+      notFoundSuggestions: [],
     };
   },
   beforeRouteEnter(to, from, next) { // eslint-disable-line no-unused-vars
@@ -728,7 +737,12 @@ export default {
           });
           this.searchResults = localResults;
         })
-        .catch(() => {
+        .catch((error) => {
+          if (error.response.headers.suggestions) {
+            this.notFoundSuggestions = JSON.parse(error.response.headers.suggestions);
+          } else {
+            this.notFoundSuggestions = [];
+          }
           this.searchResults = [];
         })
         .then(() => {
