@@ -37,7 +37,6 @@ export default {
         });
         FileSaver.saveAs(blob, this.filename);
       } catch (error) {
-        console.log(error);
         EventBus.$emit('exportToTSVError', error);
       }
     },
