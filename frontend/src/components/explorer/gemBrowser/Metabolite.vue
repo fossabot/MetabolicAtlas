@@ -83,9 +83,9 @@
         </div>
       </div>
       <div class="columns">
-        <reactome v-show="showReactome" id="metabolite-reactome"
-                  :model="model" :metabolite-i-d="metaboliteID"
-                  :disable-but="relatedMetabolites.length === 0"></reactome>
+        <reactome v-show="showReactome" id="metabolite-reactome" :model="model" :metabolite-i-d="metaboliteID"
+                  :disable-but="relatedMetabolites.length === 0">
+        </reactome>
       </div>
     </div>
   </div>

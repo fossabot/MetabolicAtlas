@@ -94,6 +94,23 @@ export function reformatECLink(s, rootLink) {
   return arr.join('; ');
 }
 
+export function getChemicalReaction(reaction) {
+  if (reaction === null) {
+    return '';
+  }
+  const reactants = reaction.reactionreactant_set.map(
+    x => `${x.stoichiometry !== 1 ? `${x.stoichiometry} ` : ''}${x.reactant.full_name}`
+  ).join(' + ');
+  const products = reaction.reactionproduct_set.map(
+    x => `${x.stoichiometry !== 1 ? `${x.stoichiometry} ` : ''}${x.product.full_name}`
+  ).join(' + ');
+
+  if (reaction.is_reversible) {
+    return `${reactants} <=> ${products}`;
+  }
+  return `${reactants} => ${products}`;
+}
+
 export function reformatChemicalReactionHTML(reaction, noMtag = false) {
   if (reaction === null) {
     return '';
