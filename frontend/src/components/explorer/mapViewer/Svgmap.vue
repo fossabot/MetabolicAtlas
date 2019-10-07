@@ -417,7 +417,6 @@ export default {
           this.findElementsOnSVG(true);
         })
         .catch((error) => {
-          console.log(error);
           this.isLoadingSearch = false;
           const status = error.status || error.response.status;
           if (status !== 404) {

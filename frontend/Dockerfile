@@ -1,5 +1,5 @@
 FROM node:lts-slim
 
 WORKDIR /project/
-ADD . .
+COPY . .
 RUN npm install
