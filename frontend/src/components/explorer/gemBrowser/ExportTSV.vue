@@ -1,6 +1,5 @@
 <template>
-  <a class="button is-primary"
-     @click="exportToTSV">
+  <a class="button is-primary" @click="exportToTSV">
     <span class="icon is-large"><i class="fa fa-download"></i></span>
     <span>Export to TSV</span>
   </a>
@@ -9,7 +8,6 @@
 <script>
 
 import { default as FileSaver } from 'file-saver';
-import { default as EventBus } from '../../../event-bus';
 
 export default {
   name: 'ExportTSV',
@@ -17,10 +15,6 @@ export default {
     arg: [Number, String, Object, Array],
     filename: String,
     formatFunction: Function,
-  },
-  data() {
-    return {
-    };
   },
   methods: {
     exportToTSV() {
@@ -37,7 +31,7 @@ export default {
         });
         FileSaver.saveAs(blob, this.filename);
       } catch (error) {
-        EventBus.$emit('exportToTSVError', error);
+        this.props.filename = 'error';
       }
     },
   },

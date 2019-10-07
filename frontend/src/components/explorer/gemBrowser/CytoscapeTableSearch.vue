@@ -1,15 +1,8 @@
 <template>
-  <div class="columns table-search" style="margin-bottom: 0; padding-bottom: 0">
-    <div class="column">
-      <p class="control">
-        <input v-model="term" class="input"
-               type="text" placeholder="Search in table"
-               @input="search">
-      </p>
-    </div>
-    <div class="column is-1">
-      <a :disabled="!isSearching" class="button" @click="clearSearch()">Reset</a>
-    </div>
+  <div class="table-search">
+    <p class="control">
+      <input v-model="term" class="input" type="text" placeholder="Search in table" @input="search">
+    </p>
   </div>
 </template>
 
@@ -41,6 +34,4 @@ export default {
 
 </script>
 
-<style lang="sass">
-
-</style>
+<style lang="sass"></style>

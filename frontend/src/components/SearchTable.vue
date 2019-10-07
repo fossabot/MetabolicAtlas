@@ -90,17 +90,13 @@
           <template v-for="(header, index) in tabs">
             <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
             <div v-show="showTab(header) && resultsCount[header] !== 0">
-              <vue-good-table ref="searchTables"
-                              :columns="columns[header]" :rows="rows[header]"
+              <vue-good-table ref="searchTables" :columns="columns[header]" :rows="rows[header]"
                               :sort-options="{ enabled: true }" style-class="vgt-table striped bordered"
                               :pagination-options="tablePaginationOpts">
                 <div slot="table-actions">
-                  <ExportTSV
-                    :arg="index"
-                    :style="{'margin': '0.3rem 1rem'}"
-                    :filename="`${searchTerm}-${header}.tsv`"
-                    :format-function="formatToTSV"
-                  ></ExportTSV>
+                  <ExportTSV :arg="index" :style="{'margin': '0.3rem 1rem'}" :filename="`${searchTerm}-${header}.tsv`"
+                             :format-function="formatToTSV">
+                  </ExportTSV>
                 </div>
                 <template slot="table-row" slot-scope="props">
                   <!-- eslint-disable max-len -->

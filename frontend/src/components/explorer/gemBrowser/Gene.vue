@@ -73,9 +73,8 @@
                 <loader></loader>
               </template>
               <template v-else-if="!showReactionLoader">
-                <reaction-table :source-name="geneName" :reactions="reactions"
-                                :show-subsystem="true" :model="model"
-                                :limit="limitReaction">
+                <reaction-table :source-name="geneName" :reactions="reactions" :show-subsystem="true"
+                                :model="model" :limit="limitReaction">
                 </reaction-table>
               </template>
             </div>

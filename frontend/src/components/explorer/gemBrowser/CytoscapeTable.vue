@@ -1,24 +1,12 @@
 <template>
   <div class="container cytoscape-table">
     <div class="columns">
-      <div class="column"
-           style="padding-bottom: 0">
-        <cytoscape-table-search
-          :reset="resetTable"
-          class="is-10"
-          @search="searchTable($event)" />
+      <div class="column is-half">
+        <cytoscape-table-search :reset="resetTable" class="is-10" @search="searchTable($event)" />
       </div>
-      <div class="column is-2"
-           style="padding-bottom: 0">
-        <div class="columns">
-          <div class="column">
-            <ExportTSV
-              class="is-pulled-right"
-              :filename="`${filename}.tsv`"
-              :format-function="formatToTSV"
-            ></ExportTSV>
-          </div>
-        </div>
+      <div class="column"></div>
+      <div class="column is-2">
+        <ExportTSV class="is-pulled-right" :filename="`${filename}.tsv`" :format-function="formatToTSV"></ExportTSV>
       </div>
     </div>
     <div class="columns">
@@ -27,15 +15,11 @@
           <span class="tag">
             # Reaction(s): {{ filteredReactions.length }}
           </span>
-          <span>
-            &nbsp;
-          </span>
+          &nbsp;
           <span class="tag">
             # Unique Metabolite(s): {{ metaboliteCount }}
           </span>
-          <span v-show="geneCount">
-            &nbsp;
-          </span>
+          &nbsp;
           <span v-show="geneCount" class="tag">
             # Unique Gene(s): {{ geneCount }}
           </span>
