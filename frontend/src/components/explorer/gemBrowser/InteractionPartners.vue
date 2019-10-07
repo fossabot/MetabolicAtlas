@@ -1,5 +1,5 @@
 <template>
-  <div class="closest-interaction-partners">
+  <div class="interaction-partners">
     <loader v-show="loading"></loader>
     <div v-show="!loading">
       <div v-if="errorMessage" class="columns">
@@ -1041,7 +1041,7 @@ export default {
 </script>
 
 <style lang='scss'>
-.closest-interaction-partners {
+.interaction-partners {
 
   h1, h2 {
     font-weight: normal;
