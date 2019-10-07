@@ -47,7 +47,7 @@
               @click="highlightElementsFound">Highlight all</span>
       </template>
       <template v-else-if="searchTerm && totalSearchMatch === 0 && haveSearched">
-        <span class="has-text-white">No matches</span>
+        <span class="has-text-white">{{ messages.searchNoResult }}</span>
       </template>
     </div>
     <div id="tooltip" ref="tooltip"></div>
@@ -123,6 +123,7 @@ export default {
 
       svgMapURL: process.env.VUE_APP_SVGMAPURL,
       defaultGeneColor: '#feb',
+      messages,
     };
   },
   computed: {
