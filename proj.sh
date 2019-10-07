@@ -14,6 +14,7 @@ function start-stack {
     docker-compose -f docker-compose.yml -f docker-compose-prod.yml up -d
   else
     docker-compose -f docker-compose.yml -f docker-compose-local.yml up -d
+    docker cp frontend:/project/package-lock.json frontend/
   fi
 }
 

@@ -1,4 +1,4 @@
-version: '3'
+version: '3.7'
 
 services:
 
@@ -35,8 +35,6 @@ services:
     volumes:
       - ./frontend/src:/project/src
       - ./frontend/public:/project/public
-      - ./frontend/.eslintrc.js:/project/.eslintrc.js
-      - ./frontend/package-lock.json:/project/package-lock.json
     networks:
       - net-tier
     ports:
