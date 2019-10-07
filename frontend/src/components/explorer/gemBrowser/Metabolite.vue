@@ -113,6 +113,7 @@ export default {
       metaboliteID: '',
       mainTableKey: {
         human1: [
+          { name: 'id' },
           { name: 'name' },
           { name: 'alt_name', display: 'Alternate name' },
           { name: 'aliases', display: 'Synonyms' },
@@ -121,9 +122,9 @@ export default {
           { name: 'charge' },
           { name: 'inchi', display: 'InChI' },
           { name: 'compartment' },
-          { name: 'id' },
         ],
         yeast8: [
+          { name: 'id' },
           { name: 'name' },
           { name: 'alt_name', display: 'Alternate name' },
           { name: 'aliases', display: 'Synonyms' },
@@ -132,7 +133,6 @@ export default {
           { name: 'charge' },
           { name: 'inchi', display: 'InChI' },
           { name: 'compartment' },
-          { name: 'id' },
         ],
       },
       externalIDTableKey: {
