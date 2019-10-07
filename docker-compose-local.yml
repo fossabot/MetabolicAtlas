@@ -1,4 +1,4 @@
-version: '3'
+version: '3.7'
 
 services:
 
@@ -6,7 +6,7 @@ services:
     volumes:
       - voldb:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
 
   nginx:
     build:
@@ -15,6 +15,8 @@ services:
     depends_on:
       - backend
       - frontend
+    ports:
+      - "127.0.0.1:80:80"
     volumes:
       - ./nginx/svgs:/svgs
 
@@ -36,7 +38,7 @@ services:
     networks:
       - net-tier
     ports:
-      - "81:81"
+      - "127.0.0.1:81:81"
 
 volumes:
   voldb:

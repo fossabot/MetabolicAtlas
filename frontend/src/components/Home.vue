@@ -101,7 +101,7 @@
         <div id="newsandcommunity" class="columns is-variable is-6">
           <div v-for="card in cards" :key="card.title" class="column is-half">
             <div class="card card-fullheight is-size-5">
-              <header class="card-header has-background-primary-light">
+              <header class="card-header has-background-success">
                 <p class="card-content has-text-weight-bold has-text-white">{{ card.title }}</p>
               </header>
               <div class="card-content has-text-justified">
