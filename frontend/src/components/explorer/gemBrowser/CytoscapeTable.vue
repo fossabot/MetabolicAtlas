@@ -2,7 +2,8 @@
   <div class="container cytoscape-table">
     <div class="columns">
       <div class="column is-half">
-        <cytoscape-table-search :reset="resetTable" class="is-10" @search="searchTable($event)" />
+        <input v-model="tableSearch" class="input" type="text" placeholder="Search in table"
+               @keyup.prevent="updateTable">
       </div>
       <div class="column"></div>
       <div class="column is-2">
@@ -111,7 +112,6 @@
 
 <script>
 
-import CytoscapeTableSearch from '@/components/explorer/gemBrowser/CytoscapeTableSearch';
 import ExportTSV from '@/components/explorer/gemBrowser/ExportTSV';
 import { default as compare } from '../../../helpers/compare';
 import { default as EventBus } from '../../../event-bus';
@@ -121,7 +121,6 @@ import { reformatEqSign } from '../../../helpers/utils';
 export default {
   name: 'CytoscapeTable',
   components: {
-    CytoscapeTableSearch,
     ExportTSV,
   },
   props: {
@@ -145,7 +144,7 @@ export default {
       matchingReactions: [],
       unMatchingReactions: [],
       sortAsc: true,
-      tableSearchTerm: '',
+      tableSearch: '',
       errorMessage: '',
     };
   },
@@ -192,15 +191,6 @@ export default {
     HLreaction(rID) {
       this.$emit('HLreaction', this.selectedReactionId === rID ? null : rID);
     },
-    resetTable() {
-      this.sortedReactions = this.filteredReactions;
-      this.tableSearchTerm = '';
-      this.updateTable();
-    },
-    searchTable(term) {
-      this.tableSearchTerm = term;
-      this.updateTable();
-    },
     sortBy(field) {
       const reactions = Array.prototype.slice
         .call(this.filteredReactions); // Do not mutate original elms;
@@ -209,14 +199,15 @@ export default {
       this.updateTable();
     },
     updateTable() {
-      if (this.tableSearchTerm === '') {
+      console.log(this.tableSearch);
+      if (this.tableSearch === '') {
         this.matchingReactions = this.sortedReactions;
         this.unMatchingReactions = [];
         this.$refs.machingTableBody.style.display = '';
       } else {
         this.matchingReactions = [];
         this.unMatchingReactions = [];
-        const t = this.tableSearchTerm.toLowerCase();
+        const t = this.tableSearch.toLowerCase();
         this.sortedReactions.forEach((elm) => {
           let matches = false;
           this.columns.every((s) => {
