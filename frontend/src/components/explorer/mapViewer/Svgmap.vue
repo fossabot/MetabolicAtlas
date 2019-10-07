@@ -30,7 +30,7 @@
                :disabled="!loadedMap" placeholder="Exact search by id, name, alias"
                @keyup.enter="searchComponentIDs()" />
       </div>
-      <template v-if="searchTerm && totalSearchMatch">
+      <template v-if="searchTerm && currentSearchMatch">
         <span id="searchResCount" class="button has-text-dark"
               title="Click to center on current match"
               @click="centerElementOnSVG(0)">
@@ -45,6 +45,9 @@
         <span class="button has-text-dark"
               title="Highlight all matches"
               @click="highlightElementsFound">Highlight all</span>
+      </template>
+      <template v-else-if="searchTerm && totalSearchMatch === 0 && haveSearched">
+        <span class="has-text-white">{{ messages.searchNoResult }}</span>
       </template>
     </div>
     <div id="tooltip" ref="tooltip"></div>
@@ -116,9 +119,11 @@ export default {
 
       currentSearchMatch: 0,
       totalSearchMatch: 0,
+      haveSearched: false,
 
       svgMapURL: process.env.VUE_APP_SVGMAPURL,
       defaultGeneColor: '#feb',
+      messages,
     };
   },
   computed: {
@@ -137,8 +142,10 @@ export default {
       if (!this.searchTerm) {
         this.unHighlight();
         this.totalSearchMatch = 0;
+        this.currentSearchMatch = 0;
         this.searchInputClass = 'is-info';
       }
+      this.haveSearched = false;
     },
   },
   created() {
@@ -405,6 +412,9 @@ export default {
     },
     searchComponentIDs() {
       // get the correct IDs from the backend
+      this.totalSearchMatch = 0;
+      this.currentSearchMatch = 0;
+      this.unHighlight();
       if (!this.searchTerm) {
         this.searchInputClass = 'is-warning';
         return;
@@ -412,12 +422,12 @@ export default {
       this.isLoadingSearch = true;
       axios.get(`${this.model.database_name}/get_id/${this.searchTerm}`)
         .then((response) => {
+          this.haveSearched = true;
           this.searchInputClass = 'is-success';
           this.idsFound = response.data;
           this.findElementsOnSVG(true);
         })
         .catch((error) => {
-          console.log(error);
           this.isLoadingSearch = false;
           const status = error.status || error.response.status;
           if (status !== 404) {
@@ -425,6 +435,7 @@ export default {
             this.searchInputClass = 'is-info';
           } else {
             this.searchInputClass = 'is-danger';
+            this.haveSearched = true;
           }
         });
     },
