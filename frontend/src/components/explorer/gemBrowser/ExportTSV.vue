@@ -1,5 +1,5 @@
 <template>
-  <a class="button is-primary" @click="exportToTSV">
+  <a class="button is-primary is-outlined" @click="exportToTSV">
     <span class="icon is-large"><i class="fa fa-download"></i></span>
     <span>Export to TSV</span>
   </a>
