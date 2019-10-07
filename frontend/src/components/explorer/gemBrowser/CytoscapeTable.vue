@@ -199,7 +199,6 @@ export default {
       this.updateTable();
     },
     updateTable() {
-      console.log(this.tableSearch);
       if (this.tableSearch === '') {
         this.matchingReactions = this.sortedReactions;
         this.unMatchingReactions = [];
