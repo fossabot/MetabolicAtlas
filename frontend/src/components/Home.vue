@@ -28,7 +28,7 @@
                     <ul class="menu-list is-size-5 is-unselectable">
                       <li v-for="menuItem in menu" :key="menuItem.title">
                         <a :class="[ {'is-active' : menuItem.title === currentMenu.title}]"
-                           @click="selectMenu(menuItem)">{{ menuItem.title }}</a>
+                           @click="currentMenu = menuItem">{{ menuItem.title }}</a>
                       </li>
                     </ul>
                   </aside>
@@ -147,11 +147,6 @@ export default {
   },
   beforeMount() {
     this.currentMenu = this.menu[0]; // eslint-disable-line prefer-destructuring
-  },
-  methods: {
-    selectMenu(newMenu) {
-      this.currentMenu = newMenu;
-    },
   },
 };
 
