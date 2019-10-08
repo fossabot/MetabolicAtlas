@@ -68,7 +68,7 @@
                       <li v-for="menuItem in menu" :key="menuItem.title">
                         <a :class="[ {'is-active' : menuItem.title === currentMenu.title}]"
                            @click="selectMenu(menuItem)">
-                           <i :class="`fa fa-${menuItem.icon} fa-lg`"></i>
+                          <i :class="`fa fa-${menuItem.icon} fa-lg`"></i>
                         </a>
                       </li>
                     </ul>
@@ -105,8 +105,11 @@
                 <p class="card-content has-text-weight-bold has-text-white">{{ card.title }}</p>
               </header>
               <div class="card-content has-text-justified">
-                <p v-for="el in card.text" :key="el[0]">
-                  <span v-if="el[0]"><b>{{ el[0] }}</b> - </span><span v-html="el[1]"></span>
+                <p v-for="el in card.text" :key="el.date">
+                  <template v-if="el.date">
+                    <router-link :to="{ 'path': '/about', hash: el.hash }" v-html="el.date"></router-link> -
+                  </template>
+                  <span v-html="el.text"></span>
                 </p>
               </div>
             </div>
@@ -182,20 +185,45 @@ export default {
       cards: [
         { title: 'Latest news',
           text: [
-            ['2019.09.05', 'Metabolic Atlas v1.4 enables gene expression comparison'],
-            ['2019.08.01', 'Metabolic Atlas v1.3'],
-            ['2019.06.25', 'Metabolic Atlas is upgraded to v1.2 with Human1 updated to v1.1'],
-            ['2019.05.29', 'Metabolic Atlas is upgraded to v1.1'],
-            ['2019.05.17', 'Metabolic Atlas is publicly available as v1.0'],
-            ['2019.05.02', '<i>Human1</i> is integrated, with complete maps'],
-            ['2018.12.17', 'MapViewer is faster when browsing manually curated maps'],
-            ['2018.12.08', 'New maps for <i>Human1</i> are being created'],
-            ['2018.11.28', 'A draft version of the <i>Human1</i> model is now integrated'],
-            ['2018.11.23', 'A draft version of the <i>Yeast8</i> model is now integrated'],
+            { date: '2019.09.11',
+              hash: '11-September-2019',
+              text: 'Metabolic Atlas was presented in a course' },
+            { date: '2019.09.05',
+              hash: '5-September-2019',
+              text: 'Metabolic Atlas v1.4 enables gene expression comparison' },
+            { date: '2019.08.01',
+              hash: '1-August-2019',
+              text: 'Metabolic Atlas v1.3' },
+            { date: '2019.06.25',
+              hash: '25-June-2019',
+              text: 'Metabolic Atlas is upgraded to v1.2 with Human1 updated to v1.1' },
+            { date: '2019.05.29',
+              hash: '29-May-2019',
+              text: 'Metabolic Atlas is upgraded to v1.1' },
+            { date: '2019.05.17',
+              hash: '17-May-2019',
+              text: 'Metabolic Atlas is publicly available as v1.0' },
+            { date: '2019.05.02',
+              hash: '2-May-2018',
+              text: '<i>Human1</i> is integrated, with complete maps' },
+            { date: '2018.12.17',
+              hash: 'December-2018',
+              text: 'MapViewer is faster when browsing manually curated maps' },
+            { date: '2018.12.08',
+              hash: 'December-2018',
+              text: 'New maps for <i>Human1</i> are being created' },
+            { date: '2018.11.28',
+              hash: 'November-2018',
+              text: 'A draft version of the <i>Human1</i> model is now integrated' },
+            { date: '2018.11.23',
+              hash: 'November-2018',
+              text: 'A draft version of the <i>Yeast8</i> model is now integrated' },
           ],
         },
         { title: 'Community',
-          text: [['', '<p>We are grateful for the efforts of scientists all over the world into in creating the knowledge required to assemble high quality genome scale metabolic models and are passionate about continuing on this journey of open curation of models.<br><br>We invite you to explore the world of GEMs through Metabolic Atlas, and hope it will enhance your interest in this field. We wish to continuously improve Metabolic Atlas for the community. Contact us with any feedback, suggestions, or requests.</p>']],
+          text: [
+            { text: '<p>We are grateful for the efforts of scientists all over the world into in creating the knowledge required to assemble high quality genome scale metabolic models and are passionate about continuing on this journey of open curation of models.<br><br>We invite you to explore the world of GEMs through Metabolic Atlas, and hope it will enhance your interest in this field. We wish to continuously improve Metabolic Atlas for the community. Contact us with any feedback, suggestions, or requests.</p>' },
+          ],
         },
       ],
     };

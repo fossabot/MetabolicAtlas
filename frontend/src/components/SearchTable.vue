@@ -74,7 +74,7 @@
                 <ul>
                   <li>ID</li>
                   <li>Equation (see the
-                    <router-link :to="{ 'path': '/documentation', hash:'Global-search'}">documentation</router-link>
+                    <router-link :to="{ 'path': '/documentation', hash: 'Global-search'}">documentation</router-link>
                     for more information)</li>
                   <li>EC code</li>
                   <li>External identifiers</li>

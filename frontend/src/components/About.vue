@@ -5,8 +5,7 @@
       <h2 class="title is-2">Metabolic Atlas</h2>
       <div class="columns is-variable is-8">
         <div class="column is-half has-text-justified">
-          <p>
-          </p><div class="box is-hidden-tablet">
+          <div class="box is-hidden-tablet">
             <p class="subtitle has-text-weight-bold is-size-4 has-text-primary has-text-centered">Citing Metabolic Atlas</p>
             <i>Article under consideration</i>
             <!-- <p>
@@ -45,18 +44,18 @@
           <h4 class="title is-4">Scientific Advisors</h4>
           <nav id="advisors" class="level">
             <div class="level-left">
-              <a class="level-item">
+              <span class="level-item">
                 <figure class="image is-64x64">
                   <img class="is-rounded" src="../assets/pic-jens.jpg" />
                 </figure>
                 Jens Nielsen
-              </a>
-              <a class="level-item">
+              </span>
+              <span class="level-item">
                 <figure class="image is-64x64">
                   <img class="is-rounded" src="../assets/pic-jon.jpg" />
                 </figure>
                 Jon Robinson
-              </a>
+              </span>
             </div>
           </nav>
           <br>
@@ -74,11 +73,11 @@
           <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
           <template v-for="newsItem in news[year]">
             <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
-            <div class="timeline-item is-danger">
+            <div :id="newsItem.date.replace(/ /g,'-')" class="timeline-item is-danger">
               <div class="timeline-marker is-primary" :class="{ 'is-icon' : newsItem.icon }">
                 <i v-if="newsItem.icon" :class="`fa fa-${newsItem.icon}`"></i>
               </div>
-              <div :id="newsItem.date" class="timeline-content">
+              <div class="timeline-content">
                 <p class="heading">{{ newsItem.date }}</p>
                 <p v-html="newsItem.text"></p>
               </div>
@@ -121,18 +120,20 @@ export default {
     return {
       news: {
         2019: [
+          { date: '11 September 2019',
+            text: '<b>Metabolic Atlas</b> was presented in the <a href="https://www.scilifelab.se/events/omics-integration-and-systems-biology/" target="_blank">Omics Integration and Systems Biology</a> course given by <a href="https://nbis.se" target="_blank">NBIS</a>.' },
           { date: '5 September 2019',
-            text: '<b>Metabolic Atlas v1.4</b> is out. The major feature of this release is the <i>Data Overlay</i> panel on the <i>Map Viewer</i>, currently enabling data upload and comparison for gene expression. Other small tweaks on the <i>Map Viwewer</i> are: the fullscreen mode, hiding subsystem highlights, some button layout changes. The RNA legend was refactored but maintains the same functionality. The <i>GEM Browser</i> tiles can be randomized by clicking a button. More details can be found in <a href="https://github.com/SysBioChalmers/MetabolicAtlas/releases/tag/v1.4" target="_blank">on GitHub</a>.' },
+            text: '<b>Metabolic Atlas v1.4</b> is out. The major feature of this release is the <i>Data Overlay</i> panel on the <i>Map Viewer</i>, currently enabling data upload and comparison for gene expression. Other small tweaks on the <i>Map Viwewer</i> are: the fullscreen mode, hiding genes or subsystem highlights, some button layout changes. The RNA legend was refactored but maintains the same functionality. The <i>GEM Browser</i> tiles can be randomized by clicking a button. More details can be found in <a href="https://github.com/SysBioChalmers/MetabolicAtlas/releases/tag/v1.4" target="_blank">on GitHub</a>.' },
           { date: '1 August 2019',
             text: '<b>Metabolic Atlas v1.3</b> loads much faster. Across the website <i>enzyme</i> has been renamed to <i>gene</i>, and the <i>Global search</i> gives results in order, downloadable in TSV format. Among the minor tweaks are: notice on 404 page,  <i>Interaction partners</i> layout and <i>API</i> layout. More details can be found in <a href="https://github.com/SysBioChalmers/MetabolicAtlas/releases/tag/v1.3" target="_blank">on GitHub</a>.' },
           { date: '25 June 2019',
-            text: '<b>Metabolic Atlas v1.2</b> adds more interaction on the 3D <i>Map Viewer</i>, and improves the <i>GEM Comparison</i> tables. It also contains several bug fixes. More details can be found in <a href="https://github.com/SysBioChalmers/MetabolicAtlas/releases/tag/v1.2" target="_blank">on GitHub</a>.All details are under #367. Moreover, <i>Human1</i> updated to v1.1.' },
+            text: '<b>Metabolic Atlas v1.2</b> adds more interaction on the 3D <i>Map Viewer</i>, and improves the <i>GEM Comparison</i> tables. It also contains several bug fixes. More details can be found in <a href="https://github.com/SysBioChalmers/MetabolicAtlas/releases/tag/v1.2" target="_blank">on GitHub</a>. Moreover, <i>Human1</i> was updated to v1.1.' },
           { date: '29 May 2019',
             text: '<b>Metabolic Atlas v1.1</b> has minor UI improvements, mainly around documentation, resources, <i>Interaction Partners</i> and <i>Map Viewe</i>, alongside deployment improvements with a focus on reducing downtime. More details can be found in <a href="https://github.com/SysBioChalmers/MetabolicAtlas/releases/tag/v1.1" target="_blank">on GitHub</a>.' },
           { date: '17 May 2019',
             text: '<b>Metabolic Atlas v1.0</b> is publicly available. We have finalized two main tools, the <i>GEM Browser</i> (including <i>Interaction Partners</i>) and <i>Map Viewer</i>. Additionally, Metabolic Atlas is hosting GEMs in a repository. More details can be found in <a href="https://github.com/SysBioChalmers/MetabolicAtlas/releases/tag/v1.0" target="_blank">on GitHub</a>.',
             icon: 'flag' },
-          { date: '5 May 2019',
+          { date: '2 May 2018',
             text: '<i>Human1</i> is integrated, with complete compartment maps, and a significant number of the subsystem maps.' },
         ],
         2018: [
