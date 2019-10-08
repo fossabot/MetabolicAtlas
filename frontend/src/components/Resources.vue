@@ -1,6 +1,6 @@
 <template>
   <section class="section section-no-top extended-section">
-    <div class="container">
+    <div class="container is-size-5">
       <template v-for="(elems, category) in resources">
         <!-- eslint-disable-next-line vue/require-v-for-key -->
         <h2 class="title is-2">{{ category }}</h2>
