@@ -74,10 +74,8 @@
           </tr>
         </table>
       </div>
-      <div class="column is-2-widescreen is-3-desktop is-full-tablet has-text-centered">
-        <maps-available :id="sName" :model="model"
-                        :type="'subsystem'"
-                        :element-i-d="''"></maps-available>
+      <div class="column is-2-widescreen is-3-desktop is-half-tablet has-text-centered">
+        <maps-available :id="sName" :model="model" :type="'subsystem'" :element-i-d="''"></maps-available>
       </div>
     </div>
     <template v-if="!showLoader">
@@ -89,9 +87,9 @@
           <loader></loader>
         </template>
         <template v-else-if="!showReactionLoader">
-          <reaction-table :reactions="reactions" :show-subsystem="false"
-                          :model="model"
-                          :limit="limitReaction"></reaction-table>
+          <reaction-table :source-name="sName" :reactions="reactions" :show-subsystem="false"
+                          :model="model" :limit="limitReaction">
+          </reaction-table>
         </template>
       </div>
     </div>

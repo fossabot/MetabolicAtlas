@@ -8,7 +8,10 @@
     <template v-else>
       <div v-if="!selectedType" class="columns">
         <div class="column container has-text-centered">
-          <h4 class="title is-4">Explore {{ model.short_name }} with the {{ messages.gemBrowserName }}</h4>
+          <h3 class="title is-3">Explore {{ model.short_name }} with the {{ messages.gemBrowserName }}</h3>
+          <h5 class="subtitle is-5 has-text-weight-normal">
+            use the search field to find the component of interest
+          </h5>
         </div>
       </div>
       <div class="columns is-centered">
@@ -17,13 +20,14 @@
       <div v-if="selectedType === ''">
         <div class="columns is-centered">
           <div class="column is-10 is-size-5 has-text-centered">
-            <p>Use the search field above to look for your element of interest.</p>
-            <p>A selection of &thinsp;
-              <button id="randomButton" class="button is-rounded"
-                      title="Fetch another random set of elements"
-                      @click="get_tiles_data()"><b>random</b>
-              </button>&thinsp; elements of {{ model.short_name }} is shown below.
-            </p>
+            <br><br>
+            <a id="randomButton" class="button is-rounded is-outlined is-size-5 is-success"
+               title="Fetch another random set of components" @click="get_tiles_data()">
+              <span class="icon">
+                <i class="fa fa-random"></i>
+              </span>
+              <b>random components of {{ model.short_name }}</b>
+            </a>
             <br>
           </div>
         </div>
@@ -75,7 +79,7 @@
         </div>
       </div>
       <div v-else>
-        <closest-interaction-partners v-if="selectedType==='interaction'" :model="model"></closest-interaction-partners>
+        <interaction-partners v-if="selectedType==='interaction'" :model="model"></interaction-partners>
         <gene v-if="selectedType==='gene'" :model="model"></gene>
         <metabolite v-if="selectedType==='metabolite'" :model="model"></metabolite>
         <reaction v-if="selectedType==='reaction'" :model="model"></reaction>
@@ -89,7 +93,7 @@
 <script>
 import axios from 'axios';
 import GemSearch from '@/components/explorer/gemBrowser/GemSearch';
-import ClosestInteractionPartners from '@/components/explorer/gemBrowser/ClosestInteractionPartners';
+import InteractionPartners from '@/components/explorer/gemBrowser/InteractionPartners';
 import Gene from '@/components/explorer/gemBrowser/Gene';
 import Metabolite from '@/components/explorer/gemBrowser/Metabolite';
 import Reaction from '@/components/explorer/gemBrowser/Reaction';
@@ -104,7 +108,7 @@ import { idfy } from '../../helpers/utils';
 export default {
   name: 'GemBrowser',
   components: {
-    ClosestInteractionPartners,
+    InteractionPartners,
     Gene,
     Metabolite,
     Reaction,
@@ -192,16 +196,10 @@ export default {
 #gem-browser-tiles {
   word-wrap: anywhere;
   .tile.is-child {
-    &:hover {
-      box-shadow: 0 2px 3px $primary-light, 0 0 0 1px $primary-light;
-    }
     ul {
       list-style-type: disc;
       margin-left: 2rem;
     }
-  }
-  .box {
-    box-shadow: 0 2px 3px lightgray, 0 0 0 1px lightgray;
   }
 }
 

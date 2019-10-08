@@ -28,15 +28,11 @@
               <span v-html="el.modifier()"></span>
             </td>
             <td v-else-if="reaction[el.name]">
-              <span v-if="'modifier' in el" v-html="el.modifier(reaction[el.name])">
-              </span>
-              <span v-else>
-                {{ reaction[el.name] }}
-              </span>
+              <span v-if="'modifier' in el" v-html="el.modifier(reaction[el.name])"></span>
+              <span v-else>{{ reaction[el.name] }}</span>
             </td>
             <td v-else-if="el.name === 'equation'">
-              <span v-html="el.modifier(reaction[el.name])">
-              </span>
+              <span v-html="el.modifier(reaction[el.name])"></span>
             </td>
             <td v-else> - </td>
           </tr>
@@ -63,8 +59,7 @@
           <table v-if="reaction && Object.keys(reaction).length != 0" id="ed-table" class="table is-fullwidth">
             <tr v-for="el in externalIDTableKey[model.database_name]" :key="el.name">
               <template v-if="reaction[el.name] && reaction[el.link]">
-                <td v-if="'display' in el"
-                    class="td-key has-background-primary has-text-white-bis"
+                <td v-if="'display' in el" class="td-key has-background-primary has-text-white-bis"
                     v-html="el.display"></td>
                 <td v-else class="td-key has-background-primary has-text-white-bis">{{ reformatTableKey(el.name) }}</td>
                 <td>
@@ -100,10 +95,8 @@
           </template>
         </table>
       </div>
-      <div class="column is-2-widescreen is-3-desktop is-full-tablet has-text-centered">
-        <maps-available :id="rId" :model="model"
-                        :type="'reaction'"
-                        :element-i-d="rId"></maps-available>
+      <div class="column is-2-widescreen is-3-desktop is-half-tablet has-text-centered">
+        <maps-available :id="rId" :model="model" :type="'reaction'" :element-i-d="rId"></maps-available>
       </div>
     </div>
   </div>

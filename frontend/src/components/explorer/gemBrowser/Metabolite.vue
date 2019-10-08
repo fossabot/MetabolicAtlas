@@ -8,12 +8,15 @@
     <div v-else>
       <div class="columns">
         <div class="column">
-          <h3 class="title is-3">Metabolite {{ metabolite.name }}</h3>
+          <h3 class="title is-3">
+            Metabolite {{ metabolite.name }}
+            <span class="is-size-5 has-text-grey">{{ metabolite.compartment }}</span>
+          </h3>
         </div>
       </div>
       <div class="columns is-multiline metabolite-table is-variable is-8">
         <div class="column is-10-widescreen is-9-desktop is-full-tablet">
-          <table v-if="metabolite && Object.keys(metabolite).length !== 0" class="table main-table is-fullwidth">
+          <table v-if="metabolite" class="table main-table is-fullwidth">
             <tr v-for="el in mainTableKey[model.database_name]" :key="el.name">
               <td v-if="el.display" class="td-key has-background-primary has-text-white-bis" v-html="el.display"></td>
               <td v-else-if="el.name === 'id'"
@@ -53,7 +56,7 @@
           </table>
           <template v-if="hasExternalID">
             <h4 class="title is-4">External databases</h4>
-            <table v-if="metabolite && Object.keys(metabolite).length !== 0" id="ed-table" class="table is-fullwidth">
+            <table v-if="metabolite" id="ed-table" class="table is-fullwidth">
               <tr v-for="el in externalIDTableKey[model.database_name]" :key="el.name">
                 <template v-if="metabolite[el.name] && metabolite[el.link]">
                   <td v-if="'display' in el"
@@ -80,9 +83,9 @@
         </div>
       </div>
       <div class="columns">
-        <reactome v-show="showReactome" id="metabolite-reactome"
-                  :model="model" :metabolite-i-d="metaboliteID"
-                  :disable-but="relatedMetabolites.length === 0"></reactome>
+        <reactome v-show="showReactome" id="metabolite-reactome" :model="model" :metabolite-i-d="metaboliteID"
+                  :disable-but="relatedMetabolites.length === 0">
+        </reactome>
       </div>
     </div>
   </div>
@@ -113,10 +116,10 @@ export default {
           { name: 'name' },
           { name: 'alt_name', display: 'Alternate name' },
           { name: 'aliases', display: 'Synonyms' },
-          { name: 'description', display: 'Description' },
+          { name: 'description' },
           { name: 'formula' },
           { name: 'charge' },
-          { name: 'inchi' },
+          { name: 'inchi', display: 'InChI' },
           { name: 'compartment' },
           { name: 'id' },
         ],
@@ -124,10 +127,10 @@ export default {
           { name: 'name' },
           { name: 'alt_name', display: 'Alternate name' },
           { name: 'aliases', display: 'Synonyms' },
-          { name: 'description', display: 'Description' },
+          { name: 'description' },
           { name: 'formula' },
           { name: 'charge' },
-          { name: 'inchi' },
+          { name: 'inchi', display: 'InChI' },
           { name: 'compartment' },
           { name: 'id' },
         ],
@@ -145,7 +148,7 @@ export default {
         yeast8: [
         ],
       },
-      metabolite: {},
+      metabolite: '',
       relatedMetabolites: [],
       errorMessage: '',
       activePanel: 'table',

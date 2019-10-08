@@ -1,5 +1,5 @@
 <template>
-  <div class="closest-interaction-partners">
+  <div class="interaction-partners">
     <loader v-show="loading"></loader>
     <div v-show="!loading">
       <div v-if="errorMessage" class="columns">
@@ -11,32 +11,6 @@
         <div class="container columns">
           <div class="column is-8">
             <h3 class="title is-3 is-marginless" v-html="`${messages.interPartName} for ${title}`"></h3>
-          </div>
-          <div class="column">
-            <div id="dropdownMenuExport" class="dropdown">
-              <div class="dropdown-trigger">
-                <button v-show="showNetworkGraph" class="button is-primary"
-                        aria-haspopup="true"
-                        aria-controls="dropdown-menu" @click="showMenuExport=!showMenuExport">
-                  <span>Export graph</span>
-                  <span class="icon is-small">
-                    &#9663;
-                  </span>
-                </button>
-              </div>
-              <div v-show="showMenuExport" id="dropdown-menu"
-                   class="dropdown-menu" role="menu"
-                   @mouseleave="showMenuExport = false">
-                <div class="dropdown-content">
-                  <a class="dropdown-item" @click="exportGraphml">
-                    Graphml
-                  </a>
-                  <a class="dropdown-item" @click="exportPNG">
-                    PNG
-                  </a>
-                </div>
-              </div>
-            </div>
           </div>
         </div>
         <div v-show="showGraphContextMenu && showNetworkGraph" id="contextMenuGraph" ref="contextMenuGraph">
@@ -94,8 +68,7 @@
                 <div class="comp">
                   <span>Shape:</span>
                   <div class="select">
-                    <select v-model="nodeDisplayParams.geneNodeShape"
-                            @change="redrawGraph()">
+                    <select v-model="nodeDisplayParams.geneNodeShape" @change="redrawGraph()">
                       <option v-for="shape in availableNodeShape" :key="shape">
                         {{ shape }}
                       </option>
@@ -138,6 +111,29 @@
               </div>
             </div>
             <div class="column">
+              <div id="dropdownMenuExport" class="dropdown">
+                <div class="dropdown-trigger">
+                  <a v-show="showNetworkGraph" class="button is-primary is-outlined" aria-haspopup="true"
+                          aria-controls="dropdown-menu" @click="showMenuExport=!showMenuExport">
+                    <span class="icon is-large"><i class="fa fa-download"></i></span>
+                    <span>Export graph</span>
+                    <span class="icon is-large"><i class="fa fa-caret-down"></i></span>
+                  </a>
+                </div>
+                <div v-show="showMenuExport" id="dropdown-menu"
+                     class="dropdown-menu" role="menu"
+                     @mouseleave="showMenuExport = false">
+                  <div class="dropdown-content">
+                    <a class="dropdown-item" @click="exportGraphml">
+                      Graphml
+                    </a>
+                    <a class="dropdown-item" @click="exportPNG">
+                      PNG
+                    </a>
+                  </div>
+                </div>
+              </div>
+              <br><br>
               <div v-if="model.database_name === 'human1'" class="card ">
                 <header class="card-header">
                   <p class="card-header-title">
@@ -150,7 +146,7 @@
                     </label>
                   </p>
                 </header>
-                <div v-show="toggleGeneExpLevel" class="card-content">
+                <div v-show="toggleGeneExpLevel" class="card-content card-content-compact">
                   <RNALegend></RNALegend>
                   <br>
                   <div v-show="toggleGeneExpLevel && !disableExpLvl"
@@ -182,15 +178,13 @@
                     Highlight
                   </p>
                 </header>
-                <div class="card-content">
+                <div class="card-content card-content-compact">
                   <div class="select is-fullwidth">
-                    <select v-model="compartmentHL"
-                            :disabled="disableCompartmentHL"
+                    <select v-model="compartmentHL" :disabled="disableCompartmentHL"
                             @change.prevent="highlightCompartment">
                       <option v-if="!disableCompartmentHL" value="" disabled>Select a compartment</option>
                       <option v-for="compartment in compartmentList"
-                              :key="compartment"
-                              :value="disableCompartmentHL ? '' : compartment">
+                              :key="compartment" :value="disableCompartmentHL ? '' : compartment">
                         {{ compartment }}
                       </option>
                     </select>
@@ -209,9 +203,8 @@
                 </div>
               </div>
               <br>
-              <sidebar id="sidebar" :selected-elm="clickedElm"
-                       :view="'interaction'"
-                       :model="model"></sidebar>
+              <sidebar id="sidebar" :selected-elm="clickedElm" :view="'interaction'" :model="model">
+              </sidebar>
             </div>
           </div>
           <div v-show="!showNetworkGraph" class="container columns">
@@ -221,23 +214,16 @@
                 <br>
                 The network has not been generated.
               </div>
-              <span v-show="nodeCount <= maxNodeCount"
-                    class="button" @click="generateGraph(fitGraph)">Generate</span>
+              <span v-show="nodeCount <= maxNodeCount" class="button" @click="generateGraph(fitGraph)">Generate</span>
             </div>
             <br>
           </div>
         </div>
         <div id="cip-table">
-          <cytoscape-table
-            :reactions="reactions"
-            :selected-elm-id="clickedElmId"
-            :selected-reaction-id="reactionHL"
-            :is-graph-visible="showNetworkGraph"
-            :filename="filename"
-            :sheetname="componentName"
-            @highlight="highlightNode($event)"
-            @HLreaction="highlightReaction($event)"
-          ></cytoscape-table>
+          <cytoscape-table :reactions="reactions" :selected-elm-id="clickedElmId" :selected-reaction-id="reactionHL"
+                           :is-graph-visible="showNetworkGraph" filename="filename" :sheetname="componentName"
+                           @highlight="highlightNode($event)" @HLreaction="highlightReaction($event)">
+          </cytoscape-table>
         </div>
       </div>
     </div>
@@ -1041,7 +1027,7 @@ export default {
 </script>
 
 <style lang='scss'>
-.closest-interaction-partners {
+.interaction-partners {
 
   h1, h2 {
     font-weight: normal;
@@ -1054,7 +1040,7 @@ export default {
   }
 
   #sidebar {
-    max-height: 820px;
+    max-height: 620px;
     overflow-y: auto;
   }
 

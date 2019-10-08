@@ -1,23 +1,13 @@
 <template>
   <div class="container cytoscape-table">
     <div class="columns">
-      <div class="column"
-           style="padding-bottom: 0">
-        <cytoscape-table-search
-          :reset="resetTable"
-          class="is-10"
-          @search="searchTable($event)" />
+      <div class="column is-half">
+        <input v-model="tableSearch" class="input" type="text" placeholder="Search in table"
+               @keyup.prevent="updateTable">
       </div>
-      <div class="column is-2"
-           style="padding-bottom: 0">
-        <div class="columns">
-          <div class="column">
-            <a class="button is-primary is-pulled-right" @click="exportToTSV">
-              <span class="icon is-large"><i class="fa fa-download"></i></span>
-              <span>Export to TSV</span>
-            </a>
-          </div>
-        </div>
+      <div class="column"></div>
+      <div class="column is-2">
+        <ExportTSV class="is-pulled-right" :filename="`${filename}.tsv`" :format-function="formatToTSV"></ExportTSV>
       </div>
     </div>
     <div class="columns">
@@ -26,15 +16,11 @@
           <span class="tag">
             # Reaction(s): {{ filteredReactions.length }}
           </span>
-          <span>
-            &nbsp;
-          </span>
+          &nbsp;
           <span class="tag">
             # Unique Metabolite(s): {{ metaboliteCount }}
           </span>
-          <span v-show="geneCount">
-            &nbsp;
-          </span>
+          &nbsp;
           <span v-show="geneCount" class="tag">
             # Unique Gene(s): {{ geneCount }}
           </span>
@@ -126,8 +112,7 @@
 
 <script>
 
-import { default as FileSaver } from 'file-saver';
-import CytoscapeTableSearch from '@/components/explorer/gemBrowser/CytoscapeTableSearch';
+import ExportTSV from '@/components/explorer/gemBrowser/ExportTSV';
 import { default as compare } from '../../../helpers/compare';
 import { default as EventBus } from '../../../event-bus';
 import { reformatEqSign } from '../../../helpers/utils';
@@ -136,7 +121,7 @@ import { reformatEqSign } from '../../../helpers/utils';
 export default {
   name: 'CytoscapeTable',
   components: {
-    CytoscapeTableSearch,
+    ExportTSV,
   },
   props: {
     reactions: Array,
@@ -159,7 +144,7 @@ export default {
       matchingReactions: [],
       unMatchingReactions: [],
       sortAsc: true,
-      tableSearchTerm: '',
+      tableSearch: '',
       errorMessage: '',
     };
   },
@@ -206,15 +191,6 @@ export default {
     HLreaction(rID) {
       this.$emit('HLreaction', this.selectedReactionId === rID ? null : rID);
     },
-    resetTable() {
-      this.sortedReactions = this.filteredReactions;
-      this.tableSearchTerm = '';
-      this.updateTable();
-    },
-    searchTable(term) {
-      this.tableSearchTerm = term;
-      this.updateTable();
-    },
     sortBy(field) {
       const reactions = Array.prototype.slice
         .call(this.filteredReactions); // Do not mutate original elms;
@@ -223,14 +199,14 @@ export default {
       this.updateTable();
     },
     updateTable() {
-      if (this.tableSearchTerm === '') {
+      if (this.tableSearch === '') {
         this.matchingReactions = this.sortedReactions;
         this.unMatchingReactions = [];
         this.$refs.machingTableBody.style.display = '';
       } else {
         this.matchingReactions = [];
         this.unMatchingReactions = [];
-        const t = this.tableSearchTerm.toLowerCase();
+        const t = this.tableSearch.toLowerCase();
         this.sortedReactions.forEach((elm) => {
           let matches = false;
           this.columns.every((s) => {
@@ -271,24 +247,17 @@ export default {
         }
       }
     },
-    exportToTSV() {
-      try {
-        let tsvContent = `${this.columns.map(e => e.display).join('\t')}\n`;
-        tsvContent += this.sortedReactions.map(d => [
-          d.id,
-          d.reactants.map(e => e.name || e.id).join('; '),
-          d.products.map(e => e.name || e.id).join('; '),
-          d.genes.map(e => e.name || e.id).join('; '),
-          d.compartment,
-        ].join('\t')
-        ).join('\n');
-        const blob = new Blob([tsvContent], {
-          type: 'text/tsv;charset=utf-8',
-        });
-        FileSaver.saveAs(blob, `${this.filename}.tsv`);
-      } catch (_) {
-        // this.errorMessage = e;
-      }
+    formatToTSV() {
+      let tsvContent = `${this.columns.map(e => e.display).join('\t')}\n`;
+      tsvContent += this.sortedReactions.map(d => [
+        d.id,
+        d.reactants.map(e => e.name || e.id).join('; '),
+        d.products.map(e => e.name || e.id).join('; '),
+        d.genes.map(e => e.name || e.id).join('; '),
+        d.compartment,
+      ].join('\t')
+      ).join('\n');
+      return tsvContent;
     },
     reformatEqSign,
   },

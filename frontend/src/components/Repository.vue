@@ -50,7 +50,7 @@
               <footer class="card-footer">
                 <router-link class="card-footer-item is-info is-outlined"
                              :to="{ path: `/explore/gem-browser/${model.database_name}` }">
-                  <span class="icon is-large"><i class="fa fa-database fa-lg"></i></span>
+                  <span class="icon is-large"><i class="fa fa-table fa-lg"></i></span>
                   <span>{{ messages.gemBrowserName }}</span>
                 </router-link>
                 <router-link class="card-footer-item is-info is-outlined"
