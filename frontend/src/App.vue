@@ -220,6 +220,7 @@ export default {
 <style lang='scss'>
 
 @import '~bulma';
+@import '~bulma-timeline';
 
 .extended-section {
   flex: 1;
