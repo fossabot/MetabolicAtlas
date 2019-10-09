@@ -154,7 +154,7 @@ export default {
           { date: 'September 2016',
             text: 'The framework behind Metabolic Atlas is coordinated by Lena Hansson from <a href="https://nbis.se" target="blank">NBIS</a> in close collaboration with  <a href="https://www.sysbio.se">SysBio</a>, under the direction of <a href="https://www.sysbio.se/labs/nielsen" target="_new">Prof. Nielsen</a>.',
             icon: 'thumb-tack' },
-          { date: 'April 2016',
+          { date: 'March 2016',
             text: 'Work on a new Atlas began in the GitHub repository, directed by <a href="https://www.sysbio.se/labs/nielsen" target="_new">Prof. Nielsen</a>.',
             icon: 'thumb-tack' },
         ],
