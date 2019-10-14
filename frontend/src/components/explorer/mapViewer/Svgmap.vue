@@ -422,21 +422,16 @@ export default {
       this.isLoadingSearch = true;
       axios.get(`${this.model.database_name}/get_id/${this.searchTerm}`)
         .then((response) => {
-          this.haveSearched = true;
-          this.searchInputClass = 'is-success';
+          // results are on the model, but may not be on the map!
           this.idsFound = response.data;
           this.findElementsOnSVG(true);
         })
-        .catch((error) => {
+        .catch(() => {
+          this.searchInputClass = 'is-danger';
+        })
+        .then(() => {
           this.isLoadingSearch = false;
-          const status = error.status || error.response.status;
-          if (status !== 404) {
-            this.$emit('loadComplete', false, messages.unknownError, 'danger');
-            this.searchInputClass = 'is-info';
-          } else {
-            this.searchInputClass = 'is-danger';
-            this.haveSearched = true;
-          }
+          this.haveSearched = true;
         });
     },
     findElementsOnSVG(zoomOn) {
@@ -459,7 +454,11 @@ export default {
           this.elmFound.push($(elms[j]));
         }
       }
-      this.isLoadingSearch = false;
+      if (this.elmFound.length === 0) {
+        this.searchInputClass = 'is-danger';
+        return;
+      }
+      this.searchInputClass = 'is-success';
       if (zoomOn) {
         this.centerElementOnSVG(1);
       } else {
