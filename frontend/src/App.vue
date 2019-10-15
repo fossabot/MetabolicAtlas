@@ -221,6 +221,7 @@ export default {
 
 @import '~bulma';
 @import '~bulma-timeline';
+@import '~nprogress/nprogress.css';
 
 .extended-section {
   flex: 1;
