@@ -174,8 +174,10 @@
 
 <script>
 
+import Vue from 'vue';
 import axios from 'axios';
 import $ from 'jquery';
+import NProgress from 'nprogress';
 import { VueGoodTable } from 'vue-good-table';
 import Loader from '@/components/Loader';
 import ExportTSV from '@/components/explorer/gemBrowser/ExportTSV';
@@ -183,6 +185,8 @@ import 'vue-good-table/dist/vue-good-table.css';
 import { chemicalFormula } from '../helpers/chemical-formatters';
 import { idfy, reformatEqSign, sortResults } from '../helpers/utils';
 import { default as messages } from '../helpers/messages';
+
+Vue.use(NProgress);
 
 export default {
   name: 'SearchTable',
@@ -702,9 +706,16 @@ export default {
     },
     search() {
       this.loading = true;
+      const config = {
+        onDownloadProgress: function onDownloadProgress(progressEvent) {
+          const percentCompleted = Math.floor((progressEvent.loaded * 100) / progressEvent.total);
+          NProgress.set(percentCompleted / 100.0);
+        },
+      };
       const url = `all/search/${this.searchTerm}`;
-      axios.get(url)
+      axios.get(url, config)
         .then((response) => {
+          NProgress.done();
           const localResults = {
             metabolite: [],
             gene: [],

@@ -56,14 +56,19 @@
 
 <script>
 
+import Vue from 'vue';
 import axios from 'axios';
 import $ from 'jquery';
 import JQPanZoom from 'jquery.panzoom';
 import JQMouseWheel from 'jquery-mousewheel';
+import NProgress from 'nprogress';
 import { default as FileSaver } from 'file-saver';
 import { default as EventBus } from '../../../event-bus';
 import { default as messages } from '../../../helpers/messages';
 import { reformatChemicalReactionHTML } from '../../../helpers/utils';
+
+
+Vue.use(NProgress);
 
 // hack: the only way for jquery plugins to play nice with the plugins inside Vue
 $.Panzoom = JQPanZoom;
@@ -306,6 +311,7 @@ export default {
           this.currentZoomScale = scale;
         });
         this.unHighlight();
+        NProgress.done();
         if (callback) {
           if (callback === this.findElementsOnSVG) {
             callback(true);
@@ -350,8 +356,14 @@ export default {
             this.loadSvgPanZoom(callback);
           }, 0);
         } else {
+          const config = {
+            onDownloadProgress: function onDownloadProgress(progressEvent) {
+              const percentCompleted = Math.floor((progressEvent.loaded * 100.0) / progressEvent.total);
+              NProgress.set(percentCompleted / 100.0);
+            },
+          };
           const svgLink = `${this.svgMapURL}/${this.model.database_name}/${newSvgName}`;
-          axios.get(svgLink)
+          axios.get(svgLink, config)
             .then((response) => {
               this.svgContent = response.data;
               this.svgName = newSvgName;
