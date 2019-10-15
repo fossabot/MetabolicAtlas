@@ -12,17 +12,16 @@
                  @keyup.esc="showResults = false"
                  @focus="showResults = true"
                  @blur="showResults = false">
-          <span v-show="showSearchCharAlert" class="has-text-info icon is-small is-right" style="width: 200px">
+          <span v-show="showSearchCharAlert" class="has-text-info icon is-right" style="width: 220px">
             Type at least 2 characters
           </span>
           <span class="icon is-medium is-left">
             <i class="fa fa-search"></i>
           </span>
         </p>
-        <router-link
-          class="is-pulled-right"
-          :to="{ name: 'search', query: { term: searchTermString } }"
-        >Global search</router-link>
+        <router-link class="is-pulled-right is-size-5" :to="{ name: 'search', query: { term: searchTermString } }">
+          Global search
+        </router-link>
       </div>
       <div v-show="showResults && searchTermString.length > 1" id="searchResults" ref="searchResults">
         <div v-show="searchResults.length !== 0 && !showLoader" id="asn"
