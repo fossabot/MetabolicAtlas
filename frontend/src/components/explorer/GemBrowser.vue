@@ -26,7 +26,7 @@
               <span class="icon">
                 <i class="fa fa-random"></i>
               </span>
-              <b>random components of {{ model.short_name }}</b>
+              <span>random components of {{ model.short_name }}</span>
             </a>
             <br>
           </div>

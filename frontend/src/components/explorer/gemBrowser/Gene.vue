@@ -112,18 +112,18 @@ export default {
       geneName: '',
       mainTableKey: {
         human1: [
+          { name: 'id' },
           { name: 'geneName', display: 'Gene&nbsp;name' },
           { name: 'description', display: 'Description' },
           { name: 'gene_synonyms', display: 'Synonyms' },
           { name: 'function' },
-          { name: 'id' },
         ],
         yeast8: [
+          { name: 'id' },
           { name: 'geneName', display: 'Gene&nbsp;name' },
           { name: 'prot_name', display: 'Protein&nbsp;name' },
           { name: 'gene_synonyms', display: 'Synonyms' },
           { name: 'function' },
-          { name: 'id' },
         ],
       },
       externalIDTableKey: {

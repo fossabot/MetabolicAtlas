@@ -120,7 +120,7 @@
                   Switch to&nbsp;<b>{{ show2D ? '3D' : '2D' }}</b>
                 </template>
                 <template v-else>
-                  2D disabled
+                  Not available in 2D
                 </template>
               </template>
             </span>
