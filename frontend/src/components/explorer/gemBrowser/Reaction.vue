@@ -1,8 +1,6 @@
 <template>
-  <div v-if="errorMessage" class="columns">
-    <div class="column notification is-danger is-half is-offset-one-quarter has-text-centered">
-      {{ errorMessage }}
-    </div>
+  <div v-if="componentNotFound" class="columns is-centered">
+    <notFoundComponent component="reaction" :componentID="rId"></notFoundComponent>
   </div>
   <div v-else>
     <div class="columns">
@@ -106,14 +104,15 @@
 import axios from 'axios';
 import $ from 'jquery';
 import Loader from '@/components/Loader';
+import NotFoundComponent from './NotFoundComponent';
 import MapsAvailable from '@/components/explorer/gemBrowser/MapsAvailable';
 import { default as EventBus } from '../../../event-bus';
 import { reformatTableKey, addMassUnit, reformatECLink, reformatCompEqString, reformatChemicalReactionHTML, reformatEqSign } from '../../../helpers/utils';
-import { default as messages } from '../../../helpers/messages';
 
 export default {
   name: 'Reaction',
   components: {
+    NotFoundComponent,
     Loader,
     MapsAvailable,
   },
@@ -122,7 +121,6 @@ export default {
   },
   data() {
     return {
-      messages,
       rId: this.$route.params.id,
       mainTableKey: {
         human1: [
@@ -162,6 +160,7 @@ export default {
       mapsAvailable: {},
       unformattedRefs: [],
       formattedRefs: {},
+      componentNotFound: false,
     };
   },
   computed: {
@@ -204,6 +203,7 @@ export default {
     load() {
       axios.get(`${this.model.database_name}/get_reaction/${this.rId}/`)
         .then((response) => {
+          this.componentNotFound = false;
           this.showLoader = false;
           this.reaction = response.data.reaction;
           if (response.data.pmids.length !== 0) {
@@ -213,7 +213,8 @@ export default {
           this.getRelatedReactions();
         })
         .catch(() => {
-          this.errorMessage = messages.notFoundError;
+          this.componentNotFound = true;
+          document.getElementById('search').focus();
         });
     },
     getRelatedReactions() {
@@ -323,7 +324,6 @@ export default {
           this.formattedRefs = newFormattedRefs;
         })
         .catch(() => {
-          this.errorMessage = messages.notFoundError;
         });
     },
     viewReactionOnMap(reactionID) {

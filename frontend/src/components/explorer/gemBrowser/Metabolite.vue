@@ -1,9 +1,7 @@
 <template>
   <div id="metabolite-page">
-    <div v-if="errorMessage" class="columns">
-      <div class="column notification is-danger is-half is-offset-one-quarter has-text-centered">
-        {{ errorMessage }}
-      </div>
+    <div v-if="componentNotFound" class="columns is-centered">
+      <notFoundComponent component="metabolite" :componentID="mId"></notFoundComponent>
     </div>
     <div v-else>
       <div class="columns">
@@ -94,6 +92,7 @@
 <script>
 import axios from 'axios';
 import Reactome from '@/components/explorer/gemBrowser/Reactome';
+import NotFoundComponent from './NotFoundComponent';
 import { chemicalFormula } from '../../../helpers/chemical-formatters';
 import { reformatTableKey, reformatStringToLink, addMassUnit, idfy } from '../../../helpers/utils';
 import { default as messages } from '../../../helpers/messages';
@@ -101,6 +100,7 @@ import { default as messages } from '../../../helpers/messages';
 export default {
   name: 'Metabolite',
   components: {
+    NotFoundComponent,
     Reactome,
   },
   props: {
@@ -150,7 +150,7 @@ export default {
       },
       metabolite: '',
       relatedMetabolites: [],
-      errorMessage: '',
+      componentNotFound: false,
       activePanel: 'table',
       showReactome: false,
     };
@@ -189,14 +189,16 @@ export default {
     load() {
       axios.get(`${this.model.database_name}/metabolite/${this.mId}/`)
         .then((response) => {
+          this.componentNotFound = false;
           this.metaboliteID = this.mId;
           this.metabolite = response.data;
           this.showReactome = true;
           this.getRelatedMetabolites();
         })
         .catch(() => {
-          this.errorMessage = messages.notFoundError;
+          this.componentNotFound = true;
           this.showReactome = false;
+          document.getElementById('search').focus();
         });
     },
     getRelatedMetabolites() {
