@@ -104,7 +104,7 @@
 import axios from 'axios';
 import $ from 'jquery';
 import Loader from '@/components/Loader';
-import NotFoundComponent from '@/components/NotFoundComponent';
+import NotFoundComponent from './NotFoundComponent';
 import MapsAvailable from '@/components/explorer/gemBrowser/MapsAvailable';
 import { default as EventBus } from '../../../event-bus';
 import { reformatTableKey, addMassUnit, reformatECLink, reformatCompEqString, reformatChemicalReactionHTML, reformatEqSign } from '../../../helpers/utils';

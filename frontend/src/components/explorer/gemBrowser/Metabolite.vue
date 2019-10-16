@@ -92,7 +92,7 @@
 <script>
 import axios from 'axios';
 import Reactome from '@/components/explorer/gemBrowser/Reactome';
-import NotFoundComponent from '@/components/NotFoundComponent';
+import NotFoundComponent from './NotFoundComponent';
 import { chemicalFormula } from '../../../helpers/chemical-formatters';
 import { reformatTableKey, reformatStringToLink, addMassUnit, idfy } from '../../../helpers/utils';
 import { default as messages } from '../../../helpers/messages';

@@ -85,7 +85,7 @@
 
 <script>
 import axios from 'axios';
-import NotFoundComponent from '@/components/NotFoundComponent';
+import NotFoundComponent from './NotFoundComponent';
 import ReactionTable from '@/components/explorer/gemBrowser/ReactionTable';
 import Loader from '@/components/Loader';
 import { reformatTableKey } from '../../../helpers/utils';
