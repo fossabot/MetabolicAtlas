@@ -3,12 +3,17 @@ import Vue from 'vue';
 import VueMatomo from 'vue-matomo';
 import lodash from 'lodash';
 import VueLodash from 'vue-lodash/dist/vue-lodash.min';
+import NProgress from 'nprogress';
 import App from './App';
 import router from './router';
 import { default as EventBus } from './event-bus';
 import store from './store';
 
 axios.defaults.baseURL = '/api';
+axios.defaults.onDownloadProgress = function onDownloadProgress(progressEvent) {
+  const percentCompleted = Math.floor((progressEvent.loaded * 100.0) / progressEvent.total);
+  NProgress.set(percentCompleted / 100.0);
+};
 
 Vue.use(VueLodash, lodash);
 

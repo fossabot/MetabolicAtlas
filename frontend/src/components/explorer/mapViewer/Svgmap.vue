@@ -350,8 +350,7 @@ export default {
             this.loadSvgPanZoom(callback);
           }, 0);
         } else {
-          const svgLink = `${this.svgMapURL}/${this.model.database_name}/${newSvgName}`;
-          axios.get(svgLink)
+          axios.get(`${this.svgMapURL}/${this.model.database_name}/${newSvgName}`)
             .then((response) => {
               this.svgContent = response.data;
               this.svgName = newSvgName;

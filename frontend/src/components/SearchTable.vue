@@ -702,8 +702,7 @@ export default {
     },
     search() {
       this.loading = true;
-      const url = `all/search/${this.searchTerm}`;
-      axios.get(url)
+      axios.get(`all/search/${this.searchTerm}`)
         .then((response) => {
           const localResults = {
             metabolite: [],
