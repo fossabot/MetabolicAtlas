@@ -11,7 +11,7 @@
                  @input="searchDebounce"
                  @keyup.esc="showResults = false"
                  @focus="showResults = true"
-                 @blur="showResults = false">
+                 @blur="blur()">
           <span v-show="showSearchCharAlert" class="has-text-info icon is-right" style="width: 220px">
             Type at least 2 characters
           </span>
@@ -34,10 +34,10 @@
             <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
             <div v-for="(r, i2) in searchResults[k]" :key="r.id" class="searchResultSection">
               <hr v-if="i2 !== 0" class="is-marginless">
-              <div class="clickable" @mousedown.prevent="goToTab(k, r.id || r.name_id || r.name)">
+              <router-link class="clickable" :to="getRouterUrl(k, r.id)">
                 <b class="is-capitalized">{{ k }}: </b>
                 <label class="clickable" v-html="formatSearchResultLabel(k, r, searchTermString)"></label>
-              </div>
+              </router-link>
             </div>
             <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
             <hr v-if="searchResults[k].length !== 0" class="bhr">
@@ -58,9 +58,8 @@
 import axios from 'axios';
 import $ from 'jquery';
 import _ from 'lodash';
-import { sortResults } from '../../../helpers/utils';
+import { sortResults, idfy } from '../../../helpers/utils';
 import { chemicalFormula, chemicalReaction } from '../../../helpers/chemical-formatters';
-import { default as EventBus } from '../../../event-bus';
 import { default as messages } from '../../../helpers/messages';
 
 export default {
@@ -68,6 +67,7 @@ export default {
   props: {
     searchTerm: String,
     model: Object,
+    mode: String,
   },
   data() {
     return {
@@ -103,6 +103,9 @@ export default {
     $('#search').focus();
   },
   methods: {
+    blur() {
+      setTimeout(() => { this.showResults = false; }, 100);
+    },
     searchDebounce: _.debounce(function e() {
       this.noResult = false;
       this.showSearchCharAlert = this.searchTermString.length === 1;
@@ -125,9 +128,13 @@ export default {
             compartment: [],
           };
 
+
           Object.keys(response.data).forEach((model) => {
             const resultsModel = response.data[model];
             this.resultsOrder.forEach((resultType) => {
+              if (this.mode === 'interPartner' && !['metabolite', 'gene'].includes(resultType)) {
+                return;
+              }
               if (resultsModel[resultType]) {
                 localResults[resultType] = localResults[resultType].concat(
                   resultsModel[resultType].map(
@@ -165,10 +172,15 @@ export default {
           this.showLoader = false;
         });
     },
-    goToTab(type, id) {
-      this.searchTermString = '';
-      this.searchResults = [];
-      EventBus.$emit('GBnavigateTo', type, id);
+    getRouterUrl(type, id) {
+      let ID = id;
+      if (type === 'subsystem' || type === 'compartment') {
+        ID = idfy(id);
+      }
+      if (this.mode === 'interPartner') {
+        return `/explore/interaction/${this.$route.params.model}/${ID}`;
+      }
+      return `/explore/gem-browser/${this.$route.params.model}/${type}/${ID}`;
     },
     globalSearch() {
       this.$router.push({ name: 'search', query: { term: this.searchTermString } });
@@ -242,11 +254,9 @@ export default {
 
   .searchResultSection {
     padding: 0px 10px;
-    div {
+    a {
+      display:block;
       padding: 7px 0px;
-    }
-    div:hover, label:hover {
-      color: #00549E;
     }
   }
 }

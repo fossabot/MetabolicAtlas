@@ -28,7 +28,7 @@
                  @mousedown.prevent="selectModel(cmodel)">
               <div>
                 <span :class="cmodel.database_name === model.database_name ?
-                              'has-text-primary has-text-weight-bold' : ''">
+                  'has-text-primary has-text-weight-bold' : ''">
                   <span v-if="cmodel.database_name === model.database_name"
                         class="icon"><i class="fa fa-check-square-o"></i></span>
                   <span v-else><i class="fa fa-square-o"></i></span>
@@ -82,6 +82,7 @@ import axios from 'axios';
 import $ from 'jquery';
 import GemBrowser from '@/components/explorer/GemBrowser';
 import MapViewer from '@/components/explorer/MapViewer';
+import InteractionPartners from '@/components/explorer/InteractionPartners';
 import { idfy } from '../helpers/utils';
 import { default as EventBus } from '../event-bus';
 import { default as messages } from '../helpers/messages';
@@ -91,6 +92,7 @@ export default {
   components: {
     GemBrowser,
     MapViewer,
+    InteractionPartners,
   },
   data() {
     return {
@@ -104,6 +106,10 @@ export default {
           img: require('../assets/mapViewer.jpg'),
           url: '/explore/map-viewer',
           icon: 'map-o' },
+        { name: messages.interPartName,
+          img: require('../assets/interaction.png'),
+          url: '/explore/interaction',
+          icon: 'share-alt' },
       ],
       model: null,
       models: {},
@@ -138,6 +144,9 @@ export default {
     EventBus.$on('showGemBrowser', () => {
       this.displayBrowser();
     });
+    EventBus.$on('showInteractionPartner', () => {
+      this.displayInterPartner();
+    });
 
     $('body').on('click', 'td m', function f() {
       if (!($(this).hasClass('cms'))) {
@@ -170,8 +179,10 @@ export default {
       }
       if (['viewer', 'viewerCompartment', 'viewerCompartmentRea', 'viewerSubsystem', 'viewerSubsystemRea'].includes(this.$route.name)) {
         this.displayViewer();
-      } else if (this.$route.name === 'browser' || this.$route.name === 'browserRoot') {
+      } else if (['browserRoot', 'browser'].includes(this.$route.name)) {
         this.displayBrowser();
+      } else if (['interPartnerRoot', 'interPartner'].includes(this.$route.name)) {
+        this.displayInterPartner();
       } else {
         EventBus.$emit('destroy3Dnetwork');
         this.extendWindow = false;
@@ -211,6 +222,10 @@ export default {
     displayViewer() {
       this.extendWindow = true;
       this.currentShowComponent = 'MapViewer';
+    },
+    displayInterPartner() {
+      this.extendWindow = false;
+      this.currentShowComponent = 'InteractionPartners';
     },
   },
 };

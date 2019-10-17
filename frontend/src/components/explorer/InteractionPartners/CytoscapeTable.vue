@@ -14,7 +14,7 @@
       <div class="column">
         <div class="field">
           <span class="tag">
-            # Reaction(s): {{ filteredReactions.length }}
+            # Reaction(s): {{ reactions.length }}
           </span>
           &nbsp;
           <span class="tag">
@@ -140,17 +140,19 @@ export default {
         { field: 'genes', display: 'Genes' },
         { field: 'compartment', display: 'Compartment', modifier: this.reformatEqSign },
       ],
-      sortedReactions: [],
       matchingReactions: [],
       unMatchingReactions: [],
       sortAsc: true,
+      sortField: null,
       tableSearch: '',
       errorMessage: '',
+      hlID: null,
     };
   },
   computed: {
-    filteredReactions: function f() {
-      return this.reactions;
+    sortedReactions() {
+      const reactions = Array.prototype.slice.call(this.reactions); // Do not mutate original elms;
+      return reactions.sort(compare(this.sortField, null, this.sortAsc ? 'asc' : 'desc'));
     },
     geneCount() {
       const genes = new Set();
@@ -170,37 +172,45 @@ export default {
   },
   watch: {
     reactions() {
-      this.sortedReactions = this.filteredReactions;
-      this.matchingReactions = this.sortedReactions;
+      this.sortAsc = true;
+      this.sortField = null;
+      this.hlID = null;
+      this.updateTable();
     },
+    selectedElmId() {
+      this.hlID = this.selectedElmId.slice();
+    },
+  },
+  mounted() {
+    this.hlID = null;
+    this.updateTable();
   },
   methods: {
     applyModifier(s, elm) { return s.modifier(elm[s.field], elm.link); },
     viewReactionComponent(type, id) { EventBus.$emit('GBnavigateTo', type, id); },
     isSelected(elmId) {
-      return this.selectedElmId === elmId || this.selectedReactionId === elmId;
+      return this.hlID === elmId || this.selectedReactionId === elmId;
     },
     highlight(elmId) {
-      const sameID = this.selectedElmId === elmId;
+      const sameID = this.hlID === elmId;
       if (this.isGraphVisible) {
         this.$emit('highlight', sameID ? '' : elmId);
       } else {
-        this.selectedElmId = sameID ? '' : elmId;
+        this.hlID = sameID ? '' : elmId;
       }
     },
     HLreaction(rID) {
       this.$emit('HLreaction', this.selectedReactionId === rID ? null : rID);
     },
     sortBy(field) {
-      const reactions = Array.prototype.slice
-        .call(this.filteredReactions); // Do not mutate original elms;
-      this.sortedReactions = reactions.sort(compare(field, null, this.sortAsc ? 'asc' : 'desc'));
+      this.sortField = field;
       this.sortAsc = !this.sortAsc;
       this.updateTable();
     },
     updateTable() {
+      console.log('updateTable');
       if (this.tableSearch === '') {
-        this.matchingReactions = this.sortedReactions;
+        this.matchingReactions = Array.prototype.slice.call(this.sortedReactions);
         this.unMatchingReactions = [];
         this.$refs.machingTableBody.style.display = '';
       } else {
