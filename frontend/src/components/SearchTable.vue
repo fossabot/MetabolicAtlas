@@ -14,7 +14,7 @@
         <div class="column is-three-fifths-desktop is-three-quarters-tablet is-fullwidth-mobile control">
           <div id="input-wrapper is-size-3">
             <p class="control has-icons-right has-icons-left">
-              <input id="search" v-model="searchTerm"
+              <input id="search" v-model="searchTerm" data-hj-whitelist
                      class="input is-medium" type="text"
                      placeholder="uracil, SULT1A3, ATP => cAMP + PPi, Acyl-CoA hydrolysis"
                      @keyup.enter="updateSearch()">

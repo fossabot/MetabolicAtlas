@@ -24,7 +24,7 @@
     </div>
     <div id="svgSearch" class="overlay">
       <div class="control" :class="{ 'is-loading' : isLoadingSearch }">
-        <input id="searchInput" v-model.trim="searchTerm"
+        <input id="searchInput" v-model.trim="searchTerm" data-hj-whitelist
                title="Exact search by id, name, alias. Press Enter for results" class="input"
                type="text" :class="searchInputClass"
                :disabled="!loadedMap" placeholder="Exact search by id, name, alias"
