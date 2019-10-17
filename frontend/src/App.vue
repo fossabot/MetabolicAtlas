@@ -221,7 +221,6 @@ export default {
 
 @import '~bulma';
 @import '~bulma-timeline';
-@import '~nprogress/nprogress.css';
 
 .extended-section {
   flex: 1;
@@ -389,6 +388,22 @@ span.sc {
   background: lightgray;
   padding-right: 4px;
   padding-left: 3px;
+}
+
+// CSS from nprogress https://github.com/rstacruz/nprogress/blob/master/nprogress.css
+/* Make clicks pass-through */
+#nprogress {
+  pointer-events: none;
+}
+
+#nprogress .bar {
+  background: $warning;
+  position: fixed;
+  z-index: 1000;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
 }
 
 </style>

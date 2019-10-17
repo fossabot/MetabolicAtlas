@@ -99,16 +99,12 @@
 
 <script>
 
-import Vue from 'vue';
 import axios from 'axios';
-import NProgress from 'nprogress';
 import Loader from '@/components/Loader';
 import MapsAvailable from '@/components/explorer/gemBrowser/MapsAvailable';
 import ReactionTable from '@/components/explorer/gemBrowser/ReactionTable';
 import { reformatTableKey, idfy } from '../../../helpers/utils';
 import { default as messages } from '../../../helpers/messages';
-
-Vue.use(NProgress);
 
 export default {
   name: 'Subsystem',
@@ -216,15 +212,8 @@ export default {
     },
     getReactions() {
       this.showReactionLoader = true;
-      const config = {
-        onDownloadProgress: function onDownloadProgress(progressEvent) {
-          const percentCompleted = Math.floor((progressEvent.loaded * 100.0) / progressEvent.total);
-          NProgress.set(percentCompleted / 100.0);
-        },
-      };
-      axios.get(`${this.model.database_name}/subsystem/${this.sName}/get_reactions`, config)
+      axios.get(`${this.model.database_name}/subsystem/${this.sName}/get_reactions`)
         .then((response) => {
-          NProgress.done();
           this.reactions = response.data.reactions;
           this.limitReaction = response.data.limit;
           this.showReactionLoader = false;

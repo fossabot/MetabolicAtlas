@@ -9,15 +9,11 @@
 
 <script>
 
-import Vue from 'vue';
 import axios from 'axios';
 import forceGraph3D from '3d-force-graph';
-import NProgress from 'nprogress';
 import { default as FileSaver } from 'file-saver';
 import { default as EventBus } from '../../../event-bus';
 import { reformatChemicalReactionHTML } from '../../../helpers/utils';
-
-Vue.use(NProgress);
 
 export default {
   name: 'D3dforce',
@@ -75,7 +71,6 @@ export default {
           this.graph.resetCamera = true;
           this.graph.reloadHistory = true;
           this.network = this.networkHistory[name];
-          NProgress.start();
           this.graph.graphData(this.network);
         } else {
           this.getJson();
@@ -110,17 +105,10 @@ export default {
     getJson() {
       this.$emit('loading');
       this.HPARNAlevels = {};
-      const config = {
-        onDownloadProgress: function onDownloadProgress(progressEvent) {
-          const percentCompleted = Math.floor((progressEvent.loaded * 100.0) / progressEvent.total);
-          NProgress.set(percentCompleted / 200.0); // set to 0.5
-        },
-      };
-      axios.get(`/${this.model.database_name}/json/${this.loadedComponentType}/${this.loadedComponentName}`, config)
+      axios.get(`/${this.model.database_name}/json/${this.loadedComponentType}/${this.loadedComponentName}`)
         .then((response) => {
           this.network = response.data;
           setTimeout(() => {
-            NProgress.start();
             if (this.graph === null) {
               this.graph = {};
               this.graph.emitLoadComplete = true;
@@ -194,7 +182,6 @@ export default {
           if (this.focusOnID) {
             this.focusOnNode(this.focusOnID);
           }
-          NProgress.done();
         });
     },
     updateGraphBounds() {

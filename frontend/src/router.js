@@ -1,7 +1,7 @@
 import Vue from 'vue';
 import $ from 'jquery';
 import VueRouter from 'vue-router';
-// import NProgress from 'nprogress';
+import NProgress from 'nprogress';
 import Home from './components/Home';
 import Explorer from './components/Explorer';
 import SearchTable from './components/SearchTable';
@@ -11,7 +11,6 @@ import Documentation from './components/Documentation';
 import Repository from './components/Repository';
 import CompareModels from './components/CompareModels';
 import NotFound from './components/NotFound';
-
 
 Vue.use(VueRouter);
 
@@ -44,16 +43,18 @@ const router = new VueRouter({
   },
 });
 
-// router.beforeResolve((to, from, next) => { // eslint-disable-line no-unused-vars
-//   console.log('test1');
-//   console.log(to);
-//   NProgress.start();
-//   next();
-// });
+NProgress.configure({
+  speed: 600,
+  showSpinner: false,
+});
 
-// router.afterEach((to, from) => { // eslint-disable-line no-unused-vars
-//   console.log('test2');
-//   NProgress.done();
-// });
+router.beforeResolve((to, from, next) => { // eslint-disable-line no-unused-vars
+  NProgress.start();
+  next();
+});
+
+router.afterEach((to, from) => { // eslint-disable-line no-unused-vars
+  NProgress.done();
+});
 
 export default router;
