@@ -59,7 +59,8 @@
                   <header class="card-header">
                     <p class="card-header-title is-centered">
                       <span class="icon is-medium"><i :class="`fa fa-${tool.icon}`"></i></span>
-                      &nbsp;{{ tool.name }}: {{ model.short_name }}
+                      &nbsp;{{ tool.name }}&nbsp;&nbsp;
+                      <span class="has-text-grey-light">{{ model.short_name }}</span>
                     </p>
                   </header>
                   <div class="card-content">
