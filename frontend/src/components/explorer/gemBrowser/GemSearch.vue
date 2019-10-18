@@ -4,7 +4,7 @@
       <div id="input-wrapper">
         <p class="control has-icons-right has-icons-left">
           <!-- eslint-disable max-len -->
-          <input id="search" ref="searchInput"
+          <input id="search" ref="searchInput" data-hj-whitelist
                  v-model="searchTermString"
                  class="input is-medium" type="text"
                  placeholder="uracil, SULT1A3, ATP => cAMP + PPi, subsystem or compartment"
