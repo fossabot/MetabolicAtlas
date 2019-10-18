@@ -86,7 +86,7 @@
         </template>
         <template v-else-if="!showReactionLoader">
           <reaction-table :source-name="sName" :reactions="reactions" :show-subsystem="false"
-                          :model="model" :limit="limitReaction">
+                          :model="model" :limit="1000">
           </reaction-table>
         </template>
       </div>
@@ -96,6 +96,7 @@
 
 
 <script>
+
 import axios from 'axios';
 import Loader from '@/components/Loader';
 import NotFoundComponent from './NotFoundComponent';

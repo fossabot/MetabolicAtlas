@@ -390,4 +390,20 @@ span.sc {
   padding-left: 3px;
 }
 
+// CSS from nprogress https://github.com/rstacruz/nprogress/blob/master/nprogress.css
+/* Make clicks pass-through */
+#nprogress {
+  pointer-events: none;
+}
+
+#nprogress .bar {
+  background: $warning;
+  position: fixed;
+  z-index: 1000;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+}
+
 </style>

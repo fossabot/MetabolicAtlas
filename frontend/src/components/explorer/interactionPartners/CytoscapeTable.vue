@@ -3,7 +3,7 @@
     <div class="columns">
       <div class="column is-half">
         <input v-model="tableSearch" class="input" type="text" placeholder="Search in table"
-               @keyup.prevent="updateTable">
+               @keyup.prevent="updateTable" data-hj-whitelist>
       </div>
       <div class="column"></div>
       <div class="column is-2">
