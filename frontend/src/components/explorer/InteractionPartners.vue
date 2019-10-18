@@ -49,19 +49,30 @@
           </template>
         </div>
       </div>
-      <div id="cip-graph">
-        <div v-show="showNetworkGraph" class="container columns is-multiline">
+      <div class="container columns is-multiline">
+        <template v-if="tooLargeNetworkGraph">
           <div class="column is-8-desktop is-fullwidth-tablet">
-            <transition name="slide-fade">
-              <article v-if="errorExpMessage" id="errorExpBar" class="message is-danger">
-                <div class="message-header">
-                  <i class="fa fa-warning"></i>
-                </div>
-                <div class="message-body">
-                  <h5 class="title is-5">{{ errorExpMessage }}</h5>
-                </div>
-              </article>
-            </transition>
+            <div class="notification is-warning has-text-centered">
+              The query has returned many nodes.
+              <br>
+              The network cannot been generated.
+            </div>
+          </div>
+        </template>
+        <template v-if="largeNetworkGraph">
+          <div class="column is-8-desktop is-fullwidth-tablet">
+            <div class="notification is-warning has-text-centered">
+              <div>
+                The query has returned many nodes.
+                <br>
+                The network has not been generated.
+              </div>
+              <span class="button" @click="generateGraph(fitGraph)">Generate</span>
+            </div>
+          </div>
+        </template>
+        <template v-else-if="showNetworkGraph">
+          <div class="column is-8-desktop is-fullwidth-tablet">
             <div id="graphOption">
               <span class="button" :class="[{ 'is-active': showGraphLegend }, '']"
                     title="Options" @click="toggleGraphLegend"><i class="fa fa-cog"></i></span>
@@ -123,7 +134,9 @@
             <div id="cy" ref="cy" class="card is-paddingless">
             </div>
           </div>
-          <div class="column">
+        </template>
+        <div class="column">
+          <template v-if="showNetworkGraph">
             <div id="dropdownMenuExport" class="dropdown">
               <div class="dropdown-trigger">
                 <a v-show="showNetworkGraph" class="button is-primary is-outlined" aria-haspopup="true"
@@ -216,28 +229,15 @@
               </div>
             </div>
             <br>
-            <sidebar id="sidebar" :selected-elm="clickedElm" :view="'interaction'" :model="model">
-            </sidebar>
-          </div>
-        </div>
-        <div v-show="largeNetworkGraph" class="container columns">
-          <div class="column is-4 is-offset-4 notification is-warning has-text-centered">
-            <div>
-              Warning: The query has returned too many elements to be displayed.
-              <br>
-              The network has not been generated.
-            </div>
-            <span v-show="nodeCount <= maxNodeCount" class="button" @click="generateGraph(fitGraph)">Generate</span>
-          </div>
-          <br>
+          </template>
+          <sidebar id="sidebar" :selected-elm="clickedElm" :view="'interaction'" :model="model">
+          </sidebar>
         </div>
       </div>
-      <div id="cip-table">
-        <cytoscape-table :reactions="reactions" :selected-elm-id="clickedElmId" :selected-reaction-id="reactionHL"
-                         :is-graph-visible="showNetworkGraph" filename="filename" :sheetname="componentName"
-                         @highlight="highlightNode($event)" @HLreaction="highlightReaction($event)">
-        </cytoscape-table>
-      </div>
+      <cytoscape-table :reactions="reactions" :selected-elm-id="clickedElmId" :selected-reaction-id="reactionHL"
+                       :is-graph-visible="showNetworkGraph" filename="filename" :sheetname="componentName"
+                       @highlight="highlightNode($event)" @HLreaction="highlightReaction($event)">
+      </cytoscape-table>
     </template>
   </div>
 </template>
@@ -297,6 +297,7 @@ export default {
       maxNodeCount: 100,
       showNetworkGraph: false,
       largeNetworkGraph: false,
+      tooLargeNetworkGraph: false,
 
       rawRels: {},
       rawElms: {},
@@ -477,6 +478,8 @@ export default {
             this.showNetworkGraph = false;
             return;
           }
+          this.tooLargeNetworkGraph = false;
+
           this.reactionSet = new Set();
           this.reactions.forEach((r) => {
             this.reactionSet.add(r.id);
@@ -550,6 +553,8 @@ export default {
             this.showNetworkGraph = false;
             return;
           }
+          this.tooLargeNetworkGraph = false;
+
           reactions = reactions.filter(r => !this.reactionSet.has(r.id));
           this.reactions = this.reactions.concat(reactions);
           this.reactions.forEach((r) => {
@@ -698,14 +703,19 @@ export default {
       this.showGraphContextMenu = false;
       this.reactionHL = null;
       this.clickedElmId = elmId;
-      this.cy.nodes().deselect();
-      const node = this.cy.getElementById(elmId);
-      node.json({ selected: true });
-      node.trigger('tap');
-      this.redrawGraph();
+      this.clickedElm = this.rawElms[elmId];
+
+      if (this.showNetworkGraph) {
+        this.cy.nodes().deselect();
+        const node = this.cy.getElementById(elmId);
+        node.json({ selected: true });
+        node.trigger('tap');
+        this.redrawGraph();
+      }
     },
     generateGraph(callback) {
       this.showNetworkGraph = true;
+      this.largeNetworkGraph = false;
       this.errorMessage = null;
 
       this.resetGeneExpression();

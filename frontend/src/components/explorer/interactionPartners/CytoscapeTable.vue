@@ -29,82 +29,74 @@
             to highlight the corresponding element on the graph
           </span>
         </div>
-        <table id="cytoTable" ref="table" class="table is-bordered is-narrow is-fullwidth">
-          <thead>
-            <tr style="background: #F8F4F4">
-              <th v-for="s in columns" :key="s.field"
-                  class="is-unselectable clickable"
-                  @click="sortBy(s.field)"
-              >{{ s.display }}</th>
-            </tr>
-          </thead>
-          <tbody id="machingTableBody" ref="machingTableBody">
-            <tr v-for="r in matchingReactions" :key="r.id">
-              <td v-for="s in columns" :key="s.field">
-                <template v-if="s.field === 'id'">
-                  <template v-if="isGraphVisible">
+        <div class="table-container">
+          <table id="cytoTable" ref="table" class="table is-bordered is-narrow is-fullwidth">
+            <thead>
+              <tr style="background: #F8F4F4">
+                <th v-for="s in columns" :key="s.field"
+                    class="is-unselectable clickable"
+                    @click="sortBy(s.field)"
+                >{{ s.display }}</th>
+              </tr>
+            </thead>
+            <tbody id="machingTableBody" ref="machingTableBody">
+              <tr v-for="r in matchingReactions" :key="r.id">
+                <td v-for="s in columns" :key="s.field">
+                  <template v-if="s.field === 'id'">
                     <span class="tag is-rounded clickable" :class="[{ 'hl': isSelected(r.id) }, '']"
                           @click="HLreaction(r.id)">
                       <span class="is-size-6">{{ r.id }}</span>
                     </span>
                   </template>
+                  <template v-else-if="['reactants', 'products', 'genes'].includes(s.field)">
+                    <template v-for="el in r[s.field]">
+                      <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
+                      <span class="tag is-rounded clickable is-medium"
+                            :title="s.field !== 'genes' ? `${el.id} - ${el.compartment_str}` : el.id"
+                            :class="[{ 'hl': isSelected(el.id) }, '']" @click="highlight(el.id)">
+                        <span class="">{{ el.name || el.id }}</span>
+                      </span>
+                    </template>
+                  </template>
+                  <template v-else-if="'modifier' in s">
+                    <span v-html="applyModifier(s, r)"></span>
+                  </template>
                   <template v-else>
-                    {{ r.id }}
+                    {{ r[s.field] }}
                   </template>
-                </template>
-                <template v-else-if="['reactants', 'products', 'genes'].includes(s.field)">
-                  <template v-for="el in r[s.field]">
-                    <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
-                    <span class="tag is-rounded clickable is-medium"
-                          :title="s.field !== 'genes' ? `${el.id} - ${el.compartment_str}` : el.id"
-                          :class="[{ 'hl': isSelected(el.id) }, '']" @click="highlight(el.id)">
-                      <span class="">{{ el.name || el.id }}</span>
-                    </span>
-                  </template>
-                </template>
-                <template v-else-if="'modifier' in s">
-                  <span v-html="applyModifier(s, r)"></span>
-                </template>
-                <template v-else>
-                  {{ r[s.field] }}
-                </template>
-              </td>
-            </tr>
-          </tbody>
-          <tbody id="unmachingTableBody" ref="unmachingTableBody">
-            <tr v-for="r in unMatchingReactions" :key="r.id">
-              <td v-for="s in columns" :key="s.field">
-                <template v-if="s.field === 'id'">
-                  <template v-if="isGraphVisible">
+                </td>
+              </tr>
+            </tbody>
+            <tbody id="unmachingTableBody" ref="unmachingTableBody">
+              <tr v-for="r in unMatchingReactions" :key="r.id">
+                <td v-for="s in columns" :key="s.field">
+                  <template v-if="s.field === 'id'">
                     <span class="tag is-rounded clickable" :class="[{ 'hl': isSelected(r.id) }, '']"
                           @click="HLreaction(r.id)">
                       <span class="is-size-6">{{ r.id }}</span>
                     </span>
                   </template>
+                  <template v-else-if="['reactants', 'products', 'genes'].includes(s.field)">
+                    <template v-for="el in r[s.field]">
+                      <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
+                      <span class="tag is-rounded clickable is-medium"
+                            :title="s.field !== 'genes' ? `${el.id} - ${el.compartment_str}` : el.id"
+                            :class="[{ 'hl': isSelected(el.id) }, '']" @click="highlight(el.id)">
+                        <span class="">{{ el.name || el.id }}</span>
+                      </span>
+                    </template>
+                  </template>
+                  <template v-else-if="'modifier' in s">
+                    <span v-html="applyModifier(s, r)"></span>
+                  </template>
                   <template v-else>
-                    {{ r.id }}
+                    {{ r[s.field] }}
                   </template>
-                </template>
-                <template v-else-if="['reactants', 'products', 'genes'].includes(s.field)">
-                  <template v-for="el in r[s.field]">
-                    <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
-                    <span class="tag is-rounded clickable is-medium"
-                          :title="s.field !== 'genes' ? `${el.id} - ${el.compartment_str}` : el.id"
-                          :class="[{ 'hl': isSelected(el.id) }, '']" @click="highlight(el.id)">
-                      <span class="">{{ el.name || el.id }}</span>
-                    </span>
-                  </template>
-                </template>
-                <template v-else-if="'modifier' in s">
-                  <span v-html="applyModifier(s, r)"></span>
-                </template>
-                <template v-else>
-                  {{ r[s.field] }}
-                </template>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
@@ -193,11 +185,8 @@ export default {
     },
     highlight(elmId) {
       const sameID = this.hlID === elmId;
-      if (this.isGraphVisible) {
-        this.$emit('highlight', sameID ? '' : elmId);
-      } else {
-        this.hlID = sameID ? '' : elmId;
-      }
+      this.hlID = sameID ? '' : elmId;
+      this.$emit('highlight', this.hlID);
     },
     HLreaction(rID) {
       this.$emit('HLreaction', this.selectedReactionId === rID ? null : rID);
@@ -208,7 +197,6 @@ export default {
       this.updateTable();
     },
     updateTable() {
-      console.log('updateTable');
       if (this.tableSearch === '') {
         this.matchingReactions = Array.prototype.slice.call(this.sortedReactions);
         this.unMatchingReactions = [];
