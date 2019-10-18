@@ -1,6 +1,6 @@
 <template>
   <div class="interaction-partners">
-    <div v-if="!id" class="columns">
+    <div v-if="!mainNodeID" class="columns">
       <div class="column container has-text-centered">
         <h3 class="title is-3">Explore {{ model.short_name }} with the {{ messages.interPartName }}</h3>
         <h5 class="subtitle is-5 has-text-weight-normal">
@@ -13,20 +13,20 @@
     </div>
     <template v-if="componentNotFound">
       <div class="columns is-centered">
-        <notFoundComponent component="component" :componentID="id"></notFoundComponent>
+        <notFoundComponent component="component" :componentID="mainNodeID"></notFoundComponent>
       </div>
     </template>
     <template v-if="loading">
       <loader></loader>
     </template>
-    <template v-else-if="id && !componentNotFound">
+    <template v-else-if="mainNodeID && !componentNotFound">
       <div class="container columns">
         <div class="column is-8">
           <h3 class="title is-3 is-marginless" v-html="`${messages.interPartName} for ${title}`"></h3>
         </div>
       </div>
       <div v-show="showGraphContextMenu && showNetworkGraph" id="contextMenuGraph" ref="contextMenuGraph">
-        <span v-show="clickedElmId !== id"
+        <span v-show="clickedElmId !== mainNodeID"
               class="button is-dark" @click="navigate">Load {{ messages.interPartName }}</span>
         <span v-show="!expandedIds.includes(clickedElmId)"
               class="button is-dark" @click="loadExpansion">Expand {{ messages.interPartName }}</span>
@@ -290,7 +290,6 @@ export default {
       loadingHPA: false,
       componentNotFound: false,
       errorMessage: '',
-      errorExpMessage: '',
       title: '',
 
       nodeCount: 0,
@@ -304,9 +303,8 @@ export default {
       reactions: [],
       reactionSet: null,
 
-      id: '',
-      selectedElmId: '',
-      selectedElm: null,
+      mainNodeID: '',
+      mainNode: null,
 
       clickedElmId: '',
       clickedElm: null,
@@ -425,7 +423,7 @@ export default {
     /* eslint-disable quote-props */
     '$route': function watchSetup() {
       if (this.$route.path.includes('/interaction/')) {
-        if (this.id !== this.$route.params.id) {
+        if (this.mainNodeID !== this.$route.params.id) {
           this.setup();
         }
       }
@@ -437,14 +435,13 @@ export default {
   },
   methods: {
     setup() {
-      this.id = this.$route.params.id;
-      this.selectedElmId = '';
-      this.selectedElm = null;
+      this.mainNodeID = this.$route.params.id;
+      this.mainNode = null;
       this.reactionHL = null;
       this.compartmentHL = '';
       this.subsystemHL = '';
       this.loadHPATissue();
-      if (this.id) {
+      if (this.mainNodeID) {
         this.load();
       }
     },
@@ -465,7 +462,7 @@ export default {
     },
     load() {
       this.loading = true;
-      axios.get(`${this.model.database_name}/reaction_components/${this.id}/with_interaction_partners`)
+      axios.get(`${this.model.database_name}/reaction_components/${this.mainNodeID}/with_interaction_partners`)
         .then((response) => {
           this.componentNotFound = false;
           this.showGraphContextMenu = false;
@@ -482,16 +479,12 @@ export default {
           });
 
           this.componentName = component.name || component.id;
-          this.id = component.id;
+
           if ('formula' in component) {
             this.title = `${this.chemicalName(this.componentName)}`;
             component.type = 'metabolite';
           } else {
             this.title = this.componentName;
-            if (component.uniprot != null) {
-              /* eslint-disable-next-line max-len */
-              this.title = `${this.title} (<a href="${component.uniprot_link}" target="_blank">${component.uniprot}</a>)`;
-            }
             component.type = 'gene';
           }
 
@@ -503,8 +496,8 @@ export default {
             this.compartmentHL = '';
             this.disableCompartmentHL = true;
           }
-          this.selectedElm = this.rawElms[component.id];
-          this.selectedElm.name = this.componentName;
+          this.mainNode = this.rawElms[component.id];
+          this.mainNode.name = this.componentName;
 
           this.expandedIds = [];
           this.expandedIds.push(component.id);
@@ -665,8 +658,7 @@ export default {
     },
     resetGraph(reload) {
       this.reactionHL = null;
-      this.selectedElm = null;
-      this.selectedElmId = '';
+      this.mainNode = null;
       this.clickedElm = null;
       this.clickedElmId = '';
       this.showGraphContextMenu = false;
@@ -679,7 +671,7 @@ export default {
       }
     },
     redrawGraph() {
-      const stylesheet = graph(this.id,
+      const stylesheet = graph(this.mainNodeID,
         this.rawElms, this.rawRels, this.nodeDisplayParams,
         this.reactionHL, this.compartmentHL, this.subsystemHL)[1];
       const cyzoom = this.cy.zoom();
@@ -719,9 +711,8 @@ export default {
     },
     // this.switchSVG(compartmentID,
     constructGraph: function constructGraph(elms, rels, callback) {
-      const [elements, stylesheet] = graph(this.id,
+      const [elements, stylesheet] = graph(this.mainNodeID,
         elms, rels, this.nodeDisplayParams, this.reactionHL, this.compartmentHL, this.subsystemHL);
-      // const id = this.id;
 
       const colaOptions = {
         animate: true, // whether to show the layout as it's running
@@ -765,7 +756,7 @@ export default {
         // infinite layout options
         infinite: false, // overrides all other options for a forces-all-the-time mode
       };
-      const { id } = this;
+      const { mainNodeID } = this;
       this.cy = cytoscape({
         container: this.$refs.cy,
         elements,
@@ -778,7 +769,7 @@ export default {
             if (node.degree() === 1) {
               return 1;
             }
-            if (node.data().id === id) {
+            if (node.data().id === mainNodeID) {
               return 10000;
             }
             if (node.data().type === 'gene') {
@@ -875,7 +866,7 @@ export default {
     exportGraphml: function exportGraphml() {
       const output = convertGraphML(this.cy);
       const blob = new Blob([output], { type: 'text/graphml' });
-      const filename = `${this.id}_interaction_partners.graphml`;
+      const filename = `${this.mainNodeID}_interaction_partners.graphml`;
       FileSaver.saveAs(blob, filename);
     },
     exportPNG: function exportPNG() {
@@ -885,7 +876,7 @@ export default {
       });
 
       a.href = output;
-      a.download = `${this.id}_interaction_partners.png`;
+      a.download = `${this.mainNodeID}_interaction_partners.png`;
       a.target = '_blank';
       a.style.display = 'none';
       document.body.appendChild(a);
@@ -972,7 +963,7 @@ export default {
     },
     viewReactionComponent(type) {
       EventBus.$emit('GBnavigateTo', type,
-        this.selectedElm.real_id ? this.selectedElm.real_id : this.selectedElm.id);
+        this.mainNode.real_id ? this.mainNode.real_id : this.mainNode.id);
     },
     viewReaction(ID) {
       EventBus.$emit('GBnavigateTo', 'reaction', ID);
