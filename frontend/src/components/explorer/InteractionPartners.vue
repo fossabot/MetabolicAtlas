@@ -50,8 +50,8 @@
         </div>
       </div>
       <div id="cip-graph">
-        <div v-show="showNetworkGraph" class="container columns">
-          <div class="column is-8">
+        <div v-show="showNetworkGraph" class="container columns is-multiline">
+          <div class="column is-8-desktop is-fullwidth-tablet">
             <transition name="slide-fade">
               <article v-if="errorExpMessage" id="errorExpBar" class="message is-danger">
                 <div class="message-header">
