@@ -147,11 +147,11 @@
               </div>
             </div>
             <br><br>
-            <div v-if="model.database_name === 'human1'" class="card ">
+            <div class="card ">
               <header class="card-header">
                 <p class="card-header-title">
                   <label class="checkbox is-unselectable"
-                         :title="`Click to ${toggleGeneExpLevel ? 'disable' : 'activate'} expression RNA levels`">
+                         :title="disableExpLvl ? 'Expression levels are not available' : `Click to ${toggleGeneExpLevel ? 'disable' : 'activate'} expression RNA levels`"> <!-- eslint-disable-line max-len -->
                     <input v-model="toggleGeneExpLevel" type="checkbox"
                            :disabled="disableExpLvl"
                            @click="applyLevels('gene', 'HPA', 'RNA', selectedSample)">
@@ -455,9 +455,13 @@ export default {
       axios.get(`${this.model.database_name}/gene/hpa_tissue/`)
         .then((response) => {
           Vue.set(this.tissues, 'HPA', response.data);
+          if (response.data.length === 0) {
+            this.disableExpLvl = true;
+          }
         })
         .catch(() => {
           // HPA tissue might not be available, depending on the selected model
+          this.disableExpLvl = true;
         });
     },
     load() {
@@ -629,8 +633,10 @@ export default {
     fixEnzSelectOption() {
       const option = document.getElementById('enz-select')
         .getElementsByTagName('optgroup')[0].childNodes[0];
-      option.selected = 'selected';
-      this.nodeDisplayParams.geneExpSample = option.label;
+      if (option) {
+        option.selected = 'selected';
+        this.nodeDisplayParams.geneExpSample = option.label;
+      }
     },
     updateExpAndredrawGraph(usingExpressionLevel, nodeType, expSource, expType, expSample) {
       setTimeout(() => {
