@@ -611,7 +611,12 @@ def get_component_with_interaction_partners(request, model, id):
         component.reactions_as_gene.count()
 
     if reactions_count > 200:
-        return HttpResponse(status=406)
+        result = {
+             'component': component_serializer.data,
+             'reactions': None
+         }
+
+        return JSONResponse(result)
 
     reactions = list(chain(
         component.reactions_as_metabolite. \

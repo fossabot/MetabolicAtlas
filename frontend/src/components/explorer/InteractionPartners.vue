@@ -471,6 +471,11 @@ export default {
           this.showGraphContextMenu = false;
           const { component } = response.data;
           this.reactions = response.data.reactions;
+          if (!this.reactions) {
+            this.tooLargeNetworkGraph = true;
+            this.showNetworkGraph = false;
+            return;
+          }
           this.reactionSet = new Set();
           this.reactions.forEach((r) => {
             this.reactionSet.add(r.id);
@@ -524,9 +529,6 @@ export default {
         })
         .catch((error) => {
           switch (error.response.status) {
-            case 406:
-              this.errorMessage = messages.tooManyInteractionPartner;
-              break;
             case 404:
               this.componentNotFound = true;
               break;
@@ -546,9 +548,16 @@ export default {
 
           const { component } = response.data;
           let { reactions } = response.data;
+          if (!reactions) {
+            this.tooLargeNetworkGraph = true;
+            this.showNetworkGraph = false;
+            return;
+          }
           reactions = reactions.filter(r => !this.reactionSet.has(r.id));
-
           this.reactions = this.reactions.concat(reactions);
+          this.reactions.forEach((r) => {
+            this.reactionSet.add(r.id);
+          });
 
           [this.rawElms,
             this.rawRels,
@@ -586,12 +595,6 @@ export default {
         })
         .catch((error) => {
           switch (error.response.status) {
-            case 406:
-              this.errorExpMessage = messages.tooManyInteractionPartner;
-              setTimeout(() => {
-                this.errorExpMessage = '';
-              }, 3000);
-              break;
             case 404:
               this.errorMessage = messages.notFoundError;
               break;
