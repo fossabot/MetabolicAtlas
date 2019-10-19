@@ -432,6 +432,10 @@ export default {
   },
   beforeMount() {
     cytoscape.use(cola);
+    jquery(window).resize(() => {
+      jquery('#cy').height(jquery('#cy').width() / 1.5);
+      this.fitGraph();
+    });
     this.setup();
   },
   methods: {
@@ -444,6 +448,7 @@ export default {
       this.loadHPATissue();
       if (this.mainNodeID) {
         this.load();
+        jquery('#cy').height(jquery('#cy').width() / 1.5);
       }
     },
     navigate() {
@@ -524,7 +529,7 @@ export default {
 
           // The set time out wrapper enforces this happens last.
           setTimeout(() => {
-            this.constructGraph(this.rawElms, this.rawRels);
+            this.constructGraph(this.rawElms, this.rawRels, this.fitGraph);
           }, 0);
         })
         .catch((error) => {
@@ -694,6 +699,7 @@ export default {
       });
     },
     fitGraph() {
+      jquery('#cy').height(jquery('#cy').width() / 1.5);
       setTimeout(() => {
         this.cy.fit(null, 10);
         this.minZoom = this.cy.zoom() / 2.0;
@@ -1076,9 +1082,9 @@ export default {
   }
 
   #cy {
-    /* position: static; */
     margin: auto;
-    height: 820px;
+    width: 100%;
+    height: 100%;
   }
 
   #sidebar {
