@@ -1,6 +1,7 @@
 import Vue from 'vue';
 import $ from 'jquery';
 import VueRouter from 'vue-router';
+import NProgress from 'nprogress';
 import Home from './components/Home';
 import Explorer from './components/Explorer';
 import SearchTable from './components/SearchTable';
@@ -24,6 +25,8 @@ const routes = [
   { path: '/explore/map-viewer/:model/subsystem/:id', name: 'viewerSubsystem', component: Explorer, props: true },
   { path: '/explore/map-viewer/:model/compartment/:id/:rid', name: 'viewerCompartmentRea', component: Explorer, props: true },
   { path: '/explore/map-viewer/:model/subsystem/:id/:rid', name: 'viewerSubsystemRea', component: Explorer, props: true },
+  { path: '/explore/interaction/:model/', name: 'interPartnerRoot', component: Explorer, props: true },
+  { path: '/explore/interaction/:model/:id/', name: 'interPartner', component: Explorer, props: true },
   { path: '/about', name: 'about', component: About },
   { path: '/gems/repository', name: 'gems', component: Repository },
   { path: '/gems/comparison', name: 'comparemodels', component: CompareModels },
@@ -40,6 +43,20 @@ const router = new VueRouter({
       $(window).scrollTop($(to.hash).offset().top);
     }
   },
+});
+
+NProgress.configure({
+  speed: 600,
+  showSpinner: false,
+});
+
+router.beforeResolve((to, from, next) => { // eslint-disable-line no-unused-vars
+  NProgress.start();
+  next();
+});
+
+router.afterEach((to, from) => { // eslint-disable-line no-unused-vars
+  NProgress.done();
 });
 
 export default router;

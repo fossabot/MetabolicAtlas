@@ -24,7 +24,7 @@
     </div>
     <div id="svgSearch" class="overlay">
       <div class="control" :class="{ 'is-loading' : isLoadingSearch }">
-        <input id="searchInput" v-model.trim="searchTerm"
+        <input id="searchInput" v-model.trim="searchTerm" data-hj-whitelist
                title="Exact search by id, name, alias. Press Enter for results" class="input"
                type="text" :class="searchInputClass"
                :disabled="!loadedMap" placeholder="Exact search by id, name, alias"
@@ -350,8 +350,7 @@ export default {
             this.loadSvgPanZoom(callback);
           }, 0);
         } else {
-          const svgLink = `${this.svgMapURL}/${this.model.database_name}/${newSvgName}`;
-          axios.get(svgLink)
+          axios.get(`${this.svgMapURL}/${this.model.database_name}/${newSvgName}`)
             .then((response) => {
               this.svgContent = response.data;
               this.svgName = newSvgName;
