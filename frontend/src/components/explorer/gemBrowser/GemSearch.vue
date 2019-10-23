@@ -8,7 +8,7 @@
                  v-model="searchTermString"
                  class="input is-medium" type="text"
                  placeholder="uracil, SULT1A3, ATP => cAMP + PPi, subsystem or compartment"
-                 @input="searchDebounce"
+                 v-debounce:700="searchDebounce"
                  @keyup.esc="showResults = false"
                  @focus="showResults = true"
                  @blur="showResults = false">
@@ -57,7 +57,6 @@
 <script>
 import axios from 'axios';
 import $ from 'jquery';
-import _ from 'lodash';
 import { sortResults } from '../../../helpers/utils';
 import { chemicalFormula, chemicalReaction } from '../../../helpers/chemical-formatters';
 import { default as EventBus } from '../../../event-bus';
@@ -103,7 +102,7 @@ export default {
     $('#search').focus();
   },
   methods: {
-    searchDebounce: _.debounce(function e() {
+    searchDebounce() {
       this.noResult = false;
       this.showSearchCharAlert = this.searchTermString.length === 1;
       this.showLoader = true;
@@ -111,7 +110,7 @@ export default {
         this.showResults = true;
         this.search(this.searchTermString);
       }
-    }, 700),
+    },
     search(searchTerm) {
       this.searchTermString = searchTerm;
       const url = `${this.model.database_name}/search/${searchTerm}`;
