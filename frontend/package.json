@@ -12,9 +12,6 @@
   "dependencies": {
     "core-js": "^2.6.5",
     "nprogress": "0.2.0",
-
-
-
     "3d-force-graph": "1.39.0",
     "axios": "^0.18.0",
     "bulma": "^0.7.0",
@@ -25,10 +22,10 @@
     "jquery": "3.3.1",
     "jquery-mousewheel": "3.1.13",
     "jquery.panzoom": "3.2.2",
-    "lodash": "^4.17.4",
     "vue": "^2.6.10",
     "vue-color": "2.0.9",
     "vue-cookie": "^1.1.4",
+    "vue-debounce": "^2.1.0",
     "vue-good-table": "^2.12.2",
     "vue-lodash": "^1.0.3",
     "vue-matomo": "^3",
