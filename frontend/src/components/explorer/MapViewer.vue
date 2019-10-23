@@ -475,10 +475,10 @@ export default {
     },
     checkRoute() {
       // load maps from url if contains map_id, the url is then cleaned of the id
-      if (['viewerCompartment', 'viewerCompartmentRea', 'viewerSubsystem', 'viewerSubsystemRea'].includes(this.$route.name)) {
-        const type = this.$route.name.includes('Compartment') ? 'compartment' : 'subsystem';
-        const mapID = this.$route.params.id;
-        this.URLID = this.$route.params.rid;
+      if (['viewer', 'viewerID'].includes(this.$route.name)) {
+        const { type } = this.$route.params;
+        const mapID = this.$route.params.map_id;
+        this.URLID = this.$route.params.cid;
         const { dim } = this.$route.query;
         if (!dim) {
           this.show2D = false;
@@ -498,7 +498,7 @@ export default {
     updateURL(type, mapID) {
       // remove reaction id in url for now
       // this.$router.push(`/explore/map-viewer/${this.model.database_name}/${type}/${mapID}/${URLID}?dim=${this.dim}`);
-      this.$router.push(`/explore/map-viewer/${this.model.database_name}/${type}/${mapID}?dim=${this.dim}`);
+      this.$router.replace({ name: 'viewer', params: { model: this.model.database_name, type, map_id: mapID }, query: { dim: this.dim } });
     },
     checkValidRequest(displayType, displayName) {
       this.requestedType = displayType;
@@ -534,7 +534,7 @@ export default {
         this.loadedTissue2 = '';
         this.requestedTissue2 = '';
         this.showOverviewScreen = true;
-        this.$router.push(`/explore/map-viewer/${this.model.database_name}/`);
+        this.$router.push({ name: 'viewerRoot', params: { model: this.model.database_name } });
         // keep the loaded 2D map, and data info in the 'back', to quickly reload it
       }
     },

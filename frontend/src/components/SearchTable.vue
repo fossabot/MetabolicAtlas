@@ -74,7 +74,7 @@
                 <ul>
                   <li>ID</li>
                   <li>Equation (see the
-                    <router-link :to="{ 'path': '/documentation', hash: 'Global-search'}">documentation</router-link>
+                    <router-link :to="{ name: 'documentation', hash: 'Global-search'}">documentation</router-link>
                     for more information)</li>
                   <li>EC code</li>
                   <li>External identifiers</li>
@@ -110,7 +110,7 @@
                     <span v-html="formulaFormater(props.row[props.column.field], props.row.charge)"></span>
                   </template>
                   <template v-else-if="['name', 'id'].includes(props.column.field)">
-                    <router-link :to="{ path: `/explore/gem-browser/${props.row.model.id}/${header}/${props.row.id}` }">
+                    <router-link :to="{ name: 'browser', params: { model: props.row.model.id, type: header, id: props.row.id } }">
                       {{ props.row.name || props.row.id }}
                     </router-link>
                   </template>
@@ -121,7 +121,7 @@
                     <template v-for="(sub, i) in props.formattedRow[props.column.field]" v-else>
                       <template v-if="i != 0">; </template>
                       <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key max-len -->
-                      <router-link :to="{ path: `/explore/gem-browser/${props.row.model.id}/subsystem/${idfy(sub)}` }"> {{ sub }}</router-link>
+                      <router-link :to="{ name: 'browser', params: { model: props.row.model.id, type: 'subsystem', id: idfy(sub) } }">{{ sub }}</router-link>
                     </template>
                   </template>
                   <template v-else-if="props.column.field === 'compartment'">
@@ -131,18 +131,18 @@
                     <template v-else-if="['subsystem', 'gene'].includes(header)">
                       <template v-for="(comp, i) in props.formattedRow[props.column.field]">
                         <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
-                        <template v-if="i != 0">; </template><router-link :to="{ path: `/explore/gem-browser/${props.row.model.id}/compartment/${idfy(comp)}` }">{{ comp }}</router-link>
+                        <template v-if="i != 0">; </template><router-link :to="{ name: 'browser', params: { model: props.row.model.id, type: 'compartment', id: idfy(comp) } }">{{ comp }}</router-link>
                       </template>
                     </template>
                     <template v-else-if="header === 'reaction'">
                       <template v-for="(RP, i) in props.formattedRow[props.column.field].split(' => ')">
                         <template v-if="i != 0"> &#8658; </template>
-                        <template v-for="(compo, j) in RP.split(' + ')">
+                        <template v-for="(comp, j) in RP.split(' + ')">
                           <template v-if="j != 0"> + </template>
                           <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
                           <router-link
-                            :to="{ path: `/explore/gem-browser/${props.row.model.id}/compartment/${idfy(compo)}` }">
-                            {{ compo }}
+                            :to="{ name: 'browser', params: { model: props.row.model.id, type: 'compartment', id: idfy(comp) } }">
+                            {{ comp }}
                           </router-link>
                         </template>
                       </template>
@@ -151,7 +151,7 @@
                       {{ props.formattedRow[props.column.field].join("; ") }}
                     </template>
                     <template v-else>
-                      <router-link :to="{ path: `/explore/gem-browser/${props.row.model.id}/compartment/${idfy(props.formattedRow[props.column.field])}` }">
+                      <router-link :to="{ name: 'browser', params: { model: props.row.model.id, type: 'compartment', id: idfy(props.formattedRow[props.column.field]) } }">
                         {{ props.formattedRow[props.column.field] }}
                       </router-link>
                     </template>

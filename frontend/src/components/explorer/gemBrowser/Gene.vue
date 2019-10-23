@@ -56,7 +56,7 @@
             </div>
             <div class="column is-2-widescreen is-3-desktop is-full-tablet has-text-centered">
               <router-link class="button is-info is-fullwidth is-outlined"
-                           :to="{ path: `/explore/interaction/${model.database_name}/${gene.id}` }">
+                           :to="{ name: 'interPartner', params: { model: model.database_name, id: gene.id } }">
                 <span class="icon"><i class="fa fa-connectdevelop fa-lg"></i></span>&nbsp;
                 <span>{{ messages.interPartName }}</span>
               </router-link>

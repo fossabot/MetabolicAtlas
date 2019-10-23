@@ -15,16 +15,14 @@ import NotFound from './components/NotFound';
 Vue.use(VueRouter);
 
 const routes = [
-  { path: '/', name: 'Home', component: Home },
+  { path: '/', name: 'home', component: Home },
   { path: '/explore', name: 'explorerRoot', component: Explorer, props: true },
   { path: '/search', name: 'search', component: SearchTable },
-  { path: '/explore/gem-browser/:model(human1|yeast8)', name: 'browserRoot', component: Explorer, props: true },
+  { path: '/explore/gem-browser/:model', name: 'browserRoot', component: Explorer, props: true },
   { path: '/explore/gem-browser/:model/:type(reaction|metabolite|gene|subsystem|compartment)/:id', name: 'browser', component: Explorer, props: true },
-  { path: '/explore/map-viewer/:model', name: 'viewer', component: Explorer, props: true },
-  { path: '/explore/map-viewer/:model/compartment/:id', name: 'viewerCompartment', component: Explorer, props: true },
-  { path: '/explore/map-viewer/:model/subsystem/:id', name: 'viewerSubsystem', component: Explorer, props: true },
-  { path: '/explore/map-viewer/:model/compartment/:id/:rid', name: 'viewerCompartmentRea', component: Explorer, props: true },
-  { path: '/explore/map-viewer/:model/subsystem/:id/:rid', name: 'viewerSubsystemRea', component: Explorer, props: true },
+  { path: '/explore/map-viewer/:model', name: 'viewerRoot', component: Explorer, props: true },
+  { path: '/explore/map-viewer/:model/:type(subsystem|compartment)/:map_id', name: 'viewer', component: Explorer, props: true },
+  { path: '/explore/map-viewer/:model/:type(subsystem|compartment)/:map_id/:cid', name: 'viewerID', component: Explorer, props: true },
   { path: '/explore/interaction/:model/', name: 'interPartnerRoot', component: Explorer, props: true },
   { path: '/explore/interaction/:model/:id/', name: 'interPartner', component: Explorer, props: true },
   { path: '/about', name: 'about', component: About },

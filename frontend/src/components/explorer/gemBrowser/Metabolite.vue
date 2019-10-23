@@ -29,7 +29,7 @@
                 </span>
                 <span v-else-if="el.name === 'compartment'">
                   <!-- eslint-disable-next-line max-len -->
-                  <router-link :to="{ path: `/explore/gem-browser/${model.database_name}/compartment/${idfy(metabolite[el.name])}` }"
+                  <router-link :to="{ name: 'browser', params: { model: model.database_name, type: 'compartment', id: idfy(metabolite[el.name]) } }"
                   >{{ metabolite[el.name] }}</router-link>
                 </span>
                 <span v-else>
@@ -44,8 +44,8 @@
                 <template v-for="(rm, i) in relatedMetabolites">
                   <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
                   <br v-if="i !== 0 ">
-                  <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
-                  <router-link :to="{ path: `/explore/gem-browser/${model.database_name}/metabolite/${rm.id}`}">
+                  <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key max-len -->
+                  <router-link :to="{ name: 'browser', params: { model: model.database_name, type: 'metabolite', id: rm.id } }">
                     {{ rm.full_name }}
                   </router-link> in {{ rm.compartment_str }}
                 </template>
@@ -74,7 +74,7 @@
         </div>
         <div class="column is-2-widescreen is-3-desktop is-full-tablet has-text-centered">
           <router-link class="button is-info is-fullwidth is-outlined"
-                       :to="{path: `/explore/interaction/${model.database_name}/${mId}`}">
+                       :to="{ name: 'interPartner', params: { model: model.database_name, id: mId } }">
             <span class="icon"><i class="fa fa-connectdevelop fa-lg"></i></span>&nbsp;
             <span>{{ messages.interPartName }}</span>
           </router-link>

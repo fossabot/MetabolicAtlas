@@ -35,8 +35,8 @@
                 <template v-if="i !== 0">, </template>
                 <!-- eslint-disable-next-line vue/valid-v-for -->
                 <router-link
-                  :to="{ path: `/explore/gem-browser/${model.database_name}/compartment/${idfy(c)}` }"
-                > {{ c }}</router-link>
+                  :to="{ name: 'browser', params: { model: model.database_name, type: 'compartment', id: idfy(c) } }"
+                >{{ c }}</router-link>
               </template>
             </td>
           </tr>

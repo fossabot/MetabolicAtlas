@@ -16,7 +16,7 @@
               <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
               <li>
                 <!-- eslint-disable-next-line max-len -->
-                <router-link :to="{ path: `/explore/map-viewer/${model.database_name}/${map[2]}/${map[0]}/${elementID}?dim=${mapKey}` }">
+                <router-link :to="{ name: 'viewerID', params: { model: model.database_name, type: map[2], map_id: map[0], cid: elementID }, query: { dim: mapKey } }">
                   {{ map[1] }}
                 </router-link>
               </li>

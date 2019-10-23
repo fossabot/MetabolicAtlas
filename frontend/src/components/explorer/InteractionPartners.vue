@@ -452,10 +452,7 @@ export default {
       }
     },
     navigate() {
-      this.reactionHL = null;
-      this.compartmentHL = '';
-      this.subsystemHL = '';
-      this.$router.push(`/explore/gem-browser/${this.model.database_name}/interaction/${this.clickedElmId}`);
+      this.$router.push({ name: 'interPartner', params: { model: this.model.database_name, id: this.clickedElmId } });
     },
     loadHPATissue() {
       axios.get(`${this.model.database_name}/gene/hpa_tissue/`)

@@ -38,8 +38,8 @@
             <td class="td-key has-background-primary has-text-white-bis">Related reaction(s)</td>
             <td>
               <template v-for="rr in relatedReactions">
-                <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
-                <router-link :to="{ path: `/explore/gem-browser/${model.database_name}/reaction/${rr.id}`}">
+                <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key max-len -->
+                <router-link :to="{ name: 'browser', params: { model: model.database_name, type: 'reaction', id: rr.id } }">
                   {{ rr.id }}
                 </router-link>
                 <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->

@@ -53,7 +53,7 @@
           <template v-for="tool in explorerTools">
             <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
             <div class="column is-one-third-widescreen is-half-desktop is-half-tablet is-fullwidth-mobile is-size-5">
-              <router-link :to="{ path: `${tool.url}/${model.database_name }` }"
+              <router-link :to="{ name: tool.routeName, params: { model: model.database_name } }"
                            :title="`Click to access the ${tool.name} for ${model.short_name} model`">
                 <div class="card card-fullheight hoverable">
                   <header class="card-header">
@@ -101,15 +101,15 @@ export default {
       explorerTools: [
         { name: messages.gemBrowserName,
           img: require('../assets/gemBrowser.jpg'),
-          url: '/explore/gem-browser',
+          routeName: 'browserRoot',
           icon: 'table' },
         { name: messages.mapViewerName,
           img: require('../assets/mapViewer.jpg'),
-          url: '/explore/map-viewer',
+          routeName: 'viewerRoot',
           icon: 'map-o' },
         { name: messages.interPartName,
           img: require('../assets/interaction.png'),
-          url: '/explore/interaction',
+          routeName: 'interPartnerRoot',
           icon: 'share-alt' },
       ],
       model: null,
@@ -178,7 +178,7 @@ export default {
       if (this.$route.params.model && this.$route.params.model in this.models) {
         this.selectModel(this.models[this.$route.params.model]);
       }
-      if (['viewer', 'viewerCompartment', 'viewerCompartmentRea', 'viewerSubsystem', 'viewerSubsystemRea'].includes(this.$route.name)) {
+      if (['viewerRoot', 'viewer', 'viewerID'].includes(this.$route.name)) {
         this.displayViewer();
       } else if (['browserRoot', 'browser'].includes(this.$route.name)) {
         this.displayBrowser();

@@ -5,8 +5,8 @@
          role="navigation" aria-label="main navigation">
       <div class="container">
         <div class="navbar-brand">
-          <router-link class="navbar-item" to="/" @click.native="isMobileMenu = false">
-            <img :src="require('./assets/logo.png')"/>
+          <router-link class="navbar-item" :to="{ name: 'home' }" @click.native="isMobileMenu = false">
+            <img :src="require('./assets/logo.png')" />
           </router-link>
           <div class="navbar-burger" :class="{ 'is-active': isMobileMenu }"
                @click="isMobileMenu = !isMobileMenu">
@@ -18,7 +18,7 @@
         <div id="#nav-menu" class="navbar-menu" :class="{ 'is-active': isMobileMenu }">
           <div v-show="model" class="navbar-start has-text-centered"
                title="Click to toggle between the GEM Browser and the Map Viewer">
-            <router-link v-if="activeViewerBut || activeBrowserBut" :to="{ path: '/explore'}"
+            <router-link v-if="activeViewerBut || activeBrowserBut" :to="{ name: 'explorerRoot' }"
                          class="navbar-item is-size-3 has-text-primary has-text-weight-bold is-unselectable"
                          title="Current selected model, click to change your selection">
               {{ model ? model.short_name : '' }}
@@ -107,7 +107,7 @@
           We use cookies to enhance the usability of our website.
           By continuing you are agreeing to our
           <router-link class="has-text-white has-text-weight-bold"
-                       :to="{path: '/about', hash: 'privacy'}">
+                       :to="{ name: 'about', hash: 'privacy' }">
             Privacy Notice and Terms of Use
           </router-link>&emsp;
           <p class="button is-small is-rounded has-background-danger has-text-white has-text-weight-bold"
@@ -174,11 +174,11 @@ export default {
   },
   methods: {
     setupButons() {
-      if (this.$route.name === 'browser' || this.$route.name === 'browserRoot') {
+      if (['browserRoot', 'browser'].includes(this.$route.name)) {
         this.activeBrowserBut = true;
         this.activeViewerBut = false;
         this.savePath();
-      } else if (['viewer', 'viewerCompartment', 'viewerCompartmentRea', 'viewerSubsystem', 'viewerSubsystemRea'].includes(this.$route.name)) {
+      } else if (['viewerRoot', 'viewer', 'viewerID'].includes(this.$route.name)) {
         this.activeBrowserBut = false;
         this.activeViewerBut = true;
         this.savePath();
@@ -197,21 +197,29 @@ export default {
       return false;
     },
     goToGemBrowser() {
-      this.$router.push(this.browserLastPath || `/explore/gem-browser/${this.$route.params.model}`);
+      if (this.browserLastPath) {
+        this.$router.push(this.browserLastPath);
+      } else {
+        this.$router.push({ name: 'browserRoot', params: { model: this.$route.params.model } });
+      }
     },
     savePath() {
       if (this.$route.name === 'browser') {
         this.browserLastPath = this.$route.path;
       } else if (this.$route.name === 'browserRoot') {
         this.browserLastPath = '';
-      } else if (['viewerCompartment', 'viewerCompartmentRea', 'viewerSubsystem', 'viewerSubsystemRea'].includes(this.$route.name)) {
+      } else if (['viewer', 'viewerID'].includes(this.$route.name)) {
         this.viewerLastPath = this.$route.fullPath;
       } else if (this.$route.name === 'viewer') {
         this.viewerLastPath = '';
       }
     },
     goToMapViewer() {
-      this.$router.push(this.viewerLastPath || `/explore/map-viewer/${this.$route.params.model}`);
+      if (this.viewerLastPath) {
+        this.$router.push(this.viewerLastPath);
+      } else {
+        this.$router.push({ name: 'viewerRoot', params: { model: this.$route.params.model } });
+      }
     },
   },
 };

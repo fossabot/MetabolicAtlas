@@ -153,12 +153,12 @@ export default {
       if (type === 'subsystem' || type === 'compartment') {
         ID = idfy(id);
       }
-      this.$router.push(`/explore/gem-browser/${this.$route.params.model}/${type}/${ID}`);
+      this.$router.push({ name: 'browser', params: { model: this.model.database_name, type, id: ID } });
     });
   },
   methods: {
     setup() {
-      if (this.$route.name === 'browser' || this.$route.name === 'browserRoot') {
+      if (['browser', 'browserRoot'].includes(this.$route.name)) {
         if (!this.model || this.model.database_name !== this.$route.params.model) {
           EventBus.$emit('modelSelected', '');
           this.errorMessage = `Error: ${messages.modelNotFound}`;
@@ -167,12 +167,10 @@ export default {
         this.selectedType = this.$route.params.type || '';
         this.componentID = this.$route.params.id || '';
         if (!this.componentID || !this.selectedType) {
-          this.$router.push(`/explore/gem-browser/${this.model.database_name}`);
+          this.$router.push({ name: 'browserRoot', params: { model: this.model.database_name } });
           if (!this.starredComponents) {
             this.get_tiles_data();
           }
-        } else if (this.selectedType === 'interaction') {
-          this.$router.replace(`/explore/interaction/${this.model.database_name}/${this.componentID}`);
         }
       }
     },

@@ -36,21 +36,21 @@
           <tr v-for="r in sortedReactions" :key="r.id">
             <td>
               <router-link
-                :to="{path: `/explore/gem-browser/${model.database_name}/reaction/${r.id}` }">
+                :to="{ name: 'browser', params: { model: model.database_name, type: 'reaction', id: r.id } }">
                 {{ r.id }}
               </router-link>
             </td>
             <td v-html="reformatChemicalReactionHTML(r)"></td>
             <td>
               <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key max-len -->
-              <template v-for="(m, index) in r.genes">{{ index == 0 ? '' : ', ' }}<router-link :to="{ path: `/explore/gem-browser/${model.database_name}/gene/${m.id}` }">{{ m.name || m.id }}</router-link>
+              <template v-for="(m, index) in r.genes">{{ index == 0 ? '' : ', ' }}<router-link :to="{ name: 'browser', params: { model: model.database_name, type: 'gene', id: m.id } }">{{ m.name || m.id }}</router-link>
               </template>
             </td>
             <td v-show="showCP">{{ r.cp }}</td>
             <td v-show="showSubsystem">
               <template v-if="r.subsystem_str">
                 <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key max-len -->
-                <template v-for="(s, index) in r.subsystem_str.split('; ')">{{ index == 0 ? '' : '; ' }}<router-link :to="{ path: `/explore/gem-browser/${model.database_name}/subsystem/${idfy(s)}` }">{{ s }}</router-link>
+                <template v-for="(s, index) in r.subsystem_str.split('; ')">{{ index == 0 ? '' : '; ' }}<router-link :to="{ name: 'browser', params: { model: model.database_name, type: 'subsystem', id: idfy(s) } }">{{ s }}</router-link>
                 </template>
               </template>
             </td>
@@ -60,7 +60,7 @@
                 <template v-for="(compo, j) in RP.split(' + ')">
                   <template v-if="j != 0"> + </template>
                   <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key max-len -->
-                  <router-link :to="{ path: `/explore/gem-browser/${model.database_name}/compartment/${idfy(compo)}` }">{{ compo }}</router-link>
+                  <router-link :to="{ name: 'browser', params: { model: model.database_name, type: 'compartment', id: idfy(compo) } }">{{ compo }}</router-link>
                 </template>
               </template>
             </td>
