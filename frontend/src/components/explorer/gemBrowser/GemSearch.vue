@@ -3,26 +3,25 @@
     <div class="control">
       <div id="input-wrapper">
         <p class="control has-icons-right has-icons-left">
-          <input id="search" ref="searchInput"
+          <!-- eslint-disable max-len -->
+          <input id="search" ref="searchInput" data-hj-whitelist
                  v-model="searchTermString"
-                 class="input" type="text"
-                 placeholder="Search by metabolite (uracil),
-    gene (SULT1A3), or reaction (ATP => cAMP + PPi) or subsystem"
-                 @input="searchDebounce"
+                 class="input is-medium" type="text"
+                 placeholder="uracil, SULT1A3, ATP => cAMP + PPi, subsystem or compartment"
+                 v-debounce:700="searchDebounce"
                  @keyup.esc="showResults = false"
                  @focus="showResults = true"
                  @blur="showResults = false">
-          <span v-show="showSearchCharAlert" class="has-text-info icon is-small is-right" style="width: 200px">
+          <span v-show="showSearchCharAlert" class="has-text-info icon is-right" style="width: 220px">
             Type at least 2 characters
           </span>
           <span class="icon is-medium is-left">
             <i class="fa fa-search"></i>
           </span>
         </p>
-        <router-link
-          class="is-pulled-right"
-          :to="{ name: 'search', query: { term: searchTermString } }"
-        >Global search</router-link>
+        <router-link class="is-pulled-right is-size-5" :to="{ name: 'search', query: { term: searchTermString } }">
+          Global search
+        </router-link>
       </div>
       <div v-show="showResults && searchTermString.length > 1" id="searchResults" ref="searchResults">
         <div v-show="searchResults.length !== 0 && !showLoader" id="asn"
@@ -58,7 +57,6 @@
 <script>
 import axios from 'axios';
 import $ from 'jquery';
-import _ from 'lodash';
 import { sortResults } from '../../../helpers/utils';
 import { chemicalFormula, chemicalReaction } from '../../../helpers/chemical-formatters';
 import { default as EventBus } from '../../../event-bus';
@@ -104,7 +102,7 @@ export default {
     $('#search').focus();
   },
   methods: {
-    searchDebounce: _.debounce(function e() {
+    searchDebounce() {
       this.noResult = false;
       this.showSearchCharAlert = this.searchTermString.length === 1;
       this.showLoader = true;
@@ -112,7 +110,7 @@ export default {
         this.showResults = true;
         this.search(this.searchTermString);
       }
-    }, 700),
+    },
     search(searchTerm) {
       this.searchTermString = searchTerm;
       const url = `${this.model.database_name}/search/${searchTerm}`;

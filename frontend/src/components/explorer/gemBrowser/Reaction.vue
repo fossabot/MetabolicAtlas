@@ -1,8 +1,6 @@
 <template>
-  <div v-if="errorMessage" class="columns">
-    <div class="column notification is-danger is-half is-offset-one-quarter has-text-centered">
-      {{ errorMessage }}
-    </div>
+  <div v-if="componentNotFound" class="columns is-centered">
+    <notFoundComponent component="reaction" :componentID="rId"></notFoundComponent>
   </div>
   <div v-else>
     <div class="columns">
@@ -28,15 +26,11 @@
               <span v-html="el.modifier()"></span>
             </td>
             <td v-else-if="reaction[el.name]">
-              <span v-if="'modifier' in el" v-html="el.modifier(reaction[el.name])">
-              </span>
-              <span v-else>
-                {{ reaction[el.name] }}
-              </span>
+              <span v-if="'modifier' in el" v-html="el.modifier(reaction[el.name])"></span>
+              <span v-else>{{ reaction[el.name] }}</span>
             </td>
             <td v-else-if="el.name === 'equation'">
-              <span v-html="el.modifier(reaction[el.name])">
-              </span>
+              <span v-html="el.modifier(reaction[el.name])"></span>
             </td>
             <td v-else> - </td>
           </tr>
@@ -63,8 +57,7 @@
           <table v-if="reaction && Object.keys(reaction).length != 0" id="ed-table" class="table is-fullwidth">
             <tr v-for="el in externalIDTableKey[model.database_name]" :key="el.name">
               <template v-if="reaction[el.name] && reaction[el.link]">
-                <td v-if="'display' in el"
-                    class="td-key has-background-primary has-text-white-bis"
+                <td v-if="'display' in el" class="td-key has-background-primary has-text-white-bis"
                     v-html="el.display"></td>
                 <td v-else class="td-key has-background-primary has-text-white-bis">{{ reformatTableKey(el.name) }}</td>
                 <td>
@@ -100,10 +93,8 @@
           </template>
         </table>
       </div>
-      <div class="column is-2-widescreen is-3-desktop is-full-tablet has-text-centered">
-        <maps-available :id="rId" :model="model"
-                        :type="'reaction'"
-                        :element-i-d="rId"></maps-available>
+      <div class="column is-2-widescreen is-3-desktop is-half-tablet has-text-centered">
+        <maps-available :id="rId" :model="model" :type="'reaction'" :element-i-d="rId"></maps-available>
       </div>
     </div>
   </div>
@@ -113,14 +104,15 @@
 import axios from 'axios';
 import $ from 'jquery';
 import Loader from '@/components/Loader';
+import NotFoundComponent from './NotFoundComponent';
 import MapsAvailable from '@/components/explorer/gemBrowser/MapsAvailable';
 import { default as EventBus } from '../../../event-bus';
 import { reformatTableKey, addMassUnit, reformatECLink, reformatCompEqString, reformatChemicalReactionHTML, reformatEqSign } from '../../../helpers/utils';
-import { default as messages } from '../../../helpers/messages';
 
 export default {
   name: 'Reaction',
   components: {
+    NotFoundComponent,
     Loader,
     MapsAvailable,
   },
@@ -129,7 +121,6 @@ export default {
   },
   data() {
     return {
-      messages,
       rId: this.$route.params.id,
       mainTableKey: {
         human1: [
@@ -169,6 +160,7 @@ export default {
       mapsAvailable: {},
       unformattedRefs: [],
       formattedRefs: {},
+      componentNotFound: false,
     };
   },
   computed: {
@@ -211,6 +203,7 @@ export default {
     load() {
       axios.get(`${this.model.database_name}/get_reaction/${this.rId}/`)
         .then((response) => {
+          this.componentNotFound = false;
           this.showLoader = false;
           this.reaction = response.data.reaction;
           if (response.data.pmids.length !== 0) {
@@ -220,7 +213,8 @@ export default {
           this.getRelatedReactions();
         })
         .catch(() => {
-          this.errorMessage = messages.notFoundError;
+          this.componentNotFound = true;
+          document.getElementById('search').focus();
         });
     },
     getRelatedReactions() {
@@ -330,7 +324,6 @@ export default {
           this.formattedRefs = newFormattedRefs;
         })
         .catch(() => {
-          this.errorMessage = messages.notFoundError;
         });
     },
     viewReactionOnMap(reactionID) {

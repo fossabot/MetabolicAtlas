@@ -1,175 +1,171 @@
 <template>
   <section class="extended-section">
-    <div class="container">
-      <div id="search-table">
-        <div class="columns">
-          <div class="column has-text-centered content">
-            <br>
-            <h3 class="title is-3">Search within all integrated GEMs</h3>
-            <h4 class="subtitle is-4 has-text-weight-normal">
-              for reactions, metabolites, genes, subsystems and compartments
-            </h4>
+    <div id="search-table" class="container">
+      <div class="columns">
+        <div class="column has-text-centered content">
+          <br>
+          <h3 class="title is-3">Search within all integrated GEMs</h3>
+          <h5 class="subtitle is-5 has-text-weight-normal">
+            for reactions, metabolites, genes, subsystems and compartments
+          </h5>
+        </div>
+      </div>
+      <div class="columns is-centered">
+        <div class="column is-three-fifths-desktop is-three-quarters-tablet is-fullwidth-mobile control">
+          <div id="input-wrapper is-size-3">
+            <p class="control has-icons-right has-icons-left">
+              <input id="search" v-model="searchTerm" data-hj-whitelist
+                     class="input is-medium" type="text"
+                     placeholder="uracil, SULT1A3, ATP => cAMP + PPi, Acyl-CoA hydrolysis"
+                     @keyup.enter="updateSearch()">
+              <span v-show="showSearchCharAlert"
+                    class="has-text-danger icon is-small is-right"
+                    style="width: 200px">
+                Type at least 2 characters
+              </span>
+              <span class="icon is-medium is-left">
+                <i class="fa fa-search is-primary"></i>
+              </span>
+            </p>
           </div>
         </div>
-        <div class="columns is-centered">
-          <div class="column is-three-fifths-desktop is-three-quarters-tablet is-fullwidth-mobile control">
-            <div id="input-wrapper">
-              <p class="control has-icons-right has-icons-left">
-                <input id="search" v-model="searchTerm"
-                       class="input" type="text"
-                       placeholder="Example: uracil, SULT1A3, ATP => cAMP + PPi, Acyl-CoA hydrolysis"
-                       @keyup.enter="updateSearch()">
-                <span v-show="showSearchCharAlert"
-                      class="has-text-danger icon is-small is-right"
-                      style="width: 200px">
-                  Type at least 2 characters
-                </span>
-                <span class="icon is-medium is-left">
-                  <i class="fa fa-search"></i>
-                </span>
-              </p>
-            </div>
-          </div>
+      </div>
+      <br>
+      <div>
+        <div v-if="showTabType" class="tabs is-boxed is-fullwidth">
+          <ul>
+            <li v-for="tab in tabs" :key="tab"
+                :disabled="resultsCount[tab] === 0"
+                :class="[{'is-active has-text-weight-bold': showTab(tab) && resultsCount[tab] !== 0 },
+                         { 'is-disabled': resultsCount[tab] === 0 }]"
+                @click="resultsCount[tab] !== 0 ? showTabType=tab : ''">
+              <a class="is-capitalized">
+                <p>{{ tab }}s
+                  <span :class="{'has-text-info': resultsCount[tab] !== 0 }">({{ resultsCount[tab] }})</span>
+                </p>
+              </a>
+            </li>
+          </ul>
         </div>
-        <div>
-          <div v-if="showTabType" class="tabs is-boxed is-fullwidth">
-            <ul>
-              <li v-for="tab in tabs" :key="tab"
-                  :disabled="resultsCount[tab] === 0"
-                  :class="[{'is-active has-text-weight-semibold': showTab(tab) && resultsCount[tab] !== 0 },
-                           { 'is-disabled': resultsCount[tab] === 0 }]"
-                  @click="resultsCount[tab] !== 0 ? showTabType=tab : ''">
-                <a class="is-capitalized">
-                  {{ tab }}s&nbsp;
-                  <span v-if="resultsCount[tab] !== 0">({{ resultsCount[tab] }})</span>
-                </a>
-              </li>
-            </ul>
-          </div>
-          <loader v-show="loading && searchTerm !== ''"></loader>
-          <div v-show="!loading">
-            <div v-if="Object.keys(searchResults).length === 0" class="column is-offset-3 is-6">
+        <loader v-show="loading && searchTerm !== ''"></loader>
+        <div v-show="!loading">
+          <div class="columns is-centered">
+            <div v-if="Object.keys(searchResults).length === 0"
+                 class="column is-three-fifths-desktop is-three-quarters-tablet is-fullwidth-mobile">
               <div v-if="searchedTerm" class="has-text-centered notification">
-                {{ messages.searchNoResult }} for <i>{{ searchedTerm }}</i>
+                {{ messages.searchNoResult }} for <b><i>{{ searchedTerm }}</i></b><br>
+                If this is an alias or external identifier, it means it is not present in any of the models.
               </div>
               <div class="content">
-                <div class="has-text-centered">Search using the following parameters:</div>
-                <span>Metabolites by:</span>
+                <span>Metabolites</span>
                 <ul>
                   <li>ID</li>
                   <li>Name or aliases</li>
-                  <li>Formula (without charge)</li>
+                  <li>Formula without charge</li>
                   <li>External identifiers</li>
                 </ul>
-                <span>Genes by:</span>
+                <span>Genes</span>
                 <ul>
                   <li>ID</li>
                   <li>Name or aliases</li>
                   <li>External identifiers</li>
                 </ul>
-                <span>Reactions by:</span>
+                <span>Reactions</span>
                 <ul>
                   <li>ID</li>
-                  <li>Equation (view the
-                    <router-link :to="{ 'path': '/documentation', hash:'Global-search'}">documentation</router-link>
+                  <li>Equation (see the
+                    <router-link :to="{ 'path': '/documentation', hash: 'Global-search'}">documentation</router-link>
                     for more information)</li>
                   <li>EC code</li>
                   <li>External identifiers</li>
                 </ul>
-                <span>Subsystem and compartment by:</span>
+                <span>Subsystems and compartments</span>
                 <ul>
-                  <li>name</li>
+                  <li>Name</li>
                   <li>External identifiers (subsystem only)</li>
                 </ul>
-                <br>
-                <div class="has-text-centered">
-                  <u>External identifiers and aliases may be missing if they are not provided with the models.</u>
-                </div>
               </div>
             </div>
-            <template v-for="(header, index) in tabs">
-              <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
-              <div v-show="showTab(header) && resultsCount[header] !== 0">
-                <vue-good-table ref="searchTables"
-                                :columns="columns[header]" :rows="rows[header]"
-                                :sort-options="{ enabled: true }" style-class="vgt-table striped bordered"
-                                :pagination-options="tablePaginationOpts">
-
-                  <div slot="table-actions">
-                    <a class="button is-primary" style="margin: 0.3rem 1rem;" @click="exportToTSV(header, index)">
-                      <span class="icon is-large"><i class="fa fa-download"></i></span>
-                      <span>Export to TSV</span>
-                    </a>
-                  </div>
-                  <template slot="table-row" slot-scope="props">
-                    <template v-if="props.column.field == 'model'">
-                      {{ props.formattedRow[props.column.field].name }}
+          </div>
+          <template v-for="(header, index) in tabs">
+            <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
+            <div v-show="showTab(header) && resultsCount[header] !== 0">
+              <vue-good-table ref="searchTables" :columns="columns[header]" :rows="rows[header]"
+                              :sort-options="{ enabled: true }" style-class="vgt-table striped bordered"
+                              :pagination-options="tablePaginationOpts">
+                <div slot="table-actions">
+                  <ExportTSV :arg="index" :style="{'margin': '0.3rem 1rem'}" :filename="`${searchTerm}-${header}.tsv`"
+                             :format-function="formatToTSV">
+                  </ExportTSV>
+                </div>
+                <template slot="table-row" slot-scope="props">
+                  <!-- eslint-disable max-len -->
+                  <template v-if="props.column.field == 'model'">
+                    {{ props.formattedRow[props.column.field].name }}
+                  </template>
+                  <template v-else-if="props.column.field === 'equation'">
+                    <span v-html="reformatEqSign(props.formattedRow[props.column.field], false)"></span>
+                  </template>
+                  <template v-else-if="props.column.field === 'formula'">
+                    <span v-html="formulaFormater(props.row[props.column.field], props.row.charge)"></span>
+                  </template>
+                  <template v-else-if="['name', 'id'].includes(props.column.field)">
+                    <router-link :to="{ path: `/explore/gem-browser/${props.row.model.id}/${header}/${props.row.id}` }">
+                      {{ props.row.name || props.row.id }}
+                    </router-link>
+                  </template>
+                  <template v-else-if="props.column.field === 'subsystem'">
+                    <template v-if="props.formattedRow[props.column.field].length === 0">
+                      {{ "" }}
                     </template>
-                    <template v-else-if="props.column.field === 'equation'">
-                      <span v-html="reformatEqSign(props.formattedRow[props.column.field], false)"></span>
+                    <template v-for="(sub, i) in props.formattedRow[props.column.field]" v-else>
+                      <template v-if="i != 0">; </template>
+                      <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key max-len -->
+                      <router-link :to="{ path: `/explore/gem-browser/${props.row.model.id}/subsystem/${idfy(sub)}` }"> {{ sub }}</router-link>
                     </template>
-                    <template v-else-if="props.column.field === 'formula'">
-                      <span v-html="formulaFormater(props.row[props.column.field], props.row.charge)"></span>
+                  </template>
+                  <template v-else-if="props.column.field === 'compartment'">
+                    <template v-if="props.formattedRow[props.column.field].length === 0">
+                      {{ "" }}
                     </template>
-                    <template v-else-if="['name', 'id'].includes(props.column.field)">
-                      <router-link
-                        :to="{ path: `/explore/gem-browser/${props.row.model.id}/${header}/${props.row.id}` }">
-                        {{ props.row.name || props.row.id }}
-                      </router-link>
-                    </template>
-                    <template v-else-if="props.column.field === 'subsystem'">
-                      <template v-if="props.formattedRow[props.column.field].length === 0">
-                        {{ "" }}
+                    <template v-else-if="['subsystem', 'gene'].includes(header)">
+                      <template v-for="(comp, i) in props.formattedRow[props.column.field]">
+                        <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
+                        <template v-if="i != 0">; </template><router-link :to="{ path: `/explore/gem-browser/${props.row.model.id}/compartment/${idfy(comp)}` }">{{ comp }}</router-link>
                       </template>
-                      <template v-for="(sub, i) in props.formattedRow[props.column.field]" v-else>
-                        <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key max-len -->
-                        <template v-if="i != 0">; </template><router-link :to="{ path: `/explore/gem-browser/${props.row.model.id}/subsystem/${idfy(sub)}` }">{{ sub }}</router-link>
-                      </template>
                     </template>
-                    <template v-else-if="props.column.field === 'compartment'">
-                      <template v-if="props.formattedRow[props.column.field].length === 0">
-                        {{ "" }}
-                      </template>
-                      <template v-else-if="['subsystem', 'gene'].includes(header)">
-                        <template v-for="(comp, i) in props.formattedRow[props.column.field]">
-                          <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key max-len -->
-                          <template v-if="i != 0">; </template><router-link :to="{ path: `/explore/gem-browser/${props.row.model.id}/compartment/${idfy(comp)}` }">{{ comp }}</router-link>
+                    <template v-else-if="header === 'reaction'">
+                      <template v-for="(RP, i) in props.formattedRow[props.column.field].split(' => ')">
+                        <template v-if="i != 0"> &#8658; </template>
+                        <template v-for="(compo, j) in RP.split(' + ')">
+                          <template v-if="j != 0"> + </template>
+                          <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
+                          <router-link
+                            :to="{ path: `/explore/gem-browser/${props.row.model.id}/compartment/${idfy(compo)}` }">
+                            {{ compo }}
+                          </router-link>
                         </template>
-                      </template>
-                      <template v-else-if="header === 'reaction'">
-                        <template v-for="(RP, i) in props.formattedRow[props.column.field].split(' => ')">
-                          <template v-if="i != 0"> &#8658; </template>
-                          <template v-for="(compo, j) in RP.split(' + ')">
-                            <template v-if="j != 0"> + </template>
-                            <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
-                            <router-link
-                              :to="{ path: `/explore/gem-browser/${props.row.model.id}/compartment/${idfy(compo)}` }">
-                              {{ compo }}
-                            </router-link>
-                          </template>
-                        </template>
-                      </template>
-                      <template v-else-if="Array.isArray(props.formattedRow[props.column.field])">
-                        {{ props.formattedRow[props.column.field].join("; ") }}
-                      </template>
-                      <template v-else>
-                        <!-- eslint-disable-next-line max-len -->
-                        <router-link :to="{ path: `/explore/gem-browser/${props.row.model.id}/compartment/${idfy(props.formattedRow[props.column.field])}` }">
-                          {{ props.formattedRow[props.column.field] }}
-                        </router-link>
                       </template>
                     </template>
                     <template v-else-if="Array.isArray(props.formattedRow[props.column.field])">
                       {{ props.formattedRow[props.column.field].join("; ") }}
                     </template>
                     <template v-else>
-                      {{ props.formattedRow[props.column.field] }}
+                      <router-link :to="{ path: `/explore/gem-browser/${props.row.model.id}/compartment/${idfy(props.formattedRow[props.column.field])}` }">
+                        {{ props.formattedRow[props.column.field] }}
+                      </router-link>
                     </template>
                   </template>
-                </vue-good-table>
-              </div>
-            </template>
-          </div>
+                  <template v-else-if="Array.isArray(props.formattedRow[props.column.field])">
+                    {{ props.formattedRow[props.column.field].join("; ") }}
+                  </template>
+                  <template v-else>
+                    {{ props.formattedRow[props.column.field] }}
+                  </template>
+                </template>
+              </vue-good-table>
+            </div>
+          </template>
         </div>
       </div>
     </div>
@@ -180,9 +176,9 @@
 
 import axios from 'axios';
 import $ from 'jquery';
-import { default as FileSaver } from 'file-saver';
 import { VueGoodTable } from 'vue-good-table';
 import Loader from '@/components/Loader';
+import ExportTSV from '@/components/explorer/gemBrowser/ExportTSV';
 import 'vue-good-table/dist/vue-good-table.css';
 import { chemicalFormula } from '../helpers/chemical-formatters';
 import { idfy, reformatEqSign, sortResults } from '../helpers/utils';
@@ -192,6 +188,7 @@ export default {
   name: 'SearchTable',
   components: {
     Loader,
+    ExportTSV,
     VueGoodTable,
   },
   data() {
@@ -200,7 +197,7 @@ export default {
       tablePaginationOpts: {
         enabled: true,
         perPage: 50,
-        position: 'both',
+        position: 'bottom',
         perPageDropdown: [25, 50, 100, 200],
         dropdownAllowAll: false,
         setCurrentPage: 1,
@@ -473,7 +470,7 @@ export default {
     this.validateSearch(to.query.term);
     next();
   },
-  mounted() {
+  updated() {
     $('#search').focus();
   },
   methods: {
@@ -705,8 +702,7 @@ export default {
     },
     search() {
       this.loading = true;
-      const url = `all/search/${this.searchTerm}`;
-      axios.get(url)
+      axios.get(`all/search/${this.searchTerm}`)
         .then((response) => {
           const localResults = {
             metabolite: [],
@@ -748,38 +744,29 @@ export default {
             });
         });
     },
-    exportToTSV(type, index) {
-      try {
-        const rows = Array.from(this.$refs.searchTables[index].filteredRows[0].children);
-        const header = [];
-        let getHeader = false;
-        let tsvContent = rows.map((e) => {
-          const data = [];
-          Object.entries(e).forEach((entry) => {
-            const key = entry[0];
-            let value = entry[1];
-            if (key !== 'vgt_id' && key !== 'originalIndex') {
-              if (!getHeader) { header.push(key); }
-              if (key === 'model') {
-                data.push(value.name);
-              } else {
-                if (Array.isArray(value)) { value = value.join('; '); }
-                data.push(value);
-              }
+    formatToTSV(index) {
+      const rows = Array.from(this.$refs.searchTables[index].filteredRows[0].children);
+      const header = [];
+      let getHeader = false;
+      const tsvContent = rows.map((e) => {
+        const rowData = [];
+        Object.entries(e).forEach((entry) => {
+          const key = entry[0];
+          let value = entry[1];
+          if (key !== 'vgt_id' && key !== 'originalIndex') {
+            if (!getHeader) { header.push(key); }
+            if (key === 'model') {
+              rowData.push(value.name);
+            } else {
+              if (Array.isArray(value)) { value = value.join('; '); }
+              rowData.push(value);
             }
-          });
-          if (!getHeader) { getHeader = true; }
-          return data.join('\t');
-        }
-        ).join('\n');
-        tsvContent = `${header.join('\t')}\n${tsvContent}`;
-        const blob = new Blob([tsvContent], {
-          type: 'data:text/tsv;charset=utf-8',
+          }
         });
-        FileSaver.saveAs(blob, `${this.searchTerm}-${type}.tsv`);
-      } catch (e) {
-        this.errorMessage = e;
-      }
+        if (!getHeader) { getHeader = true; }
+        return rowData.join('\t');
+      }).join('\n');
+      return `${header.join('\t')}\n${tsvContent}`;
     },
     idfy,
     chemicalFormula,
@@ -793,7 +780,6 @@ export default {
 <style lang="scss">
 
 #search-table {
-
   .tabs li.is-disabled {
     cursor: not-allowed;
     color: gray;
@@ -803,6 +789,7 @@ export default {
       cursor: not-allowed;
     }
   }
+  padding-bottom: 6rem;
 }
 
 </style>

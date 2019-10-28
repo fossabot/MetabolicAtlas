@@ -120,7 +120,7 @@
                   Switch to&nbsp;<b>{{ show2D ? '3D' : '2D' }}</b>
                 </template>
                 <template v-else>
-                  2D disabled
+                  Not available in 2D
                 </template>
               </template>
             </span>
@@ -372,7 +372,6 @@ export default {
         EventBus.$emit('destroy3Dnetwork');
         EventBus.$emit('showSVGmap', this.requestedType, this.requestedName, [], true);
       }
-      this.updateURL(this.requestedType, this.requestedName, this.URLID);
     },
     handleLoadComplete(isSuccess, errorMessage, messageType) {
       if (!isSuccess) {
@@ -470,14 +469,16 @@ export default {
         }
         this.show3D = !this.show2D;
         this.$nextTick(() => {
+          if (this.URLID) {
+            // avoid to run this function twice when remove the reaction ID from the URL
+            this.watchURL = false;
+          }
           EventBus.$emit('showAction', type, mapID, this.URLID ? [this.URLID] : [], false);
         });
-        this.updateURL(type, mapID);
       }
     },
     updateURL(type, mapID) {
-      this.watchURL = false;
-      // no reaction id in url for now
+      // remove reaction id in url for now
       // this.$router.push(`/explore/map-viewer/${this.model.database_name}/${type}/${mapID}/${URLID}?dim=${this.dim}`);
       this.$router.push(`/explore/map-viewer/${this.model.database_name}/${type}/${mapID}?dim=${this.dim}`);
     },

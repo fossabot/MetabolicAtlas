@@ -1,6 +1,7 @@
 import Vue from 'vue';
 import $ from 'jquery';
 import VueRouter from 'vue-router';
+import NProgress from 'nprogress';
 import Home from './components/Home';
 import Explorer from './components/Explorer';
 import SearchTable from './components/SearchTable';
@@ -40,6 +41,20 @@ const router = new VueRouter({
       $(window).scrollTop($(to.hash).offset().top);
     }
   },
+});
+
+NProgress.configure({
+  speed: 600,
+  showSpinner: false,
+});
+
+router.beforeResolve((to, from, next) => { // eslint-disable-line no-unused-vars
+  NProgress.start();
+  next();
+});
+
+router.afterEach((to, from) => { // eslint-disable-line no-unused-vars
+  NProgress.done();
 });
 
 export default router;

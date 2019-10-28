@@ -1,8 +1,6 @@
 <template>
-  <div v-if="errorMessage" class="columns">
-    <div class="column notification is-danger is-half is-offset-one-quarter has-text-centered">
-      {{ errorMessage }}
-    </div>
+  <div v-if="componentNotFound" class="columns is-centered">
+    <notFoundComponent component="compartment" :componentID="cName"></notFoundComponent>
   </div>
   <div v-else>
     <div class="columns">
@@ -49,10 +47,8 @@
           of reactions / metabolites / genes is available using our
           <a href="/api/" target="_blank">API</a></span>
       </div>
-      <div class="column is-2-widescreen is-3-desktop is-full-tablet has-text-centered">
-        <maps-available :id="cName" :model="model"
-                        :type="'compartment'"
-                        :element-i-d="''"></maps-available>
+      <div class="column is-2-widescreen is-3-desktop is-half-tablet has-text-centered">
+        <maps-available :id="cName" :model="model" :type="'compartment'" :element-i-d="''"></maps-available>
       </div>
     </div>
   </div>
@@ -61,13 +57,14 @@
 <script>
 import axios from 'axios';
 import Loader from '@/components/Loader';
+import NotFoundComponent from './NotFoundComponent';
 import MapsAvailable from '@/components/explorer/gemBrowser/MapsAvailable';
 import { reformatTableKey } from '../../../helpers/utils';
-import { default as messages } from '../../../helpers/messages';
 
 export default {
   name: 'Subsystem',
   components: {
+    NotFoundComponent,
     Loader,
     MapsAvailable,
   },
@@ -76,7 +73,6 @@ export default {
   },
   data() {
     return {
-      messages,
       cName: this.$route.params.id,
       showLoader: false,
       compartment: {},
@@ -84,6 +80,7 @@ export default {
       errorMessage: '',
       showFullSubsystem: false,
       limitSubsystem: 30,
+      componentNotFound: false,
     };
   },
   computed: {
@@ -123,12 +120,14 @@ export default {
       this.showLoader = true;
       axios.get(`${this.model.database_name}/compartment/${this.cName}/summary/`)
         .then((response) => {
+          this.componentNotFound = false;
           this.compartment = response.data.info;
           this.subsystems = response.data.subsystems;
           this.showLoader = false;
         })
         .catch(() => {
-          this.errorMessage = messages.notFoundError;
+          this.componentNotFound = true;
+          document.getElementById('search').focus();
         });
     },
     reformatKey(k) { return reformatTableKey(k); },
