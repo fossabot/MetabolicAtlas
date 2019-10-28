@@ -26,7 +26,7 @@
               <span class="icon">
                 <i class="fa fa-random"></i>
               </span>
-              <b>random components of {{ model.short_name }}</b>
+              <span>random components of {{ model.short_name }}</span>
             </a>
             <br>
           </div>
@@ -79,7 +79,7 @@
         </div>
       </div>
       <div v-else>
-        <closest-interaction-partners v-if="selectedType==='interaction'" :model="model"></closest-interaction-partners>
+        <interaction-partners v-if="selectedType==='interaction'" :model="model"></interaction-partners>
         <gene v-if="selectedType==='gene'" :model="model"></gene>
         <metabolite v-if="selectedType==='metabolite'" :model="model"></metabolite>
         <reaction v-if="selectedType==='reaction'" :model="model"></reaction>
@@ -93,7 +93,7 @@
 <script>
 import axios from 'axios';
 import GemSearch from '@/components/explorer/gemBrowser/GemSearch';
-import ClosestInteractionPartners from '@/components/explorer/gemBrowser/ClosestInteractionPartners';
+import InteractionPartners from '@/components/explorer/gemBrowser/InteractionPartners';
 import Gene from '@/components/explorer/gemBrowser/Gene';
 import Metabolite from '@/components/explorer/gemBrowser/Metabolite';
 import Reaction from '@/components/explorer/gemBrowser/Reaction';
@@ -108,7 +108,7 @@ import { idfy } from '../../helpers/utils';
 export default {
   name: 'GemBrowser',
   components: {
-    ClosestInteractionPartners,
+    InteractionPartners,
     Gene,
     Metabolite,
     Reaction,

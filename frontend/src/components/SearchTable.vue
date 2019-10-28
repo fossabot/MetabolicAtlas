@@ -14,7 +14,7 @@
         <div class="column is-three-fifths-desktop is-three-quarters-tablet is-fullwidth-mobile control">
           <div id="input-wrapper is-size-3">
             <p class="control has-icons-right has-icons-left">
-              <input id="search" v-model="searchTerm"
+              <input id="search" v-model="searchTerm" data-hj-whitelist
                      class="input is-medium" type="text"
                      placeholder="uracil, SULT1A3, ATP => cAMP + PPi, Acyl-CoA hydrolysis"
                      @keyup.enter="updateSearch()">
@@ -82,7 +82,7 @@
                 <ul>
                   <li>ID</li>
                   <li>Equation (see the
-                    <router-link :to="{ 'path': '/documentation', hash:'Global-search'}">documentation</router-link>
+                    <router-link :to="{ 'path': '/documentation', hash: 'Global-search'}">documentation</router-link>
                     for more information)</li>
                   <li>EC code</li>
                   <li>External identifiers</li>
@@ -98,15 +98,13 @@
           <template v-for="(header, index) in tabs">
             <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
             <div v-show="showTab(header) && resultsCount[header] !== 0">
-              <vue-good-table ref="searchTables"
-                              :columns="columns[header]" :rows="rows[header]"
+              <vue-good-table ref="searchTables" :columns="columns[header]" :rows="rows[header]"
                               :sort-options="{ enabled: true }" style-class="vgt-table striped bordered"
                               :pagination-options="tablePaginationOpts">
                 <div slot="table-actions">
-                  <a class="button is-primary" style="margin: 0.3rem 1rem;" @click="exportToTSV(header, index)">
-                    <span class="icon is-large"><i class="fa fa-download"></i></span>
-                    <span>Export to TSV</span>
-                  </a>
+                  <ExportTSV :arg="index" :style="{'margin': '0.3rem 1rem'}" :filename="`${searchTerm}-${header}.tsv`"
+                             :format-function="formatToTSV">
+                  </ExportTSV>
                 </div>
                 <template slot="table-row" slot-scope="props">
                   <!-- eslint-disable max-len -->
@@ -186,9 +184,9 @@
 
 import axios from 'axios';
 import $ from 'jquery';
-import { default as FileSaver } from 'file-saver';
 import { VueGoodTable } from 'vue-good-table';
 import Loader from '@/components/Loader';
+import ExportTSV from '@/components/explorer/gemBrowser/ExportTSV';
 import 'vue-good-table/dist/vue-good-table.css';
 import { chemicalFormula } from '../helpers/chemical-formatters';
 import { idfy, reformatEqSign, sortResults } from '../helpers/utils';
@@ -198,6 +196,7 @@ export default {
   name: 'SearchTable',
   components: {
     Loader,
+    ExportTSV,
     VueGoodTable,
   },
   data() {
@@ -712,8 +711,7 @@ export default {
     },
     search() {
       this.loading = true;
-      const url = `all/search/${this.searchTerm}`;
-      axios.get(url)
+      axios.get(`all/search/${this.searchTerm}`)
         .then((response) => {
           const localResults = {
             metabolite: [],
@@ -760,38 +758,29 @@ export default {
             });
         });
     },
-    exportToTSV(type, index) {
-      try {
-        const rows = Array.from(this.$refs.searchTables[index].filteredRows[0].children);
-        const header = [];
-        let getHeader = false;
-        let tsvContent = rows.map((e) => {
-          const data = [];
-          Object.entries(e).forEach((entry) => {
-            const key = entry[0];
-            let value = entry[1];
-            if (key !== 'vgt_id' && key !== 'originalIndex') {
-              if (!getHeader) { header.push(key); }
-              if (key === 'model') {
-                data.push(value.name);
-              } else {
-                if (Array.isArray(value)) { value = value.join('; '); }
-                data.push(value);
-              }
+    formatToTSV(index) {
+      const rows = Array.from(this.$refs.searchTables[index].filteredRows[0].children);
+      const header = [];
+      let getHeader = false;
+      const tsvContent = rows.map((e) => {
+        const rowData = [];
+        Object.entries(e).forEach((entry) => {
+          const key = entry[0];
+          let value = entry[1];
+          if (key !== 'vgt_id' && key !== 'originalIndex') {
+            if (!getHeader) { header.push(key); }
+            if (key === 'model') {
+              rowData.push(value.name);
+            } else {
+              if (Array.isArray(value)) { value = value.join('; '); }
+              rowData.push(value);
             }
-          });
-          if (!getHeader) { getHeader = true; }
-          return data.join('\t');
-        }
-        ).join('\n');
-        tsvContent = `${header.join('\t')}\n${tsvContent}`;
-        const blob = new Blob([tsvContent], {
-          type: 'data:text/tsv;charset=utf-8',
+          }
         });
-        FileSaver.saveAs(blob, `${this.searchTerm}-${type}.tsv`);
-      } catch (e) {
-        this.errorMessage = e;
-      }
+        if (!getHeader) { getHeader = true; }
+        return rowData.join('\t');
+      }).join('\n');
+      return `${header.join('\t')}\n${tsvContent}`;
     },
     idfy,
     chemicalFormula,

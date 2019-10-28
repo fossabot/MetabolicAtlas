@@ -1,8 +1,6 @@
 <template>
-  <div v-if="errorMessage" class="columns">
-    <div class="column notification is-danger is-half is-offset-one-quarter has-text-centered">
-      {{ errorMessage }}
-    </div>
+  <div v-if="componentNotFound" class="columns is-centered">
+    <notFoundComponent component="subsystem" :componentID="sName"></notFoundComponent>
   </div>
   <div v-else>
     <div class="columns">
@@ -87,7 +85,8 @@
           <loader></loader>
         </template>
         <template v-else-if="!showReactionLoader">
-          <reaction-table :reactions="reactions" :show-subsystem="false" :model="model" :limit="limitReaction">
+          <reaction-table :source-name="sName" :reactions="reactions" :show-subsystem="false"
+                          :model="model" :limit="1000">
           </reaction-table>
         </template>
       </div>
@@ -97,16 +96,18 @@
 
 
 <script>
+
 import axios from 'axios';
 import Loader from '@/components/Loader';
+import NotFoundComponent from './NotFoundComponent';
 import MapsAvailable from '@/components/explorer/gemBrowser/MapsAvailable';
 import ReactionTable from '@/components/explorer/gemBrowser/ReactionTable';
 import { reformatTableKey, idfy } from '../../../helpers/utils';
-import { default as messages } from '../../../helpers/messages';
 
 export default {
   name: 'Subsystem',
   components: {
+    NotFoundComponent,
     MapsAvailable,
     ReactionTable,
     Loader,
@@ -118,7 +119,6 @@ export default {
   },
   data() {
     return {
-      messages,
       sName: this.$route.params.id,
       showLoader: true,
       showReactionLoader: true,
@@ -139,6 +139,7 @@ export default {
       limitMetabolite: 0,
       limitGene: 0,
       limitReaction: 0,
+      componentNotFound: false,
       idfy,
     };
   },
@@ -197,6 +198,7 @@ export default {
       this.showLoader = true;
       axios.get(`${this.model.database_name}/subsystem/${this.sName}/summary/`)
         .then((response) => {
+          this.componentNotFound = false;
           this.info = response.data.info;
           this.metabolites = response.data.metabolites;
           this.genes = response.data.genes;
@@ -205,7 +207,8 @@ export default {
           this.showLoader = false;
         })
         .catch(() => {
-          this.errorMessage = messages.notFoundError;
+          this.componentNotFound = true;
+          document.getElementById('search').focus();
         });
     },
     getReactions() {
@@ -217,7 +220,6 @@ export default {
           this.showReactionLoader = false;
         })
         .catch(() => {
-          this.errorMessage = messages.notFoundError;
         });
     },
     reformatKey(k) { return reformatTableKey(k); },

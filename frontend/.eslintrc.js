@@ -9,13 +9,13 @@ module.exports = {
     '@vue/airbnb',
   ],
   rules: {
-    'no-console': process.env.NODE_ENV === 'production' ? 'error' : 'off',
-    'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
+    'no-console': process.env.NODE_ENV === 'production' ? 'error' : 'warn',
+    'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'warn',
     'vue/singleline-html-element-content-newline': 'off',
     'vue/max-attributes-per-line': ["error", {
       "singleline": 5,
       "multiline": {
-        "max": 2,
+        "max": 5,
         "allowFirstLine": true,
       }
     }],

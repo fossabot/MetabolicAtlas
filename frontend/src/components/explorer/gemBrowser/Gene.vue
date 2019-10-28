@@ -1,11 +1,9 @@
 <template>
   <div class="connected-metabolites">
-    <div v-if="errorMessage" class="columns">
-      <div class="column notification is-danger is-half is-offset-one-quarter has-text-centered">
-        {{ errorMessage }}
-      </div>
+    <div v-if="componentNotFound" class="columns is-centered">
+      <notFoundComponent component="gene" :componentID="eId"></notFoundComponent>
     </div>
-    <div v-show="!errorMessage">
+    <div v-else>
       <div class="container columns">
         <div class="column">
           <h3 class="title is-3">
@@ -73,7 +71,8 @@
                 <loader></loader>
               </template>
               <template v-else-if="!showReactionLoader">
-                <reaction-table :reactions="reactions" :show-subsystem="true" :model="model" :limit="limitReaction">
+                <reaction-table :source-name="geneName" :reactions="reactions" :show-subsystem="true"
+                                :model="model" :limit="limitReaction">
                 </reaction-table>
               </template>
             </div>
@@ -86,6 +85,7 @@
 
 <script>
 import axios from 'axios';
+import NotFoundComponent from './NotFoundComponent';
 import ReactionTable from '@/components/explorer/gemBrowser/ReactionTable';
 import Loader from '@/components/Loader';
 import { reformatTableKey } from '../../../helpers/utils';
@@ -94,6 +94,7 @@ import { default as messages } from '../../../helpers/messages';
 export default {
   name: 'Gene',
   components: {
+    NotFoundComponent,
     ReactionTable,
     Loader,
   },
@@ -105,24 +106,23 @@ export default {
       messages,
       showLoader: true,
       showReactionLoader: true,
-      errorMessage: null,
       eId: '',
       gene: {},
       geneName: '',
       mainTableKey: {
         human1: [
+          { name: 'id' },
           { name: 'geneName', display: 'Gene&nbsp;name' },
           { name: 'description', display: 'Description' },
           { name: 'gene_synonyms', display: 'Synonyms' },
           { name: 'function' },
-          { name: 'id' },
         ],
         yeast8: [
+          { name: 'id' },
           { name: 'geneName', display: 'Gene&nbsp;name' },
           { name: 'prot_name', display: 'Protein&nbsp;name' },
           { name: 'gene_synonyms', display: 'Synonyms' },
           { name: 'function' },
-          { name: 'id' },
         ],
       },
       externalIDTableKey: {
@@ -136,6 +136,7 @@ export default {
       },
       reactions: [],
       limitReaction: 200,
+      componentNotFound: false,
     };
   },
   computed: {
@@ -177,22 +178,17 @@ export default {
       axios.get(`${this.model.database_name}/gene/${this.eId}/`)
         .then((response) => {
           this.showLoader = false;
-          this.errorMessage = null;
+          this.componentNotFound = false;
           this.eId = response.data.id;
           this.geneName = response.data.name || response.data.id;
           this.gene = response.data;
           this.gene.geneName = this.geneName;
         })
-        .catch((error) => {
+        .catch(() => {
           this.showLoader = false;
           this.reactions = [];
-          switch (error.response.status) {
-            case 404:
-              this.errorMessage = messages.notFoundError;
-              break;
-            default:
-              this.errorMessage = messages.unknownError;
-          }
+          this.componentNotFound = true;
+          document.getElementById('search').focus();
         });
     },
     loadReactions() {
