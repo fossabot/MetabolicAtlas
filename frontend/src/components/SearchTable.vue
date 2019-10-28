@@ -460,14 +460,18 @@ export default {
   },
   beforeRouteEnter(to, from, next) { // eslint-disable-line no-unused-vars
     next((vm) => {
-      vm.searchedTerm = to.query.term; // eslint-disable-line no-param-reassign
-      vm.validateSearch(to.query.term);
+      if (to.query.term) {
+        vm.searchedTerm = to.query.term; // eslint-disable-line no-param-reassign
+        vm.validateSearch(to.query.term);
+      }
       next();
     });
   },
   beforeRouteUpdate(to, from, next) { // eslint-disable-line no-unused-vars
-    this.searchedTerm = to.query.term;
-    this.validateSearch(to.query.term);
+    if (to.query.term) {
+      this.searchedTerm = to.query.term;
+      this.validateSearch(to.query.term);
+    }
     next();
   },
   updated() {

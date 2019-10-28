@@ -198,7 +198,9 @@ export default {
     },
     goToGemBrowser() {
       if (this.browserLastPath) {
-        this.$router.push(this.browserLastPath);
+        if (this.$route.path !== this.browserLastPath) {
+          this.$router.push(this.browserLastPath);
+        }
       } else {
         this.$router.push({ name: 'browserRoot', params: { model: this.$route.params.model } });
       }
@@ -216,7 +218,9 @@ export default {
     },
     goToMapViewer() {
       if (this.viewerLastPath) {
-        this.$router.push(this.viewerLastPath);
+        if (this.$route.path !== this.viewerLastPath) {
+          this.$router.push(this.viewerLastPath);
+        }
       } else {
         this.$router.push({ name: 'viewerRoot', params: { model: this.$route.params.model } });
       }
