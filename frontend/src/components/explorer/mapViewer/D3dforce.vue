@@ -85,8 +85,6 @@ export default {
 
     EventBus.$on('destroy3Dnetwork', () => {
       if (this.graph) {
-        // this.graph.resetProps();
-        // this.graph.null;
         this.graph.graphData({ nodes: [], links: [] });
         this.emptyNetwork = true;
       }
@@ -176,6 +174,10 @@ export default {
             && this.graph.emitLoadComplete !== undefined
             && !this.graph.emitLoadComplete) {
             this.graph.emitLoadComplete = true;
+            // this.graph.emitLoadComplete is used to prevent to emit multiple time 'loadComplete'
+            // which should be send only when the graph has been loaded for the first time
+            // the value is reset to true, so if not specify to false, the event will be emited
+            // e.g. when reusing the history
           } else if (this.graph.graphData().nodes.length !== 0) {
             this.$emit('loadComplete', true, '');
           }
@@ -216,7 +218,7 @@ export default {
       const [id, type] = this.getElementIdAndType(element);
       if (this.selectElementID === id) {
         this.unSelectElement();
-        this.updateGeometries(false);
+        this.updateGeometries();
         return;
       }
       const selectionData = { type, data: null, error: false };
@@ -225,7 +227,7 @@ export default {
 
       if (this.selectedItemHistory[id]) {
         selectionData.data = this.selectedItemHistory[id];
-        this.updateGeometries(false);
+        this.updateGeometries();
         EventBus.$emit('updatePanelSelectionData', selectionData);
         return;
       }
@@ -247,7 +249,7 @@ export default {
           EventBus.$emit('updatePanelSelectionData', selectionData);
           this.selectedItemHistory[id] = selectionData.data;
           EventBus.$emit('endSelectedElement', true);
-          this.updateGeometries(false);
+          this.updateGeometries();
         })
         .catch(() => {
           EventBus.$emit('endSelectedElement', false);
@@ -290,13 +292,15 @@ export default {
       );
       this.graph.camera().position.z = Math.cbrt(this.graph.graphData().nodes.length) * 150;
     },
-    updateGeometries(emitLoadComplete) {
-      this.graph.emitLoadComplete = emitLoadComplete;
+    updateGeometries() {
+      // fn used to update the rendering og the graph
+      // set .emitLoadComplete to false avoid the emit of 'loadComplete'
+      this.graph.emitLoadComplete = false;
       this.graph.nodeRelSize(4);
     },
     applyHPARNAlevelsOnMap(RNAlevels) {
       this.HPARNAlevels = RNAlevels;
-      this.updateGeometries(false);
+      this.updateGeometries();
       if (Object.keys(this.HPARNAlevels).length !== 0) {
         EventBus.$emit('loadRNAComplete', true, '');
       }
