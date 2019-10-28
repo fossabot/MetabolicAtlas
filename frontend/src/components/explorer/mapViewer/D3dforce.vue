@@ -47,6 +47,7 @@ export default {
     EventBus.$off('destroy3Dnetwork');
     EventBus.$off('update3DLoadedComponent');
     EventBus.$off('apply3DHPARNAlevels');
+    EventBus.$off('recompute3DCanvasBounds');
 
     EventBus.$on('show3Dnetwork', (type, name, ids) => {
       if (name.toLowerCase().substr(0, 7) === 'cytosol') {
@@ -93,6 +94,12 @@ export default {
     EventBus.$on('update3DLoadedComponent', (type, name) => {
       this.loadedComponentType = type;
       this.loadedComponentName = name;
+    });
+
+    EventBus.$on('recompute3DCanvasBounds', () => {
+      if (!this._inactive && this.graph) { // eslint-disable-line no-underscore-dangle
+        this.updateGeometries();
+      }
     });
 
     EventBus.$on('apply3DHPARNAlevels', (RNAlevels) => {

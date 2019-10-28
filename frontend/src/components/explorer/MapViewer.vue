@@ -141,22 +141,22 @@
         </div>
         <div v-show="!showLoader" id="dataOverlayBar"
              class="column is-narrow has-text-white is-unselectable" :class="{
-               'is-paddingless': toggleDataOverlayPanel }"
-             title="Click to show the data overlay panel" @click="toggleDataOverlayPanel = !toggleDataOverlayPanel">
+               'is-paddingless': showDataOverlayPanel }"
+             title="Click to show the data overlay panel" @click="toggleDataOverlayPanel()">
           <p class="is-size-5 has-text-centered has-text-weight-bold">
             <span class="icon">
               <i class="fa"
-                 :class="{ 'fa-arrow-left': !toggleDataOverlayPanel, 'fa-arrow-right': toggleDataOverlayPanel}"></i>
+                 :class="{ 'fa-arrow-left': !showDataOverlayPanel, 'fa-arrow-right': showDataOverlayPanel}"></i>
             </span><br>
             D<br>A<br>T<br>A<br><br>
             O<br>V<br>E<br>R<br>L<br>A<br>Y<br>
             <span class="icon">
               <i class="fa"
-                 :class="{ 'fa-arrow-left': !toggleDataOverlayPanel, 'fa-arrow-right': toggleDataOverlayPanel}"></i>
+                 :class="{ 'fa-arrow-left': !showDataOverlayPanel, 'fa-arrow-right': showDataOverlayPanel}"></i>
             </span>
           </p>
         </div>
-        <DataOverlay v-show="toggleDataOverlayPanel" :model="model"
+        <DataOverlay v-show="showDataOverlayPanel" :model="model"
                      :map-type="currentDisplayedType"
                      :dim="dim" :map-name="currentDisplayedName">
         </DataOverlay>
@@ -225,7 +225,7 @@ export default {
       },
       showSelectionLoader: false,
       isHoverMenuItem: false,
-      toggleDataOverlayPanel: false,
+      showDataOverlayPanel: false,
       messages,
     };
   },
@@ -363,6 +363,14 @@ export default {
     },
     hideDropleftMenus() {
       $('#menu ul.l1, #menu ul.l2').hide();
+    },
+    toggleDataOverlayPanel() {
+      this.showDataOverlayPanel = !this.showDataOverlayPanel;
+      this.updateURL(this.currentDisplayedType, this.currentDisplayedName, this.URLID);
+      if (this.show3D) {
+        // fix the 3D canvas size when open/close dataOverlay
+        EventBus.$emit('recompute3DCanvasBounds');
+      }
     },
     switchDimension() {
       if (!this.activeSwitch) {
