@@ -482,12 +482,22 @@ export default {
         });
     },
     checkRoute() {
-      // load maps from url if contains map_id, the url is then cleaned of the id
-      if (['viewer', 'viewerID'].includes(this.$route.name)) {
+      // load maps from url if contains map_id, the URL
+      if (['viewerRoot', 'viewer', 'viewerID'].includes(this.$route.name)) {
+        let { dop } = this.$route.query;
+        if (!dop) {
+          dop = '0';
+        }
+        this.showDataOverlayPanel = dop === '1';
+        if (this.$route.name === 'viewerRoot') {
+          this.updateURL(null, null, null);
+          return;
+        }
         const { type } = this.$route.params;
         const mapID = this.$route.params.map_id;
         this.URLID = this.$route.params.cid;
         const { dim } = this.$route.query;
+
         if (!dim) {
           this.show2D = false;
         } else {
@@ -503,10 +513,34 @@ export default {
         });
       }
     },
-    updateURL(type, mapID) {
-      // remove reaction id in url for now
-      // this.$router.push(`/explore/map-viewer/${this.model.database_name}/${type}/${mapID}/${URLID}?dim=${this.dim}`);
-      this.$router.replace({ name: 'viewer', params: { model: this.model.database_name, type, map_id: mapID }, query: { dim: this.dim } });
+    updateURL(type, mapID, URLID) { // eslint-disable-line no-unused-vars
+      // do not process URLID for now
+      if (!type && !mapID && this.$route.name === 'viewerRoot') {
+        this.$router.replace(
+          { name: 'viewerRoot',
+            params: {
+              model: this.model.database_name,
+            },
+            query: {
+              dop: this.showDataOverlayPanel ? '1' : '0',
+            },
+          }
+        ).catch(() => {});
+      } else {
+        this.$router.replace(
+          { name: 'viewer',
+            params: {
+              model: this.model.database_name,
+              type,
+              map_id: mapID,
+            },
+            query: {
+              dim: this.dim,
+              dop: this.showDataOverlayPanel ? '1' : '0',
+            },
+          }
+        ).catch(() => {});
+      }
     },
     checkValidRequest(displayType, displayName) {
       this.requestedType = displayType;
