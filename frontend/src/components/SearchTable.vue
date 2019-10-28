@@ -18,9 +18,7 @@
                      class="input is-medium" type="text"
                      placeholder="uracil, SULT1A3, ATP => cAMP + PPi, Acyl-CoA hydrolysis"
                      @keyup.enter="updateSearch()">
-              <span v-show="showSearchCharAlert"
-                    class="has-text-danger icon is-small is-right"
-                    style="width: 200px">
+              <span v-show="showSearchCharAlert" class="has-text-info icon is-right" style="width: 220px">
                 Type at least 2 characters
               </span>
               <span class="icon is-medium is-left">
