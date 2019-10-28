@@ -55,13 +55,12 @@
       </div>
       <div v-else-if="selectionData.data && ['metabolite', 'gene', 'reaction'].includes(selectionData.type)"
            class="card card-margin">
-        <header v-if="!selectionData.error"
-                class="card-header clickable"
+        <header v-if="!selectionData.error" class="card-header clickable"
                 @click.prevent="showSelectionCardContent = !showSelectionCardContent">
           <p class="card-header-title is-inline is-capitalized is-unselectable">
             {{ selectionData.type }}: <i>{{ selectionData.data.id }}</i>
           </p>
-          <a href="#" class="card-header-icon" aria-label="more options">
+          <a class="card-header-icon" aria-label="more options">
             <span class="icon">
               <i aria-hidden="true" :class="[showSelectionCardContent ? 'fa-caret-down' : 'fa-caret-right', 'fa']"></i>
             </span>

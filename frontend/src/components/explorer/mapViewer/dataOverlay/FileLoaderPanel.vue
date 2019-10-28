@@ -1,21 +1,16 @@
 <template>
   <div>
-    <div class="has-text-centered"
-         :title="hoverTitleText">
-      {{ title }}<span class="icon"><i class="fa fa-info-circle"></i></span>
+    <div class="has-text-centered" :title="hoverTitleText">
+      {{ title }}
+      <span class="icon"><i class="fa fa-info-circle"></i></span>
     </div>
     <div class="fileSelectBut file is-centered">
       <label class="file-label">
-        <input class="file-input"
-               type="file"
-               name="resume"
-               @change="getFileName">
+        <input class="file-input" type="file" name="resume" @change="getFileName">
         <span class="file-cta">
-          <span class="file-icon">
-            <i class="fa fa-upload"></i>
-          </span>
+          <span class="file-icon"><i class="fa fa-upload"></i></span>
           <span class="file-label">
-            Choose a file
+            Choose a file ...
           </span>
         </span>
       </label>
@@ -37,7 +32,7 @@
 
 <script>
 
-import { parseFiledata } from '../../../../helpers/file';
+import { parseFiledata } from '@/helpers/file';
 
 export default {
   name: 'FileLoaderPanel',

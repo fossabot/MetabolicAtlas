@@ -4,14 +4,8 @@
        style="padding-left: 0; overflow-y: auto;">
     <div class="columns is-multiline">
       <template v-for="panel in panels">
-        <!-- eslint-disable-next-line vue/valid-v-for -->
-        <DataOverlayPanel
-          :component="panel.componentName"
-          :model="model"
-          :map-type="mapType"
-          :map-name="mapName"
-          :dim="dim"
-          :panel-data="panel">
+        <DataOverlayPanel :key="panel.title" :component="panel.componentName" :model="model"
+                          :map-type="mapType" :map-name="mapName" :dim="dim" :panel-data="panel">
         </DataOverlayPanel>
       </template>
     </div>
@@ -22,9 +16,11 @@
 
 import axios from 'axios';
 import DataOverlayPanel from '@/components/explorer/mapViewer/dataOverlay/DataOverlayPanel.vue';
-import { default as messages } from '../../../helpers/messages';
+import { default as messages } from '@/helpers/messages';
 import { singleColorsGradient, notDetectedColor, getSingleRNAExpressionColor, getComparisonRNAExpressionColor, multipleColorsGradient } from '@/expression-sources/hpa';
-import { default as EventBus } from '../../../event-bus';
+import { default as EventBus } from '@/event-bus';
+
+const NA = 'n/a';
 
 export default {
   name: 'DataOverlay',
@@ -42,50 +38,32 @@ export default {
       loadErrorMesssage: '',
 
       panels: [
-        {
-          componentName: 'GeneExpression',
-          buttonTitle: 'Gene expression data',
-          title: 'Gene expression data',
-          dataPanels: [
-            {
-              name: 'Data1',
-              selectsForDataSources: {
-                HPA: {
-                  isDisabled: false,
-                  selectedValue: 'None',
-                },
-                File: {
-                  isDisabled: false,
-                  selectedValue: 'No file uploaded',
-                },
-              },
-            }, {
-              name: 'Data2 (for comparison)',
-              selectsForDataSources: {
-                HPA: {
-                  isDisabled: false,
-                  selectedValue: 'None',
-                },
-                File: {
-                  isDisabled: false,
-                  selectedValue: 'No file uploaded',
-                },
-              },
+        { componentName: 'GeneExpression',
+          title: 'Gene expression',
+          dataPanels: [{
+            name: 'Data series 1',
+            selectsForDataSources: {
+              HPA: { isDisabled: false, selectedValue: 'None' },
+              File: { isDisabled: false, selectedValue: 'No file uploaded' },
             },
-          ],
-          dataSources: [
-            {
-              source: 'HPA',
-              selectDescription: 'RNA levels from <a href="https://www.proteinatlas.org" target="_blank">proteinAtlas.org</a>',
-              selectNoneOptionText: 'None',
-              colNames: [],
-            }, {
-              source: 'File',
-              selectDescription: 'Or uploaded file',
-              selectNoneOptionText: 'None',
-              colNames: [],
+          }, {
+            name: 'Data series 2, for comparison',
+            selectsForDataSources: {
+              HPA: { isDisabled: false, selectedValue: 'None' },
+              File: { isDisabled: false, selectedValue: 'No file uploaded' },
             },
-          ],
+          }],
+          dataSources: [{
+            source: 'HPA',
+            selectDescription: 'RNA levels from <a href="https://www.proteinatlas.org" target="_blank">proteinAtlas.org</a>',
+            selectNoneOptionText: 'None',
+            colNames: [],
+          }, {
+            source: 'File',
+            selectDescription: 'Or uploaded file',
+            selectNoneOptionText: 'None',
+            colNames: [],
+          }],
           legend: {
             single: {
               text: 'log<sub>2</sub>(TPM+1)',
@@ -93,7 +71,7 @@ export default {
               leftValue: '0',
               rightValue: '7+',
               nacolor: `${notDetectedColor}`,
-              natext: 'n/a',
+              natext: NA,
             },
             comparison: {
               text: 'log<sub>2</sub>(TPM<sub>T2</sub>+1 / TPM<sub>T1</sub>+1)',
@@ -101,7 +79,7 @@ export default {
               leftValue: '-5',
               rightValue: '5',
               nacolor: `${notDetectedColor}`,
-              natext: 'n/a',
+              natext: NA,
             },
           },
           fileLoader: {
@@ -177,7 +155,7 @@ export default {
         const level = parseFloat(array[1].split(',')[tissueIndex]);
         params.destination[enzID] = level;
       });
-      params.destination['n/a'] = 'n/a';
+      params.destination[NA] = NA;
     },
     parseGeneExpFileLevels(params) {
       // params { 5 keys
@@ -187,7 +165,7 @@ export default {
       //   destination = var to store the parsed data
       // }
       params.destination = params.fetchedData[params.selectedCol];
-      params.destination['n/a'] = 'n/a';
+      params.destination[NA] = NA;
     },
     computeGeneExpLevels(params) {
       // params { 8 keys
@@ -217,7 +195,7 @@ export default {
           const level = this.roundValue(Math.log2(RNAlevels[enzID] + 1));
           params.destination[enzID] = [getSingleRNAExpressionColor(level), level];
         });
-        params.destination['n/a'] = [getSingleRNAExpressionColor(NaN), 'n/a'];
+        params.destination[NA] = [getSingleRNAExpressionColor(NaN), NA];
       } else {
         // comparison
         if (params.selectedData1Source === 'HPA' && params.selectedData1Source === params.selectedData2Source) {
@@ -241,17 +219,17 @@ export default {
               );
               params.destination[enzID] = [getComparisonRNAExpressionColor(level), level, log2tpm1, log2tpm2];
             } else {
-              params.destination[enzID] = [getComparisonRNAExpressionColor(NaN), 'n/a', log2tpm1, 'n/a'];
+              params.destination[enzID] = [getComparisonRNAExpressionColor(NaN), NA, log2tpm1, NA];
             }
           });
           Object.keys(params.data2ValuesDict)
             .filter(enzID => !(enzID in params.data1ValuesDict))
             .forEach((enzID) => {
               const log2tpm2 = this.roundValue(Math.log2(params.data2ValuesDict[enzID] + 1));
-              params.destination[enzID] = [getComparisonRNAExpressionColor(NaN), 'n/a', 'n/a', log2tpm2];
+              params.destination[enzID] = [getComparisonRNAExpressionColor(NaN), NA, NA, log2tpm2];
             });
         }
-        params.destination['n/a'] = [getComparisonRNAExpressionColor(NaN), 'n/a'];
+        params.destination[NA] = [getComparisonRNAExpressionColor(NaN), NA];
       }
       this.$nextTick(() => {
         EventBus.$emit(this.dim === '2d' ? 'apply2DGeneExplevels' : 'apply3DGeneExplevels', params.destination);
@@ -264,5 +242,4 @@ export default {
 };
 </script>
 
-<style lang="scss">
-</style>
+<style lang="scss"></style>

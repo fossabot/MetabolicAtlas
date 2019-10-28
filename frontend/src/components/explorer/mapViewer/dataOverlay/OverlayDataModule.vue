@@ -1,14 +1,9 @@
 <template>
   <div class="">
-    <div class="title is-size-4 has-text-centered">{{ panelData.title }}</div>
-
-    <FileLoaderPanel
-      v-if="panelData.fileLoader"
-      :title="panelData.fileLoader.title"
-      :hover-title-text="panelData.fileLoader.hoverTitleText"
-      @loadedFileData="handleLoadedFileData"
-      @unloadFileData="handleUnLoadedFileData"
-    ></FileLoaderPanel>
+    <FileLoaderPanel v-if="panelData.fileLoader" :title="panelData.fileLoader.title"
+                     :hover-title-text="panelData.fileLoader.hoverTitleText"
+                     @loadedFileData="handleLoadedFileData" @unloadFileData="handleUnLoadedFileData">
+    </FileLoaderPanel>
 
     <template v-for="(data, di) in panelData.dataPanels">
       <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
@@ -48,30 +43,15 @@
     </template>
 
     <template v-if="panelData.legend && (selectedData1 || selectedData2)">
-      <Legend v-if="mode === 'single'"
-              :text="panelData.legend.single.text"
-              :gradient="panelData.legend.single.gradient"
-              :left-value="panelData.legend.single.leftValue"
-              :right-value="panelData.legend.single.rightValue"
-              :nacolor="panelData.legend.single.nacolor"
-              :natext="panelData.legend.single.natext"></Legend>
-      <Legend v-else
-              :text="panelData.legend.comparison.text"
-              :gradient="panelData.legend.comparison.gradient"
-              :left-value="panelData.legend.comparison.leftValue"
-              :right-value="panelData.legend.comparison.rightValue"
-              :nacolor="panelData.legend.comparison.nacolor"
-              :natext="panelData.legend.comparison.natext"></Legend>
+      <Legend :text="panelData.legend[mode].text"
+              :gradient="panelData.legend[mode].gradient"
+              :left-value="panelData.legend[mode].leftValue"
+              :right-value="panelData.legend[mode].rightValue"
+              :nacolor="panelData.legend[mode].nacolor"
+              :natext="panelData.legend[mode].natext">
+      </Legend>
     </template>
 
-    <!--  <RNAexpression class="card-margin"
-                   :model="model"
-                   :map-type="mapType"
-                   :map-name="mapName"
-                   @loadedHPARNAtissue="setHPATissues($event)"
-                   @loadedCustomTissues="setCustomTissues($event)"
-                   @errorCustomFile="handleErrorCustomFile($event)">
-    </RNAexpression> -->
     <DataProcessor
       ref="dataproc"
       :model="model"
@@ -89,18 +69,17 @@
       :parse-source2-data-function="panelData.dataProcessor.parseSource2DataFunction"
       :compute-data-function="panelData.dataProcessor.computeDataFunction"
       :mode="mode"
-      :loaded-file-data="loadedFileData"
-    >
+      :loaded-file-data="loadedFileData">
     </DataProcessor>
   </div>
 </template>
 
 <script>
 import Vue from 'vue';
+import DataProcessor from './DataProcessor.vue';
 import Legend from '@/components/explorer/mapViewer/Legend.vue';
 import FileLoaderPanel from '@/components/explorer/mapViewer/dataOverlay/FileLoaderPanel.vue';
-import DataProcessor from '@/components/explorer/mapViewer/DataProcessor.vue';
-import { default as EventBus } from '../../../../event-bus';
+import { default as EventBus } from '@/event-bus';
 
 const NOFILELOADED = 'No file uploaded';
 
