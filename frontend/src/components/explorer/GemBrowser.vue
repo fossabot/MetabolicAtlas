@@ -130,6 +130,7 @@ export default {
   watch: {
     /* eslint-disable quote-props */
     '$route': function watchSetup() {
+      this.selectedType = '';
       this.setup();
     },
   },
