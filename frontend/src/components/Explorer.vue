@@ -125,11 +125,8 @@ export default {
     /* eslint-disable-next-line quote-props */
     '$route': function watchSetup() {
       this.setup();
+      this.updateRoute();
     },
-  },
-  beforeRouteUpdate(to, from, next) { // eslint-disable-line no-unused-vars
-    this.setup();
-    next();
   },
   created() {
     this.setup();
@@ -199,9 +196,19 @@ export default {
             models[model.database_name] = model;
           });
           this.models = models;
-          let defaultModel = this.models.human1;
+          // the selected model corresponds to the first key
+          const defaultModelKey = Object.keys(this.models)[0];
+          let defaultModel = this.models[defaultModelKey];
           if (this.$route.params.model && this.$route.params.model in this.models) {
+            // if a model DB is provide in the URL, use it to select the model
             defaultModel = this.models[this.$route.params.model];
+          } else if (this.$route.name === 'explorerRoot' && this.$route.query && this.$route.query.selected) {
+            // or if a selected=NAME is provided in the URL, try to use it to select the model
+            const modelShortNamesDict = {};
+            Object.values(this.models).forEach((m) => { modelShortNamesDict[m.short_name] = m; });
+            if (this.$route.query.selected in modelShortNamesDict) {
+              defaultModel = modelShortNamesDict[this.$route.query.selected];
+            }
           }
           this.selectModel(defaultModel);
           this.setup();
@@ -214,6 +221,12 @@ export default {
       if (!this.model || model.database_name !== this.model.database_name) {
         this.model = model;
         EventBus.$emit('modelSelected', this.model);
+      }
+      this.updateRoute(this.model.short_name);
+    },
+    updateRoute(modelName) {
+      if (this.$route.name === 'explorerRoot' && this.model && (!this.$route.query || !this.$route.query.selected || this.$route.query.selected !== modelName)) {
+        this.$router.replace({ name: 'explorerRoot', query: { selected: this.model.short_name } }).catch(() => {});
       }
     },
     displayBrowser() {
