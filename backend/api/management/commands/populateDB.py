@@ -31,7 +31,7 @@ def populate_database(database, yaml_file, overwrite=False, metadata_only=False,
 
             python manage.py addRelatedComponent %s
 
-        Install the postgreSQL fuzzestrmatch extention for all databases:
+        Install the postgreSQL fuzzystrmatch extention for all databases:
 
             python manage.py installFuzzySearch
 
