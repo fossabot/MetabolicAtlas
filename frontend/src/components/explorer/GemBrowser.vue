@@ -17,7 +17,7 @@
       <div class="columns is-centered">
         <gem-search ref="gemSearch" :model="model"></gem-search>
       </div>
-      <div v-if="selectedType === ''">
+      <div v-if="showTiles && !selectedType">
         <div class="columns is-centered">
           <div class="column is-10 is-size-5 has-text-centered">
             <br><br>
@@ -31,21 +31,21 @@
             <br>
           </div>
         </div>
-        <div v-if="starredComponents" id="gem-browser-tiles" class="tile is-ancestor is-size-5">
+        <div v-if="tileComponents" id="gem-browser-tiles" class="tile is-ancestor is-size-5">
           <div class="tile">
             <div class="tile is-vertical is-9">
               <div class="tile">
-                <tile type="reaction" :model="model" :data="starredComponents.reactions[0]">
+                <tile type="reaction" :model="model" :data="tileComponents.reactions[0]">
                 </tile>
                 <div class="tile is-vertical is-8">
-                  <tile type="subsystem" :model="model" :data="starredComponents.subsystems[0]">
+                  <tile type="subsystem" :model="model" :data="tileComponents.subsystems[0]">
                   </tile>
                   <div class="tile">
                     <tile type="gene" size="is-6"
-                          :model="model" :data="starredComponents.genes[0]">
+                          :model="model" :data="tileComponents.genes[0]">
                     </tile>
                     <tile type="metabolite" size="is-6"
-                          :model="model" :data="starredComponents.metabolites[0]">
+                          :model="model" :data="tileComponents.metabolites[0]">
                     </tile>
                   </div>
                 </div>
@@ -53,26 +53,26 @@
               <div class="tile">
                 <div class="tile is-vertical is-8">
                   <div class="tile">
-                    <tile type="subsystem" :model="model" :data="starredComponents.subsystems[1]">
+                    <tile type="subsystem" :model="model" :data="tileComponents.subsystems[1]">
                     </tile>
                   </div>
                   <div class="tile">
                     <tile type="metabolite" size="is-6"
-                          :model="model" :data="starredComponents.metabolites[1]">
+                          :model="model" :data="tileComponents.metabolites[1]">
                     </tile>
                     <tile type="gene" size="is-6"
-                          :model="model" :data="starredComponents.genes[1]">
+                          :model="model" :data="tileComponents.genes[1]">
                     </tile>
                   </div>
                 </div>
                 <div class="tile is-4">
-                  <tile type="reaction" :model="model" :data="starredComponents.reactions[1]">
+                  <tile type="reaction" :model="model" :data="tileComponents.reactions[1]">
                   </tile>
                 </div>
               </div>
             </div>
             <div class="tile is-vertical">
-              <tile type="compartment" :model="model" :data="starredComponents.compartment">
+              <tile type="compartment" :model="model" :data="tileComponents.compartment">
               </tile>
             </div>
           </div>
@@ -121,12 +121,10 @@ export default {
     return {
       messages,
       selectedType: '',
-      searchTerm: '',
-      searchResults: [],
+
+      showTiles: true,
       errorMessage: '',
-      componentID: '',
-      mapsAvailable: null,
-      starredComponents: null,
+      tileComponents: null,
     };
   },
   watch: {
@@ -164,23 +162,23 @@ export default {
           this.errorMessage = `Error: ${messages.modelNotFound}`;
           return;
         }
-        this.selectedType = this.$route.params.type || '';
-        this.componentID = this.$route.params.id || '';
-        if (!this.componentID || !this.selectedType) {
-          this.$router.push({ name: 'browserRoot', params: { model: this.model.database_name } });
-          if (!this.starredComponents) {
-            this.get_tiles_data();
-          }
+        if (this.$route.name === 'browserRoot') {
+          this.get_tiles_data();
+        } else {
+          this.selectedType = this.$route.params.type;
         }
+        this.showTiles = this.tileComponents !== null;
       }
     },
     get_tiles_data() {
       axios.get(`${this.model.database_name}/gem_browser_tiles/`)
         .then((response) => {
-          this.starredComponents = response.data;
+          this.tileComponents = response.data;
+          this.showTiles = true;
         })
         .catch(() => {
           this.errorMessage = messages.unknownError;
+          this.showTiles = false;
         });
     },
   },
