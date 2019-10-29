@@ -78,12 +78,14 @@
           </div>
         </div>
       </div>
-      <div v-else>
-        <gene v-if="selectedType==='gene'" :model="model"></gene>
-        <metabolite v-if="selectedType==='metabolite'" :model="model"></metabolite>
-        <reaction v-if="selectedType==='reaction'" :model="model"></reaction>
-        <subsystem v-if="selectedType==='subsystem'" :model="model"></subsystem>
-        <compartment v-if="selectedType==='compartment'" :model="model"></compartment>
+      <div v-show="selectedType">
+        <keep-alive>
+          <gene v-if="selectedType==='gene'" :model="model"></gene>
+          <metabolite v-if="selectedType==='metabolite'" :model="model"></metabolite>
+          <reaction v-if="selectedType==='reaction'" :model="model"></reaction>
+          <subsystem v-if="selectedType==='subsystem'" :model="model"></subsystem>
+          <compartment v-if="selectedType==='compartment'" :model="model"></compartment>
+        </keep-alive>
       </div>
     </template>
   </div>
