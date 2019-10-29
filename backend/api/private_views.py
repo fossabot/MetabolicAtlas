@@ -1061,7 +1061,7 @@ def search(request, model, term):
                 + [rc.external_id6 for rc in reaction_component_ex6] \
                 + [rc.external_id7 for rc in reaction_component_ex7] \
                 + [rc.external_id8 for rc in reaction_component_ex8] \
-                + [r.id for rc in reaction_id] \
+                + [r.id for r in reaction_id] \
                 + [r.name for r in reaction_name] \
                 + [r.external_id1 for r in reaction_ex1] \
                 + [r.external_id2 for r in reaction_ex2] \
@@ -1071,7 +1071,7 @@ def search(request, model, term):
                 + [r.external_id6 for r in reaction_ex6]
 
         response = HttpResponse(status=404)
-        response['suggestions'] = json.dumps(list(set(suggestions))[:10])
+        response['suggestions'] = json.dumps(list(set([s for s in suggestions if s]))[:10])
         return response
 
     return response
