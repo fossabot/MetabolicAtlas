@@ -78,6 +78,8 @@
             <span class="icon"><i class="fa fa-connectdevelop fa-lg"></i></span>&nbsp;
             <span>{{ messages.interPartName }}</span>
           </router-link>
+          <br>
+          <maps-available :id="mId" :model="model" :type="'metabolite'" :viewer-selected-i-d="mId"></maps-available>
         </div>
       </div>
       <div class="columns">
@@ -91,8 +93,9 @@
 
 <script>
 import axios from 'axios';
-import Reactome from '@/components/explorer/gemBrowser/Reactome';
 import NotFoundComponent from './NotFoundComponent';
+import MapsAvailable from '@/components/explorer/gemBrowser/MapsAvailable';
+import Reactome from '@/components/explorer/gemBrowser/Reactome';
 import { chemicalFormula } from '../../../helpers/chemical-formatters';
 import { reformatTableKey, reformatStringToLink, addMassUnit, idfy } from '../../../helpers/utils';
 import { default as messages } from '../../../helpers/messages';
@@ -101,6 +104,7 @@ export default {
   name: 'Metabolite',
   components: {
     NotFoundComponent,
+    MapsAvailable,
     Reactome,
   },
   props: {

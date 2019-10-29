@@ -60,6 +60,8 @@
                 <span class="icon"><i class="fa fa-connectdevelop fa-lg"></i></span>&nbsp;
                 <span>{{ messages.interPartName }}</span>
               </router-link>
+              <br>
+              <maps-available :id="eId" :model="model" :type="'gene'" :viewer-selected-i-d="eId"></maps-available>
             </div>
           </div>
           <template v-if="!showLoader">
@@ -86,6 +88,7 @@
 <script>
 import axios from 'axios';
 import NotFoundComponent from './NotFoundComponent';
+import MapsAvailable from '@/components/explorer/gemBrowser/MapsAvailable';
 import ReactionTable from '@/components/explorer/gemBrowser/ReactionTable';
 import Loader from '@/components/Loader';
 import { reformatTableKey } from '../../../helpers/utils';
@@ -95,6 +98,7 @@ export default {
   name: 'Gene',
   components: {
     NotFoundComponent,
+    MapsAvailable,
     ReactionTable,
     Loader,
   },

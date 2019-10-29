@@ -6,21 +6,30 @@
         <span>{{ messages.mapViewerName }}</span>
       </p>
     </header>
-    <div v-if="mapsAvailable" class="card-content" style="padding: 0.5rem;">
+    <!-- eslint-disable-next-line max-len -->
+    <div v-if="mapAvailableLimited" class="card-content" style="padding: 0.5rem; overflow-y: auto; max-height: 500px">
       <div v-for="mapKey in ['2d', '3d']"
            :key="mapKey"
            class="content has-text-left is-paddingless" style="padding-bottom: 1rem">
-        <template v-if="mapsAvailable[mapKey]['count'] !== 0">{{ mapKey.toUpperCase() }} maps
+        <template v-if="mapAvailableLimited[mapKey]['count'] !== 0">{{ mapKey.toUpperCase() }} maps
           <ul style="margin: 0 1rem">
-            <template v-for="map in mapsAvailable[mapKey]['compartment'].concat(mapsAvailable[mapKey]['subsystem'])">
-              <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
-              <li>
-                <!-- eslint-disable-next-line max-len -->
-                <router-link :to="{ name: 'viewerID', params: { model: model.database_name, type: map[2], map_id: map[0], cid: elementID }, query: { dim: mapKey } }">
-                  {{ map[1] }}
-                </router-link>
-              </li>
+            <template v-for="mapType in Object.keys(mapAvailableLimited[mapKey])">
+              <template v-for="map in mapAvailableLimited[mapKey][mapType]">
+                <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
+                <li v-if="mapType !== 'count'">
+                  <!-- eslint-disable-next-line max-len -->
+                  <router-link v-if="viewerSelectedID" :to="{ name: 'viewerID', params: { model: model.database_name, type: mapType, map_id: map[0], cid: viewerSelectedID }, query: { dim: mapKey } }">
+                    {{ map[1] }}
+                  </router-link>
+                  <!-- eslint-disable-next-line max-len -->
+                  <router-link v-else :to="{ name: 'viewer', params: { model: model.database_name, type: mapType, map_id: map[0]}, query: { dim: mapKey } }">
+                    {{ map[1] }}
+                  </router-link>
+                </li>
+              </template>
             </template>
+            <!-- eslint-disable-next-line max-len -->
+            <li v-if="limitedMapsDim[mapKey]" class="clickable" title="View all maps" @click="mapLimitPerDim = 1000">...</li>
           </ul>
         </template>
       </div>
@@ -38,16 +47,46 @@ export default {
     model: Object,
     type: String,
     id: String,
-    elementID: String,
+    viewerSelectedID: String,
   },
   data() {
     return {
       mapsAvailable: '',
       messages,
+      mapLimitPerDim: 5,
+      limitedMapsDim: {
+        '2d': false,
+        '3d': false,
+      },
+      limited3DMaps: false,
     };
+  },
+  computed: {
+    mapAvailableLimited() {
+      if (!this.mapsAvailable) {
+        return '';
+      }
+      const limited = JSON.parse(JSON.stringify(this.mapsAvailable));
+      const limited = JSON.parse(JSON.stringify(this.mapsAvailable)); // copy
+      ['2d', '3d'].forEach((d) => {
+        let remainingEntries = this.mapLimitPerDim;
+        ['compartment', 'subsystem'].forEach((t) => {
+          if (limited[d][t].length > remainingEntries) {
+            this.limitedMapsDim[d] = true; // eslint-disable-line vue/no-side-effects-in-computed-properties
+            limited[d][t] = limited[d][t].slice(0, remainingEntries);
+          } else {
+            this.limitedMapsDim[d] = false; // eslint-disable-line vue/no-side-effects-in-computed-properties
+          }
+          remainingEntries -= limited[d][t].length;
+        });
+      });
+      return limited;
+    },
   },
   watch: {
     id() {
+      this.mapsAvailable = '';
+      this.mapLimitPerDim = 5;
       this.getAvailableMaps();
     },
   },
