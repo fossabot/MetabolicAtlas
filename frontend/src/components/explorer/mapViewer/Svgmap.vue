@@ -103,6 +103,7 @@ export default {
         linearZoom: true,
       },
       currentZoomScale: 1,
+      mapPos: { x: null, y: null, zoom: null },
 
       idsFound: [],
       elmFound: [],
@@ -274,6 +275,21 @@ export default {
         });
       }
     },
+    zoomToValue(v) {
+      this.$panzoom.panzoom('zoom', v, {
+        increment: 1 - this.currentZoomScale,
+        transition: false,
+        focal: {
+          clientX: this.clientFocusX(),
+          clientY: this.clientFocusY(),
+        },
+      });
+    },
+    restoreMapPosition(x, y, zoom) {
+      this.zoomToValue(1.0);
+      this.panToCoords(x, y);
+      this.zoomToValue(zoom);
+    },
     loadSvgPanZoom(callback) {
       // load the lib svgPanZoom on the SVG loaded
       if (!this.$panzoom) {
@@ -282,6 +298,7 @@ export default {
         this.$panzoom = $('#svg-wrapper').panzoom('reset', this.panzoomOptions);
         this.$panzoom.off('mousewheel.focal');
         this.$panzoom.off('panzoomzoom');
+        this.$panzoom.off('panzoomchange');
       }
       setTimeout(() => {
         const minZoomScale = Math.min($('.svgbox').width() / $('#svg-wrapper svg').width(),
@@ -305,6 +322,20 @@ export default {
         this.$panzoom.on('panzoomzoom', (e, panzoom, scale) => { // eslint-disable-line no-unused-vars
           this.currentZoomScale = scale;
         });
+        this.$panzoom.on('panzoomchange', (e, v, o) => { // eslint-disable-line no-unused-vars
+          console.log('panzoomchange');
+          this.mapPos.zoom = parseFloat(o[0]);
+          console.log('zoom', this.mapPos.zoom);
+          const panX = o[4];
+          console.log('panX', panX);
+          const panY = o[5];
+          console.log('panY', panY);
+          this.mapPos.x = -panX + ($('.svgbox').width() / 2);
+          console.log('svgX', this.mapPos.x);
+          this.mapPos.y = -panY + ($('.svgbox').height() / 2);
+          console.log('svgY', this.mapPos.y);
+          console.log('ratio', (this.mapPos.x / this.mapPos.y), (this.mapPos.y / this.mapPos.x));
+        });
         this.unHighlight();
         if (callback) {
           if (callback === this.findElementsOnSVG) {
@@ -314,6 +345,8 @@ export default {
           }
         } else {
           this.$emit('loadComplete', true, '');
+          // const zoom = 0.525;
+          this.restoreMapPosition(496.3, 623.5, 0.6);
         }
       }, 0);
     },
@@ -597,10 +630,6 @@ export default {
       this.$panzoom.panzoom('zoom', 1.0, {
         increment: 1 - this.currentZoomScale,
         transition: false,
-        focal: {
-          clientX: this.clientFocusX(),
-          clientY: this.clientFocusY(),
-        },
       });
       this.$panzoom.panzoom('pan', -panX + ($('.svgbox').width() / 2), -panY + ($('.svgbox').height() / 2));
       this.$emit('loadComplete', true, '');
