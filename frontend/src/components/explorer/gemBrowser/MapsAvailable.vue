@@ -7,7 +7,7 @@
       </p>
     </header>
     <!-- eslint-disable-next-line max-len -->
-    <div v-if="mapAvailableLimited" class="card-content" style="padding: 0.5rem; overflow-y: auto; max-height: 500px">
+    <div v-if="mapAvailableLimited" class="card-content" style="padding: 0.5rem; overflow-y: auto; max-height: 400px">
       <div v-for="mapKey in ['2d', '3d']"
            :key="mapKey"
            class="content has-text-left is-paddingless" style="padding-bottom: 1rem">
@@ -53,7 +53,7 @@ export default {
     return {
       mapsAvailable: '',
       messages,
-      mapLimitPerDim: 5,
+      mapLimitPerDim: 4,
       limitedMapsDim: {
         '2d': false,
         '3d': false,
@@ -66,7 +66,6 @@ export default {
       if (!this.mapsAvailable) {
         return '';
       }
-      const limited = JSON.parse(JSON.stringify(this.mapsAvailable));
       const limited = JSON.parse(JSON.stringify(this.mapsAvailable)); // copy
       ['2d', '3d'].forEach((d) => {
         let remainingEntries = this.mapLimitPerDim;
@@ -86,7 +85,7 @@ export default {
   watch: {
     id() {
       this.mapsAvailable = '';
-      this.mapLimitPerDim = 5;
+      this.mapLimitPerDim = 4;
       this.getAvailableMaps();
     },
   },
