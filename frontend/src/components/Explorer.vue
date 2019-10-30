@@ -175,7 +175,7 @@ export default {
       if (this.$route.params.model && this.$route.params.model in this.models) {
         this.selectModel(this.models[this.$route.params.model]);
       }
-      if (['viewerRoot', 'viewer', 'viewerID'].includes(this.$route.name)) {
+      if (['viewerRoot', 'viewer'].includes(this.$route.name)) {
         this.displayViewer();
       } else if (['browserRoot', 'browser'].includes(this.$route.name)) {
         this.displayBrowser();

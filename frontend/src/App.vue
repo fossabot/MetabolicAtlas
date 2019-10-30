@@ -178,7 +178,7 @@ export default {
         this.activeBrowserBut = true;
         this.activeViewerBut = false;
         this.savePath();
-      } else if (['viewerRoot', 'viewer', 'viewerID'].includes(this.$route.name)) {
+      } else if (['viewerRoot', 'viewer'].includes(this.$route.name)) {
         this.activeBrowserBut = false;
         this.activeViewerBut = true;
         this.savePath();

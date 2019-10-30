@@ -22,34 +22,9 @@
       </span>
       <span class="button" title="Download as SVG" @click="downloadMap()"><i class="fa fa-download"></i></span>
     </div>
-    <div id="svgSearch" class="overlay">
-      <div class="control" :class="{ 'is-loading' : isLoadingSearch }">
-        <input id="searchInput" v-model.trim="searchTerm" data-hj-whitelist
-               title="Exact search by id, name, alias. Press Enter for results" class="input"
-               type="text" :class="searchInputClass"
-               :disabled="!loadedMap" placeholder="Exact search by id, name, alias"
-               @keyup.enter="searchComponentIDs()" />
-      </div>
-      <template v-if="searchTerm && currentSearchMatch">
-        <span id="searchResCount" class="button has-text-dark"
-              title="Click to center on current match"
-              @click="centerElementOnSVG(0)">
-          {{ currentSearchMatch }} of {{ totalSearchMatch }}
-        </span>
-        <span class="button has-text-dark"
-              title="Go to previous"
-              @click="centerElementOnSVG(-1)"><i class="fa fa-angle-left"></i></span>
-        <span class="button has-text-dark"
-              title="Go to next"
-              @click="centerElementOnSVG(1)"><i class="fa fa-angle-right"></i></span>
-        <span class="button has-text-dark"
-              title="Highlight all matches"
-              @click="highlightElementsFound">Highlight all</span>
-      </template>
-      <template v-else-if="searchTerm && totalSearchMatch === 0 && haveSearched">
-        <span class="has-text-white">{{ messages.searchNoResult }}</span>
-      </template>
-    </div>
+    <MapSearch :model="model" :matches="elmsOnMap" :ready="loadedMap !== null" :fullscreen="isFullscreen"
+               @searchOnMap="searchIDsOnMap" @centerViewOn="centerElementOnSVG" @highlightAll="highlight"
+               @unHighlightAll="unHighlight" ref="mapsearch"></MapSearch>
     <div id="tooltip" ref="tooltip"></div>
   </div>
 </template>
@@ -61,9 +36,10 @@ import $ from 'jquery';
 import JQPanZoom from 'jquery.panzoom';
 import JQMouseWheel from 'jquery-mousewheel';
 import { default as FileSaver } from 'file-saver';
-import { default as EventBus } from '../../../event-bus';
-import { default as messages } from '../../../helpers/messages';
-import { reformatChemicalReactionHTML } from '../../../helpers/utils';
+import MapSearch from '@/components/explorer/mapViewer/MapSearch';
+import { default as EventBus } from '@/event-bus';
+import { default as messages } from '@/helpers/messages';
+import { reformatChemicalReactionHTML } from '@/helpers/utils';
 
 // hack: the only way for jquery plugins to play nice with the plugins inside Vue
 $.Panzoom = JQPanZoom;
@@ -79,6 +55,9 @@ $.fn.extend({
 
 export default {
   name: 'Svgmap',
+  components: {
+    MapSearch,
+  },
   props: {
     model: Object,
     mapsData: Object,
@@ -113,15 +92,6 @@ export default {
       selectedElement: null,
 
       HPARNAlevels: {}, // enz id as key, [current tissue level, color] as value
-
-      searchTerm: '',
-      searchInputClass: '',
-      isLoadingSearch: false,
-
-      currentSearchMatch: 0,
-      totalSearchMatch: 0,
-      haveSearched: false,
-
       svgMapURL: process.env.VUE_APP_SVGMAPURL,
       defaultGeneColor: '#feb',
       messages,
@@ -138,22 +108,13 @@ export default {
       return true;
     },
   },
-  watch: {
-    searchTerm() {
-      if (!this.searchTerm) {
-        this.unHighlight();
-        this.totalSearchMatch = 0;
-        this.currentSearchMatch = 0;
-        this.searchInputClass = 'is-info';
-      }
-      this.haveSearched = false;
-    },
-  },
   created() {
     EventBus.$off('showSVGmap');
     EventBus.$off('apply2DHPARNAlevels');
+    EventBus.$off('destroy2Dnetwork');
 
     EventBus.$on('showSVGmap', (type, name, ids, forceReload) => {
+      console.log('showSVGmap', type, name, ids, forceReload);
       if (forceReload) {
         this.svgName = '';
       }
@@ -161,6 +122,10 @@ export default {
       this.loadedMapType = type;
       if (name && (type === 'compartment' || type === 'subsystem')) {
         this.idsFound = ids || [];
+        if (ids) {
+          console.log('set search term', ids[0], this.$refs.mapsearch);
+          this.$refs.mapsearch.setSearchTerm(ids[0]);
+        }
         if (this.idsFound.length === 1) {
           this.loadSVG(name, this.searchIDsOnMap);
         } else {
@@ -205,12 +170,12 @@ export default {
     });
     $('.svgbox').on('webkitfullscreenchange mozfullscreenchange fullscreenchange mozFullScreen MSFullscreenChange', (e) => {
       $('.svgbox').first().toggleClass('fullscreen');
-      $('#svgSearch').toggleClass('fullscreen');
+      self.isFullscreen = $('.svgbox').first().hasClass('fullscreen');
       e.stopPropagation();
     });
     $(document).on('mozfullscreenchange', () => {
       $('.svgbox').first().toggleClass('fullscreen');
-      $('#svgSearch').toggleClass('fullscreen');
+      self.isFullscreen = $('.svgbox').first().hasClass('fullscreen');
     });
   },
   methods: {
@@ -333,36 +298,21 @@ export default {
         });
         this.unHighlight();
         if (callback) {
-          if (callback === this.findElementsOnSVG) {
-            callback(true);
-          } else if (callback === this.searchComponentIDs) {
-            callback();
-          }
-        } else {
-          this.$emit('loadComplete', true, '');
-          // const zoom = 0.525;
-          this.restoreMapPosition(496.3, 623.5, 0.6);
+          callback();
         }
+        this.$emit('loadComplete', true, '');
       }, 0);
     },
     loadSVG(id, callback) {
       // load the svg file from the server
       this.$emit('loading');
-
-      if (!callback) {
-        // reset some values
-        this.searchTerm = '';
-      }
-
-      let mapInfo = this.mapsData.compartments[id];
+      const mapInfo = this.mapsData.compartments[id] || this.mapsData.subsystems[id];
       if (!mapInfo) {
-        mapInfo = this.mapsData.subsystems[id];
-        if (!mapInfo) {
-          this.loadedMapType = null;
-          this.$emit('loadComplete', false, 'Invalid map ID', 'danger');
-          return;
-        }
+        this.loadedMapType = null;
+        this.$emit('loadComplete', false, 'Invalid map ID', 'danger');
+        return;
       }
+
       const newSvgName = mapInfo.filename;
       if (!newSvgName) {
         this.$emit('loadComplete', false, messages.mapNotFound, 'danger');
@@ -437,80 +387,49 @@ export default {
         });
       EventBus.$emit('loadRNAComplete', true, '');
     },
-    searchComponentIDs() {
-      // get the correct IDs from the backend
-      this.totalSearchMatch = 0;
-      this.currentSearchMatch = 0;
+    searchIDsOnMap(idsFound) {
       this.unHighlight();
-      if (!this.searchTerm) {
-        this.searchInputClass = 'is-warning';
-        return;
+      this.elmsOnMap = [];
+      if (idsFound !== undefined) {
+        this.idsFound = idsFound;
       }
-      this.isLoadingSearch = true;
-      axios.get(`${this.model.database_name}/get_id/${this.searchTerm}`)
-        .then((response) => {
-          // results are on the model, but may not be on the map!
-          this.idsFound = response.data;
-          this.findElementsOnSVG(true);
-        })
-        .catch(() => {
-          this.searchInputClass = 'is-danger';
-        })
-        .then(() => {
-          this.isLoadingSearch = false;
-          this.haveSearched = true;
-        });
+      if (this.idsFound.length !== 0) {
+        this.findElementsOnSVG(idsFound || this.idsFound);
+      }
     },
-    findElementsOnSVG(zoomOn) {
-      if (!this.idsFound) {
-        return;
-      }
-      this.elmFound = [];
-      this.totalSearchMatch = 0;
-      for (let i = 0; i < this.idsFound.length; i += 1) {
-        const id = this.idsFound[i].trim();
+    findElementsOnSVG(idsFound) {
+      for (let i = 0; i < idsFound.length; i += 1) {
+        const id = idsFound[i].trim();
         const rselector = `#svg-wrapper .rea#${id}`;
         let elms = $(rselector);
         if (elms.length < 1) {
           const selectors = `#svg-wrapper .met.${id}, #svg-wrapper .enz.${id}`;
           elms = $(selectors);
         }
-        this.totalSearchMatch += elms.length;
-        this.currentSearchMatch = 0;
         for (let j = 0; j < elms.length; j += 1) {
-          this.elmFound.push($(elms[j]));
+          this.elmsOnMap.push($(elms[j]));
         }
       }
-      if (this.elmFound.length === 0) {
-        this.searchInputClass = 'is-danger';
+      console.log(this.elmsOnMap);
+      if (this.elmsOnMap.length === 0) {
         return;
       }
-      this.searchInputClass = 'is-success';
-      if (zoomOn) {
-        this.centerElementOnSVG(1);
-      } else {
-        this.$emit('loadComplete', true, '');
-      }
+      this.centerElementOnSVG(this.elmsOnMap[0]);
     },
-    centerElementOnSVG(increment) {
-      if (this.totalSearchMatch === 0) {
+    centerElementOnSVG(element) {
+      if (!element) {
         return;
       }
-      this.currentSearchMatch += increment;
-      if (this.currentSearchMatch < 1) {
-        this.currentSearchMatch = this.totalSearchMatch;
-      } else if (this.currentSearchMatch > this.totalSearchMatch) {
-        this.currentSearchMatch = 1;
-      }
-      const currentElem = this.elmFound[this.currentSearchMatch - 1];
-
       this.unSelectElement();
-      this.selectElement(currentElem);
+      this.selectElement(element);
 
-      let coords = this.getSvgElemCoordinates(currentElem);
+      // eslint-disable-next-line max-len
+      const coords = this.getSvgElemCoordinates(element) || this.getSvgElemCoordinates($(element).find('.shape')[0]);
       if (!coords) {
-        coords = this.getSvgElemCoordinates($(currentElem).find('.shape')[0]);
+        return;
       }
+      console.log('elem coorX', coords[4] - ($('.svgbox').width() / 2));
+      console.log('elem coorY', coords[5] - ($('.svgbox').height() / 2));
       this.panToCoords(coords[4], coords[5]);
     },
     getSvgElemCoordinates(el) {
@@ -523,9 +442,6 @@ export default {
         return transform.split(',').map(parseFloat);
       }
       return null;
-    },
-    highlightElementsFound() {
-      this.highlight(this.elmFound);
     },
     highlight(elements) {
       this.unHighlight();
@@ -661,30 +577,6 @@ export default {
     height:100%;
     &.fullscreen {
       background: white;
-    }
-  }
-
-  #svgSearch {
-    top: 2.25rem;
-    left: 30%;
-    margin: 0;
-    padding: 15px;
-    div {
-      display: inline-block;
-      vertical-align: middle;
-    }
-    span {
-      margin-left: 5px;
-    }
-    #searchInput {
-      display: inline-block;
-      width: 20vw;
-    }
-    &.fullscreen {
-      left: 30%;
-      #searchInput {
-        width: 30vw;
-      }
     }
   }
 

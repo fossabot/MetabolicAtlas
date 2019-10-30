@@ -18,7 +18,7 @@
                 <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
                 <li v-if="mapType !== 'count'">
                   <!-- eslint-disable-next-line max-len -->
-                  <router-link v-if="viewerSelectedID" :to="{ name: 'viewerID', params: { model: model.database_name, type: mapType, map_id: map[0], cid: viewerSelectedID }, query: { dim: mapKey } }">
+                  <router-link v-if="viewerSelectedID" :to="{ name: 'viewer', params: { model: model.database_name, type: mapType, map_id: map[0] }, query: { dim: mapKey, selected: viewerSelectedID } }">
                     {{ map[1] }}
                   </router-link>
                   <!-- eslint-disable-next-line max-len -->

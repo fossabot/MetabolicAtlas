@@ -347,7 +347,7 @@ export default {
     },
     toggleDataOverlayPanel() {
       this.showDataOverlayPanel = !this.showDataOverlayPanel;
-      this.updateURL(this.currentDisplayedType, this.currentDisplayedName, this.URLID);
+      this.updateURL();
       if (this.show3D) {
         // fix the 3D canvas size when open/close dataOverlay
         EventBus.$emit('recompute3DCanvasBounds');
@@ -372,9 +372,9 @@ export default {
         return;
       }
 
+      this.URLID = null;
       if (this.show3D) {
-        this.URLID = null;
-        EventBus.$emit('show3Dnetwork', this.requestedType, this.requestedName);
+        EventBus.$emit('show3Dnetwork', this.requestedType, this.requestedName, true);
       } else {
         EventBus.$emit('destroy3Dnetwork');
         EventBus.$emit('showSVGmap', this.requestedType, this.requestedName, [], true);
@@ -394,7 +394,7 @@ export default {
       if (this.show2D) {
         EventBus.$emit('update3DLoadedComponent', null, null); // reset 3d viewer param
       }
-      this.updateURL(this.currentDisplayedType, this.currentDisplayedName, this.URLID);
+      this.updateURL();
       this.showLoader = false;
 
       this.$nextTick(() => {
@@ -464,19 +464,21 @@ export default {
     },
     checkRoute() {
       // load maps from url if contains map_id, the URL
-      if (['viewerRoot', 'viewer', 'viewerID'].includes(this.$route.name)) {
+      if (['viewerRoot', 'viewer'].includes(this.$route.name)) {
         let { dop } = this.$route.query;
         if (!dop) {
           dop = '0';
         }
         this.showDataOverlayPanel = dop === '1';
         if (this.$route.name === 'viewerRoot') {
-          this.updateURL(null, null, null);
+          this.updateURL();
           return;
         }
         const { type } = this.$route.params;
         const mapID = this.$route.params.map_id;
-        this.URLID = this.$route.params.cid;
+        if (this.$route.query && this.$route.query.selected) {
+          this.URLID = this.$route.query.selected;
+        }
         const { dim } = this.$route.query;
 
         if (!dim) {
@@ -486,17 +488,14 @@ export default {
         }
         this.show3D = !this.show2D;
         this.$nextTick(() => {
-          if (this.URLID) {
-            // avoid to run this function twice when remove the reaction ID from the URL
-            this.watchURL = false;
-          }
           EventBus.$emit('showAction', type, mapID, this.URLID ? [this.URLID] : [], false);
         });
       }
     },
-    updateURL(type, mapID, URLID) { // eslint-disable-line no-unused-vars
+    updateURL() { // eslint-disable-line no-unused-vars
       // do not process URLID for now
-      if (!type && !mapID && this.$route.name === 'viewerRoot') {
+      this.watchURL = false;
+      if (this.$route.name === 'viewerRoot') {
         this.$router.replace(
           { name: 'viewerRoot',
             params: {
@@ -508,19 +507,21 @@ export default {
           }
         ).catch(() => {});
       } else {
-        this.$router.replace(
-          { name: 'viewer',
-            params: {
-              model: this.model.database_name,
-              type,
-              map_id: mapID,
-            },
-            query: {
-              dim: this.dim,
-              dop: this.showDataOverlayPanel ? '1' : '0',
-            },
-          }
-        ).catch(() => {});
+        const routeDict = { name: 'viewer',
+          params: {
+            model: this.model.database_name,
+            type: this.currentDisplayedType,
+            map_id: this.currentDisplayedName,
+          },
+          query: {
+            dim: this.dim,
+            dop: this.showDataOverlayPanel ? '1' : '0',
+          },
+        };
+        if (this.URLID) {
+          routeDict.query.selected = this.URLID;
+        }
+        this.$router.replace(routeDict).catch(() => {});
       }
     },
     checkValidRequest(displayType, displayName) {
@@ -552,10 +553,6 @@ export default {
       if (compartmentOrSubsystemID) {
         EventBus.$emit('showAction', type, compartmentOrSubsystemID, [], false);
       } else {
-        this.loadedTissue1 = '';
-        this.requestedTissue1 = '';
-        this.loadedTissue2 = '';
-        this.requestedTissue2 = '';
         this.showOverviewScreen = true;
         this.$router.push({ name: 'viewerRoot', params: { model: this.model.database_name } });
         // keep the loaded 2D map, and data info in the 'back', to quickly reload it
@@ -568,9 +565,13 @@ export default {
     unSelect() {
       this.selectionData.error = false;
       this.selectionData.data = null;
+      this.URLID = '';
+      this.updateURL();
     },
     newSelection(data) {
       this.selectionData = data;
+      this.URLID = this.selectionData.data.id;
+      this.updateURL();
     },
   },
 };

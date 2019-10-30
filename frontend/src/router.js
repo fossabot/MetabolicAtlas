@@ -22,7 +22,6 @@ const routes = [
   { path: '/explore/gem-browser/:model/:type(reaction|metabolite|gene|subsystem|compartment)/:id', name: 'browser', component: Explorer, props: true },
   { path: '/explore/map-viewer/:model', name: 'viewerRoot', component: Explorer, props: true },
   { path: '/explore/map-viewer/:model/:type(subsystem|compartment)/:map_id', name: 'viewer', component: Explorer, props: true },
-  { path: '/explore/map-viewer/:model/:type(subsystem|compartment)/:map_id/:cid', name: 'viewerID', component: Explorer, props: true },
   { path: '/explore/interaction/:model/', name: 'interPartnerRoot', component: Explorer, props: true },
   { path: '/explore/interaction/:model/:id/', name: 'interPartner', component: Explorer, props: true },
   { path: '/about', name: 'about', component: About },
