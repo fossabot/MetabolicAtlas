@@ -223,7 +223,7 @@ export default {
     },
     selectElement(element) {
       const [id, type] = this.getElementIdAndType(element);
-      if (this.selectElementID === id) {
+      if (this.selectElementIDfull === element.id) {
         this.unSelectElement();
         this.updateGeometries();
         return;
@@ -235,11 +235,11 @@ export default {
       if (this.selectedItemHistory[id]) {
         selectionData.data = this.selectedItemHistory[id];
         this.updateGeometries();
-        EventBus.$emit('updatePanelSelectionData', selectionData);
+        this.$emit('newSelection', selectionData);
         return;
       }
 
-      EventBus.$emit('startSelectedElement');
+      this.$emit('startSelection');
       axios.get(`${this.model.database_name}/${type === 'reaction' ? 'get_reaction' : type}/${id}`)
         .then((response) => {
           let { data } = response;
@@ -253,19 +253,19 @@ export default {
             }
           }
           selectionData.data = data;
-          EventBus.$emit('updatePanelSelectionData', selectionData);
+          this.$emit('newSelection', selectionData);
           this.selectedItemHistory[id] = selectionData.data;
-          EventBus.$emit('endSelectedElement', true);
+          this.$emit('endSelection', true);
           this.updateGeometries();
         })
         .catch(() => {
-          EventBus.$emit('endSelectedElement', false);
+          this.$emit('endSelection', false);
         });
     },
     unSelectElement() {
       this.selectElementID = null;
       this.selectElementIDfull = null;
-      EventBus.$emit('unSelectedElement');
+      this.$emit('unSelect');
     },
     focusOnNode(id) {
       this.focusOnID = null;

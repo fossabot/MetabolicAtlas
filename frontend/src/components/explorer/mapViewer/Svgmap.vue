@@ -106,11 +106,11 @@ export default {
       mapPos: { x: null, y: null, zoom: null },
 
       idsFound: [],
-      elmFound: [],
+      elmsOnMap: [],
       elmsHL: [],
 
       selectedItemHistory: {},
-      selectElementID: null,
+      selectedElement: null,
 
       HPARNAlevels: {}, // enz id as key, [current tissue level, color] as value
 
@@ -159,18 +159,13 @@ export default {
       }
       // set the type, even if might fail to load the map?
       this.loadedMapType = type;
-      if (type === 'compartment' || type === 'subsystem') {
-        if (name) {
-          this.idsFound = ids;
-          if (ids.length === 1) {
-            this.searchTerm = ids[0]; // eslint-disable-line prefer-destructuring
-            this.loadSVG(name, this.searchComponentIDs);
-          } else {
-            this.loadSVG(name, null);
-          }
+      if (name && (type === 'compartment' || type === 'subsystem')) {
+        this.idsFound = ids || [];
+        if (this.idsFound.length === 1) {
+          this.loadSVG(name, this.searchIDsOnMap);
+        } else {
+          this.loadSVG(name);
         }
-      } else if (type === 'find') {
-        this.hlElements(name, ids);
       }
     });
 
@@ -534,26 +529,25 @@ export default {
     },
     highlight(elements) {
       this.unHighlight();
-      this.elmHL = [];
       for (const el of elements) { // eslint-disable-line no-restricted-syntax
         $(el).addClass('hl');
-        this.elmHL.push(el);
+        this.elmsHL.push(el);
         if (el.hasClass('rea')) {
           const selectors = `#svg-wrapper .met.${el.attr('id')}`;
           const elms = $(selectors);
           for (const con of elms) { // eslint-disable-line no-restricted-syntax
             $(con).addClass('hl');
-            this.elmHL.push(con);
+            this.elmsHL.push(con);
           }
         }
       }
     },
     unHighlight() { // un-highlight elements
-      if (this.elmHL) {
-        for (let i = 0; i < this.elmHL.length; i += 1) {
-          $(this.elmHL[i]).removeClass('hl');
+      if (this.elmsHL.length !== 0) {
+        for (let i = 0; i < this.elmsHL.length; i += 1) {
+          $(this.elmsHL[i]).removeClass('hl');
         }
-        this.elmHL = [];
+        this.elmsHL = [];
       }
     },
     getElementIdAndType(element) {
@@ -572,28 +566,31 @@ export default {
         return;
       }
 
-      if (this.selectElementID === id) {
+      if (this.selectedElement && this.selectedElement[0] === element[0]) {
         this.unSelectElement();
         return;
       }
 
       const selectionData = { type, data: null, error: false };
-
-      this.selectElementID = id;
+      this.selectedElement = element;
       if (!element.hasClass('subsystem')) {
         this.highlight([element]);
       }
+
       if (this.selectedItemHistory[id]) {
         selectionData.data = this.selectedItemHistory[id];
-        EventBus.$emit('updatePanelSelectionData', selectionData);
+        this.$emit('newSelection', selectionData);
         return;
       }
+
       if (type === 'subsystem') {
+        // the sidePanel shows only the id for subsystems
         selectionData.data = { id };
-        EventBus.$emit('updatePanelSelectionData', selectionData);
+        this.$emit('newSelection', selectionData);
         return;
       }
-      EventBus.$emit('startSelectedElement');
+
+      this.$emit('startSelection');
       axios.get(`${this.model.database_name}/${type === 'reaction' ? 'get_reaction' : type}/${id}`)
         .then((response) => {
           let { data } = response;
@@ -607,18 +604,18 @@ export default {
             }
           }
           selectionData.data = data;
-          EventBus.$emit('updatePanelSelectionData', selectionData);
           this.selectedItemHistory[id] = selectionData.data;
-          EventBus.$emit('endSelectedElement', true);
+          this.$emit('newSelection', selectionData);
+          this.$emit('endSelection', true);
         })
         .catch(() => {
-          EventBus.$emit('endSelectedElement', false);
+          this.$emit('endSelection', false);
         });
     },
     unSelectElement() {
       this.unHighlight();
-      this.selectElementID = null;
-      EventBus.$emit('unSelectedElement');
+      this.selectedElement = null;
+      this.$emit('unSelect');
     },
     clientFocusX() {
       return ($('.svgbox').width() / 2) + $('#iSideBar').width();

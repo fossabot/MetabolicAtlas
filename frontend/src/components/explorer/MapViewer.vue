@@ -96,14 +96,13 @@
           </p>
         </div>
         <div v-show="!showOverviewScreen" id="graphframe" class="column is-unselectable">
-          <svgmap v-show="show2D" :model="model"
-                  :maps-data="mapsData2D"
-                  @loadComplete="handleLoadComplete"
-                  @loading="showLoader=true">
+          <svgmap v-show="show2D" :model="model" :maps-data="mapsData2D" @loadComplete="handleLoadComplete"
+                  @loading="showLoader=true" @startSelection="showSelectionLoader=true" @endSelection="endSelection"
+                  @unSelect="unSelect" @newSelection="newSelection">
           </svgmap>
-          <d3dforce v-show="show3D" :model="model"
-                    @loadComplete="handleLoadComplete"
-                    @loading="showLoader=true">
+          <d3dforce v-show="show3D" :model="model" @loadComplete="handleLoadComplete"
+                    @loading="showLoader=true" @startSelection="showSelectionLoader=true"
+                    @endSelection="endSelection" @unSelect="unSelect" @newSelection="newSelection">
           </d3dforce>
           <div v-show="showLoader" id="iLoader" class="loading">
             <a class="button is-loading"></a>
@@ -263,10 +262,6 @@ export default {
   },
   created() {
     EventBus.$off('showAction');
-    EventBus.$off('updatePanelSelectionData');
-    EventBus.$off('unSelectedElement');
-    EventBus.$off('startSelectedElement');
-    EventBus.$off('endSelectedElement');
     EventBus.$off('loadRNAComplete');
 
     EventBus.$on('showAction', (type, name, ids, forceReload) => {
@@ -286,20 +281,6 @@ export default {
       }
     });
 
-    EventBus.$on('updatePanelSelectionData', (data) => {
-      this.selectionData = data;
-    });
-    EventBus.$on('unSelectedElement', () => {
-      this.selectionData.error = false;
-      this.selectionData.data = null;
-    });
-    EventBus.$on('startSelectedElement', () => {
-      this.showSelectionLoader = true;
-    });
-    EventBus.$on('endSelectedElement', (isSuccess) => {
-      this.showSelectionLoader = false;
-      this.selectionData.error = !isSuccess;
-    });
     EventBus.$on('loadRNAComplete', (isSuccess, errorMessage) => {
       if (!isSuccess) {
         // show error
@@ -579,6 +560,17 @@ export default {
         this.$router.push({ name: 'viewerRoot', params: { model: this.model.database_name } });
         // keep the loaded 2D map, and data info in the 'back', to quickly reload it
       }
+    },
+    endSelection(isSuccess) {
+      this.showSelectionLoader = false;
+      this.selectionData.error = !isSuccess;
+    },
+    unSelect() {
+      this.selectionData.error = false;
+      this.selectionData.data = null;
+    },
+    newSelection(data) {
+      this.selectionData = data;
     },
   },
 };
