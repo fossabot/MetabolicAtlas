@@ -94,7 +94,7 @@
         </table>
       </div>
       <div class="column is-2-widescreen is-3-desktop is-half-tablet has-text-centered">
-        <maps-available :id="rId" :model="model" :type="'reaction'" :viewer-selected-i-d="rId"></maps-available>
+        <maps-available :id="rId" :model="model" :type="'reaction'" :viewer-selected-i-d="reaction.id"></maps-available>
       </div>
     </div>
   </div>

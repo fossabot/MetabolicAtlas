@@ -79,7 +79,8 @@
             <span>{{ messages.interPartName }}</span>
           </router-link>
           <br>
-          <maps-available :id="mId" :model="model" :type="'metabolite'" :viewer-selected-i-d="mId"></maps-available>
+          <!-- eslint-disable-next-line max-len -->
+          <maps-available :id="mId" :model="model" :type="'metabolite'" :viewer-selected-i-d="metabolite.id"></maps-available>
         </div>
       </div>
       <div class="columns">

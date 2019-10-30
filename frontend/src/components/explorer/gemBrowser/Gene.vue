@@ -61,7 +61,7 @@
                 <span>{{ messages.interPartName }}</span>
               </router-link>
               <br>
-              <maps-available :id="eId" :model="model" :type="'gene'" :viewer-selected-i-d="eId"></maps-available>
+              <maps-available :id="eId" :model="model" :type="'gene'" :viewer-selected-i-d="gene.id"></maps-available>
             </div>
           </div>
           <template v-if="!showLoader">
@@ -183,7 +183,6 @@ export default {
         .then((response) => {
           this.showLoader = false;
           this.componentNotFound = false;
-          this.eId = response.data.id;
           this.geneName = response.data.name || response.data.id;
           this.gene = response.data;
           this.gene.geneName = this.geneName;
