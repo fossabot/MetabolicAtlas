@@ -678,12 +678,14 @@ export default {
       this.rows = rows;
     },
     updateSearch() {
-      this.$router.push({
-        name: 'search',
-        query: {
-          term: this.searchTerm,
-        },
-      });
+      if (this.searchTerm !== this.searchedTerm) {
+        this.$router.push({
+          name: 'search',
+          query: {
+            term: this.searchTerm,
+          },
+        });
+      }
     },
     showTab(elementType) {
       return this.showTabType === elementType;
