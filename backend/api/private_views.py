@@ -1004,19 +1004,24 @@ def search(request, model, term):
 
     if not match_found:
         term = term.lower()
+        if len(term) > 4:
+            mismatch_for_name = 3
+        else:
+            mismatch_for_name = 1 if len(term) < 3 else 2
+
         suggestions = []
         # search for similar results using levenshtein string distance function
         # allow a distance of 3 or less depending on the field
         # limit to 10 suggestions in total
         for model in models:
-            compartment_name = APImodels.Compartment.objects.using(model).raw('SELECT id, name from compartment where levenshtein_less_equal(\'%s\', LOWER(name), 3) <= 3 limit 10' % term)
-            subsystem_name = APImodels.Subsystem.objects.using(model).raw('SELECT id, name from subsystem where levenshtein_less_equal(\'%s\', LOWER(name), 3) <= 3 limit 10' % term)
+            compartment_name = APImodels.Compartment.objects.using(model).raw('SELECT id, name from compartment where levenshtein_less_equal(\'%s\', LOWER(name), %d) <= %d limit 10' % (term, mismatch_for_name, mismatch_for_name))
+            subsystem_name = APImodels.Subsystem.objects.using(model).raw('SELECT id, name from subsystem where levenshtein_less_equal(\'%s\', LOWER(name), %d) <= %d limit 10' % (term, mismatch_for_name, mismatch_for_name))
             reaction_component_id = APImodels.ReactionComponent.objects.using(model).raw(
                 'SELECT id, id from reaction_component where levenshtein_less_equal(\'%s\', LOWER(id), 1) <= 1' % term)
             reaction_component_name = APImodels.ReactionComponent.objects.using(model).raw(
-                'SELECT id, name from reaction_component where levenshtein_less_equal(\'%s\', LOWER(name), 3) <= 3' % term)
+                'SELECT id, name from reaction_component where levenshtein_less_equal(\'%s\', LOWER(name), %d) <= %d' % (term, mismatch_for_name, mismatch_for_name))
             reaction_component_formula = APImodels.ReactionComponent.objects.using(model).raw(
-                'SELECT id, formula from reaction_component where levenshtein_less_equal(\'%s\', LOWER(formula), 3) <= 3' % term)
+                'SELECT id, formula from reaction_component where levenshtein_less_equal(\'%s\', LOWER(formula), %d) <= %d' % (term, mismatch_for_name, mismatch_for_name))
             reaction_component_ex1 = APImodels.ReactionComponent.objects.using(model).raw(
                 'SELECT id, external_id1 from reaction_component where external_id1 is not NULL and levenshtein_less_equal(\'%s\', LOWER(external_id1), 2) <= 2 limit 10' % term)
             reaction_component_ex2 = APImodels.ReactionComponent.objects.using(model).raw(
@@ -1033,8 +1038,8 @@ def search(request, model, term):
                 'SELECT id, external_id7 from reaction_component where external_id7 is not NULL and levenshtein_less_equal(\'%s\', LOWER(external_id7), 2) <= 2 limit 10' % term)
             reaction_component_ex8 = APImodels.ReactionComponent.objects.using(model).raw(
                 'SELECT id, external_id8 from reaction_component where external_id8 is not NULL and levenshtein_less_equal(\'%s\', LOWER(external_id8), 2) <= 2 limit 10' % term)
-            reaction_id = APImodels.Reaction.objects.using(model).raw('SELECT id, name from reaction where levenshtein_less_equal(\'%s\', LOWER(id), 1) <= 1 limit 10' % term)
-            reaction_name = APImodels.Reaction.objects.using(model).raw('SELECT id, name from reaction where levenshtein_less_equal(\'%s\', LOWER(name), 3) <= 3 limit 10' % term)
+            reaction_id = APImodels.Reaction.objects.using(model).raw('SELECT id, id from reaction where levenshtein_less_equal(\'%s\', LOWER(id), 1) <= 1 limit 10' % term)
+            reaction_name = APImodels.Reaction.objects.using(model).raw('SELECT id, name from reaction where levenshtein_less_equal(\'%s\', LOWER(name), %d) <= %d limit 10' % (term, mismatch_for_name, mismatch_for_name))
             reaction_ex1 = APImodels.Reaction.objects.using(model).raw(
                 'SELECT id, external_id1 from reaction where external_id1 is not NULL and levenshtein_less_equal(\'%s\', LOWER(external_id1), 2) <= 2 limit 10' % term)
             reaction_ex2 = APImodels.Reaction.objects.using(model).raw(
@@ -1061,7 +1066,7 @@ def search(request, model, term):
                 + [rc.external_id6 for rc in reaction_component_ex6] \
                 + [rc.external_id7 for rc in reaction_component_ex7] \
                 + [rc.external_id8 for rc in reaction_component_ex8] \
-                + [r.id for rc in reaction_id] \
+                + [r.id for r in reaction_id] \
                 + [r.name for r in reaction_name] \
                 + [r.external_id1 for r in reaction_ex1] \
                 + [r.external_id2 for r in reaction_ex2] \
@@ -1071,7 +1076,7 @@ def search(request, model, term):
                 + [r.external_id6 for r in reaction_ex6]
 
         response = HttpResponse(status=404)
-        response['suggestions'] = json.dumps(list(set(suggestions))[:10])
+        response['suggestions'] = json.dumps(list(set([s for s in suggestions if s]))[:10])
         return response
 
     return response
