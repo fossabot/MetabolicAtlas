@@ -31,7 +31,6 @@
         </div>
         <div v-show="!showLoader" v-if="searchResults.length !== 0" class="resList">
           <template v-for="k in resultsOrder">
-            <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
             <div v-for="(r, i2) in searchResults[k]" :key="r.id" class="searchResultSection">
               <hr v-if="i2 !== 0" class="is-marginless">
               <router-link class="clickable" :to="getRouterUrl(k, r.id || r.name_id || r.name)"

@@ -9,7 +9,7 @@
       </div>
     </div>
     <div class="columns is-centered">
-      <gem-search ref="gemSearch" :model="model" metabolitesAndGenesOnly=true></gem-search>
+      <gem-search ref="gemSearch" :model="model" :metabolitesAndGenesOnly=true></gem-search>
     </div>
     <template v-if="componentNotFound">
       <div class="columns is-centered">
@@ -235,7 +235,7 @@
         </div>
       </div>
       <cytoscape-table :reactions="reactions" :selected-elm-id="clickedElmId" :selected-reaction-id="reactionHL"
-                       :is-graph-visible="showNetworkGraph" filename="filename" :sheetname="componentName"
+                       :is-graph-visible="showNetworkGraph" :filename="`${this.mainNodeID}_interaction_partners`"
                        @highlight="highlightNode($event)" @HLreaction="highlightReaction($event)">
       </cytoscape-table>
     </template>

@@ -11,7 +11,7 @@
       <router-link
         v-if="selectedElm.type !== 'reaction'"
         class="is-paddingless is-info is-outlined card-footer-item has-text-centered"
-        :to="{ path: `/explore/interaction/${model.database_name}/${selectedElm.real_id || selectedElm.id}` }">  <!-- eslint-disable-line max-len -->
+        :to="{ path: `/explore/interaction/${model.database_name}/${selectedElm.real_id || selectedElm.id}` }">
         <span class="icon is-large"><i class="fa fa-share-alt fa-lg"></i></span>
         <span>{{ messages.interPartName }}</span>
       </router-link>
