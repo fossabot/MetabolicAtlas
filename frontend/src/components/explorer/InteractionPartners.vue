@@ -9,7 +9,7 @@
       </div>
     </div>
     <div class="columns is-centered">
-      <gem-search ref="gemSearch" :model="model" mode="interPartner"></gem-search>
+      <gem-search ref="gemSearch" :model="model" metabolitesAndGenesOnly=true></gem-search>
     </div>
     <template v-if="componentNotFound">
       <div class="columns is-centered">
