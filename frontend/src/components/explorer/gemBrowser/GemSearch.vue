@@ -10,7 +10,8 @@
                  placeholder="uracil, SULT1A3, ATP => cAMP + PPi, subsystem or compartment"
                  v-debounce:700="searchDebounce"
                  @keyup.esc="showResults = false"
-                 @focus="showResults = true">
+                 @focus="showResults = true"
+                 @blur="blur()">
           <span v-show="showSearchCharAlert" class="has-text-info icon is-right" style="width: 220px">
             Type at least 2 characters
           </span>
@@ -102,6 +103,9 @@ export default {
     $('#search').focus();
   },
   methods: {
+    blur() {
+      setTimeout(() => { this.showResults = false; }, 200);
+    },
     searchDebounce() {
       this.noResult = false;
       this.showSearchCharAlert = this.searchTermString.length === 1;
