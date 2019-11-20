@@ -10,8 +10,7 @@
                  placeholder="uracil, SULT1A3, ATP => cAMP + PPi, subsystem or compartment"
                  v-debounce:700="searchDebounce"
                  @keyup.esc="showResults = false"
-                 @focus="showResults = true"
-                 @blur="showResults = false">
+                 @focus="showResults = true">
           <span v-show="showSearchCharAlert" class="has-text-info icon is-right" style="width: 220px">
             Type at least 2 characters
           </span>
@@ -34,7 +33,8 @@
             <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
             <div v-for="(r, i2) in searchResults[k]" :key="r.id" class="searchResultSection">
               <hr v-if="i2 !== 0" class="is-marginless">
-              <router-link class="clickable" :to="getRouterUrl(k, r.id)">
+              <router-link class="clickable" :to="getRouterUrl(k, r.id || r.name_id || r.name)"
+                           @click.native="showResults=false">
                 <b class="is-capitalized">{{ k }}: </b>
                 <label class="clickable" v-html="formatSearchResultLabel(k, r, searchTermString)"></label>
               </router-link>
@@ -124,7 +124,6 @@ export default {
             compartment: [],
           };
 
-
           Object.keys(response.data).forEach((model) => {
             const resultsModel = response.data[model];
             this.resultsOrder.forEach((resultType) => {
@@ -173,7 +172,7 @@ export default {
       if (type === 'subsystem' || type === 'compartment') {
         ID = idfy(id);
       }
-      if (this.mode === 'interPartner') {
+      if (this.metabolitesAndGenesOnly) {
         return `/explore/interaction/${this.$route.params.model}/${ID}`;
       }
       return `/explore/gem-browser/${this.$route.params.model}/${type}/${ID}`;
