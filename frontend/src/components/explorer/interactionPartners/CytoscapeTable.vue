@@ -33,7 +33,7 @@
           <table id="cytoTable" ref="table" class="table is-bordered is-narrow is-fullwidth">
             <thead>
               <tr style="background: #F8F4F4">
-                <th v-for="s in columns" :key="s.field" class="is-unselectable clickable" click="sortBy(s.field)">
+                <th v-for="s in columns" :key="s.field" class="is-unselectable clickable" @click="sortBy(s.field)">
                   {{ s.display }}
                 </th>
               </tr>
