@@ -67,7 +67,7 @@
                     <ul id="menu-mobile">
                       <li v-for="menuItem in menu" :key="menuItem.title">
                         <a :class="[ {'is-active' : menuItem.title === currentMenu.title}]"
-                           @click="selectMenu(menuItem)">
+                           @click="currentMenu = menuItem">
                           <i :class="`fa fa-${menuItem.icon} fa-lg`"></i>
                         </a>
                       </li>

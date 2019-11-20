@@ -8,10 +8,10 @@
                  v-model="searchTermString"
                  class="input is-medium" type="text"
                  placeholder="uracil, SULT1A3, ATP => cAMP + PPi, subsystem or compartment"
-                 @input="searchDebounce"
+                 v-debounce:700="searchDebounce"
                  @keyup.esc="showResults = false"
                  @focus="showResults = true"
-                 @blur="blur()">
+                 @blur="showResults = false">
           <span v-show="showSearchCharAlert" class="has-text-info icon is-right" style="width: 220px">
             Type at least 2 characters
           </span>
@@ -57,7 +57,6 @@
 <script>
 import axios from 'axios';
 import $ from 'jquery';
-import _ from 'lodash';
 import { sortResults, idfy } from '../../../helpers/utils';
 import { chemicalFormula, chemicalReaction } from '../../../helpers/chemical-formatters';
 import { default as messages } from '../../../helpers/messages';
@@ -67,7 +66,7 @@ export default {
   props: {
     searchTerm: String,
     model: Object,
-    mode: String,
+    metabolitesAndGenesOnly: Boolean,
   },
   data() {
     return {
@@ -103,10 +102,7 @@ export default {
     $('#search').focus();
   },
   methods: {
-    blur() {
-      setTimeout(() => { this.showResults = false; }, 100);
-    },
-    searchDebounce: _.debounce(function e() {
+    searchDebounce() {
       this.noResult = false;
       this.showSearchCharAlert = this.searchTermString.length === 1;
       this.showLoader = true;
@@ -114,7 +110,7 @@ export default {
         this.showResults = true;
         this.search(this.searchTermString);
       }
-    }, 700),
+    },
     search(searchTerm) {
       this.searchTermString = searchTerm;
       const url = `${this.model.database_name}/search/${searchTerm}`;
@@ -132,7 +128,7 @@ export default {
           Object.keys(response.data).forEach((model) => {
             const resultsModel = response.data[model];
             this.resultsOrder.forEach((resultType) => {
-              if (this.mode === 'interPartner' && !['metabolite', 'gene'].includes(resultType)) {
+              if (this.metabolitesAndGenesOnly && !['metabolite', 'gene'].includes(resultType)) {
                 return;
               }
               if (resultsModel[resultType]) {

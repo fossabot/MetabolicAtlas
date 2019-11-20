@@ -1,8 +1,7 @@
-import axios from 'axios';
 import Vue from 'vue';
 import VueMatomo from 'vue-matomo';
-import lodash from 'lodash';
-import VueLodash from 'vue-lodash/dist/vue-lodash.min';
+import axios from 'axios';
+import vueDebounce from 'vue-debounce';
 import NProgress from 'nprogress';
 import App from './App';
 import router from './router';
@@ -15,7 +14,7 @@ axios.defaults.onDownloadProgress = function onDownloadProgress(progressEvent) {
   NProgress.set(percentCompleted / 100.0);
 };
 
-Vue.use(VueLodash, lodash);
+Vue.use(vueDebounce);
 
 Vue.use(VueMatomo, {
   host: 'https://sysbiowiki.se:4433/',
