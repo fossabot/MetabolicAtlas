@@ -9,11 +9,26 @@
       </div>
     </div>
     <div class="columns is-centered">
-      <gem-search ref="gemSearch" :model="model" :metabolitesAndGenesOnly=true></gem-search>
+      <gem-search ref="gemSearch" :model="model" :metabolitesAndGenesOnly="true"></gem-search>
+    </div>
+    <div v-if="!mainNodeID">
+      <div class="columns is-centered">
+        <p class="is-capitalized subtitle is-size-2-widescreen is-size-3-desktop is-size-4-tablet is-size-5-mobile
+           has-text-weight-light has-text-grey-light">Demo</p>
+      </div>
+      <div class="columns is-centered">
+        <div class="column is-three-fifths-desktop is-three-quarters-tablet is-fullwidth-mobile">
+          <video poster="@/assets/interPart-cover.jpg"
+                 playsinline controls
+                 muted loop>
+                 <source src="@/assets/interPart.mp4" type="video/mp4">
+          </video>
+        </div>
+      </div>
     </div>
     <template v-if="componentNotFound">
       <div class="columns is-centered">
-        <notFoundComponent component="component" :componentID="mainNodeID"></notFoundComponent>
+        <notFoundComponent component="Interaction Partners" :componentID="mainNodeID"></notFoundComponent>
       </div>
     </template>
     <template v-if="loading">
