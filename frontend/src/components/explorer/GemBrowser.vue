@@ -79,7 +79,6 @@
         </div>
       </div>
       <div v-else>
-        <interaction-partners v-if="selectedType==='interaction'" :model="model"></interaction-partners>
         <gene v-if="selectedType==='gene'" :model="model"></gene>
         <metabolite v-if="selectedType==='metabolite'" :model="model"></metabolite>
         <reaction v-if="selectedType==='reaction'" :model="model"></reaction>
@@ -93,7 +92,6 @@
 <script>
 import axios from 'axios';
 import GemSearch from '@/components/explorer/gemBrowser/GemSearch';
-import InteractionPartners from '@/components/explorer/gemBrowser/InteractionPartners';
 import Gene from '@/components/explorer/gemBrowser/Gene';
 import Metabolite from '@/components/explorer/gemBrowser/Metabolite';
 import Reaction from '@/components/explorer/gemBrowser/Reaction';
@@ -108,7 +106,6 @@ import { idfy } from '../../helpers/utils';
 export default {
   name: 'GemBrowser',
   components: {
-    InteractionPartners,
     Gene,
     Metabolite,
     Reaction,
@@ -167,6 +164,8 @@ export default {
           if (!this.starredComponents) {
             this.get_tiles_data();
           }
+        } else if (this.selectedType === 'interaction') {
+          this.$router.replace(`/explore/interaction/${this.model.database_name}/${this.componentID}`);
         }
       }
     },

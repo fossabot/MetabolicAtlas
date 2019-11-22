@@ -3,18 +3,18 @@
     <div class="columns">
       <div class="column is-half">
         <input v-model="tableSearch" class="input" type="text" placeholder="Search in table"
-               @keyup.prevent="updateTable" data-hj-whitelist>
+               data-hj-whitelist @keyup.prevent="updateTable">
       </div>
       <div class="column"></div>
       <div class="column is-2">
-        <ExportTSV class="is-pulled-right" :filename="`${filename}.tsv`" :format-function="formatToTSV"></ExportTSV>
+        <ExportTSV class="is-pulled-right" :filename="`${filename}.tsv`" :format-function="formatToTSV" />
       </div>
     </div>
     <div class="columns">
       <div class="column">
         <div class="field">
           <span class="tag">
-            # Reaction(s): {{ filteredReactions.length }}
+            # Reaction(s): {{ reactions.length }}
           </span>
           &nbsp;
           <span class="tag">
@@ -29,82 +29,73 @@
             to highlight the corresponding element on the graph
           </span>
         </div>
-        <table id="cytoTable" ref="table" class="table is-bordered is-narrow is-fullwidth">
-          <thead>
-            <tr style="background: #F8F4F4">
-              <th v-for="s in columns" :key="s.field"
-                  class="is-unselectable clickable"
-                  @click="sortBy(s.field)"
-              >{{ s.display }}</th>
-            </tr>
-          </thead>
-          <tbody id="machingTableBody" ref="machingTableBody">
-            <tr v-for="r in matchingReactions" :key="r.id">
-              <td v-for="s in columns" :key="s.field">
-                <template v-if="s.field === 'id'">
-                  <template v-if="isGraphVisible">
+        <div class="table-container">
+          <table id="cytoTable" ref="table" class="table is-bordered is-narrow is-fullwidth">
+            <thead>
+              <tr style="background: #F8F4F4">
+                <th v-for="s in columns" :key="s.field" class="is-unselectable clickable" @click="sortBy(s.field)">
+                  {{ s.display }}
+                </th>
+              </tr>
+            </thead>
+            <tbody id="machingTableBody" ref="machingTableBody">
+              <tr v-for="r in matchingReactions" :key="r.id">
+                <td v-for="s in columns" :key="s.field">
+                  <template v-if="s.field === 'id'">
                     <span class="tag is-rounded clickable" :class="[{ 'hl': isSelected(r.id) }, '']"
                           @click="HLreaction(r.id)">
                       <span class="is-size-6">{{ r.id }}</span>
                     </span>
                   </template>
+                  <template v-else-if="['reactants', 'products', 'genes'].includes(s.field)">
+                    <template v-for="el in r[s.field]">
+                      <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
+                      <span class="tag is-rounded clickable is-medium"
+                            :title="s.field !== 'genes' ? `${el.id} - ${el.compartment_str}` : el.id"
+                            :class="[{ 'hl': isSelected(el.id) }, '']" @click="highlight(el.id)">
+                        <span class="">{{ el.name || el.id }}</span>
+                      </span>
+                    </template>
+                  </template>
+                  <template v-else-if="'modifier' in s">
+                    <span v-html="applyModifier(s, r)"></span>
+                  </template>
                   <template v-else>
-                    {{ r.id }}
+                    {{ r[s.field] }}
                   </template>
-                </template>
-                <template v-else-if="['reactants', 'products', 'genes'].includes(s.field)">
-                  <template v-for="el in r[s.field]">
-                    <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
-                    <span class="tag is-rounded clickable is-medium"
-                          :title="s.field !== 'genes' ? `${el.id} - ${el.compartment_str}` : el.id"
-                          :class="[{ 'hl': isSelected(el.id) }, '']" @click="highlight(el.id)">
-                      <span class="">{{ el.name || el.id }}</span>
-                    </span>
-                  </template>
-                </template>
-                <template v-else-if="'modifier' in s">
-                  <span v-html="applyModifier(s, r)"></span>
-                </template>
-                <template v-else>
-                  {{ r[s.field] }}
-                </template>
-              </td>
-            </tr>
-          </tbody>
-          <tbody id="unmachingTableBody" ref="unmachingTableBody">
-            <tr v-for="r in unMatchingReactions" :key="r.id">
-              <td v-for="s in columns" :key="s.field">
-                <template v-if="s.field === 'id'">
-                  <template v-if="isGraphVisible">
+                </td>
+              </tr>
+            </tbody>
+            <tbody id="unmachingTableBody" ref="unmachingTableBody">
+              <tr v-for="r in unMatchingReactions" :key="r.id">
+                <td v-for="s in columns" :key="s.field">
+                  <template v-if="s.field === 'id'">
                     <span class="tag is-rounded clickable" :class="[{ 'hl': isSelected(r.id) }, '']"
                           @click="HLreaction(r.id)">
                       <span class="is-size-6">{{ r.id }}</span>
                     </span>
                   </template>
+                  <template v-else-if="['reactants', 'products', 'genes'].includes(s.field)">
+                    <template v-for="el in r[s.field]">
+                      <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
+                      <span class="tag is-rounded clickable is-medium"
+                            :title="s.field !== 'genes' ? `${el.id} - ${el.compartment_str}` : el.id"
+                            :class="[{ 'hl': isSelected(el.id) }, '']" @click="highlight(el.id)">
+                        <span class="">{{ el.name || el.id }}</span>
+                      </span>
+                    </template>
+                  </template>
+                  <template v-else-if="'modifier' in s">
+                    <span v-html="applyModifier(s, r)"></span>
+                  </template>
                   <template v-else>
-                    {{ r.id }}
+                    {{ r[s.field] }}
                   </template>
-                </template>
-                <template v-else-if="['reactants', 'products', 'genes'].includes(s.field)">
-                  <template v-for="el in r[s.field]">
-                    <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
-                    <span class="tag is-rounded clickable is-medium"
-                          :title="s.field !== 'genes' ? `${el.id} - ${el.compartment_str}` : el.id"
-                          :class="[{ 'hl': isSelected(el.id) }, '']" @click="highlight(el.id)">
-                      <span class="">{{ el.name || el.id }}</span>
-                    </span>
-                  </template>
-                </template>
-                <template v-else-if="'modifier' in s">
-                  <span v-html="applyModifier(s, r)"></span>
-                </template>
-                <template v-else>
-                  {{ r[s.field] }}
-                </template>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
@@ -129,7 +120,6 @@ export default {
     selectedReactionId: String,
     isGraphVisible: Boolean,
     filename: String,
-    sheetname: String,
   },
   data() {
     return {
@@ -140,17 +130,19 @@ export default {
         { field: 'genes', display: 'Genes' },
         { field: 'compartment', display: 'Compartment', modifier: this.reformatEqSign },
       ],
-      sortedReactions: [],
       matchingReactions: [],
       unMatchingReactions: [],
       sortAsc: true,
+      sortField: null,
       tableSearch: '',
       errorMessage: '',
+      hlID: null,
     };
   },
   computed: {
-    filteredReactions: function f() {
-      return this.reactions;
+    sortedReactions() {
+      const reactions = Array.prototype.slice.call(this.reactions); // Do not mutate original elms;
+      return reactions.sort(compare(this.sortField, null, this.sortAsc ? 'asc' : 'desc'));
     },
     geneCount() {
       const genes = new Set();
@@ -170,37 +162,41 @@ export default {
   },
   watch: {
     reactions() {
-      this.sortedReactions = this.filteredReactions;
-      this.matchingReactions = this.sortedReactions;
+      this.sortAsc = true;
+      this.sortField = null;
+      this.hlID = null;
+      this.updateTable();
     },
+    selectedElmId() {
+      this.hlID = this.selectedElmId.slice();
+    },
+  },
+  mounted() {
+    this.hlID = null;
+    this.updateTable();
   },
   methods: {
     applyModifier(s, elm) { return s.modifier(elm[s.field], elm.link); },
     viewReactionComponent(type, id) { EventBus.$emit('GBnavigateTo', type, id); },
     isSelected(elmId) {
-      return this.selectedElmId === elmId || this.selectedReactionId === elmId;
+      return this.hlID === elmId || this.selectedReactionId === elmId;
     },
     highlight(elmId) {
-      const sameID = this.selectedElmId === elmId;
-      if (this.isGraphVisible) {
-        this.$emit('highlight', sameID ? '' : elmId);
-      } else {
-        this.selectedElmId = sameID ? '' : elmId;
-      }
+      const sameID = this.hlID === elmId;
+      this.hlID = sameID ? '' : elmId;
+      this.$emit('highlight', this.hlID);
     },
     HLreaction(rID) {
       this.$emit('HLreaction', this.selectedReactionId === rID ? null : rID);
     },
     sortBy(field) {
-      const reactions = Array.prototype.slice
-        .call(this.filteredReactions); // Do not mutate original elms;
-      this.sortedReactions = reactions.sort(compare(field, null, this.sortAsc ? 'asc' : 'desc'));
+      this.sortField = field;
       this.sortAsc = !this.sortAsc;
       this.updateTable();
     },
     updateTable() {
       if (this.tableSearch === '') {
-        this.matchingReactions = this.sortedReactions;
+        this.matchingReactions = Array.prototype.slice.call(this.sortedReactions);
         this.unMatchingReactions = [];
         this.$refs.machingTableBody.style.display = '';
       } else {
