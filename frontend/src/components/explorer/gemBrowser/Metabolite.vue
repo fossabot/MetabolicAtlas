@@ -78,6 +78,8 @@
             <span class="icon"><i class="fa fa-connectdevelop fa-lg"></i></span>&nbsp;
             <span>{{ messages.interPartName }}</span>
           </router-link>
+          <br>
+          <gem-contact :model="model.short_name" link="https://gitter.im/SysBioChalmers/Human-GEM" type="metabolite"/>
         </div>
       </div>
       <div class="columns">
@@ -93,6 +95,7 @@
 import axios from 'axios';
 import Reactome from '@/components/explorer/gemBrowser/Reactome';
 import NotFoundComponent from './NotFoundComponent';
+import GemContact from '@/components/explorer/shared/GemContact';
 import { chemicalFormula } from '../../../helpers/chemical-formatters';
 import { reformatTableKey, reformatStringToLink, addMassUnit, idfy } from '../../../helpers/utils';
 import { default as messages } from '../../../helpers/messages';
@@ -102,6 +105,7 @@ export default {
   components: {
     NotFoundComponent,
     Reactome,
+    GemContact,
   },
   props: {
     model: Object,
