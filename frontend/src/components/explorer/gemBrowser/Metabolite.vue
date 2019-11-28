@@ -78,7 +78,6 @@
             <span class="icon"><i class="fa fa-connectdevelop fa-lg"></i></span>&nbsp;
             <span>{{ messages.interPartName }}</span>
           </router-link>
-          <br>
           <gem-contact :model="model.short_name" link="https://gitter.im/SysBioChalmers/Human-GEM" type="metabolite"/>
         </div>
       </div>

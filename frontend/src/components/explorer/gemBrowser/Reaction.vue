@@ -95,6 +95,7 @@
       </div>
       <div class="column is-2-widescreen is-3-desktop is-half-tablet has-text-centered">
         <maps-available :id="rId" :model="model" :type="'reaction'" :element-i-d="rId"></maps-available>
+        <gem-contact :model="model.short_name" link="https://gitter.im/SysBioChalmers/Human-GEM" type="reaction"/>
       </div>
     </div>
   </div>
@@ -106,6 +107,7 @@ import $ from 'jquery';
 import Loader from '@/components/Loader';
 import NotFoundComponent from './NotFoundComponent';
 import MapsAvailable from '@/components/explorer/gemBrowser/MapsAvailable';
+import GemContact from '@/components/explorer/shared/GemContact';
 import { default as EventBus } from '../../../event-bus';
 import { reformatTableKey, addMassUnit, reformatECLink, reformatCompEqString, reformatChemicalReactionHTML, reformatEqSign } from '../../../helpers/utils';
 
@@ -115,6 +117,7 @@ export default {
     NotFoundComponent,
     Loader,
     MapsAvailable,
+    GemContact,
   },
   props: {
     model: Object,

@@ -60,6 +60,7 @@
                 <span class="icon"><i class="fa fa-connectdevelop fa-lg"></i></span>&nbsp;
                 <span>{{ messages.interPartName }}</span>
               </router-link>
+              <gem-contact :model="model.short_name" link="https://gitter.im/SysBioChalmers/Human-GEM" type="gene"/>
             </div>
           </div>
           <template v-if="!showLoader">
@@ -86,6 +87,7 @@
 <script>
 import axios from 'axios';
 import NotFoundComponent from './NotFoundComponent';
+import GemContact from '@/components/explorer/shared/GemContact';
 import ReactionTable from '@/components/explorer/gemBrowser/ReactionTable';
 import Loader from '@/components/Loader';
 import { reformatTableKey } from '../../../helpers/utils';
@@ -97,6 +99,7 @@ export default {
     NotFoundComponent,
     ReactionTable,
     Loader,
+    GemContact,
   },
   props: {
     model: Object,
