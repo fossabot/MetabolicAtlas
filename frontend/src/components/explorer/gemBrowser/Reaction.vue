@@ -326,9 +326,6 @@ export default {
         .catch(() => {
         });
     },
-    viewReactionOnMap(reactionID) {
-      EventBus.$emit('viewReactionOnMap', reactionID);
-    },
     reformatTableKey,
     reformatECLink,
     reformatCompEqString,

@@ -1,15 +1,13 @@
 <template>
   <div id="app">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
-    <nav id="navbar" class="navbar has-background-primary-lighter"
-         role="navigation" aria-label="main navigation">
+    <nav id="navbar" class="navbar has-background-primary-lighter" role="navigation" aria-label="main navigation">
       <div class="container">
         <div class="navbar-brand">
-          <router-link class="navbar-item" :to="{ name: 'home' }" @click.native="isMobileMenu = false">
+          <router-link active-class="" class="navbar-item" :to="{ name: 'home' }" @click.native="isMobileMenu = false">
             <img :src="require('./assets/logo.png')" />
           </router-link>
-          <div class="navbar-burger" :class="{ 'is-active': isMobileMenu }"
-               @click="isMobileMenu = !isMobileMenu">
+          <div class="navbar-burger" :class="{ 'is-active': isMobileMenu }" @click="isMobileMenu = !isMobileMenu">
             <span aria-hidden="true"></span>
             <span aria-hidden="true"></span>
             <span aria-hidden="true"></span>
@@ -20,15 +18,15 @@
                title="Click to toggle between the GEM Browser and the Map Viewer">
             <router-link v-if="activeViewerBut || activeBrowserBut" :to="{ name: 'explorerRoot' }"
                          class="navbar-item is-size-3 has-text-primary has-text-weight-bold is-unselectable"
-                         title="Current selected model, click to change your selection">
+                         title="Current selected model, click to change your selection" exact>
               {{ model ? model.short_name : '' }}
             </router-link>
-            <a v-if="activeViewerBut || activeBrowserBut" class="navbar-item is-unselectable underline"
-               :class="{ 'is-active': activeBrowserBut }" @click="goToGemBrowser()">
+            <a v-if="activeViewerBut || activeBrowserBut" class="navbar-item is-unselectable is-active-underline"
+               :class="{ 'router-link-active': activeBrowserBut }" @click="goToGemBrowser()">
               GEM Browser
             </a>
-            <a v-if="activeViewerBut || activeBrowserBut" class="navbar-item is-unselectable underline"
-               :class="{ 'is-active': activeViewerBut }" @click="goToMapViewer()">
+            <a v-if="activeViewerBut || activeBrowserBut" class="navbar-item is-unselectable is-active-underline"
+               :class="{ 'router-link-active': activeViewerBut }" @click="goToMapViewer()">
               Map Viewer
             </a>
           </div>
@@ -36,25 +34,25 @@
             <template v-for="(menuPath, menuName) in menuElems">
               <template v-if="typeof menuPath === 'string'">
                 <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
-                <router-link class="navbar-item is-unselectable underline"
-                             :to="{ path: menuPath }" @click.native="isMobileMenu = false"
-                             :class="{ 'is-active': isActiveRoute(menuPath, true) }" v-html="menuName">
+                <router-link class="navbar-item is-unselectable is-active-underline"
+                             :to="{ path: menuPath }" @click.native="isMobileMenu = false" v-html="menuName">
                 </router-link>
               </template>
               <template v-else>
                 <template v-for="(submenus, menuurl) in menuPath">
                   <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
                   <div class="navbar-item has-dropdown is-hoverable is-unselectable has-background-primary-lighter">
-                    <a class="navbar-link underline"
-                       :class="{ 'is-active': isActiveRoute(menuurl) }"> {{ menuName }} </a>
+                    <a class="navbar-link is-active-underline"
+                       :class="{ 'router-link-active': $route.path.toLowerCase().includes(menuurl) }">
+                       {{ menuName }}
+                    </a>
                     <div class="navbar-dropdown has-background-primary-lighter is-paddingless">
                       <template v-for="submenu in submenus">
                         <template v-for="(submenuPath, submenuName) in submenu">
                           <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
                           <router-link class="navbar-item is-unselectable has-background-primary-lighter"
                                        :to="{ path: submenuPath }"
-                                       :class="{ 'is-active': isActiveRoute(submenuPath) }"
-                                       v-html="submenuName" @click.native="isMobileMenu = false">
+                                       @click.native="isMobileMenu = false">{{ submenuName }}
                           </router-link>
                         </template>
                       </template>
@@ -187,15 +185,6 @@ export default {
         this.activeViewerBut = false;
       }
     },
-    isActiveRoute(name, mainRoute = false) {
-      if (this.$route.path) {
-        if (mainRoute) {
-          return this.$route.path.toLowerCase() === name;
-        }
-        return this.$route.path.toLowerCase().includes(name);
-      }
-      return false;
-    },
     goToGemBrowser() {
       if (this.browserLastPath) {
         if (this.$route.path !== this.browserLastPath) {
@@ -300,17 +289,15 @@ m, .clickable {
     color: $black-bis;
     background-color: $grey-lighter;
   }
-  .underline {
-    &.is-active {
-      border-bottom: 1px solid $primary;
-    }
-    &.router-link-active {
+  .router-link-active {
+    color: $black-bis;
+    background-color: $grey-lighter;
+    &.is-active-underline {
       color: $black-bis;
       background-color: $grey-lighter;
       border-bottom: 1px solid $primary;
     }
   }
-
   .navbar-brand {
     a {
       font-weight: 400;

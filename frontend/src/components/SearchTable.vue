@@ -18,9 +18,7 @@
                      class="input is-medium" type="text"
                      placeholder="uracil, SULT1A3, ATP => cAMP + PPi, Acyl-CoA hydrolysis"
                      @keyup.enter="updateSearch()">
-              <span v-show="showSearchCharAlert"
-                    class="has-text-danger icon is-small is-right"
-                    style="width: 200px">
+              <span v-show="showSearchCharAlert" class="has-text-info icon is-right" style="width: 220px">
                 Type at least 2 characters
               </span>
               <span class="icon is-medium is-left">
@@ -30,7 +28,18 @@
           </div>
         </div>
       </div>
-      <br>
+      <!-- eslint-disable-next-line max-len -->
+      <div v-if="notFoundSuggestions.length !== 0 && searchResults.length === 0" class="columns is-centered">
+        <div class="column is-three-fifths-desktop is-three-quarters-tablet is-fullwidth-mobile control is-size-5">
+          Do you mean:&nbsp;
+          <template v-for="v in notFoundSuggestions">
+            <!-- eslint-disable-next-line vue/valid-v-for -->
+            <router-link :to="{ name: 'search', query: { term: v }}">
+              <span class="suggestions">{{ v }}</span>
+            </router-link>&nbsp;
+          </template>?
+        </div>
+      </div>
       <div>
         <div v-if="showTabType" class="tabs is-boxed is-fullwidth">
           <ul>
@@ -52,7 +61,7 @@
           <div class="columns is-centered">
             <div v-if="Object.keys(searchResults).length === 0"
                  class="column is-three-fifths-desktop is-three-quarters-tablet is-fullwidth-mobile">
-              <div v-if="searchedTerm" class="has-text-centered notification">
+              <div v-if="searchedTerm" class="has-text-centered notification is-size-5">
                 {{ messages.searchNoResult }} for <b><i>{{ searchedTerm }}</i></b><br>
                 If this is an alias or external identifier, it means it is not present in any of the models.
               </div>
@@ -456,6 +465,7 @@ export default {
         subsystem: [],
         compartment: [],
       },
+      notFoundSuggestions: [],
     };
   },
   beforeRouteEnter(to, from, next) { // eslint-disable-line no-unused-vars
@@ -682,12 +692,14 @@ export default {
       this.rows = rows;
     },
     updateSearch() {
-      this.$router.push({
-        name: 'search',
-        query: {
-          term: this.searchTerm,
-        },
-      });
+      if (this.searchTerm !== this.searchedTerm) {
+        this.$router.push({
+          name: 'search',
+          query: {
+            term: this.searchTerm,
+          },
+        });
+      }
     },
     showTab(elementType) {
       return this.showTabType === elementType;
@@ -730,7 +742,12 @@ export default {
           });
           this.searchResults = localResults;
         })
-        .catch(() => {
+        .catch((error) => {
+          if (error.response.headers.suggestions) {
+            this.notFoundSuggestions = JSON.parse(error.response.headers.suggestions);
+          } else {
+            this.notFoundSuggestions = [];
+          }
           this.searchResults = [];
         })
         .then(() => {
@@ -794,6 +811,10 @@ export default {
     }
   }
   padding-bottom: 6rem;
+  .suggestions {
+    text-decoration: underline;
+  }
+
 }
 
 </style>

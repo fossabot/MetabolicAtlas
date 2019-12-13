@@ -3,11 +3,11 @@
     <div class="columns">
       <div class="column is-half">
         <input v-model="tableSearch" class="input" type="text" placeholder="Search in table"
-               @keyup.prevent="updateTable" data-hj-whitelist>
+               data-hj-whitelist @keyup.prevent="updateTable">
       </div>
       <div class="column"></div>
       <div class="column is-2">
-        <ExportTSV class="is-pulled-right" :filename="`${filename}.tsv`" :format-function="formatToTSV"></ExportTSV>
+        <ExportTSV class="is-pulled-right" :filename="`${filename}.tsv`" :format-function="formatToTSV" />
       </div>
     </div>
     <div class="columns">
@@ -33,10 +33,9 @@
           <table id="cytoTable" ref="table" class="table is-bordered is-narrow is-fullwidth">
             <thead>
               <tr style="background: #F8F4F4">
-                <th v-for="s in columns" :key="s.field"
-                    class="is-unselectable clickable"
-                    @click="sortBy(s.field)"
-                >{{ s.display }}</th>
+                <th v-for="s in columns" :key="s.field" class="is-unselectable clickable" @click="sortBy(s.field)">
+                  {{ s.display }}
+                </th>
               </tr>
             </thead>
             <tbody id="machingTableBody" ref="machingTableBody">
@@ -121,7 +120,6 @@ export default {
     selectedReactionId: String,
     isGraphVisible: Boolean,
     filename: String,
-    sheetname: String,
   },
   data() {
     return {

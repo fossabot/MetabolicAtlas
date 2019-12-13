@@ -2,7 +2,7 @@
   <div class="extended-section">
     <section class="hero video container" style="max-width:100%; width:100%;">
       <div class="hero-video is-transparent">
-        <video poster="../assets/banner_video.jpg"
+        <video poster="@/assets/banner_video.jpg"
                playsinline autoplay
                muted loop>
                <!-- <source src="https://ftp.metabolicatlas.org/.static/banner_video.mp4" type="video/mp4"> -->
@@ -67,7 +67,7 @@
                     <ul id="menu-mobile">
                       <li v-for="menuItem in menu" :key="menuItem.title">
                         <a :class="[ {'is-active' : menuItem.title === currentMenu.title}]"
-                           @click="selectMenu(menuItem)">
+                           @click="currentMenu = menuItem">
                           <i :class="`fa fa-${menuItem.icon} fa-lg`"></i>
                         </a>
                       </li>

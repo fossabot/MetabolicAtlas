@@ -31,6 +31,10 @@ def populate_database(database, yaml_file, overwrite=False, metadata_only=False,
 
             python manage.py addRelatedComponent %s
 
+        Install the postgreSQL fuzzystrmatch extention for all databases:
+
+            python manage.py installFuzzySearch
+
         if applicable, Add HPA tissue-protein RNA levels with:
 
             python manage.py addHPAexpression %s

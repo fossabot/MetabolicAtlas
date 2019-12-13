@@ -8,7 +8,7 @@
                  v-model="searchTermString"
                  class="input is-medium" type="text"
                  placeholder="uracil, SULT1A3, ATP => cAMP + PPi, subsystem or compartment"
-                 @input="searchDebounce"
+                 v-debounce:700="searchDebounce"
                  @keyup.esc="showResults = false"
                  @focus="showResults = true"
                  @blur="blur()">
@@ -31,10 +31,10 @@
         </div>
         <div v-show="!showLoader" v-if="searchResults.length !== 0" class="resList">
           <template v-for="k in resultsOrder">
-            <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
             <div v-for="(r, i2) in searchResults[k]" :key="r.id" class="searchResultSection">
               <hr v-if="i2 !== 0" class="is-marginless">
-              <router-link class="clickable" :to="getRouterUrl(k, r.id)">
+              <router-link class="clickable" :to="getRouterUrl(k, r.id || r.name_id || r.name)"
+                           @click.native="showResults=false">
                 <b class="is-capitalized">{{ k }}: </b>
                 <label class="clickable" v-html="formatSearchResultLabel(k, r, searchTermString)"></label>
               </router-link>
@@ -57,7 +57,6 @@
 <script>
 import axios from 'axios';
 import $ from 'jquery';
-import _ from 'lodash';
 import { sortResults, idfy } from '../../../helpers/utils';
 import { chemicalFormula, chemicalReaction } from '../../../helpers/chemical-formatters';
 import { default as messages } from '../../../helpers/messages';
@@ -67,7 +66,7 @@ export default {
   props: {
     searchTerm: String,
     model: Object,
-    mode: String,
+    metabolitesAndGenesOnly: Boolean,
   },
   data() {
     return {
@@ -104,9 +103,9 @@ export default {
   },
   methods: {
     blur() {
-      setTimeout(() => { this.showResults = false; }, 100);
+      setTimeout(() => { this.showResults = false; }, 200);
     },
-    searchDebounce: _.debounce(function e() {
+    searchDebounce() {
       this.noResult = false;
       this.showSearchCharAlert = this.searchTermString.length === 1;
       this.showLoader = true;
@@ -114,7 +113,7 @@ export default {
         this.showResults = true;
         this.search(this.searchTermString);
       }
-    }, 700),
+    },
     search(searchTerm) {
       this.searchTermString = searchTerm;
       const url = `${this.model.database_name}/search/${searchTerm}`;
@@ -128,11 +127,10 @@ export default {
             compartment: [],
           };
 
-
           Object.keys(response.data).forEach((model) => {
             const resultsModel = response.data[model];
             this.resultsOrder.forEach((resultType) => {
-              if (this.mode === 'interPartner' && !['metabolite', 'gene'].includes(resultType)) {
+              if (this.metabolitesAndGenesOnly && !['metabolite', 'gene'].includes(resultType)) {
                 return;
               }
               if (resultsModel[resultType]) {
@@ -177,7 +175,7 @@ export default {
       if (type === 'subsystem' || type === 'compartment') {
         ID = idfy(id);
       }
-      if (this.mode === 'interPartner') {
+      if (this.metabolitesAndGenesOnly) {
         return `/explore/interaction/${this.$route.params.model}/${ID}`;
       }
       return `/explore/gem-browser/${this.$route.params.model}/${type}/${ID}`;

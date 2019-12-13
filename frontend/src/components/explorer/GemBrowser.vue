@@ -141,14 +141,7 @@ export default {
   },
   created() {
     // init the global events
-    EventBus.$off('resetView');
     EventBus.$off('GBnavigateTo');
-    EventBus.$off('viewReactionOnMap');
-
-    EventBus.$on('resetView', () => {
-      this.levelSelected = 'subsystem';
-      EventBus.$emit('showSVGmap', 'wholemap', null, [], false);
-    });
     EventBus.$on('GBnavigateTo', (type, id) => {
       let ID = id;
       if (type === 'subsystem' || type === 'compartment') {
