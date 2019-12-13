@@ -19,9 +19,6 @@
       <span class="button has-text-dark"
             title="Go to next"
             @click="centerViewOn(1)"><i class="fa fa-angle-right"></i></span>
-      <span class="button has-text-dark"
-            title="Highlight all matches"
-            @click="highlightAll()">Highlight all</span>
     </template>
     <template v-else-if="searchTerm && totalSearchMatch === 0 && haveSearched">
       <span class="has-text-white">{{ messages.searchNoResult }}</span>
@@ -32,14 +29,14 @@
 <script>
 
 import axios from 'axios';
-// import { default as EventBus } from '../../../event-bus';
+import { default as EventBus } from '../../../event-bus';
 import { default as messages } from '../../../helpers/messages';
 
 export default {
   name: 'MapSearch',
   props: {
     model: Object,
-    matches: Array, // list of match objects on the map/network
+    matches: Array, // list of match objects on the map/graph
     ready: Boolean,
     fullscreen: Boolean,
   },
@@ -49,6 +46,7 @@ export default {
       idsFound: [],
 
       searchTerm: '',
+      prevSearchTerm: null,
       searchInputClass: '',
       isSearching: false,
 
@@ -65,40 +63,43 @@ export default {
         this.totalSearchMatch = 0;
         this.currentSearchMatch = 0;
         this.searchInputClass = 'is-info';
+        this.prevSearchTerm = null;
+        EventBus.$emit('update_url_search');
       }
       this.haveSearched = false;
     },
     matches() {
       console.log('this.matches', this.matches);
-      if (this.matches === null) {
-        // reset
-        this.searchTerm = '';
+      if (!this.matches || this.matches.length === 0) {
+        this.searchInputClass = this.haveSearched ? 'is-danger' : 'is-info';
         this.totalSearchMatch = 0;
-        this.currentSearchMatch = 0;
-        this.searchInputClass = 'is-info';
       } else {
-        console.log('hereeeee');
-        this.isSearching = false;
-        if (this.matches.length === 0) {
-          this.searchInputClass = 'is-danger';
-        } else {
-          this.searchInputClass = 'is-success';
-        }
-        this.currentSearchMatch = 0;
+        this.searchInputClass = 'is-success';
         this.totalSearchMatch = this.matches.length;
-        this.haveSearched = false;
       }
+      this.currentSearchMatch = 0;
     },
   },
-  created() {
-  },
-  mounted() {
-  },
   methods: {
-    search() {
+    reset() {
+      // reset
+      this.searchTerm = '';
+      this.prevSearchTerm = null;
+      this.totalSearchMatch = 0;
+      this.currentSearchMatch = 0;
+      this.searchInputClass = 'is-info';
+    },
+    search(term) {
+      if (term) {
+        this.searchTerm = term;
+      }
       this.idsFound = [];
       if (!this.searchTerm) {
         this.searchInputClass = 'is-warning';
+        return;
+      }
+      if (this.prevSearchTerm === this.searchTerm) {
+        this.centerViewOn(1);
         return;
       }
       // get the IDs from the backend, then search in the SVG
@@ -107,6 +108,7 @@ export default {
       console.log('search term', this.searchTerm);
       axios.get(`${this.model.database_name}/get_id/${this.searchTerm}`)
         .then((response) => {
+          console.log('search response');
           // results are on the model, but may not be on the displayed map/network!
           this.idsFound = response.data;
           this.totalSearchMatch = 0;
@@ -119,8 +121,10 @@ export default {
         .then(() => {
           this.isSearching = false;
           this.haveSearched = true;
+          this.prevSearchTerm = this.searchTerm;
           console.log('emit idsFound', this.idsFound);
           this.$emit('searchOnMap', this.idsFound); // let the view call its own search function
+          EventBus.$emit('update_url_search', this.searchTerm);
         });
     },
     centerViewOn(position) {
@@ -135,11 +139,8 @@ export default {
       }
       this.$emit('centerViewOn', this.matches[this.currentSearchMatch]);
     },
-    highlightAll() {
-      this.$emit('highlightAll', this.matches);
-    },
     unHighlightAll() {
-      this.$emit('unHighlightAll', this.matches);
+      this.$emit('unHighlightAll', this.matches, 'schhl');
     },
     setSearchTerm(term) {
       this.searchTerm = term;

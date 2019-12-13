@@ -205,24 +205,24 @@ export default {
         this.$router.push({ name: 'browserRoot', params: { model: this.$route.params.model } });
       }
     },
+    goToMapViewer() {
+      if (this.viewerLastPath) {
+        if (this.$route.path !== this.viewerLastPath) {
+          this.$router.push({ path: this.viewerLastPath, query: { prevent: true } }); // prevent any reload on MV
+        }
+      } else {
+        this.$router.push({ name: 'viewerRoot', params: { model: this.$route.params.model } });
+      }
+    },
     savePath() {
       if (this.$route.name === 'browser') {
         this.browserLastPath = this.$route.path;
       } else if (this.$route.name === 'browserRoot') {
         this.browserLastPath = '';
-      } else if (['viewer', 'viewerID'].includes(this.$route.name)) {
-        this.viewerLastPath = this.$route.fullPath;
       } else if (this.$route.name === 'viewer') {
+        this.viewerLastPath = this.$route.fullPath;
+      } else if (this.$route.name === 'viewerRoot') {
         this.viewerLastPath = '';
-      }
-    },
-    goToMapViewer() {
-      if (this.viewerLastPath) {
-        if (this.$route.path !== this.viewerLastPath) {
-          this.$router.push(this.viewerLastPath);
-        }
-      } else {
-        this.$router.push({ name: 'viewerRoot', params: { model: this.$route.params.model } });
       }
     },
   },

@@ -22,9 +22,9 @@
       </span>
       <span class="button" title="Download as SVG" @click="downloadMap()"><i class="fa fa-download"></i></span>
     </div>
-    <MapSearch :model="model" :matches="elmsOnMap" :ready="loadedMap !== null" :fullscreen="isFullscreen"
-               @searchOnMap="searchIDsOnMap" @centerViewOn="centerElementOnSVG" @highlightAll="highlight"
-               @unHighlightAll="unHighlight" ref="mapsearch"></MapSearch>
+    <MapSearch ref="mapsearch" :model="model" :matches="searchedNodesOnMap" :ready="loadedMap !== null"
+               :fullscreen="isFullscreen" @searchOnMap="searchIDsOnMap" @centerViewOn="centerElementOnSVG"
+               @unHighlightAll="unHighlight"></MapSearch>
     <div id="tooltip" ref="tooltip"></div>
   </div>
 </template>
@@ -39,6 +39,7 @@ import { default as FileSaver } from 'file-saver';
 import MapSearch from '@/components/explorer/mapViewer/MapSearch';
 import { default as EventBus } from '@/event-bus';
 import { default as messages } from '@/helpers/messages';
+// import { default as queue } from '@/helpers/Queue.src.js';
 import { reformatChemicalReactionHTML } from '@/helpers/utils';
 
 // hack: the only way for jquery plugins to play nice with the plugins inside Vue
@@ -82,14 +83,20 @@ export default {
         linearZoom: true,
       },
       currentZoomScale: 1,
-      mapPos: { x: null, y: null, zoom: null },
+      // mapPos: { x: '0', y: '0', z: '0', cx: '0', cy: '0', cz: '0' },
 
-      idsFound: [],
-      elmsOnMap: [],
-      elmsHL: [],
+      selectIDs: [],
+      selectedNodesOnMap: [],
+      selectedElemsHL: [],
+
+      searchedNodesOnMap: [],
+      searchedElemsHL: [],
+
+      coords: null,
 
       selectedItemHistory: {},
-      selectedElement: null,
+      selectedElementID: null,
+      searchTerm: '',
 
       HPARNAlevels: {}, // enz id as key, [current tissue level, color] as value
       svgMapURL: process.env.VUE_APP_SVGMAPURL,
@@ -113,24 +120,22 @@ export default {
     EventBus.$off('apply2DHPARNAlevels');
     EventBus.$off('destroy2Dnetwork');
 
-    EventBus.$on('showSVGmap', (type, name, ids, forceReload) => {
-      console.log('showSVGmap', type, name, ids, forceReload);
+    EventBus.$on('showSVGmap', (type, name, searchTerm, selectIDs, coords, forceReload) => {
+      console.log('showSVGmap', type, name, searchTerm, selectIDs, coords, forceReload);
       if (forceReload) {
         this.svgName = '';
+        // this.$refs.mapsearch.reset(); TODO readd reset?
       }
       // set the type, even if might fail to load the map?
       this.loadedMapType = type;
       if (name && (type === 'compartment' || type === 'subsystem')) {
-        this.idsFound = ids || [];
-        if (ids) {
-          console.log('set search term', ids[0], this.$refs.mapsearch);
-          this.$refs.mapsearch.setSearchTerm(ids[0]);
-        }
-        if (this.idsFound.length === 1) {
-          this.loadSVG(name, this.searchIDsOnMap);
-        } else {
-          this.loadSVG(name);
-        }
+        this.searchTerm = searchTerm;
+        this.selectIDs = selectIDs || [];
+        this.coords = coords;
+        // if (searchIDs.length !== 0) {
+        //   this.searchTerm = ids[0]; // eslint-disable-line prefer-destructuring
+        // }
+        this.loadSVG(name);
       }
     });
 
@@ -250,7 +255,7 @@ export default {
       this.panToCoords(x, y);
       this.zoomToValue(zoom);
     },
-    loadSvgPanZoom(callback) {
+    loadSvgPanZoom() {
       // load the lib svgPanZoom on the SVG loaded
       if (!this.$panzoom) {
         this.$panzoom = $('#svg-wrapper').panzoom(this.panzoomOptions);
@@ -258,6 +263,7 @@ export default {
         this.$panzoom = $('#svg-wrapper').panzoom('reset', this.panzoomOptions);
         this.$panzoom.off('mousewheel.focal');
         this.$panzoom.off('panzoomzoom');
+        // this.$panzoom.off('panzoompan');
         this.$panzoom.off('panzoomchange');
       }
       setTimeout(() => {
@@ -273,6 +279,9 @@ export default {
             clientY: this.clientFocusY(),
           },
         });
+        // console.log(-focusX, -focusY, 1 - minZoomScale, '|', this.clientFocusX(), this.clientFocusY(), this.currentZoomScale);
+        // console.log(this.$panzoom.getPan());
+        // console.log(this.$panzoom.getScale());
         this.$panzoom.on('mousewheel.focal', (e) => {
           e.preventDefault();
           const delta = e.delta || e.originalEvent.wheelDelta;
@@ -283,27 +292,48 @@ export default {
           this.currentZoomScale = scale;
         });
         this.$panzoom.on('panzoomchange', (e, v, o) => { // eslint-disable-line no-unused-vars
-          console.log('panzoomchange');
-          this.mapPos.zoom = parseFloat(o[0]);
-          console.log('zoom', this.mapPos.zoom);
-          const panX = o[4];
-          console.log('panX', panX);
-          const panY = o[5];
-          console.log('panY', panY);
-          this.mapPos.x = -panX + ($('.svgbox').width() / 2);
-          console.log('svgX', this.mapPos.x);
-          this.mapPos.y = -panY + ($('.svgbox').height() / 2);
-          console.log('svgY', this.mapPos.y);
-          console.log('ratio', (this.mapPos.x / this.mapPos.y), (this.mapPos.y / this.mapPos.x));
+          // console.log('panzoomchange');
+          const zoom = parseFloat(o[0]);
+          // console.log('zoom', this.mapPos.zoom);
+          const panX = -parseFloat(o[4]);
+          // console.log('panX', panX);
+          const panY = -parseFloat(o[5]);
+          // console.log('panY', panY);
+          // this.mapPos.x = panX;
+          // console.log('svgX', this.mapPos.x);
+          // this.mapPos.y = panY;
+          // console.log('svgY', this.mapPos.y);
+          // console.log('ratio', panX * this.mapPos.zoom, panY * this.mapPos.zoom);
+          // console.log('ratio', (this.mapPos.x / this.mapPos.y), (this.mapPos.y / this.mapPos.x));
+          if (panX !== 0 || panY !== 0 || zoom !== 1) {
+            EventBus.$emit('update_url_coord', panX, panY, zoom, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+          } else {
+            EventBus.$emit('update_url_coord', null);
+          }
         });
-        this.unHighlight();
-        if (callback) {
-          callback();
+
+        // unselect
+        this.selectedElementID = null;
+        this.unHighlight(this.searchedElemsHL, 'schhl');
+        this.unHighlight(this.selectedElemsHL, 'selhl');
+        console.log('pass by here | term', this.searchTerm);
+        if (this.searchTerm) {
+          this.$refs.mapsearch.search(this.searchTerm);
+          // EventBus.$emit('search_term', this.searchTerm);
+        } else if (this.coords) {
+          console.log('restore URL coords');
+          const coords = this.coords.split(',');
+          this.restoreMapPosition(coords[0], coords[1], coords[2]);
+          this.coords = null;
         }
+        // this.searchIDsOnMap();
+        // get the first node with this id
+        const elms = this.findElementsOnSVG(this.selectIDs);
+        this.selectElement(elms[0] || null);
         this.$emit('loadComplete', true, '');
       }, 0);
     },
-    loadSVG(id, callback) {
+    loadSVG(id) {
       // load the svg file from the server
       this.$emit('loading');
       const mapInfo = this.mapsData.compartments[id] || this.mapsData.subsystems[id];
@@ -320,12 +350,13 @@ export default {
       }
 
       if (newSvgName !== this.svgName) {
+        this.$refs.mapsearch.reset();
         if (newSvgName in this.loadedMapHistory) {
           this.svgContent = this.svgContentHistory[newSvgName];
           this.loadedMap = this.loadedMapHistory[newSvgName];
           this.svgName = newSvgName;
           setTimeout(() => {
-            this.loadSvgPanZoom(callback);
+            this.loadSvgPanZoom();
           }, 0);
         } else {
           axios.get(`${this.svgMapURL}/${this.model.database_name}/${newSvgName}`)
@@ -336,7 +367,7 @@ export default {
               this.svgContentHistory[this.svgName] = response.data;
               this.loadedMapHistory[this.svgName] = mapInfo;
               setTimeout(() => {
-                this.loadSvgPanZoom(callback);
+                this.loadSvgPanZoom();
               }, 0);
             })
             .catch(() => {
@@ -345,10 +376,12 @@ export default {
         }
       } else {
         this.loadedMap = mapInfo;
-        // if already loaded, just call the callback funtion
-        if (callback) {
-          callback();
-        }
+        // if already loaded, just call the search funtion
+        // this.searchIDsOnMap(); // TODO search here
+        // if (this.searchTerm) {
+        //   EventBus.$emit('search_term', this.searchTerm);
+        // }
+        console.log('here missing search');
         this.$emit('loadComplete', true, '');
       }
     },
@@ -375,7 +408,7 @@ export default {
             oneEnz.children[0].setAttribute('fill', this.HPARNAlevels['n/a'][0]);
           }
         } catch {
-          // .values() get the prop length, we don't want that
+          // .values() returns the prop 'length', we don't want that
         }
         return true;
       });
@@ -387,19 +420,40 @@ export default {
         });
       EventBus.$emit('loadRNAComplete', true, '');
     },
-    searchIDsOnMap(idsFound) {
-      this.unHighlight();
-      this.elmsOnMap = [];
-      if (idsFound !== undefined) {
-        this.idsFound = idsFound;
+    searchIDsOnMap(ids) {
+      console.log('call searchIDsOnMap');
+      this.unHighlight(this.searchedElemsHL, 'schhl');
+      this.searchedNodesOnMap = [];
+      console.log('this.searchTerm', this.searchTerm);
+      // if (this.searchTerm) { TODO check me commented
+      //   console.log('set search term:', this.searchTerm);
+      //   this.$refs.mapsearch.setSearchTerm(this.searchTerm);
+      //   this.searchTerm = '';
+      // }
+      if (ids) {
+        this.searchIDs = ids;
       }
-      if (this.idsFound.length !== 0) {
-        this.findElementsOnSVG(idsFound || this.idsFound);
+      console.log('this.searchIds', this.searchIDs);
+      if (this.searchIDs.length !== 0) {
+        this.searchedNodesOnMap = this.findElementsOnSVG(this.searchIDs);
+        if (this.searchedNodesOnMap.length !== 0) {
+          this.searchedElemsHL = this.highlight(this.searchedNodesOnMap, 'schhl');
+          if (this.coords) {
+            console.log('restore URL coords');
+            const coords = this.coords.split(',');
+            this.restoreMapPosition(coords[0], coords[1], coords[2]);
+            this.coords = null;
+          } else {
+            this.centerElementOnSVG(this.searchedNodesOnMap[0]);
+          }
+        }
       }
     },
-    findElementsOnSVG(idsFound) {
-      for (let i = 0; i < idsFound.length; i += 1) {
-        const id = idsFound[i].trim();
+    findElementsOnSVG(IDs) {
+      console.log('call findElementsOnSVG', IDs);
+      const elmsOnMap = [];
+      for (let i = 0; i < IDs.length; i += 1) {
+        const id = IDs[i].trim();
         const rselector = `#svg-wrapper .rea#${id}`;
         let elms = $(rselector);
         if (elms.length < 1) {
@@ -407,21 +461,22 @@ export default {
           elms = $(selectors);
         }
         for (let j = 0; j < elms.length; j += 1) {
-          this.elmsOnMap.push($(elms[j]));
+          elmsOnMap.push($(elms[j]));
         }
       }
-      console.log(this.elmsOnMap);
-      if (this.elmsOnMap.length === 0) {
-        return;
-      }
-      this.centerElementOnSVG(this.elmsOnMap[0]);
+      // reset idFounds ? TODO
+      console.log(elmsOnMap);
+      return elmsOnMap;
     },
     centerElementOnSVG(element) {
       if (!element) {
         return;
       }
-      this.unSelectElement();
-      this.selectElement(element);
+
+      // this.unSelectElement();
+      // if (withSelection) {
+      //   this.selectElement(element);
+      // }
 
       // eslint-disable-next-line max-len
       const coords = this.getSvgElemCoordinates(element) || this.getSvgElemCoordinates($(element).find('.shape')[0]);
@@ -443,27 +498,28 @@ export default {
       }
       return null;
     },
-    highlight(elements) {
-      this.unHighlight();
-      for (const el of elements) { // eslint-disable-line no-restricted-syntax
-        $(el).addClass('hl');
-        this.elmsHL.push(el);
+    highlight(nodes, className) {
+      console.log('HL function', nodes);
+      const elmsSelected = [];
+      for (const el of nodes) { // eslint-disable-line no-restricted-syntax
+        $(el).addClass(className);
+        elmsSelected.push(el);
         if (el.hasClass('rea')) {
           const selectors = `#svg-wrapper .met.${el.attr('id')}`;
           const elms = $(selectors);
           for (const con of elms) { // eslint-disable-line no-restricted-syntax
-            $(con).addClass('hl');
-            this.elmsHL.push(con);
+            $(con).addClass(className);
+            elmsSelected.push(con);
           }
         }
       }
+      return elmsSelected;
     },
-    unHighlight() { // un-highlight elements
-      if (this.elmsHL.length !== 0) {
-        for (let i = 0; i < this.elmsHL.length; i += 1) {
-          $(this.elmsHL[i]).removeClass('hl');
+    unHighlight(elements, className) { // un-highlight elements
+      if (elements.length !== 0) {
+        for (let i = 0; i < elements.length; i += 1) {
+          $(elements[i]).removeClass(className);
         }
-        this.elmsHL = [];
       }
     },
     getElementIdAndType(element) {
@@ -477,20 +533,30 @@ export default {
       return [element.attr('id'), 'subsystem'];
     },
     selectElement(element) {
-      const [id, type] = this.getElementIdAndType(element);
-      if (type === 'subsystem' && this.loadedMapType === 'subsystem') {
+      console.log('selectElement: ', element);
+      if (!element) {
         return;
       }
+      const [id, type] = this.getElementIdAndType(element);
+      if (type === 'subsystem' && this.loadedMapType === 'subsystem') {
+        // cannot select subsystem on subsystem map
+        return;
+      }
+      console.log('selectElement', id, this.selectedElementID);
 
-      if (this.selectedElement && this.selectedElement[0] === element[0]) {
+      if (this.selectedElementID === id) {
+        console.log('unselect same ID SVG');
         this.unSelectElement();
         return;
       }
 
       const selectionData = { type, data: null, error: false };
-      this.selectedElement = element;
+      this.selectedElementID = id;
+
+      this.unHighlight(this.selectedElemsHL, 'selhl');
       if (!element.hasClass('subsystem')) {
-        this.highlight([element]);
+        // HL all nodes type but subsystems
+        this.selectedElemsHL = this.highlight(this.findElementsOnSVG([id]), 'selhl');
       }
 
       if (this.selectedItemHistory[id]) {
@@ -513,12 +579,13 @@ export default {
           if (type === 'reaction') {
             data = data.reaction;
             data.equation = this.reformatChemicalReactionHTML(data, true);
-          } else if (type === 'gene') {
-          // add the RNA level if any
-            if (id in this.HPARNAlevels) {
-              data.rnaLvl = this.HPARNAlevels[id];
-            }
           }
+          // } else if (type === 'gene') {
+          // // add the RNA level if any
+          //   if (id in this.HPARNAlevels) {
+          //     data.rnaLvl = this.HPARNAlevels[id];
+          //   }
+          // }
           selectionData.data = data;
           this.selectedItemHistory[id] = selectionData.data;
           this.$emit('newSelection', selectionData);
@@ -529,8 +596,9 @@ export default {
         });
     },
     unSelectElement() {
-      this.unHighlight();
-      this.selectedElement = null;
+      this.unHighlight(this.selectedElemsHL, 'selhl');
+      this.selectedElementID = null;
+      this.selectedElemsHL = [];
       this.$emit('unSelect');
     },
     clientFocusX() {
@@ -545,6 +613,8 @@ export default {
         transition: false,
       });
       this.$panzoom.panzoom('pan', -panX + ($('.svgbox').width() / 2), -panY + ($('.svgbox').height() / 2));
+      console.log('panX', -panX + ($('.svgbox').width() / 2));
+      console.log('panX', -panY + ($('.svgbox').height() / 2));
       this.$emit('loadComplete', true, '');
     },
     reformatChemicalReactionHTML,
@@ -559,8 +629,7 @@ export default {
     }
     &:hover {
       .shape {
-        fill: red;
-        stroke-width: 3px;
+        fill: salmon;
       }
       .lbl {
         font-weight: 900;
@@ -580,12 +649,19 @@ export default {
     }
   }
 
-  svg .hl {
+  svg .selhl {
     display: inline;
     .shape {
       fill: red;
+      display: inline;
+    }
+  }
+
+  svg .schhl {
+    display: inline;
+    .shape {
       stroke: orange;
-      stroke-width: 3;
+      stroke-width: 5px;
       display: inline;
     }
   }

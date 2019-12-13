@@ -80,8 +80,6 @@ export default {
         EventBus.$emit('unselectSecondTissue', true);
         EventBus.$emit('selectFirstTissue', tissue1, tissue1Source, dim);
       } else {
-        // EventBus.$emit('selectFirstTissue', tissue1, tissue1Source, dim, true);
-        // EventBus.$emit('selectSecondTissue', tissue2, tissue2Source, dim);
         this.selectFirstTissue(tissue1, tissue1Source, dim, true);
         this.selectSecondTissue(tissue2, tissue2Source, dim);
       }

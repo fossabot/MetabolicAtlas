@@ -159,6 +159,8 @@
                      :map-type="currentDisplayedType"
                      :dim="dim" :map-name="currentDisplayedName">
         </DataOverlay>
+        <URLhandler :model="model" :map-type="currentDisplayedType" :map-name="currentDisplayedName"
+          :dim="dim" :sel="selectionData.data" :panel="showDataOverlayPanel"></URLhandler>
       </template>
     </div>
   </div>
@@ -168,6 +170,7 @@
 import $ from 'jquery';
 import axios from 'axios';
 import SidebarDataPanels from '@/components/explorer/mapViewer/SidebarDataPanels';
+import URLhandler from '@/components/explorer/mapViewer/URLhandler';
 import DataOverlay from '@/components/explorer/mapViewer/DataOverlay.vue';
 import Svgmap from '@/components/explorer/mapViewer/Svgmap';
 import D3dforce from '@/components/explorer/mapViewer/D3dforce';
@@ -181,6 +184,7 @@ export default {
     DataOverlay,
     Svgmap,
     D3dforce,
+    URLhandler,
   },
   props: {
     model: Object,
@@ -202,7 +206,6 @@ export default {
       has2DSubsystemMaps: false,
       showLoader: false,
       watchURL: true,
-      URLID: null,
 
       mapsData2D: {
         compartments: {},
@@ -250,21 +253,14 @@ export default {
       return this.show2D ? '2d' : '3d';
     },
   },
-  watch: {
-    /* eslint-disable quote-props */
-    '$route': function watchSetup() {
-      if (this.watchURL) {
-        this.checkRoute();
-      } else {
-        this.watchURL = true;
-      }
-    },
-  },
   created() {
     EventBus.$off('showAction');
+    EventBus.$off('changeDimension');
+    EventBus.$off('togglePanel');
     EventBus.$off('loadRNAComplete');
 
-    EventBus.$on('showAction', (type, name, ids, forceReload) => {
+    EventBus.$on('showAction', (type, name, searchTerm, selectIDS, coords, forceReload) => {
+      console.log('on showAction', type, name, searchTerm, selectIDS, coords, forceReload);
       if (this.showLoader) {
         return;
       }
@@ -274,11 +270,16 @@ export default {
       }
       this.showOverviewScreen = false; // to get the loader visible
       this.selectionData.data = null;
-      if (this.show3D) {
-        EventBus.$emit('show3Dnetwork', this.requestedType, this.requestedName, ids);
-      } else {
-        EventBus.$emit('showSVGmap', this.requestedType, this.requestedName, ids, forceReload);
-      }
+      EventBus.$emit(this.show2D ? 'showSVGmap' : 'show3Dnetwork', this.requestedType, this.requestedName, searchTerm, selectIDS, coords, forceReload);
+    });
+
+    EventBus.$on('changeDimension', () => {
+      this.show2D = !this.show2D;
+      this.show3D = !this.show2D;
+    });
+
+    EventBus.$on('togglePanel', () => {
+      this.toggleDataOverlayPanel();
     });
 
     EventBus.$on('loadRNAComplete', (isSuccess, errorMessage) => {
@@ -347,7 +348,7 @@ export default {
     },
     toggleDataOverlayPanel() {
       this.showDataOverlayPanel = !this.showDataOverlayPanel;
-      this.updateURL();
+      // this.updateURL();
       if (this.show3D) {
         // fix the 3D canvas size when open/close dataOverlay
         EventBus.$emit('recompute3DCanvasBounds');
@@ -359,8 +360,9 @@ export default {
       }
       this.show3D = !this.show3D;
       this.show2D = !this.show2D;
-      this.selectedElement = null;
-      this.selectionData.data = null;
+      // TODO
+      // this.selectedElement = null;
+      // this.selectionData.data = null;
       if (!this.currentDisplayedType || !this.currentDisplayedName) {
         return;
       }
@@ -372,12 +374,16 @@ export default {
         return;
       }
 
-      this.URLID = null;
+      // TODO FIXME duplicate with URLhandle checkRoute
+      const searchTerm = this.$route.query.search === '_' ? '' : this.$route.query.search;
+      const selectIDs = this.$route.query.sel === '_' ? [] : [this.$route.query.sel];
+      // coord is not maintained and set to null
+
       if (this.show3D) {
-        EventBus.$emit('show3Dnetwork', this.requestedType, this.requestedName, true);
+        EventBus.$emit('show3Dnetwork', this.requestedType, this.requestedName, searchTerm, selectIDs, null, true);
       } else {
-        EventBus.$emit('destroy3Dnetwork');
-        EventBus.$emit('showSVGmap', this.requestedType, this.requestedName, [], true);
+        EventBus.$emit('destroy3Dnetwork'); // TODO remove?
+        EventBus.$emit('showSVGmap', this.requestedType, this.requestedName, searchTerm, selectIDs, null, true);
       }
     },
     handleLoadComplete(isSuccess, errorMessage, messageType) {
@@ -394,9 +400,7 @@ export default {
       if (this.show2D) {
         EventBus.$emit('update3DLoadedComponent', null, null); // reset 3d viewer param
       }
-      this.updateURL();
       this.showLoader = false;
-
       this.$nextTick(() => {
         EventBus.$emit('reloadGeneExpressionData');
       });
@@ -453,7 +457,7 @@ export default {
             this.show3D = true;
             this.show2D = false;
           }
-          this.checkRoute();
+          EventBus.$emit('checkRoute', 'from mapviewer');
         })
         .catch((error) => {
           switch (error.response.status) {
@@ -461,68 +465,6 @@ export default {
               this.errorMessage = messages.unknownError;
           }
         });
-    },
-    checkRoute() {
-      // load maps from url if contains map_id, the URL
-      if (['viewerRoot', 'viewer'].includes(this.$route.name)) {
-        let { dop } = this.$route.query;
-        if (!dop) {
-          dop = '0';
-        }
-        this.showDataOverlayPanel = dop === '1';
-        if (this.$route.name === 'viewerRoot') {
-          this.updateURL();
-          return;
-        }
-        const { type } = this.$route.params;
-        const mapID = this.$route.params.map_id;
-        if (this.$route.query && this.$route.query.selected) {
-          this.URLID = this.$route.query.selected;
-        }
-        const { dim } = this.$route.query;
-
-        if (!dim) {
-          this.show2D = false;
-        } else {
-          this.show2D = dim.toLowerCase() === '2d' && !this.disabled2D;
-        }
-        this.show3D = !this.show2D;
-        this.$nextTick(() => {
-          EventBus.$emit('showAction', type, mapID, this.URLID ? [this.URLID] : [], false);
-        });
-      }
-    },
-    updateURL() { // eslint-disable-line no-unused-vars
-      // do not process URLID for now
-      this.watchURL = false;
-      if (this.$route.name === 'viewerRoot') {
-        this.$router.replace(
-          { name: 'viewerRoot',
-            params: {
-              model: this.model.database_name,
-            },
-            query: {
-              dop: this.showDataOverlayPanel ? '1' : '0',
-            },
-          }
-        ).catch(() => {});
-      } else {
-        const routeDict = { name: 'viewer',
-          params: {
-            model: this.model.database_name,
-            type: this.currentDisplayedType,
-            map_id: this.currentDisplayedName,
-          },
-          query: {
-            dim: this.dim,
-            dop: this.showDataOverlayPanel ? '1' : '0',
-          },
-        };
-        if (this.URLID) {
-          routeDict.query.selected = this.URLID;
-        }
-        this.$router.replace(routeDict).catch(() => {});
-      }
     },
     checkValidRequest(displayType, displayName) {
       this.requestedType = displayType;
@@ -546,16 +488,16 @@ export default {
       return this.requestedName in this.mapsData3D.subsystems;
     },
     showMap(compartmentOrSubsystemID, type = 'compartment') {
+      console.log('call show map - clear selection ------');
       this.selectionData.data = null;
-      this.currentDisplayedName = null;
-      this.currentDisplayedType = null;
+      // this.currentDisplayedName = null;
+      // this.currentDisplayedType = null;
       this.hideDropleftMenus();
       if (compartmentOrSubsystemID) {
-        EventBus.$emit('showAction', type, compartmentOrSubsystemID, [], false);
+        EventBus.$emit('showAction', type, compartmentOrSubsystemID, '', [], null, false);
       } else {
         this.showOverviewScreen = true;
         this.$router.push({ name: 'viewerRoot', params: { model: this.model.database_name } });
-        // keep the loaded 2D map, and data info in the 'back', to quickly reload it
       }
     },
     endSelection(isSuccess) {
@@ -565,13 +507,9 @@ export default {
     unSelect() {
       this.selectionData.error = false;
       this.selectionData.data = null;
-      this.URLID = '';
-      this.updateURL();
     },
     newSelection(data) {
       this.selectionData = data;
-      this.URLID = this.selectionData.data.id;
-      this.updateURL();
     },
   },
 };
