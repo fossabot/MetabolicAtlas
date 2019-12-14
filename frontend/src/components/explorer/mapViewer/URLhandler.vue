@@ -8,7 +8,7 @@
 import { default as EventBus } from '../../../event-bus';
 
 const EMPTY_PARAM = '_';
-const DEFAULT_COORD = '0,0,0,0,0,0,0,0,0,0,0,0';
+const DEFAULT_COORD = '0,0,0,0,0,0';
 
 export default {
   name: 'URLhandler',
@@ -24,7 +24,7 @@ export default {
     return {
       watchURL: true,
       search: null,
-      coord: '0,0,0,0,0,0,0,0,0,0,0,0',
+      coord: '0,0,0,0,0,0',
       g1: null,
       g2: null,
       currentURLParamsJSON: null,
@@ -107,12 +107,12 @@ export default {
       this.checkRoute();
     });
 
-    EventBus.$on('update_url_coord', (x, y, z, lx, ly, lz, tx, ty, tz, ux, uy, uz) => {
-      console.log('update_url_coord', x, y, z, lx, ly, lz, tx, ty, tz, ux, uy, uz);
+    EventBus.$on('update_url_coord', (x, y, z, lx, ly, lz) => {
+      console.log('update_url_coord', x, y, z, lx, ly, lz);
       if (x === null) {
         this.URLparams.query.coord = DEFAULT_COORD;
       } else {
-        this.URLparams.query.coord = `${x},${y},${z},${lx},${ly},${lz},${tx},${ty},${tz},${ux},${uy},${uz}`;
+        this.URLparams.query.coord = `${this.roundValue(x)},${this.roundValue(y)},${this.roundValue(z)},${this.roundValue(lx)},${this.roundValue(ly)},${this.roundValue(lz)}`;
       }
       this.updateURL(true, true);
     });
@@ -191,9 +191,8 @@ export default {
 
       const dim = route.query.dim && ['2d', '3d'].includes(route.query.dim.toLowerCase()) ? route.query.dim.toLowerCase() : '2d';
       const panel = route.query.panel && ['0', '1'].includes(route.query.panel) ? route.query.panel : '0';
-      const regex = /(?:-)?\d+(?:[.]\d+)?(?:[,](?:-)?\d+(?:[.]\d+)?){11}/g;
+      const regex = /(?:-)?\d+(?:[.]\d+)?(?:[,](?:-)?\d+(?:[.]\d+)?){5}/g;
       const coord = route.query.coord && route.query.coord.match(regex) ? route.query.coord : DEFAULT_COORD;
-      console.log('coord fixed : ', coord, route.query.coord && route.query.coord.match(regex));
 
       this.URLparams.query = {
         dim,
@@ -239,6 +238,9 @@ export default {
         this.$router.push(routeDict).catch(() => {});
       }
       this.currentURLParamsJSON = JSON.stringify(this.URLparams);
+    },
+    roundValue(value) {
+      return Math.round((value + 0.00001) * 1000) / 1000;
     },
   },
 };

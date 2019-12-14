@@ -15,11 +15,10 @@
 import axios from 'axios';
 import forceGraph3D from '3d-force-graph';
 import { default as FileSaver } from 'file-saver';
+import { debounce } from 'vue-debounce';
 import MapSearch from '@/components/explorer/mapViewer/MapSearch';
 import { default as EventBus } from '../../../event-bus';
 import { reformatChemicalReactionHTML } from '../../../helpers/utils';
-
-// const THREE = require('three'); // eslint-disable-line import/no-extraneous-dependencies
 
 export default {
   name: 'D3dforce',
@@ -69,27 +68,8 @@ export default {
         this.listenControl = false;
       } else if (!this.listenControl) {
         this.listenControl = true;
-        // use debounce TODO
         v.controls()
-          .addEventListener('change', (ev) => {
-            if (this.disableControlsListener) {
-              this.disableControlsListener = false;
-              return;
-            }
-            const pos = ev.target.object.position; // eslint-disable-line no-unused-vars
-            const { lookAt } = this.graph.cameraPosition(); // eslint-disable-line no-unused-vars
-            const rot = this.graph.camera().rotation; // eslint-disable-line no-unused-vars
-            // console.log(this.graph.camera());
-            const { up } = this.graph.camera(); // eslint-disable-line no-unused-vars
-
-            // const { target } = v.controls();
-            console.log('loadedComponentName', this.loadedComponentName);
-            EventBus.$emit('update_url_coord', pos.x, pos.y, pos.z,
-              lookAt.x, lookAt.y, lookAt.z,
-              rot.x, rot.y, rot.z,
-              up.x, up.y, up.z);
-            // console.log(v.controls());
-          });
+          .addEventListener('change', this.updateURLCoord, false);
       }
     },
   },
@@ -173,6 +153,8 @@ export default {
     EventBus.$on('apply3DHPARNAlevels', (RNAlevels) => {
       this.applyHPARNAlevelsOnMap(RNAlevels);
     });
+
+    this.updateURLCoord = debounce(this.updateURLCoord, 150);
   },
   methods: {
     getJson() {
@@ -260,14 +242,12 @@ export default {
           } else if (this.graph.graphData().nodes.length !== 0) {
             if (this.coords) {
               const coords = this.coords.split(',').map(v => parseFloat(v));
-              // console.log('move camera position', coords[0], coords[1], coords[2], coords[3], coords[4], coords[5]);
-              this.moveCameraPosition(coords[0], coords[1], coords[2], coords[3], coords[4],
-                coords[5], coords[6], coords[7], coords[8], coords[9], coords[10], coords[11]);
+              this.moveCameraPosition(coords[0], coords[1], coords[2], coords[3], coords[4], coords[5]);
               // clear coords, programmatic move is only performed once
               this.coords = null;
             } else {
               console.log('no coord provided');
-              EventBus.$emit('update_url_coord', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+              EventBus.$emit('update_url_coord', 0, 0, 0, 0, 0, 0);
             }
             this.$emit('loadComplete', true, '');
             console.log(this.graph.camera());
@@ -301,6 +281,18 @@ export default {
           }
         }
       }, 0);
+    },
+    updateURLCoord(ev) {
+      if (this.disableControlsListener) {
+        this.disableControlsListener = false;
+        return;
+      }
+      const pos = ev.target.object.position; // eslint-disable-line no-unused-vars
+      const { lookAt } = this.graph.cameraPosition(); // eslint-disable-line no-unused-vars
+
+      // const { target } = v.controls();
+      console.log('loadedComponentName', this.loadedComponentName);
+      EventBus.$emit('update_url_coord', pos.x, pos.y, pos.z, lookAt.x, lookAt.y, lookAt.z);
     },
     downloadPNG() {
       window.requestAnimationFrame(() => {
@@ -404,33 +396,17 @@ export default {
         );
       }, 0);
     },
-    moveCameraPosition(x, y, z, lx, ly, lz, tx, ty, tz, ux, uy, uz) { // eslint-disable-line no-unused-vars
+    moveCameraPosition(x, y, z, lx, ly, lz) { // eslint-disable-line no-unused-vars
       this.disableControlsListener = true;
-      // console.log('rot new value', { x: tx, y: ty, z: tz });
-      // console.log('up new value', { x: ux, y: uy, z: uz });
-      // this.graph.camera().rotation.set(tx, ty, tz);
-      // this.graph.camera().up.set(ux, uy, uz);
-      // this.graph.camera().rotation.x = tx;
-      // this.graph.camera().rotation.y = ty;
-      // this.graph.camera().rotation.z = tz;
       this.graph.cameraPosition(
         { x, y, z },
         { x: lx, y: ly, z: lz }, // lookAt ({ x, y, z })
         0 // ms transition duration
       );
-      // this.graph.controls().target = { x: tx, y: ty, z: tz };
-      // this.graph.camera().updateProjectionMatrix();
       console.log(this.graph.camera());
     },
     resetCameraPosition() {
-      this.moveCameraPosition(0, 0, Math.cbrt(this.graph.graphData().nodes.length) * 150, 0, 0, 0, 0, 0, 0);
-      // this.graph.cameraPosition(
-      //   { x: 0, y: 0, z: Math.cbrt(this.graph.graphData().nodes.length) * 150 },
-      //   { x: 0, y: 0, z: 0 }, // lookAt ({ x, y, z })
-      //   0 // ms transition duration
-      // );
-      // this.graph.camera().position.z = Math.cbrt(this.graph.graphData().nodes.length) * 150;
-      // TODO chekc behavior
+      this.moveCameraPosition(0, 0, Math.cbrt(this.graph.graphData().nodes.length) * 150);
     },
     updateGeometries() {
       // fn used to update the rendering of the graph

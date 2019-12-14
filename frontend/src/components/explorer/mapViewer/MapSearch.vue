@@ -29,6 +29,7 @@
 <script>
 
 import axios from 'axios';
+import { debounce } from 'vue-debounce';
 import { default as EventBus } from '../../../event-bus';
 import { default as messages } from '../../../helpers/messages';
 
@@ -79,6 +80,9 @@ export default {
       }
       this.currentSearchMatch = 0;
     },
+  },
+  created() {
+    this.search = debounce(this.search, 1000);
   },
   methods: {
     reset() {

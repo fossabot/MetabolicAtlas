@@ -36,6 +36,7 @@ import $ from 'jquery';
 import JQPanZoom from 'jquery.panzoom';
 import JQMouseWheel from 'jquery-mousewheel';
 import { default as FileSaver } from 'file-saver';
+import { debounce } from 'vue-debounce';
 import MapSearch from '@/components/explorer/mapViewer/MapSearch';
 import { default as EventBus } from '@/event-bus';
 import { default as messages } from '@/helpers/messages';
@@ -142,6 +143,8 @@ export default {
     EventBus.$on('apply2DHPARNAlevels', (levels) => {
       this.applyHPARNAlevelsOnMap(levels);
     });
+
+    this.updateURLCoord = debounce(this.updateURLCoord, 150);
   },
   mounted() {
     const self = this;
@@ -255,6 +258,26 @@ export default {
       this.panToCoords(x, y);
       this.zoomToValue(zoom);
     },
+    updateURLCoord(e, v, o) { // eslint-disable-line no-unused-vars
+      console.log('panzoomchange');
+      const zoom = parseFloat(o[0]);
+      // console.log('zoom', this.mapPos.zoom);
+      const panX = -parseFloat(o[4]);
+      // console.log('panX', panX);
+      const panY = -parseFloat(o[5]);
+      // console.log('panY', panY);
+      // this.mapPos.x = panX;
+      // console.log('svgX', this.mapPos.x);
+      // this.mapPos.y = panY;
+      // console.log('svgY', this.mapPos.y);
+      // console.log('ratio', panX * this.mapPos.zoom, panY * this.mapPos.zoom);
+      // console.log('ratio', (this.mapPos.x / this.mapPos.y), (this.mapPos.y / this.mapPos.x));
+      if (panX !== 0 || panY !== 0 || zoom !== 1) {
+        EventBus.$emit('update_url_coord', panX, panY, zoom, 0, 0, 0);
+      } else {
+        EventBus.$emit('update_url_coord', null);
+      }
+    },
     loadSvgPanZoom() {
       // load the lib svgPanZoom on the SVG loaded
       if (!this.$panzoom) {
@@ -291,43 +314,21 @@ export default {
         this.$panzoom.on('panzoomzoom', (e, panzoom, scale) => { // eslint-disable-line no-unused-vars
           this.currentZoomScale = scale;
         });
-        this.$panzoom.on('panzoomchange', (e, v, o) => { // eslint-disable-line no-unused-vars
-          // console.log('panzoomchange');
-          const zoom = parseFloat(o[0]);
-          // console.log('zoom', this.mapPos.zoom);
-          const panX = -parseFloat(o[4]);
-          // console.log('panX', panX);
-          const panY = -parseFloat(o[5]);
-          // console.log('panY', panY);
-          // this.mapPos.x = panX;
-          // console.log('svgX', this.mapPos.x);
-          // this.mapPos.y = panY;
-          // console.log('svgY', this.mapPos.y);
-          // console.log('ratio', panX * this.mapPos.zoom, panY * this.mapPos.zoom);
-          // console.log('ratio', (this.mapPos.x / this.mapPos.y), (this.mapPos.y / this.mapPos.x));
-          if (panX !== 0 || panY !== 0 || zoom !== 1) {
-            EventBus.$emit('update_url_coord', panX, panY, zoom, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-          } else {
-            EventBus.$emit('update_url_coord', null);
-          }
-        });
+        this.$panzoom.on('panzoomchange', (e, v, o) => this.updateURLCoord(e, v, o));
 
         // unselect
         this.selectedElementID = null;
         this.unHighlight(this.searchedElemsHL, 'schhl');
         this.unHighlight(this.selectedElemsHL, 'selhl');
-        console.log('pass by here | term', this.searchTerm);
         if (this.searchTerm) {
           this.$refs.mapsearch.search(this.searchTerm);
-          // EventBus.$emit('search_term', this.searchTerm);
         } else if (this.coords) {
           console.log('restore URL coords');
           const coords = this.coords.split(',');
           this.restoreMapPosition(coords[0], coords[1], coords[2]);
           this.coords = null;
         }
-        // this.searchIDsOnMap();
-        // get the first node with this id
+        // selection (sidebar), get the first node with this id
         const elms = this.findElementsOnSVG(this.selectIDs);
         this.selectElement(elms[0] || null);
         this.$emit('loadComplete', true, '');
