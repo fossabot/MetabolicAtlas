@@ -84,7 +84,6 @@ export default {
         linearZoom: true,
       },
       currentZoomScale: 1,
-      // mapPos: { x: '0', y: '0', z: '0', cx: '0', cy: '0', cz: '0' },
 
       selectIDs: [],
       selectedNodesOnMap: [],
@@ -125,7 +124,6 @@ export default {
       console.log('showSVGmap', type, name, searchTerm, selectIDs, coords, forceReload);
       if (forceReload) {
         this.svgName = '';
-        // this.$refs.mapsearch.reset(); TODO readd reset?
       }
       // set the type, even if might fail to load the map?
       this.loadedMapType = type;
@@ -133,9 +131,6 @@ export default {
         this.searchTerm = searchTerm;
         this.selectIDs = selectIDs || [];
         this.coords = coords;
-        // if (searchIDs.length !== 0) {
-        //   this.searchTerm = ids[0]; // eslint-disable-line prefer-destructuring
-        // }
         this.loadSVG(name);
       }
     });
@@ -286,7 +281,6 @@ export default {
         this.$panzoom = $('#svg-wrapper').panzoom('reset', this.panzoomOptions);
         this.$panzoom.off('mousewheel.focal');
         this.$panzoom.off('panzoomzoom');
-        // this.$panzoom.off('panzoompan');
         this.$panzoom.off('panzoomchange');
       }
       setTimeout(() => {
@@ -377,12 +371,6 @@ export default {
         }
       } else {
         this.loadedMap = mapInfo;
-        // if already loaded, just call the search funtion
-        // this.searchIDsOnMap(); // TODO search here
-        // if (this.searchTerm) {
-        //   EventBus.$emit('search_term', this.searchTerm);
-        // }
-        console.log('here missing search');
         this.$emit('loadComplete', true, '');
       }
     },
@@ -426,11 +414,6 @@ export default {
       this.unHighlight(this.searchedElemsHL, 'schhl');
       this.searchedNodesOnMap = [];
       console.log('this.searchTerm', this.searchTerm);
-      // if (this.searchTerm) { TODO check me commented
-      //   console.log('set search term:', this.searchTerm);
-      //   this.$refs.mapsearch.setSearchTerm(this.searchTerm);
-      //   this.searchTerm = '';
-      // }
       if (ids) {
         this.searchIDs = ids;
       }
@@ -466,18 +449,12 @@ export default {
         }
       }
       // reset idFounds ? TODO
-      console.log(elmsOnMap);
       return elmsOnMap;
     },
     centerElementOnSVG(element) {
       if (!element) {
         return;
       }
-
-      // this.unSelectElement();
-      // if (withSelection) {
-      //   this.selectElement(element);
-      // }
 
       // eslint-disable-next-line max-len
       const coords = this.getSvgElemCoordinates(element) || this.getSvgElemCoordinates($(element).find('.shape')[0]);
@@ -581,12 +558,6 @@ export default {
             data = data.reaction;
             data.equation = this.reformatChemicalReactionHTML(data, true);
           }
-          // } else if (type === 'gene') {
-          // // add the RNA level if any
-          //   if (id in this.HPARNAlevels) {
-          //     data.rnaLvl = this.HPARNAlevels[id];
-          //   }
-          // }
           selectionData.data = data;
           this.selectedItemHistory[id] = selectionData.data;
           this.$emit('newSelection', selectionData);
@@ -614,8 +585,8 @@ export default {
         transition: false,
       });
       this.$panzoom.panzoom('pan', -panX + ($('.svgbox').width() / 2), -panY + ($('.svgbox').height() / 2));
-      console.log('panX', -panX + ($('.svgbox').width() / 2));
-      console.log('panX', -panY + ($('.svgbox').height() / 2));
+      // console.log('panX', -panX + ($('.svgbox').width() / 2));
+      // console.log('panX', -panY + ($('.svgbox').height() / 2));
       this.$emit('loadComplete', true, '');
     },
     reformatChemicalReactionHTML,

@@ -34,7 +34,6 @@ export default {
       loadedComponentType: null,
       loadedComponentName: null,
       graph: null,
-      // emptyNetwork: true,
       networkHistory: {},
       network: {
         nodes: [],
@@ -106,7 +105,6 @@ export default {
           this.coords = null;
         }
         console.log('build network');
-        // console.log('this.emptyNetwork', this.emptyNetwork);
         console.log(this.loadedComponentType, type);
         console.log(this.loadedComponentName, name);
         this.loadedComponentType = type;
@@ -173,7 +171,6 @@ export default {
               this.graph.resetCamera = true;
               this.graph.graphData(this.network);
             }
-            // this.emptyNetwork = false;
           }, 0);
         })
         .catch((error) => {
@@ -259,16 +256,14 @@ export default {
           if (this.selectIDs.length !== 0 && this.selectIDs[0] !== this.selectElementID) {
             let node = this.graph.graphData().nodes.filter(n => n.id.split('-')[0].toLowerCase() === this.selectIDs[0].toLowerCase());
             node = node[0]; // eslint-disable-line prefer-destructuring
-            // console.log('node', node);
-            // console.log('clean selectIDs');
             this.selectIDs = [];
             this.selectElement(node);
           }
           if (this.searchTerm) {
-            // EventBus.$emit('search_term', this.searchTerm);
             this.$refs.mapsearch.search(this.searchTerm);
             this.searchTerm = '';
           }
+          console.log('end onEngineStop');
         });
     },
     updateGraphBounds() {
@@ -409,7 +404,7 @@ export default {
       this.moveCameraPosition(0, 0, Math.cbrt(this.graph.graphData().nodes.length) * 150);
     },
     updateGeometries() {
-      // fn used to update the rendering of the graph
+      // function to (fast?) re-render the graph
       // set .emitLoadComplete to false avoid the emit of 'loadComplete'
       this.graph.emitLoadComplete = false;
       this.graph.nodeRelSize(4);

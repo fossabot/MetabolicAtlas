@@ -101,6 +101,8 @@ export default {
     EventBus.$off('checkRoute');
     EventBus.$off('update_url_coord');
     EventBus.$off('update_url_search');
+    EventBus.$off('update_url_g1');
+    EventBus.$off('update_url_g2');
 
     EventBus.$on('checkRoute', (v) => {
       console.log('here event checkRoute', v);
@@ -123,6 +125,26 @@ export default {
         this.URLparams.query.search = EMPTY_PARAM;
       } else {
         this.URLparams.query.search = search;
+      }
+      this.updateURL(true, true);
+    });
+
+    EventBus.$on('update_url_g1', (tissue) => {
+      console.log('update_url_g1', tissue);
+      if (!tissue) {
+        this.URLparams.query.g1 = EMPTY_PARAM;
+      } else {
+        this.URLparams.query.g1 = tissue;
+      }
+      this.updateURL(true, true);
+    });
+
+    EventBus.$on('update_url_g2', (tissue) => {
+      console.log('update_url_g2', tissue);
+      if (!tissue) {
+        this.URLparams.query.g2 = EMPTY_PARAM;
+      } else {
+        this.URLparams.query.g2 = tissue;
       }
       this.updateURL(true, true);
     });
@@ -201,13 +223,28 @@ export default {
         search: route.query.search ? route.query.search : EMPTY_PARAM,
         coord,
         g1: route.query.g1 ? route.query.g1 : EMPTY_PARAM,
-        g2: route.query.g2 ? route.query.g1 : EMPTY_PARAM,
+        g2: route.query.g2 ? route.query.g2 : EMPTY_PARAM,
       };
+
+      if (this.URLparams.query.g1 === EMPTY_PARAM && this.URLparams.query.g2 !== EMPTY_PARAM) {
+        // set the tissue 1 first
+        this.URLparams.query.g1 = this.URLparams.query.g2;
+        this.URLparams.query.g2 = EMPTY_PARAM;
+      }
+
+      if (this.URLparams.query.g1 !== EMPTY_PARAM) {
+        // always open the panel is tissue in url
+        this.URLparams.query.panel = '1';
+      }
     },
     updateURL(replace, newMapLoaded = false) {
+      if (!['viewer', 'viewerRoot'].includes(this.$route.name)) {
+        // late update of the url
+        return;
+      }
       console.log('call updateURL');
       if (JSON.stringify(this.URLparams) === this.currentURLParamsJSON) {
-        console.log('skip updateURL, no cahnge');
+        console.log('skip updateURL, no changes');
         return;
       }
 

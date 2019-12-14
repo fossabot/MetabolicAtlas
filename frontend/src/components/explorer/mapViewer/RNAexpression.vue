@@ -175,6 +175,7 @@ export default {
     parseHPARNAlevels(tissue, dim, index, callback) {
       const RNAlevels = {};
       const tissueIndex = this.HPARNAlevelsHistory[this.mapName][dim].tissues.indexOf(tissue);
+      EventBus.$emit(`update_url_${index === 0 ? 'g1' : 'g2'}`, tissue);
       const { levels } = this.HPARNAlevelsHistory[this.mapName][dim];
       levels.forEach((array) => {
         const enzID = array[0];
