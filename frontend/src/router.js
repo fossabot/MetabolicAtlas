@@ -19,7 +19,7 @@ const routes = [
   { path: '/explore', name: 'explorerRoot', component: Explorer, props: true },
   { path: '/search', name: 'search', component: SearchTable },
   { path: '/explore/gem-browser/:model', name: 'browserRoot', component: Explorer, props: true },
-  { path: '/explore/gem-browser/:model/:type/:id', name: 'browser', component: Explorer, props: true },
+  { path: '/explore/gem-browser/:model/:type(reaction|metabolite|gene|subsystem|compartment)/:id', name: 'browser', component: Explorer, props: true },
   { path: '/explore/map-viewer/:model', name: 'viewer', component: Explorer, props: true },
   { path: '/explore/map-viewer/:model/compartment/:id', name: 'viewerCompartment', component: Explorer, props: true },
   { path: '/explore/map-viewer/:model/subsystem/:id', name: 'viewerSubsystem', component: Explorer, props: true },
