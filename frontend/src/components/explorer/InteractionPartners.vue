@@ -28,7 +28,7 @@
     </div>
     <template v-if="componentNotFound">
       <div class="columns is-centered">
-        <notFoundComponent component="Interaction Partners" :componentID="mainNodeID"></notFoundComponent>
+        <notFound component="Interaction Partners" :componentID="mainNodeID"></notFound>
       </div>
     </template>
     <template v-if="loading">
@@ -271,7 +271,7 @@ import Sidebar from '@/components/explorer/interactionPartners/Sidebar';
 import CytoscapeTable from '@/components/explorer/interactionPartners/CytoscapeTable';
 import Loader from '@/components/Loader';
 import RNALegend from '@/components/explorer/mapViewer/RNALegend.vue';
-import NotFoundComponent from '@/components/explorer/gemBrowser/NotFoundComponent';
+import NotFound from '@/components/NotFound';
 
 import { default as EventBus } from '../../event-bus';
 
@@ -288,7 +288,7 @@ import { default as messages } from '../../helpers/messages';
 export default {
   name: 'InteractionPartners',
   components: {
-    NotFoundComponent,
+    NotFound,
     GemSearch,
     Sidebar,
     CytoscapeTable,

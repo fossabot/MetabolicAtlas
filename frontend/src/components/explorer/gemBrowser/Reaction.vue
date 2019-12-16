@@ -1,6 +1,6 @@
 <template>
   <div v-if="componentNotFound" class="columns is-centered">
-    <notFoundComponent component="reaction" :componentID="rId"></notFoundComponent>
+    <notFound component="reaction" :componentID="rId"></notFound>
   </div>
   <div v-else>
     <div class="columns">
@@ -104,7 +104,7 @@
 import axios from 'axios';
 import $ from 'jquery';
 import Loader from '@/components/Loader';
-import NotFoundComponent from './NotFoundComponent';
+import NotFound from '@/components/NotFound';
 import MapsAvailable from '@/components/explorer/gemBrowser/MapsAvailable';
 import { default as EventBus } from '../../../event-bus';
 import { reformatTableKey, addMassUnit, reformatECLink, reformatCompEqString, reformatChemicalReactionHTML, reformatEqSign } from '../../../helpers/utils';
@@ -112,7 +112,7 @@ import { reformatTableKey, addMassUnit, reformatECLink, reformatCompEqString, re
 export default {
   name: 'Reaction',
   components: {
-    NotFoundComponent,
+    NotFound,
     Loader,
     MapsAvailable,
   },

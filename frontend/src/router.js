@@ -10,7 +10,7 @@ import About from './components/About';
 import Documentation from './components/Documentation';
 import Repository from './components/Repository';
 import CompareModels from './components/CompareModels';
-import NotFound from './components/NotFound';
+import FourOFour from './components/FourOFour';
 
 Vue.use(VueRouter);
 
@@ -32,7 +32,7 @@ const routes = [
   { path: '/gems/comparison', name: 'comparemodels', component: CompareModels },
   { path: '/resources', name: 'resources', component: Resources },
   { path: '/documentation', name: 'documentation', component: Documentation },
-  { path: '/*', name: 'notFound', component: NotFound },
+  { path: '/*', name: 'fourOfour', component: FourOFour },
 ];
 
 const router = new VueRouter({

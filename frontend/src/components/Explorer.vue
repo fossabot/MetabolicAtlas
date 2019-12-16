@@ -3,7 +3,7 @@
     <div :class="{ 'container': !extendWindow }">
       <template v-if="modelNotFound">
         <div class="columns is-centered">
-          <notFoundComponent component="model" :componentID="modelNotFound"></notFoundComponent>
+          <notFound component="model" :componentID="modelNotFound"></notFound>
         </div>
       </template>
       <template v-else-if="currentShowComponent">
@@ -89,7 +89,7 @@ import $ from 'jquery';
 import GemBrowser from '@/components/explorer/GemBrowser';
 import MapViewer from '@/components/explorer/MapViewer';
 import InteractionPartners from '@/components/explorer/InteractionPartners';
-import NotFoundComponent from '@/components/explorer/gemBrowser/NotFoundComponent';
+import NotFound from '@/components/NotFound';
 import { idfy } from '../helpers/utils';
 import { default as EventBus } from '../event-bus';
 import { default as messages } from '../helpers/messages';
@@ -100,7 +100,7 @@ export default {
     GemBrowser,
     MapViewer,
     InteractionPartners,
-    NotFoundComponent,
+    NotFound,
   },
   data() {
     return {

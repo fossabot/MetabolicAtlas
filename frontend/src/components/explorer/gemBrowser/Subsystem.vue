@@ -1,6 +1,6 @@
 <template>
   <div v-if="componentNotFound" class="columns is-centered">
-    <notFoundComponent component="subsystem" :componentID="sName"></notFoundComponent>
+    <notFound component="subsystem" :componentID="sName"></notFound>
   </div>
   <div v-else>
     <div class="columns">
@@ -99,7 +99,7 @@
 
 import axios from 'axios';
 import Loader from '@/components/Loader';
-import NotFoundComponent from './NotFoundComponent';
+import NotFound from '@/components/NotFound';
 import MapsAvailable from '@/components/explorer/gemBrowser/MapsAvailable';
 import ReactionTable from '@/components/explorer/gemBrowser/ReactionTable';
 import { reformatTableKey, idfy } from '../../../helpers/utils';
@@ -107,7 +107,7 @@ import { reformatTableKey, idfy } from '../../../helpers/utils';
 export default {
   name: 'Subsystem',
   components: {
-    NotFoundComponent,
+    NotFound,
     MapsAvailable,
     ReactionTable,
     Loader,

@@ -1,7 +1,7 @@
 <template>
   <div id="metabolite-page">
     <div v-if="componentNotFound" class="columns is-centered">
-      <notFoundComponent component="metabolite" :componentID="mId"></notFoundComponent>
+      <notFound component="metabolite" :componentID="mId"></notFound>
     </div>
     <div v-else>
       <div class="columns">
@@ -92,7 +92,7 @@
 <script>
 import axios from 'axios';
 import Reactome from '@/components/explorer/gemBrowser/Reactome';
-import NotFoundComponent from './NotFoundComponent';
+import NotFound from '@/components/NotFound';
 import { chemicalFormula } from '../../../helpers/chemical-formatters';
 import { reformatTableKey, reformatStringToLink, addMassUnit, idfy } from '../../../helpers/utils';
 import { default as messages } from '../../../helpers/messages';
@@ -100,7 +100,7 @@ import { default as messages } from '../../../helpers/messages';
 export default {
   name: 'Metabolite',
   components: {
-    NotFoundComponent,
+    NotFound,
     Reactome,
   },
   props: {
