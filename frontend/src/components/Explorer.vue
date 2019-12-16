@@ -190,6 +190,8 @@ export default {
           this.modelNotFound = this.$route.params.model;
           return;
         }
+      } else {
+        this.model = this.models.human1;
       }
       this.modelNotFound = null;
       if (['viewer', 'viewerCompartment', 'viewerCompartmentRea', 'viewerSubsystem', 'viewerSubsystemRea'].includes(this.$route.name)) {
@@ -213,9 +215,15 @@ export default {
             models[model.database_name] = model;
           });
           this.models = models;
-          let defaultModel = this.models.human1;
-          if (this.$route.params.model && this.$route.params.model in this.models) {
-            defaultModel = this.models[this.$route.params.model];
+          let defaultModel;
+          if (this.$route.params.model) {
+            if (this.$route.params.model in this.models) {
+              defaultModel = this.models[this.$route.params.model];
+            } else {
+              defaultModel = this.$route.params.model; // invalid model
+            }
+          } else {
+            defaultModel = this.models.human1;
           }
           this.selectModel(defaultModel);
           this.setup();
