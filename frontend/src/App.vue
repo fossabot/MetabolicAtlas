@@ -144,7 +144,7 @@ export default {
       },
       activeBrowserBut: false,
       activeViewerBut: false,
-      showCookieMsg: !isCookiePolicyAccepted(),
+      showCookieMsg: navigator.doNotTrack !== '1' && !isCookiePolicyAccepted(),
       acceptCookiePolicy,
       activeDropMenu: '',
       model: null,
