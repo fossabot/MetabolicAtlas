@@ -4,9 +4,9 @@
     <nav id="navbar" class="navbar has-background-primary-lighter" role="navigation" aria-label="main navigation">
       <div class="container">
         <div class="navbar-brand">
-          <a class="navbar-item" href="/" @click.native="isMobileMenu = false">
+          <router-link class="navbar-item" :to="{ path: '/' }" @click.native="isMobileMenu = false" active-class="">
             <img :src="require('./assets/logo.png')" />
-          </a>
+          </router-link>
           <div class="navbar-burger" :class="{ 'is-active': isMobileMenu }" @click="isMobileMenu = !isMobileMenu">
             <span aria-hidden="true"></span>
             <span aria-hidden="true"></span>
