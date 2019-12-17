@@ -15,7 +15,7 @@
                 <a href="#GEM Browser"><b>GEM Browser</b></a>
                 <ul class="menu-list">
                   <li><a href="#GEM Browser Search">Search</a></li>
-                  <li><a href="#Interaction Partners">Interaction Partners</a></li>
+                  <li><a href="#Interaction-Partners">Interaction Partners</a></li>
                 </ul>
                 <a href="#Map Viewer"><b>Map Viewer</b></a>
                 <ul class="menu-list">
@@ -87,7 +87,7 @@
           Search for any term in metabolites, genes, reactions, subsystems, or compartments information.<br>
           The search is restricted to the selected GEM and limited to 50 results per type. Alternatively, users can click on the banner under the search input field to run a <i>Global Search</i>, where the term is searched among all the integrated models' components and is unrestricted. To learn more about the search term possiblities, go to the <a href="#Global Search">Global Search</a> section of this page.
 
-          <h5 id="Interaction Partners">Interaction Partners</h5>
+          <h5 id="Interaction-Partners">Interaction Partners</h5>
           For a given metabolite or gene, this page shows the other metabolites and genes with which it interacts via shared reaction(s). The selected metabolite or gene is centered on the graph. Connectivity is determined based on the reactions with which this metabolite or gene is associated. For medium-sized networks of interaction partners, the user is prompted before generating the graph. For very large networks (e.g. for H<sub>2</sub>O) the graph will not be generated. Users can click on a node to display a context menu with 3 options:<br>
           <ul>
             <li>Load interaction partners: reload the interaction partners graph with the clicked node as the new central node.</li>
