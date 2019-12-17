@@ -1,6 +1,6 @@
 <template>
   <div v-if="componentNotFound" class="columns is-centered">
-    <notFound component="compartment" :componentID="cName"></notFound>
+    <notFound component="compartment" :component-id="cName"></notFound>
   </div>
   <div v-else>
     <div class="columns">

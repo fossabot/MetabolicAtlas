@@ -1,6 +1,5 @@
 <template>
-  <div class="column has-text-centered"
-      :class="component ? 'is-three-fifths-desktop is-three-quarters-tablet is-fullwidth-mobile' : 'is-narrow'">
+  <div class="column has-text-centered is-three-fifths-desktop is-three-quarters-tablet is-fullwidth-mobile">
     <div class="box has-background-light content">
       <template v-if="component">
         <p class="title is-size-3">
@@ -12,14 +11,19 @@
         <template v-else>
           <p class="is-size-5">
             Probably there is a typo in the {{ component }} identifier in the URL
-            <br>Use the search bar to find other {{ component }}s
+            <br>Use the search bar above to find other {{ component }}s
           </p>
         </template>
       </template>
       <template v-else>
-        <p>The page requested does not exist on this<br><b>new version of Metabolic Atlas</b></p>
-        <p>If you are looking to download a GEM,<br>look in the menu for <b>GEM > Repository</b></p>
-        <h1 class="is-size-1 has-text-weight-bold">¯\_(ツ)_/¯ 404</h1>
+        <h1 class="is-size-1 has-text-weight-bold">¯\_(ツ)_/¯<br>404</h1><br>
+        <p class="is-size-5">
+          The page requested does not exist on this
+          <router-link :to="{ path: '/about#5-September-2019' }"><b>new version of Metabolic Atlas</b></router-link><br>
+          If you are looking to download a GEM, look in the menu for
+          <router-link :to="{ name: 'gems' }"><b>GEM > Repository</b></router-link>
+        </p>
+        <br>
       </template>
     </div>
   </div>

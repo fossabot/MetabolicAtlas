@@ -1,7 +1,7 @@
 <template>
   <div id="metabolite-page">
     <div v-if="componentNotFound" class="columns is-centered">
-      <notFound component="metabolite" :componentID="mId"></notFound>
+      <notFound component="metabolite" :component-id="mId"></notFound>
     </div>
     <div v-else>
       <div class="columns">
