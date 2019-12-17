@@ -1,5 +1,5 @@
 <template>
-    <!-- eslint-disable max-len -->
+  <!-- eslint-disable max-len -->
   <section class="section section-no-top extended-section">
     <div class="container">
       <h2 class="title is-2">Documentation</h2>
@@ -15,7 +15,7 @@
                 <a href="#GEM Browser"><b>GEM Browser</b></a>
                 <ul class="menu-list">
                   <li><a href="#GEM Browser Search">Search</a></li>
-                  <li><a href="#Interaction Partners">Interaction Partners</a></li>
+                  <li><a href="#Interaction-Partners">Interaction Partners</a></li>
                 </ul>
                 <a href="#Map Viewer"><b>Map Viewer</b></a>
                 <ul class="menu-list">
@@ -87,7 +87,7 @@
           Search for any term in metabolites, genes, reactions, subsystems, or compartments information.<br>
           The search is restricted to the selected GEM and limited to 50 results per type. Alternatively, users can click on the banner under the search input field to run a <i>Global Search</i>, where the term is searched among all the integrated models' components and is unrestricted. To learn more about the search term possiblities, go to the <a href="#Global Search">Global Search</a> section of this page.
 
-          <h5 id="Interaction Partners">Interaction Partners</h5>
+          <h5 id="Interaction-Partners">Interaction Partners</h5>
           For a given metabolite or gene, this page shows the other metabolites and genes with which it interacts via shared reaction(s). The selected metabolite or gene is centered on the graph. Connectivity is determined based on the reactions with which this metabolite or gene is associated. For medium-sized networks of interaction partners, the user is prompted before generating the graph. For very large networks (e.g. for H<sub>2</sub>O) the graph will not be generated. Users can click on a node to display a context menu with 3 options:<br>
           <ul>
             <li>Load interaction partners: reload the interaction partners graph with the clicked node as the new central node.</li>
@@ -161,7 +161,7 @@
           A genome-scale metabolic model (GEM) is a mathematical representation of a metabolic reaction network.
 
           <h5 id="Integrated models">Integrated GEMs</h5>
-          Currently, Metabolic Atlas contains two integrated models, <i>YeastGEM</i> and <i>HumanGEM</i>.
+          Currently, Metabolic Atlas contains two integrated models, <i>Yeast-GEM</i> and <i>Human-GEM</i>.
 
           <h5 id="Repository">GEM Repository</h5>
           The repository lists all models constructed by the SysBio research group; this includes older models that may no longer be maintained (for example HMR2), and others that were recently published. The more recent GEMs can also be found in the <a href="https://www.github.com/SysBioChalmers/" target="_blank">SysBioChalmers organization GitHub</a>.<br>

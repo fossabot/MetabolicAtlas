@@ -69,10 +69,6 @@
         </header>
         <div v-show="showSelectionCardContent" class="card-content card-content-compact">
           <div v-if="!selectionData.error" class="content">
-            <p v-if="selectionData.data['rnaLvl'] != null">
-              <span class="has-text-weight-bold">RNA&nbsp;level:&nbsp;</span>
-              <span>{{ selectionData.data['rnaLvl'][1] }}</span>
-            </p>
             <template v-for="item in selectedElementDataKeys[model.database_name][selectionData.type]
               .filter(i => selectionData.data[i.name] != null || i.name === 'external_ids')">
               <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->

@@ -4,11 +4,10 @@
       <div id="input-wrapper">
         <p class="control has-icons-right has-icons-left">
           <!-- eslint-disable max-len -->
-          <input id="search" ref="searchInput" data-hj-whitelist
-                 v-model="searchTermString"
-                 class="input is-medium" type="text"
+          <input id="search" ref="searchInput"
+                 v-model="searchTermString" v-debounce:700="searchDebounce" data-hj-whitelist
+                 type="text" class="input is-medium"
                  placeholder="uracil, SULT1A3, ATP => cAMP + PPi, subsystem or compartment"
-                 v-debounce:700="searchDebounce"
                  @keyup.esc="showResults = false"
                  @focus="showResults = true"
                  @blur="blur()">

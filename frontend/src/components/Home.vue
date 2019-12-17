@@ -107,7 +107,7 @@
               <div class="card-content has-text-justified">
                 <p v-for="el in card.text" :key="el.date">
                   <template v-if="el.date">
-                    <router-link :to="{ 'path': '/about', hash: el.hash }" v-html="el.date"></router-link> -
+                    <router-link :to="{ path: '/about', hash: el.hash }" v-html="el.date"></router-link> -
                   </template>
                   <span v-html="el.text"></span>
                 </p>
