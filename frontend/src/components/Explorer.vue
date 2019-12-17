@@ -1,7 +1,12 @@
 <template>
   <section :class="{ 'section extended-section' : !extendWindow }">
     <div :class="{ 'container': !extendWindow }">
-      <template v-if="currentShowComponent">
+      <template v-if="modelNotFound">
+        <div class="columns is-centered">
+          <notFound component="model" :component-id="modelNotFound"></notFound>
+        </div>
+      </template>
+      <template v-else-if="currentShowComponent">
         <keep-alive>
           <component :is="currentShowComponent" :model="model"></component>
         </keep-alive>
@@ -28,7 +33,7 @@
                  @mousedown.prevent="selectModel(cmodel)">
               <div>
                 <span :class="cmodel.database_name === model.database_name ?
-                              'has-text-primary has-text-weight-bold' : ''">
+                  'has-text-primary has-text-weight-bold' : ''">
                   <span v-if="cmodel.database_name === model.database_name"
                         class="icon"><i class="fa fa-check-square-o"></i></span>
                   <span v-else><i class="fa fa-square-o"></i></span>
@@ -49,17 +54,18 @@
             <p class="has-text-weight-bold is-size-5">2. Select a tool:</p>
           </div>
         </div>
-        <div v-if="model" class="columns is-centered">
+        <div v-if="model" class="columns is-multiline">
           <template v-for="tool in explorerTools">
             <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
-            <div class="column is-4-widescreen is-5-desktop is-size-5">
+            <div class="column is-one-third-widescreen is-half-desktop is-half-tablet is-fullwidth-mobile is-size-5">
               <router-link :to="{ path: `${tool.url}/${model.database_name }` }"
                            :title="`Click to access the ${tool.name} for ${model.short_name} model`">
                 <div class="card card-fullheight hoverable">
                   <header class="card-header">
                     <p class="card-header-title is-centered">
                       <span class="icon is-medium"><i :class="`fa fa-${tool.icon}`"></i></span>
-                      &nbsp;{{ tool.name }}: {{ model.short_name }}
+                      &nbsp;{{ tool.name }}&nbsp;&nbsp;
+                      <span class="has-text-grey-light">{{ model.short_name }}</span>
                     </p>
                   </header>
                   <div class="card-content">
@@ -82,6 +88,8 @@ import axios from 'axios';
 import $ from 'jquery';
 import GemBrowser from '@/components/explorer/GemBrowser';
 import MapViewer from '@/components/explorer/MapViewer';
+import InteractionPartners from '@/components/explorer/InteractionPartners';
+import NotFound from '@/components/NotFound';
 import { idfy } from '../helpers/utils';
 import { default as EventBus } from '../event-bus';
 import { default as messages } from '../helpers/messages';
@@ -91,6 +99,8 @@ export default {
   components: {
     GemBrowser,
     MapViewer,
+    InteractionPartners,
+    NotFound,
   },
   data() {
     return {
@@ -104,9 +114,14 @@ export default {
           img: require('../assets/mapViewer.jpg'),
           url: '/explore/map-viewer',
           icon: 'map-o' },
+        { name: messages.interPartName,
+          img: require('../assets/interaction.png'),
+          url: '/explore/interaction',
+          icon: 'share-alt' },
       ],
       model: null,
       models: {},
+      modelNotFound: null,
       extendWindow: false,
       currentShowComponent: '',
 
@@ -138,6 +153,9 @@ export default {
     EventBus.$on('showGemBrowser', () => {
       this.displayBrowser();
     });
+    EventBus.$on('showInteractionPartner', () => {
+      this.displayInterPartner();
+    });
 
     $('body').on('click', 'td m', function f() {
       if (!($(this).hasClass('cms'))) {
@@ -165,13 +183,23 @@ export default {
         return;
       }
       // but redirect even if the model url do not match the model loaded
-      if (this.$route.params.model && this.$route.params.model in this.models) {
-        this.selectModel(this.models[this.$route.params.model]);
+      if (this.$route.params.model) {
+        if (this.$route.params.model in this.models) {
+          this.selectModel(this.models[this.$route.params.model]);
+        } else {
+          this.modelNotFound = this.$route.params.model;
+          return;
+        }
+      } else {
+        this.model = this.models.human1;
       }
+      this.modelNotFound = null;
       if (['viewer', 'viewerCompartment', 'viewerCompartmentRea', 'viewerSubsystem', 'viewerSubsystemRea'].includes(this.$route.name)) {
         this.displayViewer();
-      } else if (this.$route.name === 'browser' || this.$route.name === 'browserRoot') {
+      } else if (['browserRoot', 'browser'].includes(this.$route.name)) {
         this.displayBrowser();
+      } else if (['interPartnerRoot', 'interPartner'].includes(this.$route.name)) {
+        this.displayInterPartner();
       } else {
         EventBus.$emit('destroy3Dnetwork');
         this.extendWindow = false;
@@ -187,9 +215,15 @@ export default {
             models[model.database_name] = model;
           });
           this.models = models;
-          let defaultModel = this.models.human1;
-          if (this.$route.params.model && this.$route.params.model in this.models) {
-            defaultModel = this.models[this.$route.params.model];
+          let defaultModel;
+          if (this.$route.params.model) {
+            if (this.$route.params.model in this.models) {
+              defaultModel = this.models[this.$route.params.model];
+            } else {
+              defaultModel = this.$route.params.model; // invalid model
+            }
+          } else {
+            defaultModel = this.models.human1;
           }
           this.selectModel(defaultModel);
           this.setup();
@@ -211,6 +245,10 @@ export default {
     displayViewer() {
       this.extendWindow = true;
       this.currentShowComponent = 'MapViewer';
+    },
+    displayInterPartner() {
+      this.extendWindow = false;
+      this.currentShowComponent = 'InteractionPartners';
     },
   },
 };

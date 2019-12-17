@@ -1,5 +1,5 @@
 <template>
-    <!-- eslint-disable max-len -->
+  <!-- eslint-disable max-len -->
   <section class="section section-no-top extended-section">
     <div class="container">
       <h2 class="title is-2">Documentation</h2>

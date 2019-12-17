@@ -1,7 +1,7 @@
 <template>
   <div id="metabolite-page">
     <div v-if="componentNotFound" class="columns is-centered">
-      <notFoundComponent component="metabolite" :componentID="mId"></notFoundComponent>
+      <notFound component="metabolite" :component-id="mId"></notFound>
     </div>
     <div v-else>
       <div class="columns">
@@ -74,7 +74,7 @@
         </div>
         <div class="column is-2-widescreen is-3-desktop is-full-tablet has-text-centered">
           <router-link class="button is-info is-fullwidth is-outlined"
-                       :to="{path: `/explore/gem-browser/${model.database_name}/interaction/${mId}`}">
+                       :to="{path: `/explore/interaction/${model.database_name}/${mId}`}">
             <span class="icon"><i class="fa fa-connectdevelop fa-lg"></i></span>&nbsp;
             <span>{{ messages.interPartName }}</span>
           </router-link>
@@ -92,7 +92,7 @@
 <script>
 import axios from 'axios';
 import Reactome from '@/components/explorer/gemBrowser/Reactome';
-import NotFoundComponent from './NotFoundComponent';
+import NotFound from '@/components/NotFound';
 import { chemicalFormula } from '../../../helpers/chemical-formatters';
 import { reformatTableKey, reformatStringToLink, addMassUnit, idfy } from '../../../helpers/utils';
 import { default as messages } from '../../../helpers/messages';
@@ -100,7 +100,7 @@ import { default as messages } from '../../../helpers/messages';
 export default {
   name: 'Metabolite',
   components: {
-    NotFoundComponent,
+    NotFound,
     Reactome,
   },
   props: {
