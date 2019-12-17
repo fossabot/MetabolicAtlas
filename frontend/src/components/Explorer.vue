@@ -1,7 +1,12 @@
 <template>
   <section :class="{ 'section extended-section' : !extendWindow }">
     <div :class="{ 'container': !extendWindow }">
-      <template v-if="currentShowComponent">
+      <template v-if="modelNotFound">
+        <div class="columns is-centered">
+          <notFound component="model" :component-id="modelNotFound"></notFound>
+        </div>
+      </template>
+      <template v-else-if="currentShowComponent">
         <keep-alive>
           <component :is="currentShowComponent" :model="model"></component>
         </keep-alive>
@@ -84,6 +89,7 @@ import $ from 'jquery';
 import GemBrowser from '@/components/explorer/GemBrowser';
 import MapViewer from '@/components/explorer/MapViewer';
 import InteractionPartners from '@/components/explorer/InteractionPartners';
+import NotFound from '@/components/NotFound';
 import { idfy } from '../helpers/utils';
 import { default as EventBus } from '../event-bus';
 import { default as messages } from '../helpers/messages';
@@ -94,6 +100,7 @@ export default {
     GemBrowser,
     MapViewer,
     InteractionPartners,
+    NotFound,
   },
   data() {
     return {
@@ -114,6 +121,7 @@ export default {
       ],
       model: null,
       models: {},
+      modelNotFound: null,
       extendWindow: false,
       currentShowComponent: '',
 
@@ -175,9 +183,17 @@ export default {
         return;
       }
       // but redirect even if the model url do not match the model loaded
-      if (this.$route.params.model && this.$route.params.model in this.models) {
-        this.selectModel(this.models[this.$route.params.model]);
+      if (this.$route.params.model) {
+        if (this.$route.params.model in this.models) {
+          this.selectModel(this.models[this.$route.params.model]);
+        } else {
+          this.modelNotFound = this.$route.params.model;
+          return;
+        }
+      } else {
+        this.model = this.models.human1;
       }
+      this.modelNotFound = null;
       if (['viewer', 'viewerCompartment', 'viewerCompartmentRea', 'viewerSubsystem', 'viewerSubsystemRea'].includes(this.$route.name)) {
         this.displayViewer();
       } else if (['browserRoot', 'browser'].includes(this.$route.name)) {
@@ -199,9 +215,15 @@ export default {
             models[model.database_name] = model;
           });
           this.models = models;
-          let defaultModel = this.models.human1;
-          if (this.$route.params.model && this.$route.params.model in this.models) {
-            defaultModel = this.models[this.$route.params.model];
+          let defaultModel;
+          if (this.$route.params.model) {
+            if (this.$route.params.model in this.models) {
+              defaultModel = this.models[this.$route.params.model];
+            } else {
+              defaultModel = this.$route.params.model; // invalid model
+            }
+          } else {
+            defaultModel = this.models.human1;
           }
           this.selectModel(defaultModel);
           this.setup();

@@ -3,10 +3,9 @@
     <div id="iMainPanel" class="columns">
       <template v-if="errorMessage">
         <div class="column">
-          <br><br>
           <div class="columns">
             <div class="column notification is-danger is-half is-offset-one-quarter has-text-centered">
-              {{ errorMessage }}
+              <p>{{ errorMessage }}</p>
             </div>
           </div>
         </div>
@@ -319,7 +318,8 @@ export default {
     });
   },
   beforeMount() {
-    this.setup();
+    // this.setup();
+    this.getSubComptData(this.model);
   },
   mounted() {
     // menu
@@ -353,14 +353,6 @@ export default {
     });
   },
   methods: {
-    setup() {
-      if (!this.model || this.model.database_name !== this.$route.params.model) {
-        EventBus.$emit('modelSelected', '');
-        this.errorMessage = `Error: ${messages.modelNotFound}`;
-        return;
-      }
-      this.getSubComptData(this.model);
-    },
     hideDropleftMenus() {
       $('#menu ul.l1, #menu ul.l2').hide();
     },

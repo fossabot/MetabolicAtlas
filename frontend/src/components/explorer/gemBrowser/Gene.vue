@@ -1,7 +1,7 @@
 <template>
   <div class="connected-metabolites">
     <div v-if="componentNotFound" class="columns is-centered">
-      <notFoundComponent component="gene" :componentID="eId"></notFoundComponent>
+      <notFound component="gene" :component-id="eId"></notFound>
     </div>
     <div v-else>
       <div class="container columns">
@@ -85,7 +85,7 @@
 
 <script>
 import axios from 'axios';
-import NotFoundComponent from './NotFoundComponent';
+import NotFound from '@/components/NotFound';
 import ReactionTable from '@/components/explorer/gemBrowser/ReactionTable';
 import Loader from '@/components/Loader';
 import { reformatTableKey } from '../../../helpers/utils';
@@ -94,7 +94,7 @@ import { default as messages } from '../../../helpers/messages';
 export default {
   name: 'Gene',
   components: {
-    NotFoundComponent,
+    NotFound,
     ReactionTable,
     Loader,
   },
