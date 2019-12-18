@@ -49,7 +49,7 @@
       </div>
       <div class="column is-2-widescreen is-3-desktop is-half-tablet has-text-centered">
         <maps-available :id="cName" :model="model" :type="'compartment'" :element-i-d="''"></maps-available>
-        <gem-contact :model="model.short_name" link="https://gitter.im/SysBioChalmers/Human-GEM" type="compartment"/>
+        <gem-contact :model="model.short_name" chat-link="https://gitter.im/SysBioChalmers/Human-GEM" type="compartment"/>
       </div>
     </div>
   </div>
@@ -60,7 +60,7 @@ import axios from 'axios';
 import Loader from '@/components/Loader';
 import NotFoundComponent from './NotFoundComponent';
 import MapsAvailable from '@/components/explorer/gemBrowser/MapsAvailable';
-import GemContact from '@/components/explorer/shared/GemContact';
+import GemContact from '@/components/shared/GemContact';
 import { reformatTableKey } from '../../../helpers/utils';
 
 export default {

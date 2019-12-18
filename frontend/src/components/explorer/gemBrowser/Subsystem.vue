@@ -74,7 +74,7 @@
       </div>
       <div class="column is-2-widescreen is-3-desktop is-half-tablet has-text-centered">
         <maps-available :id="sName" :model="model" :type="'subsystem'" :element-i-d="''"></maps-available>
-        <gem-contact :model="model.short_name" link="https://gitter.im/SysBioChalmers/Human-GEM" type="subsystem"/>
+        <gem-contact :model="model.short_name" chat-link="https://gitter.im/SysBioChalmers/Human-GEM" type="subsystem"/>
       </div>
     </div>
     <template v-if="!showLoader">
@@ -103,7 +103,7 @@ import Loader from '@/components/Loader';
 import NotFoundComponent from './NotFoundComponent';
 import MapsAvailable from '@/components/explorer/gemBrowser/MapsAvailable';
 import ReactionTable from '@/components/explorer/gemBrowser/ReactionTable';
-import GemContact from '@/components/explorer/shared/GemContact';
+import GemContact from '@/components/shared/GemContact';
 import { reformatTableKey, idfy } from '../../../helpers/utils';
 
 export default {
