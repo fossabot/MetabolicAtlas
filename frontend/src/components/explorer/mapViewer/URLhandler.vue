@@ -164,8 +164,7 @@ export default {
         }
 
         if (this.$route.name === 'viewerRoot') {
-          // ignore maps param, '_' the others
-          console.log('checkRoute viewerRoot stop');
+          // ignore maps param, set others to empty/default
           this.updateURL(false, false);
           return;
         }
@@ -184,9 +183,10 @@ export default {
 
         const searchTerm = this.URLparams.query.search === '_' ? '' : this.$route.query.search;
         const selectIDs = this.URLparams.query.sel === '_' ? [] : [this.URLparams.query.sel];
+        const coord = this.URLparams.query.coord === DEFAULT_COORD ? null : this.URLparams.query.coord;
 
         this.$nextTick(() => {
-          EventBus.$emit('showAction', this.URLparams.path.mapType, this.URLparams.path.mapName, searchTerm, selectIDs, this.URLparams.query.coord, false);
+          EventBus.$emit('showAction', this.URLparams.path.mapType, this.URLparams.path.mapName, searchTerm, selectIDs, coord, false);
         });
       }
     },
@@ -242,14 +242,20 @@ export default {
         // late update of the url
         return;
       }
-      console.log('call updateURL');
-      if (JSON.stringify(this.URLparams) === this.currentURLParamsJSON) {
+
+      if (this.URLparams.query && this.URLparams.query.prevent) {
+        delete this.URLparams.query.prevent;
+      }
+
+      if (JSON.stringify(this.URLparams) === this.currentURLParamsJSON
+        && (!this.$route.query || !this.$route.query.prevent)) {
         console.log('skip updateURL, no changes');
         return;
       }
 
       this.watchURL = false;
       let routeDict = null;
+
       if (this.$route.name === 'viewerRoot' && !newMapLoaded) {
         routeDict = {
           name: 'viewerRoot',
@@ -268,7 +274,6 @@ export default {
           query: this.URLparams.query,
         };
       }
-      console.log('new dict route', routeDict);
       if (replace) {
         this.$router.replace(routeDict).catch(() => {});
       } else {
