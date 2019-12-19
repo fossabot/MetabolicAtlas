@@ -82,7 +82,7 @@ export default {
     },
   },
   created() {
-    this.search = debounce(this.search, 1000);
+    this.search = debounce(this.search, 300);
   },
   methods: {
     reset() {
