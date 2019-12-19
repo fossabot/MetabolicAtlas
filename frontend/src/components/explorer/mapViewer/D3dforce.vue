@@ -71,6 +71,14 @@ export default {
           .addEventListener('change', this.updateURLCoord, false);
       }
     },
+    '$route': function watchSetup() { // eslint-disable-line quote-props
+      console.log('3D watchURL');
+      if (this.$route.name !== 'viewer') {
+        this.disableControlsListener = true;
+      } else {
+        this.disableControlsListener = false;
+      }
+    },
   },
   created() {
     EventBus.$off('show3Dnetwork');
