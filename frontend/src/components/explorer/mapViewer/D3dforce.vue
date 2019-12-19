@@ -53,7 +53,6 @@ export default {
       HPARNAlevels: {},
       defaultGeneColor: '#feb',
       tissue: 'None',
-      focusOnID: null,
       searchTerm: '',
 
       listenControl: false,
@@ -96,15 +95,10 @@ export default {
         name = 'cytosol'; // eslint-disable-line no-param-reassign
       }
       this.searchTerm = searchTerm;
-      // if (searchIDs && searchIDs.length === 1) {
-      //   this.focusOnID = searchIDs[0]; // eslint-disable-line prefer-destructuring
-      // } else {
-      //   // do not handle multiple ids for now;
-      //   this.focusOnID = null;
-      // }
       this.selectIDs = selectIDs.length !== 0 ? selectIDs : [];
       this.coords = coords !== '0,0,0,0,0,0' ? coords : null; // FIXME
       if (this.loadedComponentType !== type || this.loadedComponentName !== name) {
+        console.log('name diff +++');
         // reset some values
         this.selectElementID = null;
         this.selectElementIDfull = null;
@@ -112,9 +106,6 @@ export default {
         if (this.graph) {
           this.coords = null;
         }
-        console.log('build network');
-        console.log(this.loadedComponentType, type);
-        console.log(this.loadedComponentName, name);
         this.loadedComponentType = type;
         this.loadedComponentName = name;
         if (name in this.networkHistory) {
@@ -124,15 +115,13 @@ export default {
           this.graph.reloadHistory = true;
           this.network = this.networkHistory[name];
           this.graph.graphData(this.network);
+          this.graph.emitLoadComplete = true;
+          this.graph.skipLoadComplete = false;
         } else {
           this.getJson();
         }
       } else if (selectIDs.length !== 0 || this.searchTerm) {
         this.updateGeometries();
-        // get the first node matching
-        const nodes = this.graph.graphData().filter(n => n.id.split('-')[0] === this.focusOnID);
-        this.focusOnNode(nodes.length !== 0 ? nodes[0] : null);
-      } else {
         this.$emit('loadComplete', true, '');
       }
     });
@@ -173,6 +162,7 @@ export default {
             if (this.graph === null) {
               this.graph = {};
               this.graph.emitLoadComplete = true;
+              this.graph.skipLoadComplete = false;
               this.graph.resetCamera = true;
               this.constructGraph();
             } else {
@@ -230,36 +220,16 @@ export default {
             || !this.graph.reloadHistory) {
             this.networkHistory[this.loadedComponentName] = this.network;
           }
-          if (this.graph.resetCamera) {
-            this.graph.resetCamera = false;
-            this.resetCameraPosition();
-          }
           this.updateGraphBounds();
-          if (this.graph !== null
-            && this.graph.emitLoadComplete !== undefined
-            && !this.graph.emitLoadComplete) {
-            this.graph.emitLoadComplete = true;
-            console.log('emit 3D complete');
-            // this.graph.emitLoadComplete is used to prevent to emit multiple time 'loadComplete'
-            // which should be send only when the graph has been loaded for the first time
-            // the value is reset to true, so if not specify to false, the event will be emited
-            // e.g. when reusing the history
-          } else if (this.graph.graphData().nodes.length !== 0) {
+          if (this.graph.graphData().nodes.length !== 0) {
             if (this.coords) {
               const coords = this.coords.split(',').map(v => parseFloat(v));
               this.moveCameraPosition(coords[0], coords[1], coords[2], coords[3], coords[4], coords[5]);
-              // clear coords, programmatic move is only performed once
+              // clear var coords, auto move should be only performed once
               this.coords = null;
-            } else {
-              console.log('no coord provided');
+            } else if (this.graph.emitLoadComplete) {
               EventBus.$emit('update_url_coord', 0, 0, 0, 0, 0, 0);
             }
-            this.$emit('loadComplete', true, '');
-            console.log(this.graph.camera());
-          }
-          if (this.focusOnID) {
-            const nodes = this.graph.graphData().filter(n => n.id.split('-')[0] === this.focusOnID);
-            this.focusOnNode(nodes.length !== 0 ? nodes[0] : null);
           }
           if (this.selectIDs.length !== 0 && this.selectIDs[0] !== this.selectElementID) {
             let node = this.graph.graphData().nodes.filter(n => n.id.split('-')[0].toLowerCase() === this.selectIDs[0].toLowerCase());
@@ -270,6 +240,18 @@ export default {
           if (this.searchTerm) {
             this.$refs.mapsearch.search(this.searchTerm);
             this.searchTerm = '';
+          } else if (this.graph.resetCamera) {
+            this.graph.resetCamera = false;
+            this.resetCameraPosition();
+          }
+          if (this.graph !== null && (this.graph.emitLoadComplete || !this.graph.skipLoadComplete)) {
+            // .emitLoadComplete is forced to true when the show3D map is called
+            // .skipLoadComplete is set to true when the graph should be just re-rendered
+            this.$emit('loadComplete', true, '');
+            console.log('EMIT COMPLETE');
+            this.graph.emitLoadComplete = false;
+          } else {
+            this.graph.skipLoadComplete = false;
           }
           console.log('end onEngineStop');
         });
@@ -290,11 +272,9 @@ export default {
         this.disableControlsListener = false;
         return;
       }
+      console.log('here ---');
       const pos = ev.target.object.position; // eslint-disable-line no-unused-vars
       const { lookAt } = this.graph.cameraPosition(); // eslint-disable-line no-unused-vars
-
-      // const { target } = v.controls();
-      console.log('loadedComponentName', this.loadedComponentName);
       EventBus.$emit('update_url_coord', pos.x, pos.y, pos.z, lookAt.x, lookAt.y, lookAt.z);
     },
     downloadPNG() {
@@ -307,10 +287,8 @@ export default {
       });
     },
     searchIDsOnGraph(ids) {
-      console.log('searchIDsOnGraph', ids);
       this.searchIDsSet = new Set(ids);
       this.searchedNodesOnGraph = this.graph.graphData().nodes.filter(n => this.searchIDsSet.has(n.id.split('-')[0]));
-      console.log('searchedNodesOnGraph', this.searchedNodesOnGraph.length);
       this.focusOnNode(this.searchedNodesOnGraph.length !== 0 ? this.searchedNodesOnGraph[0] : null);
       this.updateGeometries();
     },
@@ -376,14 +354,6 @@ export default {
       if (!node) {
         return;
       }
-      this.focusOnID = null;
-      // this.unSelectElement();
-      // let node = this.network.nodes.filter(n => n.id.toLowerCase() === id.toLowerCase());
-      // if (node.length !== 1) {
-      //   return;
-      // }
-      // node = node[0]; // eslint-disable-line prefer-destructuring
-      // this.selectElement(node);
       const np = node.__threeObj.position; // eslint-disable-line no-underscore-dangle
       setTimeout(() => {
         const distance = 300;
@@ -413,8 +383,9 @@ export default {
     },
     updateGeometries() {
       // function to (fast?) re-render the graph
-      // set .emitLoadComplete to false avoid the emit of 'loadComplete'
-      this.graph.emitLoadComplete = false;
+      // set .skipLoadComplete to true avoid the emit of 'loadComplete'
+      // but works only if .emitLoadComplete is set to false
+      this.graph.skipLoadComplete = true;
       this.graph.nodeRelSize(4);
     },
     applyHPARNAlevelsOnMap(RNAlevels) {
