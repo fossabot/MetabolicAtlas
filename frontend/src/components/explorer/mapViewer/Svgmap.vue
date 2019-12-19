@@ -485,7 +485,7 @@ export default {
       for (const el of nodes) { // eslint-disable-line no-restricted-syntax
         $(el).addClass(className);
         elmsSelected.push(el);
-        if (el.hasClass('rea')) {
+        if (el.hasClass('rea') && className === 'selhl') {
           const selectors = `#svg-wrapper .met.${el.attr('id')}`;
           const elms = $(selectors);
           for (const con of elms) { // eslint-disable-line no-restricted-syntax
