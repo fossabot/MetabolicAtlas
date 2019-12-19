@@ -273,6 +273,22 @@ export default {
         EventBus.$emit('update_url_coord', null);
       }
     },
+    processSelSearchParam() {
+      // unselect
+      this.selectedElementID = null;
+      this.unHighlight(this.searchedElemsHL, 'schhl');
+      this.unHighlight(this.selectedElemsHL, 'selhl');
+      if (this.searchTerm) {
+        this.$refs.mapsearch.search(this.searchTerm);
+      } else if (this.coords) {
+        const coords = this.coords.split(',');
+        this.restoreMapPosition(coords[0], coords[1], coords[2]);
+        this.coords = null;
+      }
+      // selection (sidebar), get the first node with this id
+      const elms = this.findElementsOnSVG(this.selectIDs);
+      this.selectElement(elms[0] || null);
+    },
     loadSvgPanZoom() {
       // load the lib svgPanZoom on the SVG loaded
       if (!this.$panzoom) {
@@ -310,21 +326,7 @@ export default {
         });
         this.$panzoom.on('panzoomchange', (e, v, o) => this.updateURLCoord(e, v, o));
 
-        // unselect
-        this.selectedElementID = null;
-        this.unHighlight(this.searchedElemsHL, 'schhl');
-        this.unHighlight(this.selectedElemsHL, 'selhl');
-        if (this.searchTerm) {
-          this.$refs.mapsearch.search(this.searchTerm);
-        } else if (this.coords) {
-          console.log('restore URL coords');
-          const coords = this.coords.split(',');
-          this.restoreMapPosition(coords[0], coords[1], coords[2]);
-          this.coords = null;
-        }
-        // selection (sidebar), get the first node with this id
-        const elms = this.findElementsOnSVG(this.selectIDs);
-        this.selectElement(elms[0] || null);
+        this.processSelSearchParam();
         this.$emit('loadComplete', true, '');
       }, 0);
     },
@@ -371,6 +373,7 @@ export default {
         }
       } else {
         this.loadedMap = mapInfo;
+        this.processSelSearchParam();
         this.$emit('loadComplete', true, '');
       }
     },

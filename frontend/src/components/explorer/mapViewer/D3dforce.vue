@@ -103,7 +103,7 @@ export default {
       //   this.focusOnID = null;
       // }
       this.selectIDs = selectIDs.length !== 0 ? selectIDs : [];
-      this.coords = coords !== '0,0,0,0,0,0,0,0,0,0,0,0' ? coords : null; // FIXME
+      this.coords = coords !== '0,0,0,0,0,0' ? coords : null; // FIXME
       if (this.loadedComponentType !== type || this.loadedComponentName !== name) {
         // reset some values
         this.selectElementID = null;
@@ -127,8 +127,8 @@ export default {
         } else {
           this.getJson();
         }
-      } else if (this.focusOnID) {
-        this.graph.emitLoadComplete = true;
+      } else if (selectIDs.length !== 0 || this.searchTerm) {
+        this.updateGeometries();
         // get the first node matching
         const nodes = this.graph.graphData().filter(n => n.id.split('-')[0] === this.focusOnID);
         this.focusOnNode(nodes.length !== 0 ? nodes[0] : null);
