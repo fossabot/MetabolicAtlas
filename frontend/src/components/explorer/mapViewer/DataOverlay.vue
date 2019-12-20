@@ -42,7 +42,8 @@
         <div class="control">
           <p>RNA levels from <a href="https://www.proteinatlas.org" target="_blank">proteinAtlas.org</a></p>
           <div class="select is-fullwidth">
-            <select v-model="HPATissue1" @change="setFirstTissue('HPA')">
+            <select v-model="HPATissue1" @change="setFirstTissue('HPA')"
+                    :disabled="disabledRNAlvl">
               <option>None</option>
               <option v-for="tissue in HPATissues" :key="tissue"
                       class="clickable is-capitalized">{{ tissue }}</option>
@@ -70,7 +71,8 @@
         <div class="control">
           <p>RNA levels from <a href="https://www.proteinatlas.org" target="_blank">proteinAtlas.org</a></p>
           <div class="select is-fullwidth">
-            <select v-model="HPATissue2" @change="setSecondTissue('HPA')">
+            <select v-model="HPATissue2" @change="setSecondTissue('HPA')"
+                    :disabled="disabledRNAlvl">
               <option>None</option>
               <option v-for="tissue in HPATissues" :key="tissue"
                       class="clickable is-capitalized">{{ tissue }}</option>
