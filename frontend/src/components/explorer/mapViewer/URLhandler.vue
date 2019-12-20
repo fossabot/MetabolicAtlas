@@ -32,67 +32,40 @@ export default {
       URLparams: { path: {}, query: {} },
     };
   },
-  computed: {
-    // URLparams() {
-    //   console.log('recomputed url parans');
-    //   return {
-    //     path: {
-    //       mapType: this.mapType,
-    //       mapName: this.mapName,
-    //     },
-    //     query: {
-    //       dim: this.dim ? this.dim : '2d',
-    //       panel: this.panel ? '1' : '0',
-    //       sel: this.sel ? this.sel.id : EMPTY_PARAM,
-    //       search: this.search ? this.search : EMPTY_PARAM,
-    //       coord: this.coord,
-    //       g1: this.g1 ? idfy(this.g1) : EMPTY_PARAM,
-    //       g2: this.g2 ? idfy(this.g2) : EMPTY_PARAM,
-    //     },
-    //   };
-    // },
-  },
   watch: {
     /* eslint-disable quote-props */
     '$route': function watchSetup() {
       if (this.watchURL) {
-        console.log('checkRoute watchURL');
         this.checkRoute();
       } else {
         this.watchURL = true;
       }
     },
     mapType: function f(v) {
-      console.log('watch mapType change', v);
       if (v != null) {
         this.URLparams.path.mapType = v || null;
         this.updateURL(false, true);
       }
     },
     mapName: function f(v) {
-      console.log('watch mapName change', v);
       if (v != null) {
         this.URLparams.path.mapName = v || null;
         this.updateURL(false, true);
       }
     },
     dim: function f(v) {
-      console.log('watch dim change', v);
       this.URLparams.query.dim = v || '2d';
       if (!this.preventDimUpdate) {
         this.updateURL(false, false);
       } else {
-        console.log('watch dim ignored');
         this.preventDimUpdate = false;
       }
     },
     panel: function f(v) {
-      console.log('watch panel change', v);
       this.URLparams.query.panel = v ? '1' : '0';
       this.updateURL(true, false);
     },
     sel: function f(v) {
-      console.log('watch sel change', v);
       this.URLparams.query.sel = v ? v.id : EMPTY_PARAM;
       this.updateURL(true, false);
     },
@@ -104,13 +77,11 @@ export default {
     EventBus.$off('update_url_g1');
     EventBus.$off('update_url_g2');
 
-    EventBus.$on('checkRoute', (v) => {
-      console.log('here event checkRoute', v);
+    EventBus.$on('checkRoute', () => {
       this.checkRoute();
     });
 
     EventBus.$on('update_url_coord', (x, y, z, lx, ly, lz) => {
-      console.log('update_url_coord', x, y, z, lx, ly, lz);
       if (x === null) {
         this.URLparams.query.coord = DEFAULT_COORD;
       } else {
@@ -120,7 +91,6 @@ export default {
     });
 
     EventBus.$on('update_url_search', (search) => {
-      console.log('update_url_search', search);
       if (!search) {
         this.URLparams.query.search = EMPTY_PARAM;
       } else {
@@ -130,7 +100,6 @@ export default {
     });
 
     EventBus.$on('update_url_g1', (tissue) => {
-      console.log('update_url_g1', tissue);
       if (!tissue) {
         this.URLparams.query.g1 = EMPTY_PARAM;
       } else {
@@ -140,7 +109,6 @@ export default {
     });
 
     EventBus.$on('update_url_g2', (tissue) => {
-      console.log('update_url_g2', tissue);
       if (!tissue) {
         this.URLparams.query.g2 = EMPTY_PARAM;
       } else {
@@ -150,48 +118,47 @@ export default {
     });
   },
   methods: {
+    isValidRoute() {
+      return ['viewer', 'viewerRoot'].includes(this.$route.name);
+    },
     checkRoute() {
       // read the route parameters, validate, load the map or call function to process the parameters
-      console.log('checkRoute');
-      // load maps from url if contains map_id, the URL
-      if (['viewerRoot', 'viewer'].includes(this.$route.name)) {
-        this.getURLParameters(this.$route);
-        console.log('URLparams2', this.URLparams);
-        if (this.$route.query.prevent) { // TODO remove?
-          console.log('checkRoute prevent');
-          this.updateURL(true, true);
-          return;
-        }
-
-        if (this.$route.name === 'viewerRoot') {
-          // ignore maps param, set others to empty/default
-          this.updateURL(false, false);
-          return;
-        }
-
-        if (this.dim !== this.URLparams.query.dim) {
-          // updating the url twice (first on map change) is breaking the path
-          this.preventDimUpdate = true;
-          EventBus.$emit('changeDimension');
-        }
-
-        if ((this.panel && this.URLparams.query.panel === '0')
-            || (!this.panel && this.URLparams.query.panel === '1')) {
-          // TOTO prevent url update?
-          EventBus.$emit('togglePanel');
-        }
-
-        const searchTerm = this.URLparams.query.search === '_' ? '' : this.$route.query.search;
-        const selectIDs = this.URLparams.query.sel === '_' ? [] : [this.URLparams.query.sel];
-        const coord = this.URLparams.query.coord === DEFAULT_COORD ? null : this.URLparams.query.coord;
-
-        this.$nextTick(() => {
-          EventBus.$emit('showAction', this.URLparams.path.mapType, this.URLparams.path.mapName, searchTerm, selectIDs, coord, false);
-        });
+      if (!this.isValidRoute()) {
+        return;
       }
+
+      this.getURLParameters(this.$route);
+      if (this.$route.query.prevent) {
+        this.updateURL(true, true);
+        return;
+      }
+
+      if (this.$route.name === 'viewerRoot') {
+        // ignore maps param, set others to empty/default
+        this.updateURL(false, false);
+        return;
+      }
+
+      if (this.dim !== this.URLparams.query.dim) {
+        // updating the url twice (first on map change) is breaking the path
+        this.preventDimUpdate = true;
+        EventBus.$emit('changeDimension');
+      }
+
+      if ((this.panel && this.URLparams.query.panel === '0')
+          || (!this.panel && this.URLparams.query.panel === '1')) {
+        EventBus.$emit('togglePanel');
+      }
+
+      const searchTerm = this.URLparams.query.search === '_' ? null : this.$route.query.search;
+      const selectIDs = this.URLparams.query.sel === '_' ? null : [this.URLparams.query.sel];
+      const coord = this.URLparams.query.coord === DEFAULT_COORD ? null : this.URLparams.query.coord;
+
+      this.$nextTick(() => {
+        EventBus.$emit('showAction', this.URLparams.path.mapType, this.URLparams.path.mapName, searchTerm, selectIDs, coord, false);
+      });
     },
     getURLParameters(route) {
-      console.log('call getURLParamters');
       // valid some of the route parameters, set to default value if invalid
       if (route.name === 'viewer') {
         this.URLparams.path.mapType = this.$route.params.type;
@@ -233,13 +200,12 @@ export default {
       }
 
       if (this.URLparams.query.g1 !== EMPTY_PARAM) {
-        // always open the panel is tissue in url
+        // always open the panel if g1/g2 set in url
         this.URLparams.query.panel = '1';
       }
     },
     updateURL(replace, newMapLoaded = false) {
-      if (!['viewer', 'viewerRoot'].includes(this.$route.name)) {
-        // late update of the url
+      if (!this.isValidRoute()) {
         return;
       }
 
@@ -249,7 +215,6 @@ export default {
 
       if (JSON.stringify(this.URLparams) === this.currentURLParamsJSON
         && (!this.$route.query || !this.$route.query.prevent)) {
-        console.log('skip updateURL, no changes');
         return;
       }
 

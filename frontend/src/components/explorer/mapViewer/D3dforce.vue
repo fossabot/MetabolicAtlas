@@ -49,6 +49,7 @@ export default {
       searchedNodesOnGraph: [],
 
       coords: null,
+      staticSearch: false,
 
       HPARNAlevels: {},
       defaultGeneColor: '#feb',
@@ -61,7 +62,6 @@ export default {
   },
   watch: {
     graph(v) {
-      console.log('graph changed -=========');
       if (v === null) {
         this.listenControl = false;
       } else if (!this.listenControl) {
@@ -71,12 +71,7 @@ export default {
       }
     },
     '$route': function watchSetup() { // eslint-disable-line quote-props
-      console.log('3D watchURL');
-      if (this.$route.name !== 'viewer') {
-        this.disableControlsListener = true;
-      } else {
-        this.disableControlsListener = false;
-      }
+      this.disableControlsListener = this.$route.name !== 'viewer';
     },
   },
   created() {
@@ -87,7 +82,7 @@ export default {
     EventBus.$off('recompute3DCanvasBounds');
 
     EventBus.$on('show3Dnetwork', (type, name, searchTerm, selectIDs, coords, force) => {
-      console.log('show3Dnetwork', type, name, searchTerm, selectIDs, coords, force);
+      // console.log('show3Dnetwork', type, name, searchTerm, selectIDs, coords, force);
       if (force) {
         this.loadedComponentName = null;
       }
@@ -95,10 +90,9 @@ export default {
         name = 'cytosol'; // eslint-disable-line no-param-reassign
       }
       this.searchTerm = searchTerm;
-      this.selectIDs = selectIDs.length !== 0 ? selectIDs : [];
-      this.coords = coords !== '0,0,0,0,0,0' ? coords : null; // FIXME
+      this.selectIDs = selectIDs || [];
+      this.coords = coords !== '0,0,0,0,0,0' ? coords : null; // FIXME duplicated '0,0,0,0,0,0'
       if (this.loadedComponentType !== type || this.loadedComponentName !== name) {
-        console.log('name diff +++');
         // reset some values
         this.selectElementID = null;
         this.selectElementIDfull = null;
@@ -109,7 +103,6 @@ export default {
         this.loadedComponentType = type;
         this.loadedComponentName = name;
         if (name in this.networkHistory) {
-          console.log('from history ===');
           this.$emit('loading');
           this.graph.resetCamera = true;
           this.graph.reloadHistory = true;
@@ -199,7 +192,7 @@ export default {
             return 'red';
           }
           if (this.searchIDsSet.size !== 0 && this.searchIDsSet.has(partialID)) {
-            return 'blue';
+            return 'orange'; // FIXME should be 'border orange' not 'fill orange'
           }
           if (n.g === 'e') {
             if (Object.keys(this.HPARNAlevels).length === 0) {
@@ -221,26 +214,31 @@ export default {
             this.networkHistory[this.loadedComponentName] = this.network;
           }
           this.updateGraphBounds();
-          if (this.graph.graphData().nodes.length !== 0) {
-            if (this.coords) {
-              const coords = this.coords.split(',').map(v => parseFloat(v));
-              this.moveCameraPosition(coords[0], coords[1], coords[2], coords[3], coords[4], coords[5]);
-              // clear var coords, auto move should be only performed once
-              this.coords = null;
-            } else if (this.graph.emitLoadComplete) {
-              EventBus.$emit('update_url_coord', 0, 0, 0, 0, 0, 0);
-            }
-          }
           if (this.selectIDs.length !== 0 && this.selectIDs[0] !== this.selectElementID) {
-            let node = this.graph.graphData().nodes.filter(n => n.id.split('-')[0].toLowerCase() === this.selectIDs[0].toLowerCase());
-            node = node[0]; // eslint-disable-line prefer-destructuring
+            this.selectElement(
+              this.graph.graphData().nodes.find(
+                n => n.id.split('-')[0].toLowerCase() === this.selectIDs[0].toLowerCase()
+              )
+            );
             this.selectIDs = [];
-            this.selectElement(node);
           }
+
+          if (this.coords) {
+            this.moveCameraPosition.apply(
+              null, this.coords.split(',').map(v => parseFloat(v)));
+            // clear var coords, auto move should be only performed once
+            this.coords = null;
+            this.staticSearch = true;
+          } else if (this.graph.emitLoadComplete) {
+            EventBus.$emit('update_url_coord', 0, 0, 0, 0, 0, 0);
+          }
+
           if (this.searchTerm) {
             this.$refs.mapsearch.search(this.searchTerm);
             this.searchTerm = '';
-          } else if (this.graph.resetCamera) {
+          }
+
+          if (this.graph.resetCamera) {
             this.graph.resetCamera = false;
             this.resetCameraPosition();
           }
@@ -248,19 +246,17 @@ export default {
             // .emitLoadComplete is forced to true when the show3D map is called
             // .skipLoadComplete is set to true when the graph should be just re-rendered
             this.$emit('loadComplete', true, '');
-            console.log('EMIT COMPLETE');
             this.graph.emitLoadComplete = false;
           } else {
             this.graph.skipLoadComplete = false;
           }
-          console.log('end onEngineStop');
         });
     },
     updateGraphBounds() {
       setTimeout(() => {
         if (this.$refs.graphParent && this.$refs.graphParent.offsetParent) {
-          const width = this.$refs.graphParent.offsetParent.offsetWidth; // FIXME
-          const height = this.$refs.graphParent.offsetParent.offsetHeight; // FIXME
+          const width = this.$refs.graphParent.offsetParent.offsetWidth;
+          const height = this.$refs.graphParent.offsetParent.offsetHeight;
           if (this.graph.width() !== width || this.graph.height() !== height) {
             this.graph.width(width).height(height);
           }
@@ -272,9 +268,9 @@ export default {
         this.disableControlsListener = false;
         return;
       }
-      console.log('here ---');
       const pos = ev.target.object.position; // eslint-disable-line no-unused-vars
       const { lookAt } = this.graph.cameraPosition(); // eslint-disable-line no-unused-vars
+      // FIXME invalid coor, lookAt seems correct but the camera rotation point is not
       EventBus.$emit('update_url_coord', pos.x, pos.y, pos.z, lookAt.x, lookAt.y, lookAt.z);
     },
     downloadPNG() {
@@ -289,7 +285,10 @@ export default {
     searchIDsOnGraph(ids) {
       this.searchIDsSet = new Set(ids);
       this.searchedNodesOnGraph = this.graph.graphData().nodes.filter(n => this.searchIDsSet.has(n.id.split('-')[0]));
-      this.focusOnNode(this.searchedNodesOnGraph.length !== 0 ? this.searchedNodesOnGraph[0] : null);
+      if (!this.staticSearch && this.searchedNodesOnGraph.length !== 0) {
+        this.focusOnNode(this.searchedNodesOnGraph[0]);
+      }
+      this.staticSearch = false;
       this.updateGeometries();
     },
     getElementIdAndType(element) {
@@ -306,7 +305,6 @@ export default {
       }
       const [id, type] = this.getElementIdAndType(element);
       if (this.selectElementID === id) {
-        console.log('call unselect 3d SE');
         this.unSelectElement();
         this.updateGeometries();
         return;
@@ -376,7 +374,6 @@ export default {
         { x: lx, y: ly, z: lz }, // lookAt ({ x, y, z })
         0 // ms transition duration
       );
-      console.log(this.graph.camera());
     },
     resetCameraPosition() {
       this.moveCameraPosition(0, 0, Math.cbrt(this.graph.graphData().nodes.length) * 150);
@@ -395,11 +392,7 @@ export default {
         EventBus.$emit('loadRNAComplete', true, '');
       }
     },
-    highlight(elements, className) {
-      console.log(elements, className);
-    },
-    unHighlight(elements, className) {
-      console.log(elements, className);
+    unHighlight() {
       this.searchIDsSet = new Set();
       this.searchedNodesOnGraph = [];
       this.updateGeometries();

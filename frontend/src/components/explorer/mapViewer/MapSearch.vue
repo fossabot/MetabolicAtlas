@@ -37,7 +37,7 @@ export default {
   name: 'MapSearch',
   props: {
     model: Object,
-    matches: Array, // list of match objects on the map/graph
+    matches: Array, // list of matched objects on the map/graph
     ready: Boolean,
     fullscreen: Boolean,
   },
@@ -60,7 +60,7 @@ export default {
   watch: {
     searchTerm() {
       if (!this.searchTerm) {
-        this.unHighlightAll();
+        this.$emit('unHighlightAll', this.matches, 'schhl');
         this.totalSearchMatch = 0;
         this.currentSearchMatch = 0;
         this.searchInputClass = 'is-info';
@@ -70,7 +70,6 @@ export default {
       this.haveSearched = false;
     },
     matches() {
-      console.log('this.matches', this.matches);
       if (!this.matches || this.matches.length === 0) {
         this.searchInputClass = this.haveSearched ? 'is-danger' : 'is-info';
         this.totalSearchMatch = 0;
@@ -107,26 +106,21 @@ export default {
         return;
       }
       // get the IDs from the backend, then search in the SVG
-      // this.unHighlight();
       this.isSearching = true;
-      console.log('search term', this.searchTerm);
       axios.get(`${this.model.database_name}/get_id/${this.searchTerm}`)
         .then((response) => {
-          console.log('search response');
           // results are on the model, but may not be on the displayed map/network!
           this.idsFound = response.data;
           this.totalSearchMatch = 0;
           this.currentSearchMatch = 0;
         })
-        .catch((err) => {
-          console.log(err);
+        .catch(() => {
           this.searchInputClass = 'is-danger';
         })
         .then(() => {
           this.isSearching = false;
           this.haveSearched = true;
           this.prevSearchTerm = this.searchTerm;
-          console.log('emit idsFound', this.idsFound);
           this.$emit('searchOnMap', this.idsFound); // let the view call its own search function
           EventBus.$emit('update_url_search', this.searchTerm);
         });
@@ -142,9 +136,6 @@ export default {
         this.currentSearchMatch = 0;
       }
       this.$emit('centerViewOn', this.matches[this.currentSearchMatch]);
-    },
-    unHighlightAll() {
-      this.$emit('unHighlightAll', this.matches, 'schhl');
     },
     setSearchTerm(term) {
       this.searchTerm = term;

@@ -153,7 +153,6 @@ export default {
         });
     },
     loadHPAlevels(tissue, dim, index, callback) {
-      // todo : not fetch when tissue is none?
       if (this.mapName in this.HPARNAlevelsHistory && dim in this.HPARNAlevelsHistory[this.mapName]) {
         this.parseHPARNAlevels(tissue, dim, index, callback);
         return;

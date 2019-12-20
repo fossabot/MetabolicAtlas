@@ -193,7 +193,7 @@ export default {
     return {
       errorMessage: '',
       loadErrorMesssage: '',
-      loadErrorTypeMesssage: 'danger', // or info
+      loadErrorTypeMesssage: 'danger', // or 'info'
       showOverviewScreen: true,
       show2D: true,
       show3D: false,
@@ -260,7 +260,7 @@ export default {
     EventBus.$off('loadRNAComplete');
 
     EventBus.$on('showAction', (type, name, searchTerm, selectIDS, coords, forceReload) => {
-      console.log('on showAction', type, name, searchTerm, selectIDS, coords, forceReload);
+      // console.log('on showAction', type, name, searchTerm, selectIDS, coords, forceReload);
       if (this.showLoader) {
         return;
       }
@@ -348,41 +348,32 @@ export default {
     },
     toggleDataOverlayPanel() {
       this.showDataOverlayPanel = !this.showDataOverlayPanel;
-      // this.updateURL();
       if (this.show3D) {
         // fix the 3D canvas size when open/close dataOverlay
         EventBus.$emit('recompute3DCanvasBounds');
       }
     },
     switchDimension() {
-      if (!this.activeSwitch) {
-        return;
-      }
-      this.show3D = !this.show3D;
-      this.show2D = !this.show2D;
-      // TODO
-      // this.selectedElement = null;
-      // this.selectionData.data = null;
-      if (!this.currentDisplayedType || !this.currentDisplayedName) {
+      if (!this.activeSwitch || !this.currentDisplayedType || !this.currentDisplayedName) {
         return;
       }
 
       if (!this.checkValidRequest(this.currentDisplayedType, this.currentDisplayedName)) {
         this.showMessage(messages.mapNotFound, 'info');
-        this.show3D = !this.show3D;
-        this.show2D = !this.show2D;
         return;
       }
 
-      // TODO FIXME duplicate with URLhandle checkRoute
-      const searchTerm = this.$route.query.search === '_' ? '' : this.$route.query.search;
-      const selectIDs = this.$route.query.sel === '_' ? [] : [this.$route.query.sel];
+      this.show3D = !this.show3D;
+      this.show2D = !this.show2D;
+
+      // FIXME '_' duplicate with URLhandle
+      const searchTerm = this.$route.query.search === '_' ? null : this.$route.query.search;
+      const selectIDs = this.$route.query.sel === '_' ? null : [this.$route.query.sel];
       // coord is not maintained and set to null
 
       if (this.show3D) {
         EventBus.$emit('show3Dnetwork', this.requestedType, this.requestedName, searchTerm, selectIDs, null, true);
       } else {
-        EventBus.$emit('destroy3Dnetwork'); // TODO remove?
         EventBus.$emit('showSVGmap', this.requestedType, this.requestedName, searchTerm, selectIDs, null, true);
       }
     },
@@ -397,9 +388,6 @@ export default {
       this.showOverviewScreen = false;
       this.currentDisplayedType = this.requestedType;
       this.currentDisplayedName = this.requestedName;
-      if (this.show2D) {
-        EventBus.$emit('update3DLoadedComponent', null, null); // reset 3d viewer param
-      }
       this.showLoader = false;
       this.$nextTick(() => {
         EventBus.$emit('reloadGeneExpressionData');
@@ -488,14 +476,13 @@ export default {
       return this.requestedName in this.mapsData3D.subsystems;
     },
     showMap(compartmentOrSubsystemID, type = 'compartment') {
-      console.log('call show map - clear selection ------');
       this.selectionData.data = null;
-      // this.currentDisplayedName = null;
-      // this.currentDisplayedType = null;
       this.hideDropleftMenus();
       if (compartmentOrSubsystemID) {
         EventBus.$emit('showAction', type, compartmentOrSubsystemID, '', [], null, false);
       } else {
+        this.currentDisplayedType = '';
+        this.currentDisplayedName = '';
         this.showOverviewScreen = true;
         this.$router.push({ name: 'viewerRoot', params: { model: this.model.database_name } });
       }

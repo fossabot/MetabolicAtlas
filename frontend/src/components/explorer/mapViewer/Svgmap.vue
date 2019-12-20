@@ -121,7 +121,7 @@ export default {
     EventBus.$off('destroy2Dnetwork');
 
     EventBus.$on('showSVGmap', (type, name, searchTerm, selectIDs, coords, forceReload) => {
-      console.log('showSVGmap', type, name, searchTerm, selectIDs, coords, forceReload);
+      // console.log('showSVGmap', type, name, searchTerm, selectIDs, coords, forceReload);
       if (forceReload) {
         this.svgName = '';
       }
@@ -254,22 +254,14 @@ export default {
       this.zoomToValue(zoom);
     },
     updateURLCoord(e, v, o) { // eslint-disable-line no-unused-vars
-      console.log('panzoomchange');
       const zoom = parseFloat(o[0]);
-      // console.log('zoom', this.mapPos.zoom);
       const panX = -parseFloat(o[4]);
-      // console.log('panX', panX);
       const panY = -parseFloat(o[5]);
-      // console.log('panY', panY);
-      // this.mapPos.x = panX;
-      // console.log('svgX', this.mapPos.x);
-      // this.mapPos.y = panY;
-      // console.log('svgY', this.mapPos.y);
-      // console.log('ratio', panX * this.mapPos.zoom, panY * this.mapPos.zoom);
-      // console.log('ratio', (this.mapPos.x / this.mapPos.y), (this.mapPos.y / this.mapPos.x));
+      // FIXME invalid coord
       if (panX !== 0 || panY !== 0 || zoom !== 1) {
         EventBus.$emit('update_url_coord', panX, panY, zoom, 0, 0, 0);
       } else {
+        // weird case, happening when a the map is freshly loaded
         EventBus.$emit('update_url_coord', null);
       }
     },
@@ -312,9 +304,6 @@ export default {
             clientY: this.clientFocusY(),
           },
         });
-        // console.log(-focusX, -focusY, 1 - minZoomScale, '|', this.clientFocusX(), this.clientFocusY(), this.currentZoomScale);
-        // console.log(this.$panzoom.getPan());
-        // console.log(this.$panzoom.getScale());
         this.$panzoom.on('mousewheel.focal', (e) => {
           e.preventDefault();
           const delta = e.delta || e.originalEvent.wheelDelta;
@@ -413,20 +402,16 @@ export default {
       EventBus.$emit('loadRNAComplete', true, '');
     },
     searchIDsOnMap(ids) {
-      console.log('call searchIDsOnMap');
       this.unHighlight(this.searchedElemsHL, 'schhl');
       this.searchedNodesOnMap = [];
-      console.log('this.searchTerm', this.searchTerm);
       if (ids) {
         this.searchIDs = ids;
       }
-      console.log('this.searchIds', this.searchIDs);
       if (this.searchIDs.length !== 0) {
         this.searchedNodesOnMap = this.findElementsOnSVG(this.searchIDs);
         if (this.searchedNodesOnMap.length !== 0) {
           this.searchedElemsHL = this.highlight(this.searchedNodesOnMap, 'schhl');
           if (this.coords) {
-            console.log('restore URL coords');
             const coords = this.coords.split(',');
             this.restoreMapPosition(coords[0], coords[1], coords[2]);
             this.coords = null;
@@ -437,7 +422,6 @@ export default {
       }
     },
     findElementsOnSVG(IDs) {
-      console.log('call findElementsOnSVG', IDs);
       const elmsOnMap = [];
       for (let i = 0; i < IDs.length; i += 1) {
         const id = IDs[i].trim();
@@ -451,7 +435,6 @@ export default {
           elmsOnMap.push($(elms[j]));
         }
       }
-      // reset idFounds ? TODO
       return elmsOnMap;
     },
     centerElementOnSVG(element) {
@@ -464,8 +447,6 @@ export default {
       if (!coords) {
         return;
       }
-      console.log('elem coorX', coords[4] - ($('.svgbox').width() / 2));
-      console.log('elem coorY', coords[5] - ($('.svgbox').height() / 2));
       this.panToCoords(coords[4], coords[5]);
     },
     getSvgElemCoordinates(el) {
@@ -480,7 +461,6 @@ export default {
       return null;
     },
     highlight(nodes, className) {
-      console.log('HL function', nodes);
       const elmsSelected = [];
       for (const el of nodes) { // eslint-disable-line no-restricted-syntax
         $(el).addClass(className);
@@ -514,7 +494,6 @@ export default {
       return [element.attr('id'), 'subsystem'];
     },
     selectElement(element) {
-      console.log('selectElement: ', element);
       if (!element) {
         return;
       }
@@ -523,10 +502,8 @@ export default {
         // cannot select subsystem on subsystem map
         return;
       }
-      console.log('selectElement', id, this.selectedElementID);
 
       if (this.selectedElementID === id) {
-        console.log('unselect same ID SVG');
         this.unSelectElement();
         return;
       }
@@ -588,8 +565,6 @@ export default {
         transition: false,
       });
       this.$panzoom.panzoom('pan', -panX + ($('.svgbox').width() / 2), -panY + ($('.svgbox').height() / 2));
-      // console.log('panX', -panX + ($('.svgbox').width() / 2));
-      // console.log('panX', -panY + ($('.svgbox').height() / 2));
       this.$emit('loadComplete', true, '');
     },
     reformatChemicalReactionHTML,
