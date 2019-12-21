@@ -9,10 +9,10 @@
       </a>
       <!-- </div> -->
       <div v-if="isExpanded" class="message-body has-text-justified">
-        Get in touch with the authors of {{ model }} to tell them what is wrong with this {{ type }}
-        <a :href="`mailto:${{ email }}?subject=whatever%20page%20i%20am%20on&body=Hello`">via email</a>
-        <template v-if="chatLink">
-          or <a :href="chatLink" target="_blank">via public chat (faster)</a>
+        Get in touch with the authors of {{ model.short_name }} to tell them what is wrong with this {{ type }}
+        <a :href="`mailto:${model.email}?subject=Issue on ${type} ${id}`">via email</a>
+        <template v-if="model.chat_link">
+          or <a :href="model.chat_link" target="_blank">via public chat (faster)</a>
         </template>.
       </div>
     </article>
@@ -23,21 +23,17 @@
 export default {
   name: 'GemContact',
   props: {
-    email: {
-      type: String,
-      required: true,
-    },
-    chatLink: {
-      type: String,
-      required: false,
-    },
     model: {
-      type: String,
+      type: Object,
       required: true,
     },
     type: {
       type: String,
       required: true,
+    },
+    id: {
+      type: String,
+      required: false,
     },
   },
   data() {

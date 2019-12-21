@@ -49,7 +49,7 @@
       </div>
       <div class="column is-2-widescreen is-3-desktop is-half-tablet has-text-centered">
         <maps-available :id="cName" :model="model" :type="'compartment'" :element-i-d="''"></maps-available>
-        <gem-contact :model="model.short_name" chat-link="https://gitter.im/SysBioChalmers/Human-GEM" type="compartment"/>
+        <gem-contact :model="model" type="compartment" :id="compartment.name"/>
       </div>
     </div>
   </div>

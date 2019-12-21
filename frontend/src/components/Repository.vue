@@ -49,7 +49,7 @@
               </div>
               <footer class="card-footer">
                 <router-link class="card-footer-item is-info is-outlined"
-                             :to="{ path: `/explore/gem-browser/${model.database_name}` }">
+                             :to="{ name: 'browserRoot', params: { model: model.database_name } }">
                   <span class="icon is-large"><i class="fa fa-table fa-lg"></i></span>
                   <span>{{ messages.gemBrowserName }}</span>
                 </router-link>
@@ -67,7 +67,7 @@
           While we do not provide support for these models, we are making them available to download.
           For support, the authors should be contacted. They are listed in the <i>References</i> section of each model.
           Click on a row to display more information. To download multiple models at once use the
-          <router-link :to=" { path: '/documentation', hash: 'FTP-download'} ">FTP server</router-link>.
+          <router-link :to=" { name: 'documentation', hash: 'FTP-download'} ">FTP server</router-link>.
         </p>
         <br>
         <loader v-show="showLoader"></loader>
@@ -115,8 +115,8 @@
                     </template>
                   </tr>
                   <template v-if="selectedModel.authors && selectedModel.authors.length !== 0">
-                    <tr v-for="a in selectedModel.authors" :key="`${a.given_name}${a.family_name}`">
-                      <td class="td-key has-background-primary has-text-white-bis"
+                    <tr v-for="(a, index) in selectedModel.authors" :key="`${a.given_name}${a.family_name}`">
+                      <td v-if="index === 0" class="td-key has-background-primary has-text-white-bis"
                           :rowspan="selectedModel.authors.length">
                         Author(s)
                       </td>

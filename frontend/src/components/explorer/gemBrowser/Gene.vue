@@ -60,7 +60,7 @@
                 <span class="icon"><i class="fa fa-connectdevelop fa-lg"></i></span>&nbsp;
                 <span>{{ messages.interPartName }}</span>
               </router-link>
-              <gem-contact :model="model.short_name" chat-link="https://gitter.im/SysBioChalmers/Human-GEM" type="gene"/>
+              <gem-contact :model="model" type="gene" :id="eId"/>
             </div>
           </div>
           <template v-if="!showLoader">

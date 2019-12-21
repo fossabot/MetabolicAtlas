@@ -95,7 +95,7 @@
       </div>
       <div class="column is-2-widescreen is-3-desktop is-half-tablet has-text-centered">
         <maps-available :id="rId" :model="model" :type="'reaction'" :element-i-d="rId"></maps-available>
-        <gem-contact :model="model.short_name" chat-link="https://gitter.im/SysBioChalmers/Human-GEM" type="reaction"/>
+        <gem-contact :model="model" type="reaction" :id="rId"/>
       </div>
     </div>
   </div>

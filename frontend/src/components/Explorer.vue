@@ -194,11 +194,11 @@ export default {
       // get integrated models list
       axios.get('models/')
         .then((response) => {
-          const models = {};
+          this.models = {};
           response.data.forEach((model) => {
-            models[model.database_name] = model;
+            model.email = model.authors[0].email; // eslint-disable-line no-param-reassign
+            this.models[model.database_name] = model;
           });
-          this.models = models;
           let defaultModel = this.models.human1;
           if (this.$route.params.model && this.$route.params.model in this.models) {
             defaultModel = this.models[this.$route.params.model];

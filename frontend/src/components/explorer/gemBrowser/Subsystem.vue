@@ -74,7 +74,7 @@
       </div>
       <div class="column is-2-widescreen is-3-desktop is-half-tablet has-text-centered">
         <maps-available :id="sName" :model="model" :type="'subsystem'" :element-i-d="''"></maps-available>
-        <gem-contact :model="model.short_name" chat-link="https://gitter.im/SysBioChalmers/Human-GEM" type="subsystem"/>
+        <gem-contact :model="model" type="subsystem" :id="info.name"/>
       </div>
     </div>
     <template v-if="!showLoader">
