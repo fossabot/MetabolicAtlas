@@ -120,6 +120,7 @@ class GEM(models.Model):
     gene_count = models.IntegerField(default=0)
     date = models.DateField()
     link = models.CharField(max_length=255, null=True)
+    chat_link = models.CharField(max_length=255, null=True)
     ref = models.ManyToManyField(GEModelReference, related_name='gem', blank=True)
     authors = models.ManyToManyField(Author, related_name='gem', through='GEMAuthor', blank=True)
     sample = models.ForeignKey(GEModelSample, on_delete=models.CASCADE)
