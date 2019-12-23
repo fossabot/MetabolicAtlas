@@ -1,7 +1,6 @@
 <template>
-  <div class="column is-one-fifth-widescreen is-one-quarter-desktop
-              is-one-quarter-tablet is-half-mobile has-background-lightgray"
-       style="padding-left: 0; overflow-y: scroll;">
+  <div class="column is-one-fifth-widescreen is-one-quarter-desktop is-one-quarter-tablet has-background-lightgray"
+       style="padding-left: 0">
     <div class="title is-size-4 has-text-centered">Gene expression data</div>
     <div class="has-text-centered"
          title="Load a TSV file with gene IDs and TPM values.

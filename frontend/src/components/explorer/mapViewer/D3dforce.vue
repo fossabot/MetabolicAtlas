@@ -1,6 +1,6 @@
 <template>
-  <div ref="graphParent">
-    <div id="graph3D"></div>
+  <div class="fixed-height">
+    <div id="graph3D" :class="{ 'margin-fix' : isMobileWidth() }"></div>
     <div class="canvasOption overlay">
       <span class="button" title="Download as PNG" @click="downloadPNG()"><i class="fa fa-download"></i></span>
     </div>
@@ -13,7 +13,7 @@ import axios from 'axios';
 import forceGraph3D from '3d-force-graph';
 import { default as FileSaver } from 'file-saver';
 import { default as EventBus } from '../../../event-bus';
-import { reformatChemicalReactionHTML } from '../../../helpers/utils';
+import { reformatChemicalReactionHTML, isMobileWidth } from '@/helpers/utils';
 
 export default {
   name: 'D3dforce',
@@ -171,7 +171,6 @@ export default {
             this.graph.resetCamera = false;
             this.resetCameraPosition();
           }
-          this.updateGraphBounds();
           if (this.graph !== null
             && this.graph.emitLoadComplete !== undefined
             && !this.graph.emitLoadComplete) {
@@ -183,17 +182,6 @@ export default {
             this.focusOnNode(this.focusOnID);
           }
         });
-    },
-    updateGraphBounds() {
-      setTimeout(() => {
-        if (this.$refs.graphParent && this.$refs.graphParent.offsetParent) {
-          const width = this.$refs.graphParent.offsetParent.offsetWidth; // FIXME
-          const height = this.$refs.graphParent.offsetParent.offsetHeight; // FIXME
-          if (this.graph.width() !== width || this.graph.height() !== height) {
-            this.graph.width(width).height(height);
-          }
-        }
-      }, 0);
     },
     downloadPNG() {
       window.requestAnimationFrame(() => {
@@ -302,6 +290,7 @@ export default {
       }
     },
     reformatChemicalReactionHTML,
+    isMobileWidth,
   },
 };
 </script>
@@ -309,9 +298,13 @@ export default {
 <style lang="scss">
 
 #graph3D {
- height: 100%;
- width: 100%;
- overflow: hidden;
+  max-height: 100%;
+  max-width: 100%;
+  overflow: hidden;
+
+  &.margin-fix {
+    margin-left: 10px;
+  }
 }
 
 </style>

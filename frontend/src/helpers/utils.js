@@ -176,3 +176,10 @@ export function sortResults(a, b, searchTermString) {
   }
   return matchSizeDiffA < matchSizeDiffB ? -1 : 1;
 }
+
+export function isMobileWidth() {
+  if (window.innerWidth < 769) {
+    return true;
+  }
+  return false;
+}

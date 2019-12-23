@@ -5,19 +5,13 @@
     <div class="canvasOption overlay">
       <span class="button" title="Zoom in" @click="zoomOut(false)"><i class="fa fa-search-plus"></i></span>
       <span class="button" title="Zoom out" @click="zoomOut(true)"><i class="fa fa-search-minus"></i></span>
-      <span class="button" title="Show/Hide genes"
-            style="padding: 4.25px;"
-            @click="toggleGenes()">
+      <span class="button" title="Show/Hide genes" style="padding: 4.25px;" @click="toggleGenes()">
         <i class="fa fa-eye-slash">&thinsp;G</i>
       </span>
-      <span class="button" style="padding: 4.25px;"
-            title="Show/Hide subsystem"
-            @click="toggleSubsystems()">
+      <span class="button" style="padding: 4.25px;" title="Show/Hide subsystem" @click="toggleSubsystems()">
         <i class="fa fa-eye-slash">&thinsp;S</i>
       </span>
-      <span class="button" title="Toggle fullscreen"
-            :disabled="isFullScreenDisabled"
-            @click="toggleFullScreen()">
+      <span class="button" title="Toggle fullscreen" :disabled="isFullScreenDisabled" @click="toggleFullScreen()">
         <i class="fa" :class="{ 'fa-compress': isFullscreen, 'fa-arrows-alt': !isFullscreen}"></i>
       </span>
       <span class="button" title="Download as SVG" @click="downloadMap()"><i class="fa fa-download"></i></span>
@@ -36,15 +30,15 @@
               @click="centerElementOnSVG(0)">
           {{ currentSearchMatch }} of {{ totalSearchMatch }}
         </span>
-        <span class="button has-text-dark"
-              title="Go to previous"
-              @click="centerElementOnSVG(-1)"><i class="fa fa-angle-left"></i></span>
-        <span class="button has-text-dark"
-              title="Go to next"
-              @click="centerElementOnSVG(1)"><i class="fa fa-angle-right"></i></span>
-        <span class="button has-text-dark"
-              title="Highlight all matches"
-              @click="highlightElementsFound">Highlight all</span>
+        <span class="button has-text-dark" title="Go to previous" @click="centerElementOnSVG(-1)">
+          <i class="fa fa-angle-left"></i>
+        </span>
+        <span class="button has-text-dark" title="Go to next" @click="centerElementOnSVG(1)">
+          <i class="fa fa-angle-right"></i>
+        </span>
+        <span class="button has-text-dark" title="Highlight all matches" @click="highlightElementsFound">
+          Highlight all
+        </span>
       </template>
       <template v-else-if="searchTerm && totalSearchMatch === 0 && haveSearched">
         <span class="has-text-white">{{ messages.searchNoResult }}</span>
@@ -63,7 +57,7 @@ import JQMouseWheel from 'jquery-mousewheel';
 import { default as FileSaver } from 'file-saver';
 import { default as EventBus } from '../../../event-bus';
 import { default as messages } from '../../../helpers/messages';
-import { reformatChemicalReactionHTML } from '../../../helpers/utils';
+import { reformatChemicalReactionHTML, isMobileWidth } from '@/helpers/utils';
 
 // hack: the only way for jquery plugins to play nice with the plugins inside Vue
 $.Panzoom = JQPanZoom;
@@ -588,7 +582,8 @@ export default {
       EventBus.$emit('unSelectedElement');
     },
     clientFocusX() {
-      return ($('.svgbox').width() / 2) + $('#iSideBar').width();
+      const sidebarWidth = isMobileWidth() ? 0 : $('#iSideBar').width();
+      return ($('.svgbox').width() / 2) + sidebarWidth;
     },
     clientFocusY() {
       return ($('.svgbox').height() / 2) + $('#navbar').height();
@@ -606,6 +601,7 @@ export default {
       this.$emit('loadComplete', true, '');
     },
     reformatChemicalReactionHTML,
+    isMobileWidth,
   },
 };
 </script>
@@ -628,11 +624,10 @@ export default {
   }
 
   .svgbox {
-    position: relative;
     margin: 0;
     padding: 0;
     width: 100%;
-    height:100%;
+    height: 100%;
     &.fullscreen {
       background: white;
     }
@@ -640,7 +635,7 @@ export default {
 
   #svgSearch {
     top: 2.25rem;
-    left: 30%;
+    left: 9rem;
     margin: 0;
     padding: 15px;
     div {
@@ -653,6 +648,7 @@ export default {
     #searchInput {
       display: inline-block;
       width: 20vw;
+      min-width: 100px;
     }
     &.fullscreen {
       left: 30%;

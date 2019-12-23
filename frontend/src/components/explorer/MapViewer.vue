@@ -1,6 +1,6 @@
 <template>
   <div id="mapViewer" class="extended-section">
-    <div id="iMainPanel" class="columns">
+    <div id="iMainPanel" class="columns ordered-mobile">
       <template v-if="errorMessage">
         <div class="column">
           <div class="columns">
@@ -12,117 +12,129 @@
       </template>
       <template v-else>
         <div id="iSideBar" class="column is-one-fifth-widescreen is-one-quarter-desktop
-        is-one-quarter-tablet is-half-mobile has-background-lightgray">
+        is-one-quarter-tablet has-background-lightgray om-2"
+             :class=" isMobileWidth() ? '' : 'fixed-height scroll' ">
           <div id="menu">
-            <ul class="l0">
-              <li :title="`Select a ${dim.toUpperCase()} compartment network to show`">
-                Compartments<span>&nbsp;&#9656;</span>
-                <ul class="vhs l1" title="">
-                  <li class="has-background-grey-dark clickable" @click="showMap()"><i>Clear selection</i></li>
-                  <div v-if="!has2DCompartmentMaps || show3D">
-                    <li v-for="cKey in Object.keys(mapsData3D.compartments).sort()" :key="cKey"
-                        class="clickable"
-                        :class="{'has-text-warning': cKey === currentDisplayedName }"
-                        @click="showMap(mapsData3D.compartments[cKey].name_id)">
-                      {{ mapsData3D.compartments[cKey].name }}
-                      {{ mapsData3D.compartments[cKey].reaction_count != 0 ?
-                        `(${mapsData3D.compartments[cKey].reaction_count})` : '' }}
-                    </li>
-                  </div>
-                  <div v-else>
-                    <li v-for="cKey in Object.keys(mapsData2D.compartments).sort()" :key="cKey"
-                        class="clickable"
-                        :class="{ 'disable' : !mapsData2D.compartments[cKey].sha,
-                                  'has-text-warning': cKey === currentDisplayedName }"
-                        @click="showMap(mapsData2D.compartments[cKey].name_id)">
-                      {{ mapsData2D.compartments[cKey].name }}
-                      {{ mapsData2D.compartments[cKey].reaction_count != 0 ?
-                        `(${mapsData2D.compartments[cKey].reaction_count})` : '' }}
-                    </li>
-                  </div>
-                </ul>
-              </li>
-              <li :title="`Select a ${dim.toUpperCase()} subsystem network to show`">
-                Subsystems<span>&nbsp;&#9656;</span>
-                <ul class="vhs l1" title="">
-                  <li class="has-background-grey-dark clickable" @click="showMap()"><i>Clear selection</i></li>
-                  <div v-if="!has2DSubsystemMaps || show3D">
-                    <li v-for="sKey in Object.keys(mapsData3D.subsystems).sort()" :key="sKey"
-                        class="clickable"
-                        :class="{'has-text-warning': sKey === currentDisplayedName }"
-                        @click="showMap(mapsData3D.subsystems[sKey].name_id, 'subsystem')">
-                      {{ mapsData3D.subsystems[sKey].name }}
-                      {{ mapsData3D.subsystems[sKey].reaction_count != 0 ?
-                        `(${mapsData3D.subsystems[sKey].reaction_count})` : '' }}
-                    </li>
-                  </div>
-                  <div v-else>
-                    <template v-for="sKey in Object.keys(mapsData2D.subsystems).sort()">
-                      <template v-if="mapsData2D.subsystems[sKey].name_id && mapsData2D.subsystems[sKey].sha">
-                        <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
-                        <li class="clickable" :class="{'has-text-warning': sKey === currentDisplayedName }"
-                            @click="showMap(mapsData2D.subsystems[sKey].name_id, 'subsystem')">
-                          {{ mapsData2D.subsystems[sKey].name }}
-                          {{ mapsData2D.subsystems[sKey].reaction_count != 0 ?
-                            `(${mapsData2D.subsystems[sKey].reaction_count})` : '' }}
-                        </li>
-                      </template>
-                      <template v-else>
-                        <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
-                        <li class="disable">
-                          {{ mapsData2D.subsystems[sKey].name }}
-                        </li>
-                      </template>
-                    </template>
-                  </div>
-                </ul>
-              </li>
-            </ul>
-          </div>
-          <sidebar-data-panels
-            :model="model"
-            :dim="dim"
-            :map-type="currentDisplayedType"
-            :map-name="currentDisplayedName"
-            :maps-data="show2D ? mapsData2D : mapsData3D"
-            :selection-data="selectionData"
-            :loading="showSelectionLoader">
-          </sidebar-data-panels>
-        </div>
-        <div v-show="showOverviewScreen" class="column">
-          <p class="is-size-5 has-text-centered" style="padding: 10%;">
-            Choose a compartment or subsystem map from the menu on the left
-          </p>
-        </div>
-        <div v-show="!showOverviewScreen" id="graphframe" class="column is-unselectable">
-          <svgmap v-show="show2D" :model="model"
-                  :maps-data="mapsData2D"
-                  @loadComplete="handleLoadComplete"
-                  @loading="showLoader=true">
-          </svgmap>
-          <d3dforce v-show="show3D" :model="model"
-                    @loadComplete="handleLoadComplete"
-                    @loading="showLoader=true">
-          </d3dforce>
-          <div v-show="showLoader" id="iLoader" class="loading">
-            <a class="button is-loading"></a>
-          </div>
-          <div id="iSwitch" class="overlay">
-            <span class="button" :disabled="!activeSwitch"
-                  :title="activeSwitch ? `Reload the current network in ${ show2D ? '3D' : '2D' }` : ''"
-                  @click="switchDimension">
-              <template v-if="activeSwitch">
-                Switch to&nbsp;<b>{{ show2D ? '3D' : '2D' }}</b>
-              </template>
-              <template v-else>
-                <template v-if="!disabled2D">
-                  Switch to&nbsp;<b>{{ show2D ? '3D' : '2D' }}</b>
+
+            <span id="menuButtons">
+              <button class="button is-whitesmoke is-rounded has-text-weight-bold"
+                      :disabled="!activeSwitch"
+                      :title="activeSwitch ? `Reload the current network in ${ show2D ? '3D' : '2D' }` : ''"
+                      @click="switchDimension">
+                <template v-if="activeSwitch">
+                  Switch to {{ show2D ? '3D' : '2D' }}
                 </template>
                 <template v-else>
-                  Not available in 2D
+                  <template v-if="!disabled2D">
+                    Switch to {{ show2D ? '3D' : '2D' }}
+                  </template>
+                  <template v-else>
+                    Not available in 2D
+                  </template>
                 </template>
-              </template>
+              </button>
+              <button class="button is-whitesmoke is-rounded has-text-weight-bold"
+                      @click="mapListIsVisible = !mapListIsVisible">
+                {{ mapListIsVisible ? 'Hide' : 'Show' }} map list
+              </button>
             </span>
+
+            <sidebar-data-panels :model="model" :dim="dim"
+                                 :map-type="currentDisplayedType" :map-name="currentDisplayedName"
+                                 :maps-data="show2D ? mapsData2D : mapsData3D"
+                                 :selection-data="selectionData" :loading="showSelectionLoader">
+            </sidebar-data-panels>
+
+            <div v-if="mapListIsVisible" class="card card-margin">
+              <div class="has-text-centered">
+                <button class="button is-whitesmoke is-rounded has-text-weight-bold card-margin" @click="showMap()">
+                  Clear map selection
+                </button>
+              </div>
+              <div class="card-content card-content-compact">
+                <ul>
+                  <p :title="`Select a ${dim.toUpperCase()} compartment network to show`"></p>
+                  <p class="has-text-weight-bold">Compartments:</p>
+                  <ul>
+                    <div v-if="!has2DCompartmentMaps || show3D">
+                      <p v-for="cKey in Object.keys(mapsData3D.compartments).sort()" :key="cKey"
+                         :class="{'has-text-warning': cKey === currentDisplayedName }"
+                         @click="showMap(mapsData3D.compartments[cKey].name_id)">
+                        <a>{{ mapsData3D.compartments[cKey].name }}
+                          {{ mapsData3D.compartments[cKey].reaction_count != 0 ?
+                          `(${mapsData3D.compartments[cKey].reaction_count})` : '' }}
+                        </a>
+                      </p>
+                    </div>
+                    <div v-else>
+                      <p v-for="cKey in Object.keys(mapsData2D.compartments).sort()" :key="cKey"
+                         :class="{ 'has-text-whitesmoke' : !mapsData2D.compartments[cKey].sha,
+                                   'has-text-warning has-text-weight-bold': cKey === currentDisplayedName }"
+                         @click="showMap(mapsData2D.compartments[cKey].name_id)">
+                        <a>{{ mapsData2D.compartments[cKey].name }}
+                           {{ mapsData2D.compartments[cKey].reaction_count != 0 ?
+                          `(${mapsData2D.compartments[cKey].reaction_count})` : '' }}
+                        </a>
+                      </p>
+                    </div>
+                  </ul>
+                  <p :title="`Select a ${dim.toUpperCase()} subsystem network to show`"></p><br>
+                  <p class="has-text-weight-bold">Subsystems:</p>
+                  <ul>
+                    <div v-if="!has2DSubsystemMaps || show3D">
+                      <p v-for="sKey in Object.keys(mapsData3D.subsystems).sort()" :key="sKey"
+                          :class="{'has-text-warning': sKey === currentDisplayedName }"
+                          @click="showMap(mapsData3D.subsystems[sKey].name_id, 'subsystem')">
+                        <a>{{ mapsData3D.subsystems[sKey].name }}
+                           {{ mapsData3D.subsystems[sKey].reaction_count != 0 ?
+                           `(${mapsData3D.subsystems[sKey].reaction_count})` : '' }}
+                        </a>
+                      </p>
+                    </div>
+                    <div v-else>
+                      <template v-for="sKey in Object.keys(mapsData2D.subsystems).sort()">
+                        <template v-if="mapsData2D.subsystems[sKey].name_id && mapsData2D.subsystems[sKey].sha">
+                          <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
+                          <p :class="{'has-text-warning': sKey === currentDisplayedName }"
+                             @click="showMap(mapsData2D.subsystems[sKey].name_id, 'subsystem')">
+                            <a>{{ mapsData2D.subsystems[sKey].name }}
+                               {{ mapsData2D.subsystems[sKey].reaction_count != 0 ?
+                               `(${mapsData2D.subsystems[sKey].reaction_count})` : '' }}
+                            </a>
+                          </p>
+                        </template>
+                        <template v-else>
+                          <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
+                          <p class="disable">
+                            {{ mapsData2D.subsystems[sKey].name }}
+                          </p>
+                        </template>
+                      </template>
+                    </div>
+                  </ul>
+                </ul>
+              </div>
+            </div>
+
+          </div>
+        </div>
+        <div v-show="showOverviewScreen" class="column fixed-height mapframe om-1">
+          <p class="is-size-5 has-text-centered" style="padding: 10%;">
+            <a @click="mapListIsVisible = true">Show the map list and choose a compartment or subsystem map</a>
+          </p>
+        </div>
+        <div v-show="!showOverviewScreen" id="graphframe" class="column fixed-height mapframe is-unselectable om-1">
+          <svgmap v-show="show2D" :model="model" :maps-data="mapsData2D"
+                  @loadComplete="handleLoadComplete" @loading="showLoader=true">
+          </svgmap>
+          <d3dforce v-show="show3D" :model="model"
+                    @loadComplete="handleLoadComplete" @loading="showLoader=true">
+          </d3dforce>
+          <div v-show="show3D" id="iLoader" class="fixed-height mapframe">
+            <a class="button is-loading has-text-white">
+              <br>
+              <span class="has-text-white is-size-5">Preparing 3D layout</span>
+            </a>
           </div>
           <transition name="slide-fade">
             <article v-if="loadErrorMesssage" id="errorBar"
@@ -139,8 +151,8 @@
           </transition>
         </div>
         <div v-show="!showLoader" id="dataOverlayBar"
-             class="column is-narrow has-text-white is-unselectable" :class="{
-               'is-paddingless': toggleDataOverlayPanel }"
+             class="column is-narrow has-text-white is-unselectable is-hidden-mobile"
+             :class="{'is-paddingless': toggleDataOverlayPanel }"
              title="Click to show the data overlay panel" @click="toggleDataOverlayPanel = !toggleDataOverlayPanel">
           <p class="is-size-5 has-text-centered has-text-weight-bold">
             <span class="icon">
@@ -155,7 +167,7 @@
             </span>
           </p>
         </div>
-        <DataOverlay v-show="toggleDataOverlayPanel" :model="model"
+        <DataOverlay v-show="isMobileWidth() || toggleDataOverlayPanel" class="om-3" :model="model"
                      :map-type="currentDisplayedType"
                      :dim="dim" :map-name="currentDisplayedName">
         </DataOverlay>
@@ -165,14 +177,14 @@
 </template>
 
 <script>
-import $ from 'jquery';
 import axios from 'axios';
 import SidebarDataPanels from '@/components/explorer/mapViewer/SidebarDataPanels';
 import DataOverlay from '@/components/explorer/mapViewer/DataOverlay.vue';
 import Svgmap from '@/components/explorer/mapViewer/Svgmap';
 import D3dforce from '@/components/explorer/mapViewer/D3dforce';
-import { default as EventBus } from '../../event-bus';
-import { default as messages } from '../../helpers/messages';
+import { default as EventBus } from '@/event-bus';
+import { default as messages } from '@/helpers/messages';
+import { isMobileWidth } from '@/helpers/utils';
 
 export default {
   name: 'MapViewer',
@@ -222,6 +234,7 @@ export default {
         data: null,
         error: false,
       },
+      mapListIsVisible: false,
       showSelectionLoader: false,
       isHoverMenuItem: false,
       toggleDataOverlayPanel: false,
@@ -318,44 +331,9 @@ export default {
     });
   },
   beforeMount() {
-    // this.setup();
     this.getSubComptData(this.model);
   },
-  mounted() {
-    // menu
-    const self = this;
-    $('#menu').on('mouseenter', 'ul.l0 > li:has(ul)', function f() {
-      if ($(this).hasClass('disable')) {
-        return;
-      }
-      $('#menu ul.l1, #menu ul.l2').hide();
-      $(this).find('ul').first().show();
-      self.isHoverMenuItem = true;
-    });
-    $('#menu').on('mouseleave', 'ul.l0 > li:has(ul)', function f() {
-      self.isHoverMenuItem = false;
-      $(this).find('ul').first().delay(500)
-        .queue(function ff() {
-          if (!self.isHoverMenuItem) {
-            $(this).hide(0);
-          }
-          $(this).dequeue();
-        });
-    });
-    $('#menu').on('mouseenter', 'ul.l1 > li:has(ul)', function f() {
-      $('#menu ul.l2').hide();
-      $(this).find('ul').first().show();
-      self.isHoverMenuItem = true;
-    });
-
-    $('#graphframe').on('click', () => {
-      $('#menu ul.l1, #menu ul.l2').hide();
-    });
-  },
   methods: {
-    hideDropleftMenus() {
-      $('#menu ul.l1, #menu ul.l2').hide();
-    },
     switchDimension() {
       if (!this.activeSwitch) {
         return;
@@ -517,7 +495,6 @@ export default {
       this.selectionData.data = null;
       this.currentDisplayedName = null;
       this.currentDisplayedType = null;
-      this.hideDropleftMenus();
       if (compartmentOrSubsystemID) {
         EventBus.$emit('showAction', type, compartmentOrSubsystemID, [], false);
       } else {
@@ -530,6 +507,7 @@ export default {
         // keep the loaded 2D map, and data info in the 'back', to quickly reload it
       }
     },
+    isMobileWidth,
   },
 };
 </script>
@@ -537,79 +515,52 @@ export default {
 <style lang="scss">
 #mapViewer {
   #menu {
-    background: $primary;
-    color: $white;
-    position: relative;
-    font-size: 16px;
-    ul {
-      list-style: none;
-      &.vhs, &.l2 {
-        max-height: 65vh;
-        overflow-y: auto;
-      }
-    }
-
-    ul.l1, ul.l2 {
-      display: none;
-      border-left: 1px solid white;
-      position: absolute;
-      top: 0;
-      left: 100%;
-      width: 100%;
-      background: $primary;
-      z-index: 11;
-      box-shadow: 5px 5px 5px #222222;
-    }
-
-    li {
-      padding: 17px 15px 17px 20px;
-      border-bottom: 1px solid $grey-lighter;
-      user-select: none;
-      &:hover {
-        background: $primary-light;
-      }
-      span {
-        position: absolute;
-        right: 10px;
-      }
-      &.disable {
-        cursor: not-allowed;
-        background: $primary;
-        color: $grey;
-      }
-    }
+    // background: $primary;
+    // color: $white;
+    // font-size: 16px;
+    // li {
+    //   user-select: none;
+    //   &:hover {
+    //     background: $primary-light;
+    //   }
+    //   &.disable {
+    //     cursor: not-allowed;
+    //     background: $primary;
+    //     color: $grey;
+    //   }
+    // }
   }
 
   #iMainPanel {
     margin-bottom: 0;
-    min-height: calc(100vh - #{$navbar-height} - #{$footer-height});
-    max-height: calc(100vh - #{$navbar-height} - #{$footer-height});
-    height: calc(100vh - #{$navbar-height} - #{$footer-height});
-  }
-
-  #iSwitch {
-    left: 2.25rem;
-    top:  2.25rem;
   }
 
   #iSideBar {
     padding: 0.75rem 0 0 0.75rem;
+    overflow-y: visible;
+
+    &.scroll {
+      overflow-y: scroll;
+    }
+
+    #menuButtons {
+      display: flex;
+      justify-content: space-around;
+      padding: 0.75rem;
+      button {
+        width: 42%;
+      }
+    }
   }
 
   #iLoader {
-    z-index: 10;
-    position: absolute;
     background: black;
-    top: 0;
-    left: 0;
     width: 100%;
-    height: 100%;
     opacity: 0.8;
     display: table;
     a {
       color: white;
       font-size: 5em;
-      font-weight: 1000;
       display: table-cell;
       vertical-align: middle;
       background: black;
@@ -617,14 +568,18 @@ export default {
     }
   }
 
-  #graphframe {
-    position: relative;
-    height: 100%;
-    padding: 0;
-    margin: 0;
-    overflow: hidden;
-  }
+  .fixed-height {
+    min-height: calc(100vh - #{$navbar-height} - #{$footer-height});
+    max-height: calc(100vh - #{$navbar-height} - #{$footer-height});
+    height: calc(100vh - #{$navbar-height} - #{$footer-height});
 
+    &.mapframe {
+      padding: 0;
+      margin: 0;
+      overflow-y: hidden;
+    }
+
+  }
 
   #dataOverlayBar {
     display: flex;
@@ -645,14 +600,13 @@ export default {
 
   .overlay {
     position: absolute;
-    z-index: 10;
     padding: 10px;
     border-radius: 5px;
     background: rgba(22, 22, 22, 0.8);
   }
 
   .canvasOption {
-    top: 7.25rem;
+    top: 2.25rem;
     left: 2.25rem;
     span {
       display: block;
@@ -661,7 +615,6 @@ export default {
       }
     }
   }
-
 
   #errorBar {
     z-index: 11;
@@ -682,6 +635,26 @@ export default {
     transform: translateX(200px);
     opacity: 0;
   }
+
+  @media screen and (max-width: 769px) {
+    .ordered-mobile {
+      display: flex;
+      flex-flow: column;
+    }
+    .om-1 {
+      order: 1;
+    }
+    .om-2 {
+      order: 2;
+    }
+    .om-3 {
+      order: 3;
+    }
+    .om-4 {
+      order: 4;
+    }
+  }
+
 }
 
 </style>
