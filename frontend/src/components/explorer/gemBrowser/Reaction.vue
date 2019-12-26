@@ -52,21 +52,7 @@
             </td>
           </tr>
         </table>
-        <template v-if="hasExternalID">
-          <h4 class="title is-4">External databases</h4>
-          <table v-if="reaction && Object.keys(reaction).length != 0" id="ed-table" class="table is-fullwidth">
-            <tr v-for="el in externalIDTableKey[model.database_name]" :key="el.name">
-              <template v-if="reaction[el.name] && reaction[el.link]">
-                <td v-if="'display' in el" class="td-key has-background-primary has-text-white-bis"
-                    v-html="el.display"></td>
-                <td v-else class="td-key has-background-primary has-text-white-bis">{{ reformatTableKey(el.name) }}</td>
-                <td>
-                  <a :href="`${reaction[el.link]}`" target="_blank">{{ reaction[el.name] }}</a>
-                </td>
-              </template>
-            </tr>
-          </table>
-        </template>
+        <ExtIdTable :model="model" :component="reaction" type="reaction"></ExtIdTable>
         <h4 class="title is-size-4">References via PubMed ID</h4>
         <table class="main-table table is-fullwidth">
           <template v-if="unformattedRefs.length === 0">
@@ -106,6 +92,7 @@ import $ from 'jquery';
 import Loader from '@/components/Loader';
 import NotFound from '@/components/NotFound';
 import MapsAvailable from '@/components/explorer/gemBrowser/MapsAvailable';
+import ExtIdTable from '@/components/explorer/gemBrowser/ExtIdTable';
 import { default as EventBus } from '../../../event-bus';
 import { reformatTableKey, addMassUnit, reformatECLink, reformatCompEqString, reformatChemicalReactionHTML, reformatEqSign } from '../../../helpers/utils';
 
@@ -115,6 +102,7 @@ export default {
     NotFound,
     Loader,
     MapsAvailable,
+    ExtIdTable,
   },
   props: {
     model: Object,
@@ -144,15 +132,6 @@ export default {
           { name: 'subsystem_str', display: 'Subsystem', modifier: this.reformatSubsystemList },
         ],
       },
-      externalIDTableKey: {
-        human1: [
-          { name: 'kegg_id', display: 'KEGG', link: 'kegg_link' },
-          { name: 'bigg_id', display: 'BiGG', link: 'bigg_link' },
-          { name: 'reactome_id', display: 'Reactome', link: 'reactome_link' },
-          { name: 'metanetx_id', display: 'MetaNetX', link: 'metanetx_link' },
-        ],
-        yeast8: [],
-      },
       reaction: {},
       relatedReactions: [],
       errorMessage: '',
@@ -162,17 +141,6 @@ export default {
       formattedRefs: {},
       componentNotFound: false,
     };
-  },
-  computed: {
-    hasExternalID() {
-      for (let i = 0; i < this.externalIDTableKey[this.model.database_name].length; i += 1) {
-        const item = this.externalIDTableKey[this.model.database_name][i];
-        if (this.reaction[item.name] && this.reaction[item.link]) {
-          return true;
-        }
-      }
-      return false;
-    },
   },
   watch: {
     /* eslint-disable quote-props */
