@@ -77,13 +77,22 @@
               <td class="td-key has-background-primary has-text-white-bis">{{ oneRef.pmid }}</td>
               <template v-if="formattedRefs[oneRef.pmid]">
                 <td v-for="refData in [formattedRefs[oneRef.pmid]]" :key="refData.id">
-                  <a :href="refData.link" target="_blank">
+                  <template v-if="refData.link">
+                    <a :href="refData.link" target="_blank">
+                      <template v-for="author in refData.authors">
+                        {{ author }},
+                      </template>
+                      {{ refData.year }}. <i>{{ refData.title }}</i>
+                      {{ refData.journal }}
+                    </a>
+                  </template>
+                  <template v-else>
                     <template v-for="author in refData.authors">
                       {{ author }},
                     </template>
                     {{ refData.year }}. <i>{{ refData.title }}</i>
                     {{ refData.journal }}
-                  </a>
+                  </template>
                 </td>
               </template>
               <template v-else>
@@ -302,13 +311,17 @@ export default {
           response.data.resultList.result.forEach((details) => {
             try {
               const refDetails = {};
-              refDetails.link = details.fullTextUrlList.fullTextUrl
-                .filter(e => e.documentStyle === 'html' && e.site === 'Europe_PMC');
-              if (refDetails.link.length === 0) {
-                refDetails.link = details.fullTextUrlList.fullTextUrl.filter(
-                  e => e.documentStyle === 'doi' || e.documentStyle === 'abs')[0].url;
+              if (!details.fullTextUrlList) {
+                refDetails.link = null;
               } else {
-                refDetails.link = refDetails.link[0].url;
+                refDetails.link = details.fullTextUrlList.fullTextUrl
+                  .filter(e => e.documentStyle === 'html' && e.site === 'Europe_PMC');
+                if (refDetails.link.length === 0) {
+                  refDetails.link = details.fullTextUrlList.fullTextUrl.filter(
+                    e => e.documentStyle === 'doi' || e.documentStyle === 'abs')[0].url;
+                } else {
+                  refDetails.link = refDetails.link[0].url;
+                }
               }
               if (details.pubYear) {
                 refDetails.year = details.pubYear;
