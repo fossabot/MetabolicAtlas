@@ -177,7 +177,7 @@ export function sortResults(a, b, searchTermString) {
   return matchSizeDiffA < matchSizeDiffB ? -1 : 1;
 }
 
-export function isMobileWidth() {
+export function isMobilePage() {
   if (window.innerWidth < 769) {
     return true;
   }

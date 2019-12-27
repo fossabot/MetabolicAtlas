@@ -26,9 +26,10 @@ module.exports = {
     'vue/require-default-prop': 'off',
     'no-unused-vars': ['error', {
       'vars': 'all',
-      'args': 'all',
+      'args': 'after-used',
       'ignoreRestSiblings': false,
       'varsIgnorePattern': '[iI]gnored', // do not report var containing 'ignored'
+      'argsIgnorePattern': '^_',
     }],
     'import/no-named-default': 'off',
     'import/extensions': 'off',

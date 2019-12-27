@@ -25,8 +25,7 @@
                @keyup.enter="searchComponentIDs()" />
       </div>
       <template v-if="searchTerm && currentSearchMatch">
-        <span id="searchResCount" class="button has-text-dark"
-              title="Click to center on current match"
+        <span id="searchResCount" class="button has-text-dark" title="Click to center on current match"
               @click="centerElementOnSVG(0)">
           {{ currentSearchMatch }} of {{ totalSearchMatch }}
         </span>
@@ -57,7 +56,7 @@ import JQMouseWheel from 'jquery-mousewheel';
 import { default as FileSaver } from 'file-saver';
 import { default as EventBus } from '../../../event-bus';
 import { default as messages } from '../../../helpers/messages';
-import { reformatChemicalReactionHTML, isMobileWidth } from '@/helpers/utils';
+import { reformatChemicalReactionHTML, isMobilePage } from '@/helpers/utils';
 
 // hack: the only way for jquery plugins to play nice with the plugins inside Vue
 $.Panzoom = JQPanZoom;
@@ -129,6 +128,9 @@ export default {
         return false;
       }
       return true;
+    },
+    svgboxHeight() {
+      return isMobilePage() ? 450 : $('.svgbox').height();
     },
   },
   watch: {
@@ -279,9 +281,9 @@ export default {
       }
       setTimeout(() => {
         const minZoomScale = Math.min($('.svgbox').width() / $('#svg-wrapper svg').width(),
-          $('.svgbox').height() / $('#svg-wrapper svg').height());
+          this.svgboxHeight / $('#svg-wrapper svg').height());
         const focusX = ($('#svg-wrapper svg').width() / 2) - ($('.svgbox').width() / 2);
-        const focusY = ($('#svg-wrapper svg').height() / 2) - ($('.svgbox').height() / 2);
+        const focusY = ($('#svg-wrapper svg').height() / 2) - (this.svgboxHeight / 2);
         this.$panzoom.panzoom('pan', -focusX, -focusY);
         this.$panzoom.panzoom('zoom', true, {
           increment: 1 - minZoomScale,
@@ -582,11 +584,11 @@ export default {
       EventBus.$emit('unSelectedElement');
     },
     clientFocusX() {
-      const sidebarWidth = isMobileWidth() ? 0 : $('#iSideBar').width();
+      const sidebarWidth = isMobilePage() ? 0 : $('#iSideBar').width();
       return ($('.svgbox').width() / 2) + sidebarWidth;
     },
     clientFocusY() {
-      return ($('.svgbox').height() / 2) + $('#navbar').height();
+      return isMobilePage() ? 270 : (this.svgboxHeight / 2) + $('#navbar').height();
     },
     panToCoords(panX, panY) {
       this.$panzoom.panzoom('zoom', 1.0, {
@@ -597,11 +599,11 @@ export default {
           clientY: this.clientFocusY(),
         },
       });
-      this.$panzoom.panzoom('pan', -panX + ($('.svgbox').width() / 2), -panY + ($('.svgbox').height() / 2));
+      this.$panzoom.panzoom('pan', -panX + ($('.svgbox').width() / 2), -panY + (this.svgboxHeight / 2));
       this.$emit('loadComplete', true, '');
     },
     reformatChemicalReactionHTML,
-    isMobileWidth,
+    isMobilePage,
   },
 };
 </script>

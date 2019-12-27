@@ -255,7 +255,7 @@ m, .clickable {
 #app {
   display: flex;
   min-height: 100vh;
-  flex-direction: column
+  flex-direction: column;
 }
 
 .has-addons {

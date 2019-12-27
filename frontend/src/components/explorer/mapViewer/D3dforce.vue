@@ -1,6 +1,6 @@
 <template>
   <div class="fixed-height">
-    <div id="graph3D" :class="{ 'margin-fix' : isMobileWidth() }"></div>
+    <div id="graph3D" :class="{ 'margin-fix' : isMobilePage() }"></div>
     <div class="canvasOption overlay">
       <span class="button" title="Download as PNG" @click="downloadPNG()"><i class="fa fa-download"></i></span>
     </div>
@@ -13,7 +13,7 @@ import axios from 'axios';
 import forceGraph3D from '3d-force-graph';
 import { default as FileSaver } from 'file-saver';
 import { default as EventBus } from '../../../event-bus';
-import { reformatChemicalReactionHTML, isMobileWidth } from '@/helpers/utils';
+import { reformatChemicalReactionHTML, isMobilePage } from '@/helpers/utils';
 
 export default {
   name: 'D3dforce',
@@ -290,7 +290,7 @@ export default {
       }
     },
     reformatChemicalReactionHTML,
-    isMobileWidth,
+    isMobilePage,
   },
 };
 </script>

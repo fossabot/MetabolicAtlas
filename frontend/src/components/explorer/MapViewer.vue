@@ -13,7 +13,7 @@
       <template v-else>
         <div id="iSideBar" class="column is-one-fifth-widescreen is-one-quarter-desktop
         is-one-quarter-tablet has-background-lightgray om-2"
-             :class=" isMobileWidth() ? '' : 'fixed-height scroll' ">
+             :class=" isMobilePage() ? '' : 'fixed-height scroll' ">
           <div id="menu">
 
             <span id="menuButtons">
@@ -58,22 +58,22 @@
                   <ul>
                     <div v-if="!has2DCompartmentMaps || show3D">
                       <p v-for="cKey in Object.keys(mapsData3D.compartments).sort()" :key="cKey"
-                         :class="{'has-text-warning': cKey === currentDisplayedName }"
+                         :class="{'has-text-weight-bold': cKey === currentDisplayedName }"
                          @click="showMap(mapsData3D.compartments[cKey].name_id)">
                         <a>{{ mapsData3D.compartments[cKey].name }}
-                          {{ mapsData3D.compartments[cKey].reaction_count != 0 ?
-                          `(${mapsData3D.compartments[cKey].reaction_count})` : '' }}
+                           {{ mapsData3D.compartments[cKey].reaction_count != 0 ?
+                           `(${mapsData3D.compartments[cKey].reaction_count})` : '' }}
                         </a>
                       </p>
                     </div>
                     <div v-else>
                       <p v-for="cKey in Object.keys(mapsData2D.compartments).sort()" :key="cKey"
                          :class="{ 'has-text-whitesmoke' : !mapsData2D.compartments[cKey].sha,
-                                   'has-text-warning has-text-weight-bold': cKey === currentDisplayedName }"
+                                   'has-text-weight-bold': cKey === currentDisplayedName }"
                          @click="showMap(mapsData2D.compartments[cKey].name_id)">
                         <a>{{ mapsData2D.compartments[cKey].name }}
                            {{ mapsData2D.compartments[cKey].reaction_count != 0 ?
-                          `(${mapsData2D.compartments[cKey].reaction_count})` : '' }}
+                           `(${mapsData2D.compartments[cKey].reaction_count})` : '' }}
                         </a>
                       </p>
                     </div>
@@ -83,7 +83,7 @@
                   <ul>
                     <div v-if="!has2DSubsystemMaps || show3D">
                       <p v-for="sKey in Object.keys(mapsData3D.subsystems).sort()" :key="sKey"
-                          :class="{'has-text-warning': sKey === currentDisplayedName }"
+                          :class="{'has-text-weight-bold': sKey === currentDisplayedName }"
                           @click="showMap(mapsData3D.subsystems[sKey].name_id, 'subsystem')">
                         <a>{{ mapsData3D.subsystems[sKey].name }}
                            {{ mapsData3D.subsystems[sKey].reaction_count != 0 ?
@@ -95,7 +95,7 @@
                       <template v-for="sKey in Object.keys(mapsData2D.subsystems).sort()">
                         <template v-if="mapsData2D.subsystems[sKey].name_id && mapsData2D.subsystems[sKey].sha">
                           <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
-                          <p :class="{'has-text-warning': sKey === currentDisplayedName }"
+                          <p :class="{'has-text-weight-bold': sKey === currentDisplayedName }"
                              @click="showMap(mapsData2D.subsystems[sKey].name_id, 'subsystem')">
                             <a>{{ mapsData2D.subsystems[sKey].name }}
                                {{ mapsData2D.subsystems[sKey].reaction_count != 0 ?
@@ -167,7 +167,7 @@
             </span>
           </p>
         </div>
-        <DataOverlay v-show="isMobileWidth() || toggleDataOverlayPanel" class="om-3" :model="model"
+        <DataOverlay v-show="isMobilePage() || toggleDataOverlayPanel" class="om-3" :model="model"
                      :map-type="currentDisplayedType"
                      :dim="dim" :map-name="currentDisplayedName">
         </DataOverlay>
@@ -184,7 +184,7 @@ import Svgmap from '@/components/explorer/mapViewer/Svgmap';
 import D3dforce from '@/components/explorer/mapViewer/D3dforce';
 import { default as EventBus } from '@/event-bus';
 import { default as messages } from '@/helpers/messages';
-import { isMobileWidth } from '@/helpers/utils';
+import { isMobilePage } from '@/helpers/utils';
 
 export default {
   name: 'MapViewer',
@@ -234,7 +234,7 @@ export default {
         data: null,
         error: false,
       },
-      mapListIsVisible: false,
+      mapListIsVisible: true,
       showSelectionLoader: false,
       isHoverMenuItem: false,
       toggleDataOverlayPanel: false,
@@ -507,7 +507,7 @@ export default {
         // keep the loaded 2D map, and data info in the 'back', to quickly reload it
       }
     },
-    isMobileWidth,
+    isMobilePage,
   },
 };
 </script>
@@ -569,10 +569,16 @@ export default {
   }
 
   .fixed-height {
-    min-height: calc(100vh - #{$navbar-height} - #{$footer-height});
-    max-height: calc(100vh - #{$navbar-height} - #{$footer-height});
-    height: calc(100vh - #{$navbar-height} - #{$footer-height});
-
+    @media (min-width: $tablet) {
+      min-height: calc(100vh - #{$navbar-height} - #{$footer-height});
+      max-height: calc(100vh - #{$navbar-height} - #{$footer-height});
+      height: calc(100vh - #{$navbar-height} - #{$footer-height});
+    }
+    @media (max-width: $tablet) {
+      min-height: 450px;
+      max-height: 450px;
+      height: 450px;
+    }
     &.mapframe {
       padding: 0;
       margin: 0;
@@ -636,7 +642,7 @@ export default {
     opacity: 0;
   }
 
-  @media screen and (max-width: 769px) {
+  @media (max-width: $tablet) {
     .ordered-mobile {
       display: flex;
       flex-flow: column;
