@@ -72,10 +72,9 @@
         <br>
         <loader v-show="showLoader"></loader>
         <div v-if="GEMS.length != 0">
-          <vue-good-table :columns="columns" :rows="GEMS"
-            :search-options="{ enabled: true }"
-            :sort-options="{ enabled: true }" style-class="vgt-table striped bordered"
-            :pagination-options="tablePaginationOpts" @on-row-click="getModel">
+          <vue-good-table :columns="columns" :rows="GEMS" :search-options="{ enabled: true }"
+                          :sort-options="{ enabled: true }" style-class="vgt-table striped bordered"
+                          :pagination-options="tablePaginationOpts" @on-row-click="getModel">
           </vue-good-table>
         </div>
         <div v-else>
@@ -292,6 +291,13 @@ export default {
       filesURL: 'https://ftp.metabolicatlas.org/',
     };
   },
+  watch: {
+    showModelTable(v) {
+      if (!v) {
+        this.$router.push({ name: 'gems' });
+      }
+    },
+  },
   created() {
     EventBus.$on('viewGem', (modelID) => {
       this.getModelData(modelID);
@@ -315,6 +321,16 @@ export default {
           });
           models.sort((a, b) => (a.short_name.toLowerCase() < b.short_name.toLowerCase() ? -1 : 1));
           this.integratedModels = models;
+          if (this.$route.name === 'gemsModal') {
+            const urlId = this.$route.params.model_id;
+            const urlIntegrateModel = models.find(m => m.short_name === urlId);
+            if (urlIntegrateModel) {
+              this.showIntegratedModelData(urlIntegrateModel);
+            } else {
+              // concurrence getModels api query
+              this.getModelData(urlId);
+            }
+          }
         })
         .catch(() => {
           this.errorMessage = messages.unknownError;
@@ -347,12 +363,14 @@ export default {
 
           this.selectedModel = model;
           this.showModelTable = true;
+          this.$router.push({ name: 'gemsModal', params: { model_id: id } });
         })
         .catch(() => {
           this.showModelTable = false;
         });
     },
     showIntegratedModelData(model) {
+      this.$router.push({ name: 'gemsModal', params: { model_id: model.short_name } });
       this.selectedModel = model;
       this.showModelTable = true;
     },

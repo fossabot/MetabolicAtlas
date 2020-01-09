@@ -26,6 +26,7 @@ const routes = [
   { path: '/explore/interaction/:model/:id/', name: 'interPartner', component: Explorer, props: true },
   { path: '/about', name: 'about', component: About },
   { path: '/gems/repository', name: 'gems', component: Repository },
+  { path: '/gems/repository/:model_id', name: 'gemsModal', component: Repository },
   { path: '/gems/comparison', name: 'comparemodels', component: CompareModels },
   { path: '/resources', name: 'resources', component: Resources },
   { path: '/documentation', name: 'documentation', component: Documentation },
