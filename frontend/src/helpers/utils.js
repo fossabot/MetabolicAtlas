@@ -83,31 +83,6 @@ export function reformatSBOLink(sboID, link) {
   return `<a href="http://www.ebi.ac.uk/sbo/main/${sboID}" target="_blank">${sboID}</a>`;
 }
 
-export function reformatECLink(s, rootLink) {
-  const ec = s.split(';');
-  const arr = [];
-  for (let i = 0; i < ec.length; i += 1) {
-    if (s.startsWith('EC:')) {
-      const nr = ec[i].replace('EC:', '').trim();
-      if (rootLink) {
-        arr.push(`<a href="${rootLink}${nr}" target="_blank">${ec[i]}</a>`);
-      } else {
-        arr.push(`<a href="http://www.brenda-enzymes.org/enzyme.php?ecno=${nr}" target="_blank">${ec[i]}</a>`);
-      }
-    } else if (s.startsWith('TCDB:')) {
-      const nr = ec[i].replace('TCDB:', '').trim();
-      if (rootLink) {
-        arr.push(`<a href="${rootLink}${nr}" target="_blank">${ec[i]}</a>`);
-      } else {
-        arr.push(`<a href="http://www.tcdb.org/search/result.php?tc=${nr}" target="_blank">${ec[i]}</a>`);
-      }
-    } else {
-      arr.push(ec[i]);
-    }
-  }
-  return arr.join('; ');
-}
-
 export function getChemicalReaction(reaction) {
   if (reaction === null) {
     return '';

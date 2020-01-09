@@ -25,7 +25,12 @@
             <td v-if="'isComposite' in el">
               <span v-html="el.modifier()"></span>
             </td>
-            <td v-else-if="reaction[el.name]">
+            <td v-else-if="el.name === 'ec'">
+              <!-- eslint-disable-next-line max-len -->
+              <router-link v-for="eccode in reaction[el.name].split('; ')" :key="eccode" :to="{ name: 'search', query: { term: eccode }}">
+                {{ eccode }}
+              </router-link>
+            </td>            <td v-else-if="reaction[el.name]">
               <span v-if="'modifier' in el" v-html="el.modifier(reaction[el.name])"></span>
               <span v-else>{{ reaction[el.name] }}</span>
             </td>
@@ -94,7 +99,7 @@ import NotFound from '@/components/NotFound';
 import MapsAvailable from '@/components/explorer/gemBrowser/MapsAvailable';
 import ExtIdTable from '@/components/explorer/gemBrowser/ExtIdTable';
 import { default as EventBus } from '../../../event-bus';
-import { reformatTableKey, addMassUnit, reformatECLink, reformatCompEqString, reformatChemicalReactionHTML, reformatEqSign } from '../../../helpers/utils';
+import { reformatTableKey, addMassUnit, reformatCompEqString, reformatChemicalReactionHTML, reformatEqSign } from '../../../helpers/utils';
 
 export default {
   name: 'Reaction',
@@ -117,7 +122,7 @@ export default {
           { name: 'is_reversible', display: 'Reversible', isComposite: true, modifier: this.reformatReversible },
           { name: 'quantitative', isComposite: true, modifier: this.reformatQuant },
           { name: 'gene_rule', isComposite: true, display: 'Genes', modifier: this.reformatGenes },
-          { name: 'ec', display: 'EC', modifier: this.reformatECLink },
+          { name: 'ec', display: 'EC' },
           { name: 'compartment', isComposite: true, modifier: this.reformatCompartment },
           { name: 'subsystem_str', display: 'Subsystem', modifier: this.reformatSubsystemList },
         ],
@@ -127,7 +132,7 @@ export default {
           { name: 'is_reversible', display: 'Reversible', isComposite: true, modifier: this.reformatReversible },
           { name: 'quantitative', isComposite: true, modifier: this.reformatQuant },
           { name: 'gene_rule', isComposite: true, display: 'Genes', modifier: this.reformatGenes },
-          { name: 'ec', display: 'EC', modifier: this.reformatECLink },
+          { name: 'ec', display: 'EC' },
           { name: 'compartment', isComposite: true, modifier: this.reformatCompartment },
           { name: 'subsystem_str', display: 'Subsystem', modifier: this.reformatSubsystemList },
         ],
@@ -295,7 +300,6 @@ export default {
         });
     },
     reformatTableKey,
-    reformatECLink,
     reformatCompEqString,
     reformatChemicalReactionHTML,
     reformatEqSign,
