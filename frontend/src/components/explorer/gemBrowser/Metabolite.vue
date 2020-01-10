@@ -52,25 +52,7 @@
               </td>
             </tr>
           </table>
-          <template v-if="hasExternalID">
-            <h4 class="title is-4">External databases</h4>
-            <table v-if="metabolite" id="ed-table" class="table is-fullwidth">
-              <tr v-for="el in externalIDTableKey[model.database_name]" :key="el.name">
-                <template v-if="metabolite[el.name] && metabolite[el.link]">
-                  <td v-if="'display' in el"
-                      class="td-key has-background-primary has-text-white-bis"
-                      v-html="el.display"></td>
-                  <td v-else
-                      class="td-key has-background-primary has-text-white-bis">
-                    {{ reformatTableKey(el.name) }}
-                  </td>
-                  <td>
-                    <a :href="`${metabolite[el.link]}`" target="_blank">{{ metabolite[el.name] }}</a>
-                  </td>
-                </template>
-              </tr>
-            </table>
-          </template>
+          <ExtIdTable :model="model" :component="metabolite" type="metabolite"></ExtIdTable>
         </div>
         <div class="column is-2-widescreen is-3-desktop is-full-tablet has-text-centered">
           <router-link class="button is-info is-fullwidth is-outlined"
@@ -93,6 +75,7 @@
 import axios from 'axios';
 import Reactome from '@/components/explorer/gemBrowser/Reactome';
 import NotFound from '@/components/NotFound';
+import ExtIdTable from '@/components/explorer/gemBrowser/ExtIdTable';
 import { chemicalFormula } from '../../../helpers/chemical-formatters';
 import { reformatTableKey, reformatStringToLink, addMassUnit, idfy } from '../../../helpers/utils';
 import { default as messages } from '../../../helpers/messages';
@@ -101,6 +84,7 @@ export default {
   name: 'Metabolite',
   components: {
     NotFound,
+    ExtIdTable,
     Reactome,
   },
   props: {
@@ -135,36 +119,12 @@ export default {
           { name: 'compartment' },
         ],
       },
-      externalIDTableKey: {
-        human1: [
-          { name: 'kegg_id', display: 'KEGG', link: 'kegg_link' },
-          { name: 'bigg_id', display: 'BiGG', link: 'bigg_link' },
-          { name: 'hmdb_id', display: 'HMDB', link: 'hmdb_link' },
-          { name: 'chebi_id', display: 'ChEBI', link: 'chebi_link' },
-          { name: 'pubchem_id', display: 'PubChem', link: 'pubchem_link' },
-          { name: 'lipidmaps_id', display: 'Lipidmaps', link: 'lipidmaps_link' },
-          { name: 'metanetx_id', display: 'MetaNetX', link: 'metanetx_link' },
-        ],
-        yeast8: [
-        ],
-      },
-      metabolite: '',
+      metabolite: {},
       relatedMetabolites: [],
       componentNotFound: false,
       activePanel: 'table',
       showReactome: false,
     };
-  },
-  computed: {
-    hasExternalID() {
-      for (let i = 0; i < this.externalIDTableKey[this.model.database_name].length; i += 1) {
-        const item = this.externalIDTableKey[this.model.database_name][i];
-        if (this.metabolite[item.name] && this.metabolite[item.link]) {
-          return true;
-        }
-      }
-      return false;
-    },
   },
   watch: {
     /* eslint-disable quote-props */

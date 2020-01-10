@@ -25,7 +25,12 @@
             <td v-if="'isComposite' in el">
               <span v-html="el.modifier()"></span>
             </td>
-            <td v-else-if="reaction[el.name]">
+            <td v-else-if="el.name === 'ec'">
+              <!-- eslint-disable-next-line max-len -->
+              <router-link v-for="eccode in reaction[el.name].split('; ')" :key="eccode" :to="{ name: 'search', query: { term: eccode }}">
+                {{ eccode }}
+              </router-link>
+            </td>            <td v-else-if="reaction[el.name]">
               <span v-if="'modifier' in el" v-html="el.modifier(reaction[el.name])"></span>
               <span v-else>{{ reaction[el.name] }}</span>
             </td>
@@ -52,21 +57,7 @@
             </td>
           </tr>
         </table>
-        <template v-if="hasExternalID">
-          <h4 class="title is-4">External databases</h4>
-          <table v-if="reaction && Object.keys(reaction).length != 0" id="ed-table" class="table is-fullwidth">
-            <tr v-for="el in externalIDTableKey[model.database_name]" :key="el.name">
-              <template v-if="reaction[el.name] && reaction[el.link]">
-                <td v-if="'display' in el" class="td-key has-background-primary has-text-white-bis"
-                    v-html="el.display"></td>
-                <td v-else class="td-key has-background-primary has-text-white-bis">{{ reformatTableKey(el.name) }}</td>
-                <td>
-                  <a :href="`${reaction[el.link]}`" target="_blank">{{ reaction[el.name] }}</a>
-                </td>
-              </template>
-            </tr>
-          </table>
-        </template>
+        <ExtIdTable :model="model" :component="reaction" type="reaction"></ExtIdTable>
         <h4 class="title is-size-4">References via PubMed ID</h4>
         <table class="main-table table is-fullwidth">
           <template v-if="unformattedRefs.length === 0">
@@ -106,8 +97,9 @@ import $ from 'jquery';
 import Loader from '@/components/Loader';
 import NotFound from '@/components/NotFound';
 import MapsAvailable from '@/components/explorer/gemBrowser/MapsAvailable';
+import ExtIdTable from '@/components/explorer/gemBrowser/ExtIdTable';
 import { default as EventBus } from '../../../event-bus';
-import { reformatTableKey, addMassUnit, reformatECLink, reformatCompEqString, reformatChemicalReactionHTML, reformatEqSign } from '../../../helpers/utils';
+import { reformatTableKey, addMassUnit, reformatCompEqString, reformatChemicalReactionHTML, reformatEqSign } from '../../../helpers/utils';
 
 export default {
   name: 'Reaction',
@@ -115,6 +107,7 @@ export default {
     NotFound,
     Loader,
     MapsAvailable,
+    ExtIdTable,
   },
   props: {
     model: Object,
@@ -129,7 +122,7 @@ export default {
           { name: 'is_reversible', display: 'Reversible', isComposite: true, modifier: this.reformatReversible },
           { name: 'quantitative', isComposite: true, modifier: this.reformatQuant },
           { name: 'gene_rule', isComposite: true, display: 'Genes', modifier: this.reformatGenes },
-          { name: 'ec', display: 'EC', modifier: this.reformatECLink },
+          { name: 'ec', display: 'EC' },
           { name: 'compartment', isComposite: true, modifier: this.reformatCompartment },
           { name: 'subsystem_str', display: 'Subsystem', modifier: this.reformatSubsystemList },
         ],
@@ -139,19 +132,10 @@ export default {
           { name: 'is_reversible', display: 'Reversible', isComposite: true, modifier: this.reformatReversible },
           { name: 'quantitative', isComposite: true, modifier: this.reformatQuant },
           { name: 'gene_rule', isComposite: true, display: 'Genes', modifier: this.reformatGenes },
-          { name: 'ec', display: 'EC', modifier: this.reformatECLink },
+          { name: 'ec', display: 'EC' },
           { name: 'compartment', isComposite: true, modifier: this.reformatCompartment },
           { name: 'subsystem_str', display: 'Subsystem', modifier: this.reformatSubsystemList },
         ],
-      },
-      externalIDTableKey: {
-        human1: [
-          { name: 'kegg_id', display: 'KEGG', link: 'kegg_link' },
-          { name: 'bigg_id', display: 'BiGG', link: 'bigg_link' },
-          { name: 'reactome_id', display: 'Reactome', link: 'reactome_link' },
-          { name: 'metanetx_id', display: 'MetaNetX', link: 'metanetx_link' },
-        ],
-        yeast8: [],
       },
       reaction: {},
       relatedReactions: [],
@@ -162,17 +146,6 @@ export default {
       formattedRefs: {},
       componentNotFound: false,
     };
-  },
-  computed: {
-    hasExternalID() {
-      for (let i = 0; i < this.externalIDTableKey[this.model.database_name].length; i += 1) {
-        const item = this.externalIDTableKey[this.model.database_name][i];
-        if (this.reaction[item.name] && this.reaction[item.link]) {
-          return true;
-        }
-      }
-      return false;
-    },
   },
   watch: {
     /* eslint-disable quote-props */
@@ -327,7 +300,6 @@ export default {
         });
     },
     reformatTableKey,
-    reformatECLink,
     reformatCompEqString,
     reformatChemicalReactionHTML,
     reformatEqSign,

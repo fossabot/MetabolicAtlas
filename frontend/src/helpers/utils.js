@@ -3,6 +3,9 @@ export function capitalize(value) {
 }
 
 export function idfy(value) {
+  if (!value) {
+    return '';
+  }
   let s = value.toLowerCase().replace(/[^0-9a-z_]/g, '_');
   s = s.replace(/_{2,}/g, '_');
   return s.replace(/^_|_$/, '');
@@ -78,20 +81,6 @@ export function reformatSBOLink(sboID, link) {
     return reformatStringToLink(sboID, link);
   }
   return `<a href="http://www.ebi.ac.uk/sbo/main/${sboID}" target="_blank">${sboID}</a>`;
-}
-
-export function reformatECLink(s, rootLink) {
-  const ec = s.split(';');
-  const arr = [];
-  for (let i = 0; i < ec.length; i += 1) {
-    const nr = ec[i].replace('EC:', '');
-    if (rootLink) {
-      arr.push(`<a href="${rootLink}${nr}" target="_blank">${ec[i]}</a>`);
-    } else {
-      arr.push(`<a href="http://www.brenda-enzymes.org/enzyme.php?ecno=${nr}" target="_blank">${ec[i]}</a>`);
-    }
-  }
-  return arr.join('; ');
 }
 
 export function getChemicalReaction(reaction) {

@@ -17,7 +17,7 @@ import collections
 def insert_model_metadata(database, metadata, metadata_only=False, overwrite=False, content_only=False):
     # YAML metadata expected structure:
     # - metadata:
-    #     id         : "HumanGEM"
+    #     id         : "Human-GEM"
     #     short_name : "human"
     #     full_name  : "Human metabolic model v1"
     #     description: "1-3 lines description"
