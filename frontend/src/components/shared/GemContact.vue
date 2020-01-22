@@ -33,7 +33,7 @@ export default {
     },
     id: {
       type: String,
-      required: false,
+      required: true,
     },
   },
   data() {
