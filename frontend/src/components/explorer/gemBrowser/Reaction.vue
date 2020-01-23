@@ -26,11 +26,17 @@
               <span v-html="el.modifier()"></span>
             </td>
             <td v-else-if="el.name === 'ec'">
-              <!-- eslint-disable-next-line max-len -->
-              <router-link v-for="eccode in reaction[el.name].split('; ')" :key="eccode" :to="{ name: 'search', query: { term: eccode }}">
-                {{ eccode }}
-              </router-link>
-            </td>            <td v-else-if="reaction[el.name]">
+              <template v-if="reaction[el.name]">
+                <!-- eslint-disable-next-line max-len -->
+                <router-link v-for="eccode in reaction[el.name].split('; ')" :key="eccode" :to="{ name: 'search', query: { term: eccode }}">
+                  {{ eccode }}
+                </router-link>
+              </template>
+              <template v-else>
+                -
+              </template>
+            </td>
+            <td v-else-if="reaction[el.name]">
               <span v-if="'modifier' in el" v-html="el.modifier(reaction[el.name])"></span>
               <span v-else>{{ reaction[el.name] }}</span>
             </td>
@@ -86,6 +92,7 @@
       </div>
       <div class="column is-2-widescreen is-3-desktop is-half-tablet has-text-centered">
         <maps-available :id="rId" :model="model" :type="'reaction'" :element-i-d="rId"></maps-available>
+        <gem-contact :model="model" type="reaction" :id="rId"/>
       </div>
     </div>
   </div>
@@ -97,6 +104,7 @@ import $ from 'jquery';
 import Loader from '@/components/Loader';
 import NotFound from '@/components/NotFound';
 import MapsAvailable from '@/components/explorer/gemBrowser/MapsAvailable';
+import GemContact from '@/components/shared/GemContact';
 import ExtIdTable from '@/components/explorer/gemBrowser/ExtIdTable';
 import { default as EventBus } from '../../../event-bus';
 import { reformatTableKey, addMassUnit, reformatCompEqString, reformatChemicalReactionHTML, reformatEqSign } from '../../../helpers/utils';
@@ -107,6 +115,7 @@ export default {
     NotFound,
     Loader,
     MapsAvailable,
+    GemContact,
     ExtIdTable,
   },
   props: {

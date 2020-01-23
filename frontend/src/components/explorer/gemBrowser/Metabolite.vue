@@ -60,6 +60,7 @@
             <span class="icon"><i class="fa fa-connectdevelop fa-lg"></i></span>&nbsp;
             <span>{{ messages.interPartName }}</span>
           </router-link>
+          <gem-contact :model="model" type="metabolite" :id="mId"/>
         </div>
       </div>
       <div class="columns">
@@ -74,6 +75,7 @@
 <script>
 import axios from 'axios';
 import Reactome from '@/components/explorer/gemBrowser/Reactome';
+import GemContact from '@/components/shared/GemContact';
 import NotFound from '@/components/NotFound';
 import ExtIdTable from '@/components/explorer/gemBrowser/ExtIdTable';
 import { chemicalFormula } from '../../../helpers/chemical-formatters';
@@ -86,6 +88,7 @@ export default {
     NotFound,
     ExtIdTable,
     Reactome,
+    GemContact,
   },
   props: {
     model: Object,

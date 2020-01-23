@@ -42,6 +42,7 @@ def insert_model_metadata(database, metadata, metadata_only=False, overwrite=Fal
     #       - "PMID1"
     #       - "PMID2"
     #     link     : "https://github.com/SysBioChalmers/human-GEM"
+    #     gitter: https://gitter.im/SysBioChalmers/Human-GEM
 
     # currently in the yaml
     # - metaData:
@@ -73,8 +74,44 @@ def insert_model_metadata(database, metadata, metadata_only=False, overwrite=Fal
         metadata_dict["cell_line"] = ""
     if "pmid" not in metadata_dict:
         metadata_dict["pmid"] = []
-    if "author" not in metadata_dict:
-        metadata_dict["author"] = []
+
+    #fix metadata dict
+    if database == "human1":
+        metadata_dict["organism"] = "Homo sapiens"
+        metadata_dict["organ_system"] = None
+        metadata_dict["tissue"] = None
+        metadata_dict["cell_type"] = "Generic cell"
+        metadata_dict["cell_line"] = None
+        metadata_dict["link"] = "https://github.com/SysBioChalmers/Human-GEM"
+        metadata_dict["pmid"] = []
+        metadata_dict["chat_link"]: "https://gitter.im/SysBioChalmers/Human-GEM"
+        metadata_dict["author"] = [
+            {
+                "first_name": "Jonathan",
+                "last_name": "Robinson",
+                "email": "jonrob@chalmers.se",
+                "organization": "",
+            },{
+                "first_name": "Hao",
+                "last_name": "Wang",
+                "email": "hao.wang@chalmers.se ",
+                "organization": "",
+            },{
+                "first_name": "Pınar",
+                "last_name": " Kocabaş",
+                "email": "kocabas@@chalmers.se ",
+                "organization": "",
+            },
+        ]
+
+    if "version" not in metadata_dict or not metadata_dict["version"]:
+        print("Error: missing version of the model")
+        exit(1)
+
+    if "author" not in metadata_dict or not metadata_dict["author"] \
+        or "email" not in metadata_dict["author"][0] or not metadata_dict["author"][0]["email"]:
+        print("Error: cannot get email of the first author")
+        exit(1)
 
     # check if the model already exists
     try:
@@ -88,17 +125,6 @@ def insert_model_metadata(database, metadata, metadata_only=False, overwrite=Fal
         if not metadata_only:
             print("Error: model '%s' is not in the database" % metadata_dict["short_name"])
             exit(1)
-
-    #fix metadata dict
-    if database == "human1":
-        metadata_dict["organism"] = "Homo sapiens"
-        metadata_dict["organ_system"] = None
-        metadata_dict["tissue"] = None
-        metadata_dict["cell_type"] = "Generic cell"
-        metadata_dict["cell_line"] = None
-        metadata_dict["link"] = "https://github.com/SysBioChalmers/Human-GEM"
-        metadata_dict["pmid"] = []
-        metadata_dict["author"] = []
 
     # get the sample from the database or create a new one
     try:
@@ -141,6 +167,7 @@ def insert_model_metadata(database, metadata, metadata_only=False, overwrite=Fal
                 condition=metadata_dict["condition"],
                 date=metadata_dict["date"],
                 link=metadata_dict["link"],
+                chat_link=metadata_dict["chat_link"],
                 sample=sample)
     gem.save(using="gems")
     gem.ref.add(*ref_list)

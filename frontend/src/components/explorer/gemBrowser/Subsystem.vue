@@ -74,6 +74,7 @@
       </div>
       <div class="column is-2-widescreen is-3-desktop is-half-tablet has-text-centered">
         <maps-available :id="sName" :model="model" :type="'subsystem'" :element-i-d="''"></maps-available>
+        <gem-contact :model="model" type="subsystem" :id="info.name"/>
       </div>
     </div>
     <template v-if="!showLoader">
@@ -102,6 +103,7 @@ import Loader from '@/components/Loader';
 import NotFound from '@/components/NotFound';
 import MapsAvailable from '@/components/explorer/gemBrowser/MapsAvailable';
 import ReactionTable from '@/components/explorer/gemBrowser/ReactionTable';
+import GemContact from '@/components/shared/GemContact';
 import { reformatTableKey, idfy } from '../../../helpers/utils';
 
 export default {
@@ -111,6 +113,7 @@ export default {
     MapsAvailable,
     ReactionTable,
     Loader,
+    GemContact,
   },
   props: {
     model: {
