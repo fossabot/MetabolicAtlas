@@ -60,7 +60,7 @@
                 <template v-for="(compo, j) in RP.split(' + ')">
                   <template v-if="j !== 0"> + </template>
                   <!-- eslint-disable-next-line max-len -->
-                  <router-link :to="{ path: `/explore/gem-browser/${model.database_name}/compartment/${idfy(compo)}` }" :key="compo">{{ compo }}</router-link>
+                  <router-link :to="{ path: `/explore/gem-browser/${model.database_name}/compartment/${idfy(compo)}` }" :key="`${compo}${i}`">{{ compo }}</router-link>
                 </template>
               </template>
             </td>
