@@ -88,10 +88,10 @@ export function getChemicalReaction(reaction) {
     return '';
   }
   const reactants = reaction.reactionreactant_set.map(
-    x => `${x.stoichiometry !== 1 ? `${x.stoichiometry} ` : ''}${x.reactant.full_name}`
+    x => `${x.stoichiometry !== 1 ? `${x.stoichiometry} ` : ''}${x.full_name}`
   ).join(' + ');
   const products = reaction.reactionproduct_set.map(
-    x => `${x.stoichiometry !== 1 ? `${x.stoichiometry} ` : ''}${x.product.full_name}`
+    x => `${x.stoichiometry !== 1 ? `${x.stoichiometry} ` : ''}${x.full_name}`
   ).join(' + ');
 
   if (reaction.is_reversible) {
@@ -108,22 +108,22 @@ export function reformatChemicalReactionHTML(reaction, noMtag = false) {
   const reactants = reaction.reactionreactant_set.map(
     (x) => {
       if (!addComp) {
-        return `${x.stoichiometry !== 1 ? x.stoichiometry : ''} ${noMtag ? x.reactant.name : `<m class="${x.reactant.id}">${x.reactant.name}</m>`}`;
+        return `${x.stoichiometry !== 1 ? x.stoichiometry : ''} ${noMtag ? x.name : `<m class="${x.id}">${x.name}</m>`}`;
       }
       const regex = /.+\[([a-z]{1,3})\]$/;
-      const match = regex.exec(x.reactant.full_name);
-      return `${x.stoichiometry !== 1 ? x.stoichiometry : ''} ${noMtag ? x.reactant.name : `<m class="${x.reactant.id}">${x.reactant.name}</m>`}<span class="sc" title="${x.reactant.compartment_str}">${match[1]}</span>`;
+      const match = regex.exec(x.full_name);
+      return `${x.stoichiometry !== 1 ? x.stoichiometry : ''} ${noMtag ? x.name : `<m class="${x.id}">${x.name}</m>`}<span class="sc" title="${x.compartment}">${match[1]}</span>`;
     }
   ).join(' + ');
 
   const products = reaction.reactionproduct_set.map(
     (x) => {
       if (!addComp) {
-        return `${x.stoichiometry !== 1 ? x.stoichiometry : ''} ${noMtag ? x.product.name : `<m class="${x.product.id}">${x.product.name}</m>`}`;
+        return `${x.stoichiometry !== 1 ? x.stoichiometry : ''} ${noMtag ? x.name : `<m class="${x.id}">${x.name}</m>`}`;
       }
       const regex = /.+\[([a-z]{1,3})\]$/;
-      const match = regex.exec(x.product.full_name);
-      return `${x.stoichiometry !== 1 ? x.stoichiometry : ''} ${noMtag ? x.product.name : `<m class="${x.product.id}">${x.product.name}</m>`}<span class="sc" title="${x.product.compartment_str}">${match[1]}</span>`;
+      const match = regex.exec(x.full_name);
+      return `${x.stoichiometry !== 1 ? x.stoichiometry : ''} ${noMtag ? x.name : `<m class="${x.id}">${x.name}</m>`}<span class="sc" title="${x.compartment}">${match[1]}</span>`;
     }
   ).join(' + ');
 

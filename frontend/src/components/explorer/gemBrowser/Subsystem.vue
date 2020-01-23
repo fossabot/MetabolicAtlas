@@ -11,8 +11,8 @@
     <loader v-show="showLoader"></loader>
     <div v-show="!showLoader" class="columns is-multiline is-variable is-8">
       <div class="subsystem-table column is-10-widescreen is-9-desktop is-full-tablet">
-        <table v-if="info && Object.keys(info).length != 0" class="table main-table is-fullwidth">
-          <tr v-for="el in mainTableKey[model.database_name]"
+        <table v-if="info && Object.keys(info).length !== 0" class="table main-table is-fullwidth">
+          <tr v-for="el in mainTableKey"
               :key="el.name_id"
               class="m-row">
             <template v-if="info[el.name]">
@@ -49,7 +49,7 @@
                 <button class="is-small button" @click="showFullMetabolite=true">
                   ... and {{ metabolites.length - displayedMetabolite }} more
                 </button>
-                <span v-show="metabolites.length == limitMetabolite" class="tag is-medium is-warning is-pulled-right">
+                <span v-show="metabolites.length === limitMetabolite" class="tag is-medium is-warning is-pulled-right">
                   The number of metabolites displayed is limited to {{ limitMetabolite }}.
                 </span>
               </div>
@@ -64,7 +64,7 @@
                 <button class="is-small button" @click="showFullGene=true">
                   ... and {{ genes.length - displayedGene }} more
                 </button>
-                <span v-show="genes.length == limitGene" class="tag is-medium is-warning is-pulled-right">
+                <span v-show="genes.length === limitGene" class="tag is-medium is-warning is-pulled-right">
                   The number of genes displayed is limited to {{ limitGene }}.
                 </span>
               </div>
@@ -127,11 +127,9 @@ export default {
       genes: [],
       reactions: [],
       errorMessage: '',
-      mainTableKey: {
-        human1: [
-          { name: 'name', display: 'Name' },
-        ],
-      },
+      mainTableKey: [
+        { name: 'name', display: 'Name' },
+      ],
       showFullMetabolite: false,
       showFullGene: false,
       displayedMetabolite: 40,

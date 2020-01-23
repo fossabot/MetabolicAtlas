@@ -15,7 +15,7 @@
       <div class="columns is-multiline metabolite-table is-variable is-8">
         <div class="column is-10-widescreen is-9-desktop is-full-tablet">
           <table v-if="metabolite" class="table main-table is-fullwidth">
-            <tr v-for="el in mainTableKey[model.database_name]" :key="el.name">
+            <tr v-for="el in mainTableKey" :key="el.name">
               <td v-if="el.display" class="td-key has-background-primary has-text-white-bis" v-html="el.display"></td>
               <td v-else-if="el.name === 'id'"
                   class="td-key has-background-primary has-text-white-bis">
@@ -41,18 +41,16 @@
             <tr v-if="relatedMetabolites.length !== 0">
               <td class="td-key has-background-primary has-text-white-bis">Related metabolite(s)</td>
               <td>
-                <template v-for="(rm, i) in relatedMetabolites">
-                  <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
-                  <br v-if="i !== 0 ">
-                  <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
+                <span v-for="(rm, i) in relatedMetabolites" :key="rm.id">
+                  <br v-if="i !== 0">
                   <router-link :to="{ path: `/explore/gem-browser/${model.database_name}/metabolite/${rm.id}`}">
                     {{ rm.full_name }}
                   </router-link> in {{ rm.compartment_str }}
-                </template>
+                </span>
               </td>
             </tr>
           </table>
-          <ExtIdTable :model="model" :component="metabolite" type="metabolite"></ExtIdTable>
+          <ExtIdTable :externalDbs="metabolite.external_databases"></ExtIdTable>
         </div>
         <div class="column is-2-widescreen is-3-desktop is-full-tablet has-text-centered">
           <router-link class="button is-info is-fullwidth is-outlined"
@@ -95,30 +93,17 @@ export default {
       messages,
       mId: this.$route.params.id,
       metaboliteID: '',
-      mainTableKey: {
-        human1: [
-          { name: 'id' },
-          { name: 'name' },
-          { name: 'alt_name', display: 'Alternate name' },
-          { name: 'aliases', display: 'Synonyms' },
-          { name: 'description' },
-          { name: 'formula' },
-          { name: 'charge' },
-          { name: 'inchi', display: 'InChI' },
-          { name: 'compartment' },
-        ],
-        yeast8: [
-          { name: 'id' },
-          { name: 'name' },
-          { name: 'alt_name', display: 'Alternate name' },
-          { name: 'aliases', display: 'Synonyms' },
-          { name: 'description' },
-          { name: 'formula' },
-          { name: 'charge' },
-          { name: 'inchi', display: 'InChI' },
-          { name: 'compartment' },
-        ],
-      },
+      mainTableKey: [
+        { name: 'id' },
+        { name: 'name' },
+        { name: 'alt_name', display: 'Alternate name' },
+        { name: 'synonyms' },
+        { name: 'description' },
+        { name: 'formula' },
+        { name: 'charge' },
+        { name: 'inchi', display: 'InChI' },
+        { name: 'compartment' },
+      ],
       metabolite: {},
       relatedMetabolites: [],
       componentNotFound: false,

@@ -1,7 +1,7 @@
 <template>
   <div class="reaction-table">
     <div class="field">
-      <span class="tag is-medium" :class="reactions.length == limit ? 'is-warning' : ''">
+      <span class="tag is-medium" :class="reactions.length === limit ? 'is-warning' : ''">
         # Reactions: {{ reactions.length }}
       </span>
       <template v-if="transportReactionCount !== 0">
@@ -16,7 +16,7 @@
         :filename="`reaction_${sourceName}.tsv`"
         :format-function="formatToTSV"
       ></ExportTSV>
-      <span v-show="reactions.length == limit" class="tag is-medium is-warning is-pulled-right">
+      <span v-show="reactions.length === limit" class="tag is-medium is-warning is-pulled-right">
         The number of reactions displayed is limited to {{ limit }}.
       </span>
     </div>
@@ -42,25 +42,25 @@
             </td>
             <td v-html="reformatChemicalReactionHTML(r)"></td>
             <td>
-              <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key max-len -->
-              <template v-for="(m, index) in r.genes">{{ index == 0 ? '' : ', ' }}<router-link :to="{ path: `/explore/gem-browser/${model.database_name}/gene/${m.id}` }">{{ m.name || m.id }}</router-link>
+              <!-- eslint-disable-next-line max-len -->
+              <template v-for="(m, index) in r.genes">{{ index === 0 ? '' : ', ' }}<router-link :key="m.id" :to="{ path: `/explore/gem-browser/${model.database_name}/gene/${m.id}` }">{{ m.name || m.id }}</router-link>
               </template>
             </td>
             <td v-show="showCP">{{ r.cp }}</td>
             <td v-show="showSubsystem">
               <template v-if="r.subsystem_str">
-                <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key max-len -->
-                <template v-for="(s, index) in r.subsystem_str.split('; ')">{{ index == 0 ? '' : '; ' }}<router-link :to="{ path: `/explore/gem-browser/${model.database_name}/subsystem/${idfy(s)}` }">{{ s }}</router-link>
+                <!-- eslint-disable-next-line  max-len -->
+                <template v-for="(s, index) in r.subsystem_str.split('; ')">{{ index === 0 ? '' : '; ' }}<router-link :key="s.id" :to="{ path: `/explore/gem-browser/${model.database_name}/subsystem/${idfy(s)}` }">{{ s }}</router-link>
                 </template>
               </template>
             </td>
             <td>
               <template v-for="(RP, i) in r.compartment.split(' => ')">
-                <template v-if="i != 0">{{ r.is_reversible ? ' &#8660; ' : ' &#8658; ' }}</template>
+                <template v-if="i !== 0">{{ r.is_reversible ? ' &#8660; ' : ' &#8658; ' }}</template>
                 <template v-for="(compo, j) in RP.split(' + ')">
-                  <template v-if="j != 0"> + </template>
-                  <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key max-len -->
-                  <router-link :to="{ path: `/explore/gem-browser/${model.database_name}/compartment/${idfy(compo)}` }">{{ compo }}</router-link>
+                  <template v-if="j !== 0"> + </template>
+                  <!-- eslint-disable-next-line max-len -->
+                  <router-link :to="{ path: `/explore/gem-browser/${model.database_name}/compartment/${idfy(compo)}` }" :key="compo">{{ compo }}</router-link>
                 </template>
               </template>
             </td>
@@ -137,12 +137,12 @@ export default {
             reaction.cp = 'consume/produce';
           } else {
             const boolC = reaction.reactionreactant_set.filter(
-              e => e.reactant.id === this.selectedElmId);
+              e => e.id === this.selectedElmId);
             if (boolC.length !== 0) {
               reaction.cp = 'consume';
             } else {
               const boolP = reaction.reactionproduct_set.filter(
-                e => e.product.id === this.selectedElmId);
+                e => e.id === this.selectedElmId);
               if (boolP.length !== 0) {
                 reaction.cp = 'produce';
               }

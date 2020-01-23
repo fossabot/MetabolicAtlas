@@ -13,8 +13,8 @@
     </div>
     <div v-show="!showLoader" class="columns is-multiline is-variable is-8">
       <div class="reaction-table column is-10-widescreen is-9-desktop is-full-tablet">
-        <table v-if="reaction && Object.keys(reaction).length != 0" class="table main-table is-fullwidth">
-          <tr v-for="el in mainTableKey[model.database_name]" :key="el.name">
+        <table v-if="reaction && Object.keys(reaction).length !== 0" class="table main-table is-fullwidth">
+          <tr v-for="el in mainTableKey" :key="el.name">
             <td v-if="'display' in el"
                 class="td-key has-background-primary has-text-white-bis"
                 v-html="el.display"></td>
@@ -25,12 +25,13 @@
             <td v-if="'isComposite' in el">
               <span v-html="el.modifier()"></span>
             </td>
-            <td v-else-if="el.name === 'ec'">
+            <td v-else-if="el.name === 'ec' && reaction[el.name]">
               <!-- eslint-disable-next-line max-len -->
               <router-link v-for="eccode in reaction[el.name].split('; ')" :key="eccode" :to="{ name: 'search', query: { term: eccode }}">
                 {{ eccode }}
               </router-link>
-            </td>            <td v-else-if="reaction[el.name]">
+            </td>
+            <td v-else-if="reaction[el.name]">
               <span v-if="'modifier' in el" v-html="el.modifier(reaction[el.name])"></span>
               <span v-else>{{ reaction[el.name] }}</span>
             </td>
@@ -42,22 +43,20 @@
           <tr v-if="relatedReactions.length !== 0">
             <td class="td-key has-background-primary has-text-white-bis">Related reaction(s)</td>
             <td>
-              <template v-for="rr in relatedReactions">
-                <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
+              <span v-for="rr in relatedReactions" :key="rr.id">
                 <router-link :to="{ path: `/explore/gem-browser/${model.database_name}/reaction/${rr.id}`}">
                   {{ rr.id }}
                 </router-link>
-                <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
                 <div style="margin-left: 30px">
                   <span v-html="reformatChemicalReactionHTML(rr, true)"></span>
                   (<span v-html="reformatEqSign(rr.compartment, rr.is_reversible)">
                   </span>)
                 </div>
-              </template>
+              </span>
             </td>
           </tr>
         </table>
-        <ExtIdTable :model="model" :component="reaction" type="reaction"></ExtIdTable>
+        <ExtIdTable :externalDbs="reaction.external_databases"></ExtIdTable>
         <h4 class="title is-size-4">References via PubMed ID</h4>
         <table class="main-table table is-fullwidth">
           <template v-if="unformattedRefs.length === 0">
@@ -115,28 +114,16 @@ export default {
   data() {
     return {
       rId: this.$route.params.id,
-      mainTableKey: {
-        human1: [
-          { name: 'id' },
-          { name: 'equation', modifier: this.reformatEquation },
-          { name: 'is_reversible', display: 'Reversible', isComposite: true, modifier: this.reformatReversible },
-          { name: 'quantitative', isComposite: true, modifier: this.reformatQuant },
-          { name: 'gene_rule', isComposite: true, display: 'Genes', modifier: this.reformatGenes },
-          { name: 'ec', display: 'EC' },
-          { name: 'compartment', isComposite: true, modifier: this.reformatCompartment },
-          { name: 'subsystem_str', display: 'Subsystem', modifier: this.reformatSubsystemList },
-        ],
-        yeast8: [
-          { name: 'id' },
-          { name: 'equation', modifier: this.reformatEquation },
-          { name: 'is_reversible', display: 'Reversible', isComposite: true, modifier: this.reformatReversible },
-          { name: 'quantitative', isComposite: true, modifier: this.reformatQuant },
-          { name: 'gene_rule', isComposite: true, display: 'Genes', modifier: this.reformatGenes },
-          { name: 'ec', display: 'EC' },
-          { name: 'compartment', isComposite: true, modifier: this.reformatCompartment },
-          { name: 'subsystem_str', display: 'Subsystem', modifier: this.reformatSubsystemList },
-        ],
-      },
+      mainTableKey: [
+        { name: 'id' },
+        { name: 'equation', modifier: this.reformatEquation },
+        { name: 'is_reversible', display: 'Reversible', isComposite: true, modifier: this.reformatReversible },
+        { name: 'quantitative', isComposite: true, modifier: this.reformatQuant },
+        { name: 'gene_rule', isComposite: true, display: 'Genes', modifier: this.reformatGenes },
+        { name: 'ec', display: 'EC' },
+        { name: 'compartment', isComposite: true, modifier: this.reformatCompartment },
+        { name: 'subsystem_str', display: 'Subsystem', modifier: this.reformatSubsystemList },
+      ],
       reaction: {},
       relatedReactions: [],
       errorMessage: '',
