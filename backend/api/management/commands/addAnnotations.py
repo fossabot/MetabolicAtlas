@@ -162,7 +162,7 @@ def update_metabolite(database, row_ann_dict, mapping_model_annotation_dict):
 
     rc = APImodels.ReactionComponent.objects.using(database).filter(id=row_ann_dict['ID'])
     if not rc:
-        print ("Warning: reaction component ID '%s' not found, cannot update annotation" % row_ann_dict['ID'])
+        print ("Warning: reaction component ID '%s' not in the model, cannot update annotation" % row_ann_dict['ID'])
         return
 
     # select only the first external ID or external link
@@ -213,7 +213,7 @@ def update_gene(database, row_ann_dict, mapping_model_annotation_dict):
 
     rc = APImodels.ReactionComponent.objects.using(database).filter(id=row_ann_dict['ID'])
     if not rc:
-        print ("Warning: reaction component ID '%s' not found, cannot update annotation" % row_ann_dict['ID'])
+        print ("Warning: reaction component ID '%s' not in the model, cannot update annotation" % row_ann_dict['ID'])
         return
 
     rc.update(**reaction_component_dict)
@@ -254,7 +254,7 @@ def update_reaction(database, row_ann_dict, mapping_model_annotation_dict):
 
     r = APImodels.Reaction.objects.using(database).filter(id=row_ann_dict['ID'])
     if not r:
-        print ("Warning: reaction ID '%s' not found, cannot update annotation" % row_ann_dict['ID'])
+        print ("Warning: reaction ID '%s' not in the model, cannot update annotation" % row_ann_dict['ID'])
         return
 
     r.update(**reaction_dict)
@@ -286,15 +286,15 @@ def update_subsystem(database, row_ann_dict, mapping_model_annotation_dict):
 
     s = APImodels.Subsystem.objects.using(database).filter(name=row_ann_dict['ID'])
     if not s:
-        print ("Warning: subsystem name '%s' not found, cannot update annotation" % row_ann_dict['ID'])
+        print ("Warning: subsystem name '%s' not in the model, cannot update annotation" % row_ann_dict['ID'])
         return
 
     s.update(**subystem_dict)
 
 
 def reformat_external_ids(data_id_dict, data_link_dict, external_ids_count):
-    # data_link_dict is Nomne for reaction, both external ids and external links are in the same dictionnary
-    if not data_link_dict:
+    # data_link_dict is None for reaction, both external ids and external links are in the same dictionnary
+    if data_link_dict is None:
         data_link_dict = data_id_dict
 
     for i in range(1, external_ids_count + 1):
@@ -303,13 +303,13 @@ def reformat_external_ids(data_id_dict, data_link_dict, external_ids_count):
         if id_key not in data_id_dict or not data_id_dict[id_key]:
             continue
         data_id_dict[id_key] = data_id_dict[id_key].split(';')
-        data_link_dict[link_key] = data_link_dict[link_key].split(';')
-
-        if len(data_id_dict[id_key]) != len(data_link_dict[link_key]):
-            print("Error: number of external IDs do not match the number of external links (%s)" % row_ann_dict['ID'])
-            exit()
-        data_id_dict[id_key] = data_id_dict[id_key][0].strip()  # select only the first ID
-        data_link_dict[link_key] = data_link_dict[link_key][0].strip() # select only the first link
+        if link_key in data_link_dict:
+            data_link_dict[link_key] = data_link_dict[link_key].split(';')
+            if len(data_id_dict[id_key]) != len(data_link_dict[link_key]):
+                print("Error: number of external IDs do not match the number of external links (%s)" % row_ann_dict['ID'])
+                exit()
+            data_link_dict[link_key] = data_link_dict[link_key][0].strip() # FIXME select only the first link
+        data_id_dict[id_key] = data_id_dict[id_key][0].strip()  # FIXME select only the first ID
     return data_id_dict, data_link_dict
 
 

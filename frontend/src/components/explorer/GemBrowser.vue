@@ -152,11 +152,6 @@ export default {
   methods: {
     setup() {
       if (this.$route.name === 'browser' || this.$route.name === 'browserRoot') {
-        if (!this.model || this.model.database_name !== this.$route.params.model) {
-          EventBus.$emit('modelSelected', '');
-          this.errorMessage = `Error: ${messages.modelNotFound}`;
-          return;
-        }
         this.selectedType = this.$route.params.type || '';
         this.componentID = this.$route.params.id || '';
         if (!this.componentID || !this.selectedType) {

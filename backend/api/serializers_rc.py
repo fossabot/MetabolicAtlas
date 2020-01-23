@@ -375,12 +375,12 @@ class HmrMetaboliteReactionComponentLiteSerializer(serializers.ModelSerializer):
     pubchem_id = serializers.SerializerMethodField('read_pubchem')
     lipidmaps_id = serializers.SerializerMethodField('read_lipidmaps')
     metanetx_id = serializers.SerializerMethodField('read_metanetx')
-
+    recon3d_id = serializers.SerializerMethodField('read_recon3d')
 
     class Meta:
         model = APImodels.ReactionComponent
         fields = ('id', 'name', 'full_name', 'aliases', 'inchi', 'compartment', 'kegg_id',
-         'bigg_id', 'hmdb_id', 'chebi_id', 'pubchem_id', 'lipidmaps_id', 'metanetx_id',)
+         'bigg_id', 'hmdb_id', 'chebi_id', 'pubchem_id', 'lipidmaps_id', 'metanetx_id', 'recon3d_id')
 
     def read_aliases(self, model):
         return model.aliases
@@ -412,6 +412,9 @@ class HmrMetaboliteReactionComponentLiteSerializer(serializers.ModelSerializer):
     def read_metanetx(self, model):
         return model.external_id7
 
+    def read_recon3d(self, model):
+        return model.external_id8
+
 
 class HmrMetaboliteReactionComponentSerializer(serializers.ModelSerializer):
     alt_name = serializers.SerializerMethodField('read_alt_name')
@@ -439,12 +442,14 @@ class HmrMetaboliteReactionComponentSerializer(serializers.ModelSerializer):
     lipidmaps_link = serializers.SerializerMethodField('read_lipidmaps_link')
     metanetx_id = serializers.SerializerMethodField('read_metanetx')
     metanetx_link = serializers.SerializerMethodField('read_metanetx_link')
+    recon3d_id = serializers.SerializerMethodField('read_recon3d')
+    recon3d_link = serializers.SerializerMethodField('read_recon3d_link')
 
     class Meta:
         model = APImodels.ReactionComponent
         fields = ('id', 'name', 'alt_name', 'aliases', 'description', 'function', 'formula', 'charge', 'inchi', 'compartment',
         'kegg_id', 'kegg_link', 'bigg_id', 'bigg_link', 'hmdb_id', 'hmdb_link', 'chebi_id', 'chebi_link', 'pubchem_id', 'pubchem_link',
-            'lipidmaps_id', 'lipidmaps_link', 'metanetx_id', 'metanetx_link',)
+            'lipidmaps_id', 'lipidmaps_link', 'metanetx_id', 'metanetx_link', 'recon3d_id', 'recon3d_link',)
 
     def read_alt_name(self, model):
         return model.alt_name1
@@ -518,6 +523,11 @@ class HmrMetaboliteReactionComponentSerializer(serializers.ModelSerializer):
     def read_metanetx_link(self, model):
         return model.metabolite.external_link7 if hasattr(model, 'metabolite') else None
 
+    def read_recon3d(self, model):
+        return model.external_id8
+
+    def read_recon3d_link(self, model):
+        return model.metabolite.external_link8 if hasattr(model, 'metabolite') else None
 
 class MetaboliteReactionComponentInteractionPartnerSerializer(serializers.ModelSerializer):
     class Meta:

@@ -16,11 +16,13 @@ axios.defaults.onDownloadProgress = function onDownloadProgress(progressEvent) {
 
 Vue.use(vueDebounce);
 
-Vue.use(VueMatomo, {
-  host: 'https://sysbiowiki.se:4433/',
-  siteId: process.env.VUE_APP_MATOMOID,
-  router,
-});
+if (navigator.doNotTrack !== '1') {
+  Vue.use(VueMatomo, {
+    host: 'https://sysbiowiki.se:4433/',
+    siteId: process.env.VUE_APP_MATOMOID,
+    router,
+  });
+}
 
 new Vue({ // eslint-disable-line no-new
   el: '#app',

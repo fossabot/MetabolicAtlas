@@ -1,7 +1,7 @@
 <template>
   <div class="connected-metabolites">
     <div v-if="componentNotFound" class="columns is-centered">
-      <notFoundComponent component="gene" :componentID="eId"></notFoundComponent>
+      <notFound component="gene" :component-id="eId"></notFound>
     </div>
     <div v-else>
       <div class="container columns">
@@ -34,25 +34,7 @@
                   <td v-else> - </td>
                 </tr>
               </table>
-              <template v-if="hasExternalID">
-                <h4 class="title is-4">External databases</h4>
-                <table v-if="gene && Object.keys(gene).length != 0" id="ed-table" class="table is-fullwidth">
-                  <tr v-for="el in externalIDTableKey[model.database_name]" :key="el.name">
-                    <template v-if="gene[el.name] && gene[el.link]">
-                      <td v-if="'display' in el"
-                          class="td-key has-background-primary has-text-white-bis"
-                          v-html="el.display"></td>
-                      <td v-else
-                          class="td-key has-background-primary has-text-white-bis">
-                        {{ reformatTableKey(el.name) }}
-                      </td>
-                      <td>
-                        <a :href="`${gene[el.link]}`" target="_blank">{{ gene[el.name] }}</a>
-                      </td>
-                    </template>
-                  </tr>
-                </table>
-              </template>
+              <ExtIdTable :model="model" :component="gene" type="gene"></ExtIdTable>
             </div>
             <div class="column is-2-widescreen is-3-desktop is-full-tablet has-text-centered">
               <router-link class="button is-info is-fullwidth is-outlined"
@@ -86,8 +68,9 @@
 
 <script>
 import axios from 'axios';
-import NotFoundComponent from './NotFoundComponent';
 import GemContact from '@/components/shared/GemContact';
+import NotFound from '@/components/NotFound';
+import ExtIdTable from '@/components/explorer/gemBrowser/ExtIdTable';
 import ReactionTable from '@/components/explorer/gemBrowser/ReactionTable';
 import Loader from '@/components/Loader';
 import { reformatTableKey } from '../../../helpers/utils';
@@ -96,10 +79,11 @@ import { default as messages } from '../../../helpers/messages';
 export default {
   name: 'Gene',
   components: {
-    NotFoundComponent,
+    NotFound,
     ReactionTable,
     Loader,
     GemContact,
+    ExtIdTable,
   },
   props: {
     model: Object,
@@ -128,30 +112,10 @@ export default {
           { name: 'function' },
         ],
       },
-      externalIDTableKey: {
-        human1: [
-          { name: 'id', display: 'Ensembl', link: 'ensembl_link' },
-          { name: 'hpa_id', display: 'Protein Atlas', link: 'hpa_link' },
-          { name: 'uniprot_id', display: 'Uniprot', link: 'uniprot_link' },
-          { name: 'ncbi_id', display: 'NCBI', link: 'ncbi_link' },
-        ],
-        yeast8: [],
-      },
       reactions: [],
       limitReaction: 200,
       componentNotFound: false,
     };
-  },
-  computed: {
-    hasExternalID() {
-      for (let i = 0; i < this.externalIDTableKey[this.model.database_name].length; i += 1) {
-        const item = this.externalIDTableKey[this.model.database_name][i];
-        if (this.gene[item.name] && this.gene[item.link]) {
-          return true;
-        }
-      }
-      return false;
-    },
   },
   watch: {
     /* eslint-disable quote-props */
