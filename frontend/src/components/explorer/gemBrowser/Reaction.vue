@@ -26,11 +26,17 @@
               <span v-html="el.modifier()"></span>
             </td>
             <td v-else-if="el.name === 'ec'">
-              <!-- eslint-disable-next-line max-len -->
-              <router-link v-for="eccode in reaction[el.name].split('; ')" :key="eccode" :to="{ name: 'search', query: { term: eccode }}">
-                {{ eccode }}
-              </router-link>
-            </td>            <td v-else-if="reaction[el.name]">
+              <template v-if="reaction[el.name]">
+                <!-- eslint-disable-next-line max-len -->
+                <router-link v-for="eccode in reaction[el.name].split('; ')" :key="eccode" :to="{ name: 'search', query: { term: eccode }}">
+                  {{ eccode }}
+                </router-link>
+              </template>
+              <template v-else>
+                -
+              </template>
+            </td>
+            <td v-else-if="reaction[el.name]">
               <span v-if="'modifier' in el" v-html="el.modifier(reaction[el.name])"></span>
               <span v-else>{{ reaction[el.name] }}</span>
             </td>
