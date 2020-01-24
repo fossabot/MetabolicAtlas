@@ -1,6 +1,7 @@
 from rest_framework import serializers
 import api.models as APImodels
 import api.serializers_rc as APIrcSerializer
+import api.serializers_cs as APIcsSerializer
 from django.db import models
 from collections import defaultdict
 import logging
@@ -126,17 +127,13 @@ class ReactionPageSerializer(ReactionBasicRTSerializer):
         fields = ReactionBasicRTSerializer.Meta.fields + ('ec', 'lower_bound', 'upper_bound', 'objective_coefficient', 'external_databases',)
 
     def read_external_databases(self, model):
-        return APIrcSerializer.eid_to_dict(model)
+        return APIcsSerializer.eid_to_dict(model)
 
 
 # used in:
 # private_view search (global search table)
 class ReactionSearchSerializer(serializers.ModelSerializer):
-    subsystem = serializers.SlugRelatedField(
-        many=True,
-        read_only=True,
-        slug_field='name',
-     )
+    subsystem = APIcsSerializer.SubsystemBasicSerializer(many=True, read_only=True)
 
     class Meta:
         model = APImodels.Reaction
@@ -172,8 +169,9 @@ class ReactionSerializer(ReactionBasicSerializer):
             ('reactants', 'products', 'genes','external_databases',)
 
     def read_external_databases(self, model):
-        return APIrcSerializer.eid_to_dict(model)
+        return APIcsSerializer.eid_to_dict(model)
 
+# =========================================================================================
 
 class InteractionPartnerSerializer(serializers.ModelSerializer):
     genes = APIrcSerializer.GeneReactionComponentInteractionPartnerSerializer(many=True, read_only=True)
@@ -189,107 +187,6 @@ class InteractionPartnerSerializer(serializers.ModelSerializer):
         model = APImodels.Reaction
         fields = ('id', 'is_reversible', 'genes', 'products', 'reactants', 'subsystem', 'compartment')
 
-# =========================================================================================
-
-# used in:
-# get_compartment/s
-class CompartmentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = APImodels.Compartment
-        fields = ('name', 'name_id', 'letter_code', 'metabolite_count', 'gene_count', 'reaction_count', 'subsystem_count')
-
-# used in:
-# private_views get_data_viewer - Map Viewer
-class CompartmentMapViewerSerializer(CompartmentSerializer):
-    compartment_svg = serializers.SlugRelatedField(
-        read_only=True,
-        slug_field='name_id',
-    )
-
-    class Meta(CompartmentSerializer.Meta):
-        fields = CompartmentSerializer.Meta.fields + ('compartment_svg',)
-
-# used in:
-# private_views get_data_viewer - Map Viewer
-class CompartmentSvgSerializer(serializers.ModelSerializer):
-    compartment = serializers.SlugRelatedField(
-        slug_field='name_id',
-        read_only=True,
-    )
-    subsystem = serializers.SlugRelatedField(
-        many=True,
-        read_only=True,
-        slug_field='name',
-     )
-
-    class Meta:
-        model = APImodels.CompartmentSvg
-        fields = ('name', 'name_id', 'compartment', 'filename', 'letter_code', 'subsystem', 'metabolite_count',
-         'unique_metabolite_count', 'gene_count', 'reaction_count', 'subsystem_count', 'sha')
-
-# =========================================================================================
-
-# used in:
-# private view search quick search
-class SubsystemLiteSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = APImodels.Subsystem
-        fields = ('name', 'name_id')
-
-
-# used in :
-# private_view search (global search table)
-# subclass of SubsystemSerializer
-# subclass of SubsystemMapViewerSerializer
-class SubsystemSearchSerializer(SubsystemLiteSerializer):
-    compartment = serializers.SlugRelatedField(
-        many=True,
-        read_only=True,
-        slug_field='name',
-     )
-
-    class Meta(SubsystemLiteSerializer.Meta):
-        fields = SubsystemLiteSerializer.Meta.fields + \
-        ('compartment', 'reaction_count', 'metabolite_count', 'gene_count')
-
-
-# used in:
-# get_subsystem NOT API - subsystem page
-class SubsystemSerializer(SubsystemSearchSerializer):
-    external_databases = serializers.SerializerMethodField('read_external_databases')
-
-    class Meta(SubsystemSearchSerializer.Meta):
-        fields = SubsystemSearchSerializer.Meta.fields + \
-        ('unique_metabolite_count', 'compartment_count', 'external_databases',)
-
-    def read_external_databases(self, model):
-        return APIrcSerializer.eid_to_dict(model)
-
-
-# used in:
-# private_views get_data_viewer - Map Viewer
-class SubsystemMapViewerSerializer(SubsystemSearchSerializer):
-    subsystem_svg = serializers.SlugRelatedField(
-        read_only=True,
-        slug_field='name_id',
-    )
-
-    class Meta(SubsystemSearchSerializer.Meta):
-        fields = SubsystemSearchSerializer.Meta.fields + ('subsystem_svg',)
-
-
-# used in:
-# get_data_viewer - Map Viewer
-class SubsystemSvgSerializer(serializers.ModelSerializer):
-    subsystem = serializers.SlugRelatedField(
-        slug_field='name_id',
-        read_only=True,
-    )
-
-    class Meta:
-        model = APImodels.SubsystemSvg
-        fields = ('name', 'name_id', 'subsystem', 'filename', 'metabolite_count', 'unique_metabolite_count', 'gene_count',
-            'reaction_count', 'compartment_count', 'sha')
 
 # =======================================================================================
 
@@ -298,7 +195,7 @@ class GemBrowserTileCompartmentSerializer(serializers.ModelSerializer):
     subsystems = serializers.SerializerMethodField('fetch_subsystems')
     class Meta:
         model = APImodels.Compartment
-        fields = ('name', 'id', 'metabolite_count', 'gene_count', 'reaction_count', 'subsystem_count', 'subsystems')
+        fields = ('id', 'name', 'metabolite_count', 'gene_count', 'reaction_count', 'subsystem_count', 'subsystems')
 
     def fetch_subsystems(self, model):
         return model.subsystem.order_by('-reaction_count').values_list('name', flat=True)[:15]

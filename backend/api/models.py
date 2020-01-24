@@ -158,7 +158,7 @@ class Reaction(models.Model):
     gene_rule_wname = models.TextField(null=True) # string or/and with gene name
     subsystem_str = models.CharField(max_length=1000, null=True)
     subsystem = models.ManyToManyField('Subsystem', related_name='reactions', through='SubsystemReaction')
-    compartment = models.CharField(max_length=255)
+    compartment = models.CharField(max_length=255) #FIXME rename to _str and add comparment attr (ForeignKey)
     is_transport = models.BooleanField(default=False)
     is_reversible = models.BooleanField(default=False)
     related_group = models.IntegerField(default=0)
@@ -280,7 +280,7 @@ class CoFactor(models.Model):
 
 class Subsystem(models.Model):
     name = models.CharField(max_length=100, unique=True)
-    name_id = models.CharField(max_length=100, unique=True) # use to request the subsystem by url
+    name_id = models.CharField(max_length=100, unique=True) # renamed to id when serialized
     system = models.CharField(max_length=100)
     subsystem_svg = models.ForeignKey('SubsystemSvg', on_delete=models.SET_NULL, null=True, related_name='+')
     description = models.CharField(max_length=3000, null=True)
@@ -308,7 +308,7 @@ class SubsystemEID(models.Model):
 
 class SubsystemSvg(models.Model):
     name = models.CharField(max_length=100, unique=True)
-    name_id = models.CharField(max_length=100, unique=True) # use to request the subsystem by url
+    name_id = models.CharField(max_length=100, unique=True)
     subsystem = models.ForeignKey('Subsystem',on_delete=models.CASCADE, related_name='+')
     filename = models.CharField(max_length=100, unique=True)
     reaction_count = models.IntegerField(default=0)
@@ -323,7 +323,7 @@ class SubsystemSvg(models.Model):
 
 class Compartment(models.Model):
     name = models.CharField(max_length=50, unique=True)
-    name_id = models.CharField(max_length=50, unique=True) # use to request the compartement by url
+    name_id = models.CharField(max_length=50, unique=True) # renamed to id when serialized
     letter_code = models.CharField(max_length=3, unique=True)
     subsystem = models.ManyToManyField('Subsystem', related_name='c_subsystems', through='SubsystemCompartment')
     compartment_svg = models.ForeignKey('CompartmentSvg', on_delete=models.SET_NULL, null=True, related_name='+')
@@ -341,7 +341,7 @@ class Compartment(models.Model):
 
 class CompartmentSvg(models.Model):
     name = models.CharField(max_length=50, unique=True)
-    name_id = models.CharField(max_length=50, unique=True) # use to request the subsystem by url
+    name_id = models.CharField(max_length=50, unique=True)
     compartment = models.ForeignKey('Compartment', on_delete=models.CASCADE, related_name='+')
     subsystem = models.ManyToManyField('Subsystem', related_name='csvg_subsystems', through='SubsystemCompartmentSvg')
     filename = models.CharField(max_length=50, unique=True)

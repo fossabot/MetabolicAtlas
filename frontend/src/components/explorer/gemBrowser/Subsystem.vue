@@ -12,18 +12,13 @@
     <div v-show="!showLoader" class="columns is-multiline is-variable is-8">
       <div class="subsystem-table column is-10-widescreen is-9-desktop is-full-tablet">
         <table v-if="info && Object.keys(info).length !== 0" class="table main-table is-fullwidth">
-          <tr v-for="el in mainTableKey"
-              :key="el.name_id"
-              class="m-row">
+          <tr v-for="el in mainTableKey" :key="el.name" class="m-row">
             <template v-if="info[el.name]">
               <td v-if="el.display" class="td-key has-background-primary has-text-white-bis">{{ el.display }}</td>
               <td v-else class="td-key has-background-primary has-text-white-bis">{{ reformatKey(el.name) }}</td>
               <td v-if="info[el.name]">
-                <span v-if="el.modifier" v-html="el.modifier(info[el.name])">
-                </span>
-                <span v-else>
-                  {{ info[el.name] }}
-                </span>
+                <span v-if="el.modifier" v-html="el.modifier(info[el.name])"></span>
+                <span v-else>{{ info[el.name] }}</span>
               </td>
               <td v-else> - </td>
             </template>
@@ -31,12 +26,10 @@
           <tr>
             <td class="td-key has-background-primary has-text-white-bis">Compartments</td>
             <td>
-              <template v-for="(c, i) in info['compartment']">
+              <template v-for="(c, i) in info['compartments']">
                 <template v-if="i !== 0">, </template>
-                <!-- eslint-disable-next-line vue/valid-v-for -->
-                <router-link
-                  :to="{ path: `/explore/gem-browser/${model.database_name}/compartment/${idfy(c)}` }"
-                > {{ c }}</router-link>
+                <!-- eslint-disable-next-line max-len -->
+                <router-link :key="c.id" :to="{ path: `/explore/gem-browser/${model.database_name}/compartment/${c.id}` }">{{ c.name }}</router-link>
               </template>
             </td>
           </tr>

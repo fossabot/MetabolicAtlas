@@ -2,13 +2,8 @@ from rest_framework import serializers
 import api.models as APImodels
 from django.db import models
 from collections import defaultdict
+import api.serializers_cs as APIcsSerializer
 import logging
-
-def eid_to_dict(model):
-    d = defaultdict(list)
-    for el in model.external_databases.all():
-        d[el.db_name].append({ 'id': el.external_id, 'url': el.external_link})
-    return d
 
 # ================================================================================
 
@@ -62,25 +57,15 @@ class ReactionComponentSerializer(ReactionComponentBasicSerializer):
             ('alt_name1', 'alt_name2', 'external_databases',)
 
     def read_external_databases(self, model):
-        return eid_to_dict(model)
+        return APIcsSerializer.eid_to_dict(model)
 
 
 # used in:
 # private_view search (global search table)
 class GeneReactionComponentSearchSerializer(serializers.ModelSerializer):
     name = serializers.SerializerMethodField('read_name')
-    subsystem = serializers.SlugRelatedField(
-        many=True,
-        read_only=True,
-        slug_field='name',
-        source='subsystem_gene'
-    )
-    compartment = serializers.SlugRelatedField(
-        many=True,
-        read_only=True,
-        slug_field='name',
-        source='compartment_gene',
-     )
+    subsystem = APIcsSerializer.SubsystemBasicSerializer(read_only=True, many=True, source="subsystem_gene")
+    compartment = APIcsSerializer.CompartmentBasicSerializer(read_only=True, many=True, source="compartment_gene")
 
     class Meta:
         model = APImodels.ReactionComponent
@@ -93,13 +78,8 @@ class GeneReactionComponentSearchSerializer(serializers.ModelSerializer):
 # used in:
 # private_view search (global search table)
 class MetaboliteReactionComponentSearchSerializer(serializers.ModelSerializer):
-    compartment = serializers.CharField(source='compartment_str')
-    subsystem = serializers.SlugRelatedField(
-        many=True,
-        read_only=True,
-        slug_field='name',
-        source='subsystem_metabolite'
-    )
+    subsystem = APIcsSerializer.SubsystemBasicSerializer(read_only=True, many=True, source="subsystem_metabolite")
+    compartment = APIcsSerializer.CompartmentBasicSerializer(read_only=True)
     charge = serializers.SerializerMethodField('read_charge')
 
     class Meta:
@@ -198,7 +178,7 @@ class HmrGeneReactionComponentLiteSerializer(serializers.ModelSerializer):
         return model.gene.ec if hasattr(model, 'gene') else None
 
     def read_external_databases(self, model):
-        return eid_to_dict(model)
+        return APIcsSerializer.eid_to_dict(model)
 
 
 # used in:
@@ -238,7 +218,7 @@ class HmrGeneReactionComponentSerializer(serializers.ModelSerializer):
         return model.gene.cofactor if hasattr(model, 'gene') else None
 
     def read_external_databases(self, model):
-        return eid_to_dict(model)
+        return APIcsSerializer.eid_to_dict(model)
 
 
 class GeneReactionComponentInteractionPartnerSerializer(serializers.ModelSerializer):
@@ -264,7 +244,7 @@ class HmrMetaboliteReactionComponentLiteSerializer(serializers.ModelSerializer):
         return model.metabolite.inchi if hasattr(model, 'metabolite') else None
 
     def read_external_databases(self, model):
-        return eid_to_dict(model)
+        return APIcsSerializer.eid_to_dict(model)
 
 
 class HmrMetaboliteReactionComponentSerializer(serializers.ModelSerializer):
@@ -295,7 +275,7 @@ class HmrMetaboliteReactionComponentSerializer(serializers.ModelSerializer):
         return model.metabolite.inchi if hasattr(model, 'metabolite') else None
 
     def read_external_databases(self, model):
-        return eid_to_dict(model)
+        return APIcsSerializer.eid_to_dict(model)
 
 
 class MetaboliteReactionComponentInteractionPartnerSerializer(serializers.ModelSerializer):

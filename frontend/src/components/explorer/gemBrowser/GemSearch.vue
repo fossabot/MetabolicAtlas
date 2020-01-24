@@ -32,7 +32,7 @@
           <template v-for="k in resultsOrder">
             <div v-for="(r, i2) in searchResults[k]" :key="r.id" class="searchResultSection">
               <hr v-if="i2 !== 0" class="is-marginless">
-              <router-link class="clickable" :to="getRouterUrl(k, r.id || r.name_id || r.name)"
+              <router-link class="clickable" :to="getRouterUrl(k, r.id || r.name)"
                            @click.native="showResults=false">
                 <b class="is-capitalized">{{ k }}: </b>
                 <label class="clickable" v-html="formatSearchResultLabel(k, r, searchTermString)"></label>

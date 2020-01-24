@@ -8,6 +8,7 @@ from itertools import chain
 import api.models as APImodels
 import api.serializers as APIserializer
 import api.serializers_rc as APIrcSerializer
+import api.serializers_cs as APIcsSerializer
 from api.views import is_model_valid
 from api.views import componentDBserializerSelector
 from functools import reduce
@@ -528,10 +529,10 @@ def get_data_viewer(request, model):
         return HttpResponse(status=404)
 
     return JSONResponse({
-            'subsystem': APIserializer.SubsystemMapViewerSerializer(subsystems, many=True).data,
-            'subsystemsvg': APIserializer.SubsystemSvgSerializer(subsystems_svg, many=True).data,
-            'compartment':  APIserializer.CompartmentMapViewerSerializer(compartments, many=True).data,
-            'compartmentsvg': APIserializer.CompartmentSvgSerializer(compartments_svg, many=True).data
+            'subsystem': APIcsSerializer.SubsystemMapViewerSerializer(subsystems, many=True).data,
+            'subsystemsvg': APIcsSerializer.SubsystemSvgSerializer(subsystems_svg, many=True).data,
+            'compartment':  APIcsSerializer.CompartmentMapViewerSerializer(compartments, many=True).data,
+            'compartmentsvg': APIcsSerializer.CompartmentSvgSerializer(compartments_svg, many=True).data
         })
 
 ##########################################################################################
@@ -955,11 +956,11 @@ def search(request, model, term):
         MetaboliteSerializerClass = componentDBserializerSelector(model, 'metabolite', serializer_type='lite' if quickSearch else 'search', api_version=request.version)
         GeneSerializerClass = componentDBserializerSelector(model, 'gene', serializer_type='lite' if quickSearch else 'search', api_version=request.version)
         ReactionSerializerClass= componentDBserializerSelector(model, 'reaction', serializer_type='basic' if quickSearch else 'search', api_version=request.version)
-        SubsystemSerializerClass = componentDBserializerSelector(model, 'subsystem', serializer_type='lite' if quickSearch else 'search', api_version=request.version)
+        SubsystemSerializerClass = componentDBserializerSelector(model, 'subsystem', serializer_type='basic' if quickSearch else 'search', api_version=request.version)
 
         metaboliteSerializer = MetaboliteSerializerClass(metabolites, many=True)
         geneSerializer = GeneSerializerClass(genes, many=True)
-        compartmentSerializer = APIserializer.CompartmentSerializer(compartments, many=True)
+        compartmentSerializer = APIcsSerializer.CompartmentBasicSerializer(compartments, many=True)
         subsystemSerializer = SubsystemSerializerClass(subsystems, many=True)
         reactionSerializer = ReactionSerializerClass(reactions, many=True)
 
