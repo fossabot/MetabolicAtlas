@@ -158,7 +158,8 @@ class Reaction(models.Model):
     gene_rule_wname = models.TextField(null=True) # string or/and with gene name
     subsystem_str = models.CharField(max_length=1000, null=True)
     subsystem = models.ManyToManyField('Subsystem', related_name='reactions', through='SubsystemReaction')
-    compartment = models.CharField(max_length=255) #FIXME rename to _str and add comparment attr (ForeignKey)
+    compartment_str = models.CharField(max_length=255)
+    compartment = models.ManyToManyField('Compartment', related_name='reactions', through='ReactionCompartment')
     is_transport = models.BooleanField(default=False)
     is_reversible = models.BooleanField(default=False)
     related_group = models.IntegerField(default=0)
@@ -355,20 +356,6 @@ class CompartmentSvg(models.Model):
 
     class Meta:
         db_table = "compartmentsvg"
-
-class MetaboliteReaction(object):
-    def __init__(self, reaction, role):
-        self.reaction_id = reaction.id
-        self.gene_role = role
-        self.reactants = reaction.reactants
-        self.products = reaction.products
-        self.genes = reaction.genes
-
-class ConnectedMetabolites(object):
-    def __init__(self, gene, compartment, reactions):
-        self.gene = gene
-        self.compartment = compartment
-        self.reactions = reactions
 
 class GemBrowserTile(object):
     def __init__(self, compartment, subsystems, reactions, metabolites, genes):

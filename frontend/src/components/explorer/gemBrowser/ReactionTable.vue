@@ -55,7 +55,7 @@
               </template>
             </td>
             <td>
-              <template v-for="(RP, i) in r.compartment.split(' => ')">
+              <template v-for="(RP, i) in r.compartment_str.split(' => ')">
                 <template v-if="i !== 0">{{ r.is_reversible ? ' &#8660; ' : ' &#8658; ' }}</template>
                 <template v-for="(compo, j) in RP.split(' + ')">
                   <template v-if="j !== 0"> + </template>
@@ -109,7 +109,7 @@ export default {
         name: 'subsystem_str',
       }, {
         display: 'Compartment',
-        name: 'compartment',
+        name: 'compartment_str',
       }],
       // sortedReactions: [],
       sortOrder: 'asc',
@@ -199,7 +199,7 @@ export default {
         if (this.showSubsystem) {
           arr.push(r.subsystem_str);
         }
-        arr.push(r.compartment);
+        arr.push(r.compartment_str);
         return arr.join('\t');
       }).join('\n');
       return tsvContent;

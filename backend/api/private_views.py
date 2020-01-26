@@ -96,7 +96,7 @@ def get_related_reactions(request, model, id):
     except APImodels.Reaction.DoesNotExist:
         return HttpResponse(status=404)
 
-    return JSONResponse(APIserializer.ReactionBasicRTSerializer(related_reactions, many=True).data)
+    return JSONResponse(APIserializer.ReactionRTSerializer(related_reactions, many=True).data)
 
 
 @api_view()

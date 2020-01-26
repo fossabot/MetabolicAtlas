@@ -32,8 +32,25 @@
               </router-link>
             </td>
             <td v-else-if="reaction[el.name]">
-              <span v-if="'modifier' in el" v-html="el.modifier(reaction[el.name])"></span>
-              <span v-else>{{ reaction[el.name] }}</span>
+              <template v-if="'modifier' in el" v-html="el.modifier(reaction[el.name])"></template>
+              <template v-else-if="el.name === 'subsystem'">
+                <template v-for="(v, i) in reaction[el.name]">
+                  <template v-if="i !== 0">; </template>
+                  <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key max-len -->
+                  <router-link :to="{ path: `/explore/gem-browser/${model.database_name}/subsystem/${v.id}` }"> {{ v.name }}</router-link>
+                </template>
+              </template>
+              <template v-else-if="el.name === 'compartment'">
+                <template v-for="(v, i) in reaction[el.name]">
+                  <template v-if="i !== 0">; </template>
+                  <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key max-len -->
+                  <router-link :to="{ path: `/explore/gem-browser/${model.database_name}/compartment/${v.id}` }"> {{ v.name }}</router-link>
+                </template>
+                <template v-if="reaction.is_transport">
+                  (transport reaction)
+                </template>
+              </template>
+              <template v-else>{{ reaction[el.name] }}</template>
             </td>
             <td v-else-if="el.name === 'equation'">
               <span v-html="el.modifier(reaction[el.name])"></span>
@@ -49,14 +66,14 @@
                 </router-link>
                 <div style="margin-left: 30px">
                   <span v-html="reformatChemicalReactionHTML(rr, true)"></span>
-                  (<span v-html="reformatEqSign(rr.compartment, rr.is_reversible)">
+                  (<span v-html="reformatEqSign(rr.compartment_str, rr.is_reversible)">
                   </span>)
                 </div>
               </span>
             </td>
           </tr>
         </table>
-        <ExtIdTable :externalDbs="reaction.external_databases"></ExtIdTable>
+        <ExtIdTable :external-dbs="reaction.external_databases"></ExtIdTable>
         <h4 class="title is-size-4">References via PubMed ID</h4>
         <table class="main-table table is-fullwidth">
           <template v-if="unformattedRefs.length === 0">
@@ -119,10 +136,10 @@ export default {
         { name: 'equation', modifier: this.reformatEquation },
         { name: 'is_reversible', display: 'Reversible', isComposite: true, modifier: this.reformatReversible },
         { name: 'quantitative', isComposite: true, modifier: this.reformatQuant },
-        { name: 'gene_rule', isComposite: true, display: 'Genes', modifier: this.reformatGenes },
+        { name: 'gene_rule', isComposite: true, display: 'Gene rule', modifier: this.reformatGenes },
         { name: 'ec', display: 'EC' },
-        { name: 'compartment', isComposite: true, modifier: this.reformatCompartment },
-        { name: 'subsystem_str', display: 'Subsystem', modifier: this.reformatSubsystemList },
+        { name: 'compartment', display: 'Compartment(s)' },
+        { name: 'subsystem', display: 'Subsystem(s)' },
       ],
       reaction: {},
       relatedReactions: [],
@@ -181,7 +198,7 @@ export default {
       axios.get(`${this.model.database_name}/get_reaction/${this.rId}/related`)
         .then((response) => {
           this.relatedReactions = response.data;
-          this.relatedReactions.sort((a, b) => (a.compartment < b.compartment ? -1 : 1));
+          this.relatedReactions.sort((a, b) => (a.compartment_str < b.compartment_str ? -1 : 1));
         })
         .catch(() => {
           this.relatedReactions = [];
@@ -189,6 +206,9 @@ export default {
     },
     reformatEquation() { return reformatChemicalReactionHTML(this.reaction); },
     reformatGenes() {
+      if (!this.reaction.gene_rule) {
+        return '-';
+      }
       let newGRnameArr = null;
       if (this.reaction.gene_rule_wname) {
         newGRnameArr = this.reaction.gene_rule_wname.split(/ +/).map(
@@ -214,16 +234,6 @@ export default {
       }
       return newGR;
     },
-    reformatSubsystemList(substr) {
-      let str = '';
-      substr.split('; ').forEach((s) => {
-        str = str.concat(`<a class="s" name="${s}">`, s, '</a><br>');
-      });
-      if (str) {
-        str = str.slice(0, -4);
-      }
-      return str;
-    },
     formatQuantFieldName(name) { return `${name}:&nbsp;`; },
     reformatQuant() {
       const data = [];
@@ -243,14 +253,6 @@ export default {
         s = s.slice(0, -31);
       }
       return s;
-    },
-    reformatCompartment() {
-      const compartmentEq = this.reformatCompEqString(
-        this.reaction.compartment, this.reaction.is_reversible);
-      if (this.reaction.is_transport) {
-        return `${compartmentEq} (transport reaction)`;
-      }
-      return `${compartmentEq}`;
     },
     reformatReversible() { return this.reaction.is_reversible ? 'Yes' : 'No'; },
     reformatRefs() {

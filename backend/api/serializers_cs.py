@@ -16,6 +16,8 @@ def eid_to_dict(model):
 # inherited by CompartmentMapViewerSerializer
 # attr of SubsystemSearchSerializer
 # attr of GeneReactionComponentSearchSerializer
+# attr of ReactionPageSerializer
+# attr of ReactionSearchSerializer
 # used in:
 # private_view quick search
 # views get_compartment (CompartmentSerializer)
@@ -62,12 +64,6 @@ class CompartmentSvgSerializer(serializers.ModelSerializer):
         slug_field='name_id',
         read_only=True,
     )
-    # subsystems = serializers.SlugRelatedField(
-    #     many=True,
-    #     read_only=True,
-    #     slug_field='name',
-    #     source="subsystem"
-    #  )
 
     class Meta:
         model = APImodels.CompartmentSvg
@@ -78,6 +74,8 @@ class CompartmentSvgSerializer(serializers.ModelSerializer):
 # inherited by SubsystemSearchSerializer
 # inherited by SubsystemMapViewerSerializer
 # attr of GeneReactionComponentSearchSerializer
+# attr of ReactionPageSerializer
+# attr of ReactionSearchSerializer
 # used in:
 # views get_compartment
 # private views search quick search

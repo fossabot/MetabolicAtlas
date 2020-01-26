@@ -137,31 +137,18 @@
                     <template v-if="props.formattedRow[props.column.field].length === 0">
                       {{ "" }}
                     </template>
-                    <template v-else-if="['gene', 'subsystem'].includes(header)">
+                    <template v-else-if="['gene', 'subsystem', 'reaction'].includes(header)">
                       <template v-for="(comp, i) in props.formattedRow[props.column.field]">
                         <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
                         <template v-if="i != 0">; </template><router-link :to="{ path: `/explore/gem-browser/${props.row.model.id}/compartment/${comp.id}` }">{{ comp.name }}</router-link>
-                      </template>
-                    </template>
-                    <template v-else-if="header === 'reaction'">
-                      <template v-for="(RP, i) in props.formattedRow[props.column.field].split(' => ')">
-                        <template v-if="i !== 0"> &#8658; </template>
-                        <template v-for="(compo, j) in RP.split(' + ')">
-                          <template v-if="j !== 0"> + </template>
-                          <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
-                          <router-link
-                            :to="{ path: `/explore/gem-browser/${props.row.model.id}/compartment/${idfy(compo)}` }">
-                            {{ compo }}
-                          </router-link>
-                        </template>
                       </template>
                     </template>
                     <template v-else-if="Array.isArray(props.formattedRow[props.column.field])">
                       {{ props.formattedRow[props.column.field].join("; ") }}
                     </template>
                     <template v-else>
-                      <router-link :to="{ path: `/explore/gem-browser/${props.row.model.id}/compartment/${idfy(props.formattedRow[props.column.field])}` }">
-                        {{ props.formattedRow[props.column.field] }}
+                      <router-link :to="{ path: `/explore/gem-browser/${props.row.model.id}/compartment/${props.formattedRow[props.column.field].id}` }">
+                        {{ props.formattedRow[props.column.field].name }}
                       </router-link>
                     </template>
                   </template>
@@ -190,7 +177,7 @@ import Loader from '@/components/Loader';
 import ExportTSV from '@/components/explorer/gemBrowser/ExportTSV';
 import 'vue-good-table/dist/vue-good-table.css';
 import { chemicalFormula } from '../helpers/chemical-formatters';
-import { idfy, reformatEqSign, sortResults } from '../helpers/utils';
+import { reformatEqSign, sortResults } from '../helpers/utils';
 import { default as messages } from '../helpers/messages';
 
 export default {
@@ -565,18 +552,11 @@ export default {
             rows[componentType].push(el);
           } else if (componentType === 'reaction') {
             Object.keys(filterTypeDropdown[componentType]).forEach((field) => {
-              if (field === 'subsystem' && el[field]) {
+              if (['compartment', 'subsystem'].includes(field) && el[field]) {
                 el[field]
                   .filter(v => !(v in filterTypeDropdown[componentType][field]))
                   .forEach((v) => {
                     filterTypeDropdown[componentType][field][v] = 1;
-                  });
-              } else if (field === 'compartment' && el[field]) {
-                el[field].split(/[^a-zA-Z0-9 ]+/)
-                  .filter(compartment => compartment.trim()
-                    && !(compartment.trim() in filterTypeDropdown[componentType][field]))
-                  .forEach((compartment) => {
-                    filterTypeDropdown[componentType][field][compartment.trim()] = 1;
                   });
               } else if (field === 'model') {
                 filterTypeDropdown[componentType][field][el[field].id] = el[field].name;
@@ -755,7 +735,6 @@ export default {
       }).join('\n');
       return `${header.join('\t')}\n${tsvContent}`;
     },
-    idfy,
     chemicalFormula,
     reformatEqSign,
     sortResults,

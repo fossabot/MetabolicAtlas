@@ -190,7 +190,7 @@ export default {
           s = `${s} ‒ ${chemicalReaction(element[key].replace(re, '<b>$1</b>'), element.is_reversible)}`;
         } else {
           // do not HL the compartment name
-          s = key === 'compartment' ? `${s} ‒ ${element[key]}` : `${s} ‒ ${element[key].replace(re, '<b>$1</b>')}`;
+          s = key === 'compartment_str' ? `${s} ‒ ${element[key]}` : `${s} ‒ ${element[key].replace(re, '<b>$1</b>')}`;
         }
       });
       if (!s.toLowerCase().includes(searchTerm.toLowerCase())) {

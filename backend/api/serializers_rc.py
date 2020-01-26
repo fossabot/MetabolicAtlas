@@ -26,26 +26,6 @@ class ReactionComponentLiteSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'full_name')
 
 
-# used in:
-# ReactionReactantSerializer and ReactionProductSerializer
-# ReactionBasicRTSerializer (reactome tables)
-class ReactionComponentRTSerializer(serializers.ModelSerializer):
-    compartment = serializers.CharField(source='compartment_str')
-
-    class Meta:
-        model = APImodels.ReactionComponent
-        fields = ('id', 'name', 'full_name', 'compartment')
-
-
-# class ReactionComponentExternalDbSerializer(serializers.ModelSerializer):
-#     database = serializers.CharField(source='db_name')
-#     id = serializers.CharField(source='external_id')
-#     url = serializers.CharField(source='external_link')
-#     class Meta:
-#         model = APImodels.ReactionComponentEID
-#         fields = ('database', 'id', 'url',)
-
-
 # used id:
 # subclass of GeneReactionComponentSerializer, MetaboliteReactionComponentSerializer
 # subclass of HmrGeneReactionComponentSerializer, HmrMetaboliteReactionComponentSerializer

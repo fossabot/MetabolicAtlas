@@ -52,7 +52,7 @@ def componentDBserializerSelector(database, type, serializer_type=None, api_vers
         if serializer_type == 'basic':
             return APIserializer.ReactionBasicSerializer
         if serializer_type == 'table':
-            return APIserializer.ReactionBasicRTSerializer
+            return APIserializer.ReactionRTSerializer
         if serializer_type == 'search':
             return APIserializer.ReactionSearchSerializer
         return APIserializer.ReactionSerializer
@@ -64,10 +64,6 @@ def componentDBserializerSelector(database, type, serializer_type=None, api_vers
         return APIcsSerializer.SubsystemSerializer
     elif type == 'interaction partner':
         return APIserializer.InteractionPartnerSerializer
-    # elif type == 'reaction component':
-    #     if serializer_type in ['lite', 'basic']:
-    #         return APIrcSerializer.ReactionComponentLiteSerializer
-        return APIrcSerializer.ReactionComponentSerializer
 
     if database in ['hmr2', 'human1']:
         if type == 'metabolite':

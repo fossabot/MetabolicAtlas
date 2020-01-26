@@ -104,7 +104,7 @@ export function reformatChemicalReactionHTML(reaction, noMtag = false) {
   if (reaction === null) {
     return '';
   }
-  const addComp = reaction.is_transport || reaction.compartment.includes('=>');
+  const addComp = reaction.is_transport || reaction.compartment_str.includes('=>');
   const reactants = reaction.reactionreactant_set.map(
     (x) => {
       if (!addComp) {
