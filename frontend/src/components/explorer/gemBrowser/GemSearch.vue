@@ -30,7 +30,7 @@
         </div>
         <div v-show="!showLoader" v-if="searchResults.length !== 0" class="resList">
           <template v-for="k in resultsOrder">
-            <div v-for="(r, i2) in searchResults[k]" :key="r.id" class="searchResultSection">
+            <div v-for="(r, i2) in searchResults[k]" :key="`${r.id}-${i2}`" class="searchResultSection">
               <hr v-if="i2 !== 0" class="is-marginless">
               <router-link class="clickable" :to="getRouterUrl(k, r.id || r.name)"
                            @click.native="showResults=false">
