@@ -958,9 +958,10 @@ def search(request, model, term):
         ReactionSerializerClass= componentDBserializerSelector(model, 'reaction', serializer_type='basic' if quickSearch else 'search', api_version=request.version)
         SubsystemSerializerClass = componentDBserializerSelector(model, 'subsystem', serializer_type='basic' if quickSearch else 'search', api_version=request.version)
 
+        CompartmentSerializerClass = APIcsSerializer.CompartmentBasicSerializer if quickSearch else APIcsSerializer.CompartmentSerializer
         metaboliteSerializer = MetaboliteSerializerClass(metabolites, many=True)
         geneSerializer = GeneSerializerClass(genes, many=True)
-        compartmentSerializer = APIcsSerializer.CompartmentBasicSerializer(compartments, many=True)
+        compartmentSerializer = CompartmentSerializerClass(compartments, many=True)
         subsystemSerializer = SubsystemSerializerClass(subsystems, many=True)
         reactionSerializer = ReactionSerializerClass(reactions, many=True)
 
