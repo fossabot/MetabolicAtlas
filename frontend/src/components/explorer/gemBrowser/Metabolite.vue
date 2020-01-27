@@ -8,7 +8,8 @@
         <div class="column">
           <h3 class="title is-3">
             Metabolite {{ metabolite.name }}
-            <span class="is-size-5 has-text-grey">{{ metabolite.compartment }}</span>
+            <span v-if="metabolite && metabolite.compartment" class="is-size-5 has-text-grey">
+            {{ metabolite.compartment.id }}</span>
           </h3>
         </div>
       </div>
@@ -27,10 +28,10 @@
                 </span>
                 <span v-else-if="el.modifier" v-html="el.modifier(metabolite[el.name])">
                 </span>
-                <span v-else-if="el.name === 'compartment'">
+                <span v-else-if="el.name === 'compartment' && metabolite[el.name]">
                   <!-- eslint-disable-next-line max-len -->
-                  <router-link :to="{ path: `/explore/gem-browser/${model.database_name}/compartment/${idfy(metabolite[el.name])}` }"
-                  >{{ metabolite[el.name] }}</router-link>
+                  <router-link :to="{ path: `/explore/gem-browser/${model.database_name}/compartment/${metabolite[el.name].id}` }"
+                  >{{ metabolite[el.name].name }}</router-link>
                 </span>
                 <span v-else>
                   {{ metabolite[el.name] }}
@@ -75,7 +76,7 @@ import Reactome from '@/components/explorer/gemBrowser/Reactome';
 import NotFound from '@/components/NotFound';
 import ExtIdTable from '@/components/explorer/gemBrowser/ExtIdTable';
 import { chemicalFormula } from '../../../helpers/chemical-formatters';
-import { reformatTableKey, reformatStringToLink, addMassUnit, idfy } from '../../../helpers/utils';
+import { reformatTableKey, reformatStringToLink, addMassUnit } from '../../../helpers/utils';
 import { default as messages } from '../../../helpers/messages';
 
 export default {
@@ -96,7 +97,7 @@ export default {
       mainTableKey: [
         { name: 'id' },
         { name: 'name' },
-        { name: 'alt_name', display: 'Alternate name' },
+        { name: 'alternate_name', display: 'Alternate name' },
         { name: 'synonyms' },
         { name: 'description' },
         { name: 'formula' },
@@ -159,7 +160,6 @@ export default {
     reformatTableKey(k) { return reformatTableKey(k); },
     reformatLink(s, link) { return reformatStringToLink(s, link); },
     reformatMass(s) { return addMassUnit(s); },
-    idfy,
     chemicalFormula,
   },
 };

@@ -96,7 +96,7 @@ export default {
       mainTableKey: [
         { name: 'id' },
         { name: 'geneName', display: 'Gene&nbsp;name' },
-        { name: 'description' },
+        { name: 'alternate_name', display: 'Alternate&nbsp;name' },
         { name: 'synonyms' },
         { name: 'function' },
       ],

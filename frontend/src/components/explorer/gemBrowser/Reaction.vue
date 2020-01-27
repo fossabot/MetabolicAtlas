@@ -18,7 +18,7 @@
             <td v-if="'display' in el"
                 class="td-key has-background-primary has-text-white-bis"
                 v-html="el.display"></td>
-            <td v-else-if="el.name == 'id'"
+            <td v-else-if="el.name === 'id'"
                 class="td-key has-background-primary has-text-white-bis">
               {{ model.short_name }} ID</td>
             <td v-else class="td-key has-background-primary has-text-white-bis">{{ reformatTableKey(el.name) }}</td>

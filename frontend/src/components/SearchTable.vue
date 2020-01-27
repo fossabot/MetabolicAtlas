@@ -109,7 +109,7 @@
                 </div>
                 <template slot="table-row" slot-scope="props">
                   <!-- eslint-disable max-len -->
-                  <template v-if="props.column.field == 'model'">
+                  <template v-if="props.column.field === 'model'">
                     {{ props.formattedRow[props.column.field].name }}
                   </template>
                   <template v-else-if="props.column.field === 'equation'">

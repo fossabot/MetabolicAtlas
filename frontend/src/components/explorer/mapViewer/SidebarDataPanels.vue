@@ -23,7 +23,7 @@
       </div>
     </template>
     <template v-else>
-      <div v-if="selectionData.data && mapType !== 'subsystem' && selectionData.type == 'subsystem'"
+      <div v-if="selectionData.data && mapType !== 'subsystem' && selectionData.type === 'subsystem'"
            class="card card-margin">
         <header class="card-header">
           <p class="card-header-title is-capitalized is-inline is-unselectable">
@@ -79,12 +79,17 @@
                     &ndash;&nbsp;{{ s }}<br :key="s">
                   </template></p>
               </template>
-              <template v-else-if=" item.name === 'subsystem'">
+              <template v-else-if="item.name === 'subsystem'">
                 <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
                 <span class="has-text-weight-bold">{{ capitalize(item.display || item.name) }}:</span><p>
                   <template v-for="s in selectionData.data[item.name]">
                     &ndash;&nbsp;{{ s.name }}<br :key="s.id">
                   </template></p>
+              </template>
+              <template v-else-if="item.name === 'compartment'">
+                <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
+                <span class="has-text-weight-bold">{{ capitalize(item.display || item.name) }}:</span>
+                    {{ selectionData.data[item.name].name }}
               </template>
               <template v-else-if="['reactionreactant_set', 'reactionproduct_set'].includes(item.name)">
                 <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
@@ -160,8 +165,8 @@ export default {
         ],
         gene: [
           { name: 'name', display: 'Gene&nbsp;name' },
-          { name: 'description', display: 'Description' },
-          { name: 'gene_synonyms', display: 'Synonym(s)' },
+          { name: 'alternate_name', display: 'Alt&nbsp;name' },
+          { name: 'synonyms', display: 'Synonym(s)' },
         ],
         reaction: [
           { name: 'equation' },

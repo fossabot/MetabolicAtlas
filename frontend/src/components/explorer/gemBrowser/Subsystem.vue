@@ -97,7 +97,7 @@ import NotFound from '@/components/NotFound';
 import MapsAvailable from '@/components/explorer/gemBrowser/MapsAvailable';
 import ExtIdTable from '@/components/explorer/gemBrowser/ExtIdTable';
 import ReactionTable from '@/components/explorer/gemBrowser/ReactionTable';
-import { reformatTableKey, idfy } from '../../../helpers/utils';
+import { reformatTableKey } from '../../../helpers/utils';
 
 export default {
   name: 'Subsystem',
@@ -134,7 +134,6 @@ export default {
       limitGene: 0,
       limitReaction: 0,
       componentNotFound: false,
-      idfy,
     };
   },
   computed: {

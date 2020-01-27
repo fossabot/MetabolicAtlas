@@ -510,14 +510,6 @@ export default {
 
           this.componentName = component.name || component.id;
 
-          if ('formula' in component) {
-            this.title = `${this.chemicalName(this.componentName)}`;
-            component.type = 'metabolite';
-          } else {
-            this.title = this.componentName;
-            component.type = 'gene';
-          }
-
           [this.rawElms,
             this.rawRels,
             this.compartmentList,
