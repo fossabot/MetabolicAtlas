@@ -64,7 +64,7 @@
             </td>
           </tr>
         </table>
-        <ExtIdTable :externalDbs="info.external_databases"></ExtIdTable>
+        <ExtIdTable :external-dbs="info.external_databases"></ExtIdTable>
       </div>
       <div class="column is-2-widescreen is-3-desktop is-half-tablet has-text-centered">
         <maps-available :id="sName" :model="model" :type="'subsystem'" :element-i-d="''"></maps-available>
@@ -97,7 +97,7 @@ import NotFound from '@/components/NotFound';
 import MapsAvailable from '@/components/explorer/gemBrowser/MapsAvailable';
 import ExtIdTable from '@/components/explorer/gemBrowser/ExtIdTable';
 import ReactionTable from '@/components/explorer/gemBrowser/ReactionTable';
-import { reformatTableKey, idfy } from '../../../helpers/utils';
+import { reformatTableKey } from '../../../helpers/utils';
 
 export default {
   name: 'Subsystem',
@@ -134,7 +134,6 @@ export default {
       limitGene: 0,
       limitReaction: 0,
       componentNotFound: false,
-      idfy,
     };
   },
   computed: {

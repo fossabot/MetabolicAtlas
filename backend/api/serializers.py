@@ -88,12 +88,12 @@ class ReactionProductSerializer(serializers.ModelSerializer):
 class ReactionRTSerializer(serializers.ModelSerializer):
     reactionreactant_set = ReactionReactantSerializer(many=True, read_only=True)
     reactionproduct_set = ReactionProductSerializer(many=True, read_only=True)
-    genes = APIrcSerializer.ReactionComponentLiteSerializer(many=True, read_only=True)
+    genes = APIrcSerializer.GeneInteractionPartnerSerializer(many=True, read_only=True)
 
     class Meta:
         model = APImodels.Reaction
-        fields = ('id', 'gene_rule', 'gene_rule_wname', 'compartment_str', 'subsystem_str',
-             'is_transport', 'is_reversible', 'reactionreactant_set', 'reactionproduct_set', 'genes')
+        fields = ('id', 'compartment_str', 'subsystem_str', 'is_transport',
+              'is_reversible', 'reactionreactant_set', 'reactionproduct_set', 'genes')
 
 
 # used in:
@@ -141,9 +141,9 @@ class ReactionSerializer(ReactionBasicSerializer):
 # =========================================================================================
 
 class InteractionPartnerSerializer(serializers.ModelSerializer):
-    genes = APIrcSerializer.GeneReactionComponentInteractionPartnerSerializer(many=True, read_only=True)
-    products = APIrcSerializer.MetaboliteReactionComponentInteractionPartnerSerializer(many=True, read_only=True)
-    reactants = APIrcSerializer.MetaboliteReactionComponentInteractionPartnerSerializer(many=True, read_only=True)
+    genes = APIrcSerializer.GeneInteractionPartnerSerializer(many=True, read_only=True)
+    products = APIrcSerializer.MetaboliteInteractionPartnerSerializer(many=True, read_only=True)
+    reactants = APIrcSerializer.MetaboliteInteractionPartnerSerializer(many=True, read_only=True)
     compartment = serializers.CharField(source='compartment_str')
     subsystem = serializers.SlugRelatedField(
         many=True,
@@ -206,8 +206,7 @@ class GemBrowserTileSerializer(serializers.Serializer):
 
 
 # =======================================================================================
-# models database
-
+# GEM models database
 
 class GEModelFileSerializer(serializers.ModelSerializer):
     class Meta:

@@ -35,6 +35,7 @@ class CompartmentBasicSerializer(serializers.ModelSerializer):
 # used in:
 # views get_compartment
 # views get_compartments
+# private_views search
 # private_views get_data_viewer (CompartmentMapViewerSerializer)
 class CompartmentSerializer(CompartmentBasicSerializer):
     id = serializers.CharField(source='name_id')

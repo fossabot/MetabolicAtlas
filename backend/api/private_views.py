@@ -10,7 +10,6 @@ import api.serializers as APIserializer
 import api.serializers_rc as APIrcSerializer
 import api.serializers_cs as APIcsSerializer
 from api.views import is_model_valid
-from api.views import componentDBserializerSelector
 from functools import reduce
 from random import randint
 import re
@@ -589,18 +588,17 @@ def get_component_with_interaction_partners(request, model, id):
     except APImodels.ReactionComponent.DoesNotExist:
         return HttpResponse(status=404)
 
-    if (component.component_type == 'e'):
-        RCSerializerClass = componentDBserializerSelector(model, 'gene', serializer_type=None)
-    else:
-        RCSerializerClass = componentDBserializerSelector(model, 'metabolite', serializer_type=None)
-
-    component_serializer = RCSerializerClass(component)
+    component_serializer = APIrcSerializer.ReactionComponentBasicSerializer(component)
+    c = {}
+    c.update(component_serializer.data)
+    c['type'] = 'metabolite' if component.component_type == 'm' else 'gene';
+    print (c)
     reactions_count = component.reactions_as_metabolite.count() + \
         component.reactions_as_gene.count()
 
     if reactions_count > 200:
         result = {
-             'component': component_serializer.data,
+             'component': c,
              'reactions': None
          }
 
@@ -617,13 +615,11 @@ def get_component_with_interaction_partners(request, model, id):
             'reactants__compartment', 'products__compartment', 'genes__compartment').all()
     ))
 
-    InteractionPartnerSerializerClass = componentDBserializerSelector(model, 'interaction partner', serializer_type=None)
-    reactions_serializer = InteractionPartnerSerializerClass(reactions, many=True)
-
+    reactions_serializer = APIserializer.InteractionPartnerSerializer(reactions, many=True)
     result = {
-                 'component': component_serializer.data,
-                 'reactions': reactions_serializer.data
-             }
+        'component': c,
+        'reactions': reactions_serializer.data
+    }
 
     return JSONResponse(result)
 
@@ -953,12 +949,12 @@ def search(request, model, term):
         if (metabolites.count() + genes.count() + compartments.count() + subsystems.count() + len(reactions)) != 0:
             match_found = True
 
-        MetaboliteSerializerClass = componentDBserializerSelector(model, 'metabolite', serializer_type='lite' if quickSearch else 'search', api_version=request.version)
-        GeneSerializerClass = componentDBserializerSelector(model, 'gene', serializer_type='lite' if quickSearch else 'search', api_version=request.version)
-        ReactionSerializerClass= componentDBserializerSelector(model, 'reaction', serializer_type='basic' if quickSearch else 'search', api_version=request.version)
-        SubsystemSerializerClass = componentDBserializerSelector(model, 'subsystem', serializer_type='basic' if quickSearch else 'search', api_version=request.version)
-
+        MetaboliteSerializerClass = APIrcSerializer.ReactionComponentLiteSerializer if quickSearch else APIrcSerializer.MetaboliteSearchSerializer
+        GeneSerializerClass = APIrcSerializer.ReactionComponentBasicSerializer if quickSearch else APIrcSerializer.GeneSearchSerializer
+        ReactionSerializerClass = APIserializer.ReactionBasicSerializer if quickSearch else APIserializer.ReactionSearchSerializer
+        SubsystemSerializerClass = APIcsSerializer.SubsystemBasicSerializer if quickSearch else APIcsSerializer.SubsystemSearchSerializer
         CompartmentSerializerClass = APIcsSerializer.CompartmentBasicSerializer if quickSearch else APIcsSerializer.CompartmentSerializer
+
         metaboliteSerializer = MetaboliteSerializerClass(metabolites, many=True)
         geneSerializer = GeneSerializerClass(genes, many=True)
         compartmentSerializer = CompartmentSerializerClass(compartments, many=True)

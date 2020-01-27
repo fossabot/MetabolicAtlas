@@ -5,45 +5,33 @@ from collections import defaultdict
 import api.serializers_cs as APIcsSerializer
 import logging
 
-# ================================================================================
-
+# inherited by ReactionComponentLiteSerializer
 # used in:
-# subclass of ReactionComponentSerializer
+# views get_subsystem
+# private_views get_component_with_interaction_partners
 class ReactionComponentBasicSerializer(serializers.ModelSerializer):
-    compartment = serializers.CharField(source='compartment_str')
-
-    class Meta:
-        model = APImodels.ReactionComponent
-        fields = ('id', 'name', 'full_name', 'aliases', 'formula', 'compartment')
-
-
-# used in:
-# get_subsystem (metabolites / gens keys)
-# ReactionBasicRTSerializer (reactomes tables)
-class ReactionComponentLiteSerializer(serializers.ModelSerializer):
     class Meta:
         model = APImodels.ReactionComponent
         fields = ('id', 'name', 'full_name')
 
 
-# used id:
-# subclass of GeneReactionComponentSerializer, MetaboliteReactionComponentSerializer
-# subclass of HmrGeneReactionComponentSerializer, HmrMetaboliteReactionComponentSerializer
-class ReactionComponentSerializer(ReactionComponentBasicSerializer):
-    external_databases = serializers.SerializerMethodField('read_external_databases')
+# attr of ReactionSerializer
+# used in:
+# private_views quick search met
+class ReactionComponentLiteSerializer(ReactionComponentBasicSerializer):
+    compartment = serializers.CharField(source='compartment_str')
+    synonyms = serializers.CharField(source='aliases')
 
     class Meta(ReactionComponentBasicSerializer.Meta):
         fields = ReactionComponentBasicSerializer.Meta.fields + \
-            ('alt_name1', 'alt_name2', 'external_databases',)
+         ('synonyms', 'formula', 'compartment')
 
-    def read_external_databases(self, model):
-        return APIcsSerializer.eid_to_dict(model)
-
+# ================================================================================
 
 # used in:
 # private_view search (global search table)
-class GeneReactionComponentSearchSerializer(serializers.ModelSerializer):
-    name = serializers.SerializerMethodField('read_name')
+class GeneSearchSerializer(serializers.ModelSerializer):
+    name = serializers.SerializerMethodField()
     subsystem = APIcsSerializer.SubsystemBasicSerializer(read_only=True, many=True, source="subsystem_gene")
     compartment = APIcsSerializer.CompartmentBasicSerializer(read_only=True, many=True, source="compartment_gene")
 
@@ -51,214 +39,141 @@ class GeneReactionComponentSearchSerializer(serializers.ModelSerializer):
         model = APImodels.ReactionComponent
         fields = ('id', 'name', 'subsystem', 'compartment')
 
-    def read_name(self, model):
-        return model.name if model.name else None
+    def get_name(self, obj):
+        # name field has a not NULL, because of metabolite/gene in ReactionComponent
+        # null is expected if there is not name
+        return obj.name if obj.name else None
 
 
 # used in:
+# views get_genes API
+# private_view get_component_with_interaction_partners
+class GeneLiteSerializer(serializers.ModelSerializer):
+    alternate_name = serializers.SerializerMethodField()
+    synonyms = serializers.CharField(source='aliases')
+    function = serializers.SerializerMethodField('get_function1')
+    # function2 = serializers.SerializerMethodField()
+    ec =  serializers.SerializerMethodField()
+    catalytic_activity = serializers.SerializerMethodField()
+    # cofactor = serializers.SerializerMethodField('read_cofactor')
+    subsystems = APIcsSerializer.SubsystemBasicSerializer(read_only=True, many=True, source="subsystem_gene")
+    compartments = APIcsSerializer.CompartmentBasicSerializer(read_only=True, many=True, source="compartment_gene")
+
+    class Meta:
+        model = APImodels.ReactionComponent
+        fields = ('id', 'name', 'alternate_name', 'synonyms', 'function', 'ec', \
+         'catalytic_activity', 'subsystems', 'compartments',)
+
+    def get_alternate_name(self, obj):
+        return obj.alt_name1
+
+    def get_function1(self, obj):
+        return obj.gene.function1
+
+    def get_function2(self, obj):  # unused
+        return obj.gene.function2
+
+    def get_ec(self, obj):
+        return obj.gene.ec
+
+    def get_catalytic_activity(self, obj):
+        return obj.gene.catalytic_activity
+
+    def read_cofactor(self, obj):  # unused
+        return obj.gene.cofactor
+
+
+# used in:
+# get_gene (gene page)
+# private_view get_component_with_interaction_partners
+class GeneSerializer(GeneLiteSerializer):
+    external_databases = serializers.SerializerMethodField()
+
+    class Meta(GeneLiteSerializer.Meta):
+        fields = GeneLiteSerializer.Meta.fields + ('external_databases',)
+
+    def get_external_databases(self, obj):
+        return APIcsSerializer.eid_to_dict(obj)
+
+
+# used in:
+# attr of InteractionPartnerSerializer
+# attr of ReactionRTSerializer
+class GeneInteractionPartnerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = APImodels.ReactionComponent
+        fields = ('id', 'name',)
+
+# ================================================================================
+
+# used in:
 # private_view search (global search table)
-class MetaboliteReactionComponentSearchSerializer(serializers.ModelSerializer):
+class MetaboliteSearchSerializer(serializers.ModelSerializer):
     subsystem = APIcsSerializer.SubsystemBasicSerializer(read_only=True, many=True, source="subsystem_metabolite")
     compartment = APIcsSerializer.CompartmentBasicSerializer(read_only=True)
-    charge = serializers.SerializerMethodField('read_charge')
+    charge = serializers.SerializerMethodField()
 
     class Meta:
         model = APImodels.ReactionComponent
         fields = ('id', 'name', 'formula', 'charge', 'subsystem', 'compartment')
 
-    def read_charge(self, model):
-        if not hasattr(model, 'metabolite'): # fixme
-            return 0
-        return model.metabolite.charge
+    def get_charge(self, obj):
+        return obj.metabolite.charge
 
 
 # used in:
-# get_gene/s API (gene page)
-# private_view get_component_with_interaction_partners
-class GeneReactionComponentSerializer(ReactionComponentSerializer):
-    function = serializers.SerializerMethodField('read_function1')
-    # function2 = serializers.SerializerMethodField('read_function2')
-    ec =  serializers.SerializerMethodField('read_ec')
-    catalytic_activity = serializers.SerializerMethodField('read_catalytic_activity')
-    cofactor = serializers.SerializerMethodField('read_cofactor')
-
-    class Meta(ReactionComponentSerializer.Meta):
-        fields = ReactionComponentSerializer.Meta.fields + \
-            ('function1', 'function2', 'ec', 'catalytic_activity', 'cofactor',)
-
-    def read_function1(self, model):
-        return model.gene.function1 if hasattr(model, 'gene') else None
-
-    # def read_function2(self, model):
-    #     return model.gene.function2 if hasattr(model, 'gene') else None
-
-    def read_ec(self, model):
-        return model.gene.ec if hasattr(model, 'gene') else None
-
-    def read_catalytic_activity(self, model):
-        return model.gene.catalytic_activity if hasattr(model, 'gene') else None
-
-    def read_cofactor(self, model):
-        return model.gene.cofactor if hasattr(model, 'gene') else None
-
-
-# get_gene/s API (metabolite page)
-# private_view  get_component_with_interaction_partners
-class MetaboliteReactionComponentSerializer(ReactionComponentSerializer):
-    description = serializers.SerializerMethodField('read_description')
-    function = serializers.SerializerMethodField('read_function1')
-    # function2 = serializers.SerializerMethodField('read_function2')
-    charge = serializers.SerializerMethodField('read_charge')
-    inchi =  serializers.SerializerMethodField('read_inchi')
-
-    class Meta(ReactionComponentSerializer.Meta):
-        fields = ReactionComponentSerializer.Meta.fields + \
-            ('description', 'function1', 'function2',  'charge', 'inchi',)
-
-    def read_description(self, model):
-        return model.metabolite.description if hasattr(model, 'metabolite') else None
-
-    def read_function1(self, model):
-        return model.metabolite.function1 if hasattr(model, 'metabolite') else None
-
-    # def read_function2(self, model):
-    #     return model.metabolite.function2 if hasattr(model, 'metabolite') else None
-
-    def read_charge(self, model):
-        return model.metabolite.charge if hasattr(model, 'metabolite') else None
-
-    def read_inchi(self, model):
-        return model.metabolite.inchi if hasattr(model, 'metabolite') else None
-
-# =====================================================================================
-
-# custom serializers for HMR TO BE DELETED
-
-# used in:
-# get_gene/s API (gene page)
-# private_view get_component_with_interaction_partners
-class HmrGeneReactionComponentLiteSerializer(serializers.ModelSerializer):
-    name = serializers.SerializerMethodField('read_name')
-    description = serializers.SerializerMethodField('read_description')
+# get_metabolites API
+# views get_reaction_reactants
+# views get_reaction_products
+class MetaboliteLiteSerializer(serializers.ModelSerializer):
+    alternate_name = serializers.SerializerMethodField()
     synonyms = serializers.CharField(source='aliases')
-    ec =  serializers.SerializerMethodField('read_ec')
-    external_databases = serializers.SerializerMethodField('read_external_databases')
+    description = serializers.SerializerMethodField()
+    # function = serializers.SerializerMethodField('get_function1')
+    # function2 = serializers.SerializerMethodField()
+    charge = serializers.SerializerMethodField()
+    inchi =  serializers.SerializerMethodField()
+    subsystems = APIcsSerializer.SubsystemBasicSerializer(read_only=True, many=True, source="subsystem_metabolite")
+    compartment = APIcsSerializer.CompartmentBasicSerializer(read_only=True)
 
     class Meta:
         model = APImodels.ReactionComponent
-        fields = ('id', 'name', 'description', 'synonyms', 'ec', 'external_databases',)
+        fields = ('id', 'name', 'alternate_name', 'synonyms', 'description', 'formula', \
+         'charge', 'inchi', 'subsystems', 'compartment',)
 
-    def read_name(self, model):
-        return model.name if model.name else None
+    def get_alternate_name(self, obj):
+        return obj.alt_name1
 
-    def read_description(self, model):
-        return model.alt_name1
+    def get_description(self, obj):
+        return obj.metabolite.description
 
-    def read_ec(self, model):
-        return model.gene.ec if hasattr(model, 'gene') else None
+    def get_function1(self, obj):  # unused
+        return obj.metabolite.function1
 
-    def read_external_databases(self, model):
-        return APIcsSerializer.eid_to_dict(model)
+    def get_function2(self, obj):  # unused
+        return obj.metabolite.function2
+
+    def get_charge(self, obj):
+        return obj.metabolite.charge
+
+    def get_inchi(self, obj):
+        return obj.metabolite.inchi
+
+# used in:
+# views get_metabolite
+class MetaboliteSerializer(MetaboliteLiteSerializer):
+    external_databases = serializers.SerializerMethodField()
+
+    class Meta(MetaboliteLiteSerializer.Meta):
+        fields = MetaboliteLiteSerializer.Meta.fields + ('external_databases',)
+
+    def get_external_databases(self, obj):
+        return APIcsSerializer.eid_to_dict(obj)
 
 
 # used in:
-# get_gene/s API (metabolite page)
-# private_view  get_component_with_interaction_partners
-class HmrGeneReactionComponentSerializer(serializers.ModelSerializer):
-    name = serializers.SerializerMethodField('read_name')
-    description = serializers.SerializerMethodField('read_description')
-    synonyms = serializers.CharField(source='aliases')
-    function =  serializers.SerializerMethodField('read_function')
-    ec =  serializers.SerializerMethodField('read_ec')
-    catalytic_activity =  serializers.SerializerMethodField('read_catalytic_activity')
-    cofactor = serializers.SerializerMethodField('read_cofactor')
-    external_databases = serializers.SerializerMethodField('read_external_databases')
-
-    class Meta:
-        model = APImodels.ReactionComponent
-        fields = ('id', 'name', 'description', 'synonyms', 'function', 'ec', 'catalytic_activity',
-        'cofactor', 'external_databases',)
-
-    def read_name(self, model):
-        return model.name if model.name else None
-
-    def read_description(self, model):
-        return model.alt_name1
-
-    def read_function(self, model):
-        return model.gene.function1 if hasattr(model, 'gene') else None
-
-    def read_ec(self, model):
-        return model.gene.ec if hasattr(model, 'gene') else None
-
-    def read_catalytic_activity(self, model):
-        return model.gene.catalytic_activity if hasattr(model, 'gene') else None
-
-    def read_cofactor(self, model):
-        return model.gene.cofactor if hasattr(model, 'gene') else None
-
-    def read_external_databases(self, model):
-        return APIcsSerializer.eid_to_dict(model)
-
-
-class GeneReactionComponentInteractionPartnerSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = APImodels.ReactionComponent
-        fields = ('id', 'name',)
-
-
-# -----------------------------------------------------------------------------------------------------
-
-
-class HmrMetaboliteReactionComponentLiteSerializer(serializers.ModelSerializer):
-    synonyms = serializers.CharField(source='aliases')
-    inchi =  serializers.SerializerMethodField('read_inchi')
-    compartment = serializers.CharField(source='compartment_str')
-    external_databases = serializers.SerializerMethodField('read_external_databases')
-
-    class Meta:
-        model = APImodels.ReactionComponent
-        fields = ('id', 'name', 'full_name', 'synonyms', 'inchi', 'compartment', 'external_databases',)
-
-    def read_inchi(self, model):
-        return model.metabolite.inchi if hasattr(model, 'metabolite') else None
-
-    def read_external_databases(self, model):
-        return APIcsSerializer.eid_to_dict(model)
-
-
-class HmrMetaboliteReactionComponentSerializer(serializers.ModelSerializer):
-    alt_name = serializers.CharField(source='alt_name1')
-    synonyms = serializers.CharField(source='aliases')
-    description = serializers.SerializerMethodField('read_description')
-    function = serializers.SerializerMethodField('read_function')
-    charge = serializers.SerializerMethodField('read_charge')
-    inchi = serializers.SerializerMethodField('read_inchi')
-    compartment = serializers.CharField(source='compartment_str')
-    external_databases = serializers.SerializerMethodField('read_external_databases')
-
-    class Meta:
-        model = APImodels.ReactionComponent
-        fields = ('id', 'name', 'alt_name', 'synonyms', 'description', 'function', 'formula', 'charge', 'inchi',
-        'compartment', 'external_databases')
-
-    def read_description(self, model):
-        return model.metabolite.description if hasattr(model, 'metabolite') else None
-
-    def read_function(self, model):
-        return model.metabolite.function1 if hasattr(model, 'metabolite') else None
-
-    def read_charge(self, model): #fixme, diff def than MetaboliteReactionComponentSearchSerializer
-        return model.metabolite.charge if hasattr(model, 'metabolite') else None
-
-    def read_inchi(self, model):
-        return model.metabolite.inchi if hasattr(model, 'metabolite') else None
-
-    def read_external_databases(self, model):
-        return APIcsSerializer.eid_to_dict(model)
-
-
-class MetaboliteReactionComponentInteractionPartnerSerializer(serializers.ModelSerializer):
+# attr of InteractionPartnerSerializer
+class MetaboliteInteractionPartnerSerializer(serializers.ModelSerializer):
     class Meta:
         model = APImodels.ReactionComponent
         fields = ('id', 'name', 'compartment_str')
@@ -267,33 +182,32 @@ class MetaboliteReactionComponentInteractionPartnerSerializer(serializers.ModelS
 # ==========================================================================================
 
 # custom serializers for the GEM browser Tiles
-
 class GemBrowserTileMetaboliteSerializer(serializers.ModelSerializer):
     compartment = serializers.CharField(source='compartment_str')
-    reaction_count = serializers.SerializerMethodField('read_reaction_count')
+    reaction_count = serializers.SerializerMethodField()
 
     class Meta:
         model = APImodels.ReactionComponent
         fields = ('id', 'name', 'formula', 'compartment', 'reaction_count')
 
-    def read_reaction_count(self, model):
-        return model.reactions_as_reactant.count() + model.reactions_as_product.count()
+    def get_reaction_count(self, obj):
+        return obj.reactions_as_reactant.count() + obj.reactions_as_product.count()
 
 
 class GemBrowserTileGeneSerializer(serializers.ModelSerializer):
-    compartment_count = serializers.SerializerMethodField('read_compartment')
-    subsystem_count = serializers.SerializerMethodField('read_subsystem')
-    reaction_count = serializers.SerializerMethodField('read_reaction_count')
+    compartment_count = serializers.SerializerMethodField()
+    subsystem_count = serializers.SerializerMethodField()
+    reaction_count = serializers.SerializerMethodField()
 
     class Meta:
         model = APImodels.ReactionComponent
         fields = ('id', 'name', 'reaction_count', 'compartment_count', 'subsystem_count')
 
-    def read_compartment(self, model):
-        return model.compartment_gene.count()
+    def get_compartment_count(self, obj):
+        return obj.compartment_gene.count()
 
-    def read_subsystem(self, model):
-        return model.subsystem_gene.count()
+    def get_subsystem_count(self, obj):
+        return obj.subsystem_gene.count()
 
-    def read_reaction_count(self, model):
-        return model.reactions_as_gene.count()
+    def get_reaction_count(self, obj):
+        return obj.reactions_as_gene.count()

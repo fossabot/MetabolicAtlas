@@ -78,22 +78,12 @@ export default {
       showLoader: false,
       noResult: false,
       messages,
-
       itemKeys: {
-        human1: {
-          gene: ['id', 'name'],
-          reaction: ['id', 'equation'],
-          metabolite: ['id', 'name', 'compartment'],
-          subsystem: ['name', 'system'],
-          compartment: ['name'],
-        },
-        yeast8: {
-          gene: ['id', 'name'],
-          reaction: ['id', 'equation'],
-          metabolite: ['id', 'name', 'compartment'],
-          subsystem: ['name', 'system'],
-          compartment: ['name'],
-        },
+        gene: ['id', 'name'],
+        reaction: ['id', 'equation'],
+        metabolite: ['id', 'name', 'compartment'],
+        subsystem: ['name', 'system'],
+        compartment: ['name'],
       },
     };
   },
@@ -185,7 +175,7 @@ export default {
     formatSearchResultLabel(type, element, searchTerm) {
       const re = new RegExp(`(${searchTerm})`, 'ig');
       let s = '';
-      this.itemKeys[this.model.database_name][type].filter(key => element[key]).forEach((key) => {
+      this.itemKeys[type].filter(key => element[key]).forEach((key) => {
         if (key === 'equation') {
           s = `${s} ‒ ${chemicalReaction(element[key].replace(re, '<b>$1</b>'), element.is_reversible)}`;
         } else {
@@ -193,14 +183,6 @@ export default {
           s = key === 'compartment_str' ? `${s} ‒ ${element[key]}` : `${s} ‒ ${element[key].replace(re, '<b>$1</b>')}`;
         }
       });
-      if (!s.toLowerCase().includes(searchTerm.toLowerCase())) {
-        // add info in the label containing the search string
-        ['hmdb_id', 'uniprot_id', 'ncbi_id', 'formula', 'pubchem_id', 'aliases', 'name']
-          .filter(k => element[k] && element[k].toLowerCase().includes(searchTerm.toLowerCase()))
-          .forEach((k) => {
-            s = `${s} ‒ ${element[k].replace(re, '<b>$1</b>')}`;
-          });
-      }
       if (s.length !== 0) {
         return s.slice(2);
       }

@@ -34,7 +34,7 @@
                   <td v-else> - </td>
                 </tr>
               </table>
-              <ExtIdTable :externalDbs="gene.external_databases"></ExtIdTable>
+              <ExtIdTable :external-dbs="gene.external_databases"></ExtIdTable>
             </div>
             <div class="column is-2-widescreen is-3-desktop is-full-tablet has-text-centered">
               <router-link class="button is-info is-fullwidth is-outlined"
@@ -96,7 +96,7 @@ export default {
       mainTableKey: [
         { name: 'id' },
         { name: 'geneName', display: 'Gene&nbsp;name' },
-        { name: 'description' },
+        { name: 'alternate_name', display: 'Alternate&nbsp;name' },
         { name: 'synonyms' },
         { name: 'function' },
       ],
