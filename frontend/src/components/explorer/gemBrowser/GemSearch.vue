@@ -5,24 +5,22 @@
         <p class="control has-icons-right has-icons-left">
           <!-- eslint-disable max-len -->
           <input id="search" ref="searchInput"
-                 v-model="searchTermString"
-                 class="input is-medium" type="text"
+                 v-model="searchTermString" v-debounce:700="searchDebounce" data-hj-whitelist
+                 type="text" class="input is-medium"
                  placeholder="uracil, SULT1A3, ATP => cAMP + PPi, subsystem or compartment"
-                 @input="searchDebounce"
                  @keyup.esc="showResults = false"
                  @focus="showResults = true"
-                 @blur="showResults = false">
-          <span v-show="showSearchCharAlert" class="has-text-info icon is-small is-right" style="width: 200px">
+                 @blur="blur()">
+          <span v-show="showSearchCharAlert" class="has-text-info icon is-right" style="width: 220px">
             Type at least 2 characters
           </span>
           <span class="icon is-medium is-left">
             <i class="fa fa-search"></i>
           </span>
         </p>
-        <router-link
-          class="is-pulled-right"
-          :to="{ name: 'search', query: { term: searchTermString } }"
-        >Global search</router-link>
+        <router-link class="is-pulled-right is-size-5" :to="{ name: 'search', query: { term: searchTermString } }">
+          Global search
+        </router-link>
       </div>
       <div v-show="showResults && searchTermString.length > 1" id="searchResults" ref="searchResults">
         <div v-show="searchResults.length !== 0 && !showLoader" id="asn"
@@ -32,13 +30,13 @@
         </div>
         <div v-show="!showLoader" v-if="searchResults.length !== 0" class="resList">
           <template v-for="k in resultsOrder">
-            <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
-            <div v-for="(r, i2) in searchResults[k]" :key="r.id" class="searchResultSection">
+            <div v-for="(r, i2) in searchResults[k]" :key="`${r.id}-${i2}`" class="searchResultSection">
               <hr v-if="i2 !== 0" class="is-marginless">
-              <div class="clickable" @mousedown.prevent="goToTab(k, r.id || r.name_id || r.name)">
+              <router-link class="clickable" :to="getRouterUrl(k, r.id || r.name)"
+                           @click.native="showResults=false">
                 <b class="is-capitalized">{{ k }}: </b>
                 <label class="clickable" v-html="formatSearchResultLabel(k, r, searchTermString)"></label>
-              </div>
+              </router-link>
             </div>
             <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
             <hr v-if="searchResults[k].length !== 0" class="bhr">
@@ -58,10 +56,8 @@
 <script>
 import axios from 'axios';
 import $ from 'jquery';
-import _ from 'lodash';
-import { sortResults } from '../../../helpers/utils';
+import { sortResults, idfy } from '../../../helpers/utils';
 import { chemicalFormula, chemicalReaction } from '../../../helpers/chemical-formatters';
-import { default as EventBus } from '../../../event-bus';
 import { default as messages } from '../../../helpers/messages';
 
 export default {
@@ -69,6 +65,7 @@ export default {
   props: {
     searchTerm: String,
     model: Object,
+    metabolitesAndGenesOnly: Boolean,
   },
   data() {
     return {
@@ -81,22 +78,12 @@ export default {
       showLoader: false,
       noResult: false,
       messages,
-
       itemKeys: {
-        human1: {
-          gene: ['id', 'name'],
-          reaction: ['id', 'equation'],
-          metabolite: ['id', 'name', 'compartment'],
-          subsystem: ['name', 'system'],
-          compartment: ['name'],
-        },
-        yeast8: {
-          gene: ['id', 'name'],
-          reaction: ['id', 'equation'],
-          metabolite: ['id', 'name', 'compartment'],
-          subsystem: ['name', 'system'],
-          compartment: ['name'],
-        },
+        gene: ['id', 'name'],
+        reaction: ['id', 'equation'],
+        metabolite: ['id', 'name', 'compartment'],
+        subsystem: ['name', 'system'],
+        compartment: ['name'],
       },
     };
   },
@@ -104,7 +91,10 @@ export default {
     $('#search').focus();
   },
   methods: {
-    searchDebounce: _.debounce(function e() {
+    blur() {
+      setTimeout(() => { this.showResults = false; }, 200);
+    },
+    searchDebounce() {
       this.noResult = false;
       this.showSearchCharAlert = this.searchTermString.length === 1;
       this.showLoader = true;
@@ -112,7 +102,7 @@ export default {
         this.showResults = true;
         this.search(this.searchTermString);
       }
-    }, 700),
+    },
     search(searchTerm) {
       this.searchTermString = searchTerm;
       const url = `${this.model.database_name}/search/${searchTerm}`;
@@ -129,6 +119,9 @@ export default {
           Object.keys(response.data).forEach((model) => {
             const resultsModel = response.data[model];
             this.resultsOrder.forEach((resultType) => {
+              if (this.metabolitesAndGenesOnly && !['metabolite', 'gene'].includes(resultType)) {
+                return;
+              }
               if (resultsModel[resultType]) {
                 localResults[resultType] = localResults[resultType].concat(
                   resultsModel[resultType].map(
@@ -166,10 +159,15 @@ export default {
           this.showLoader = false;
         });
     },
-    goToTab(type, id) {
-      this.searchTermString = '';
-      this.searchResults = [];
-      EventBus.$emit('GBnavigateTo', type, id);
+    getRouterUrl(type, id) {
+      let ID = id;
+      if (type === 'subsystem' || type === 'compartment') {
+        ID = idfy(id);
+      }
+      if (this.metabolitesAndGenesOnly) {
+        return `/explore/interaction/${this.$route.params.model}/${ID}`;
+      }
+      return `/explore/gem-browser/${this.$route.params.model}/${type}/${ID}`;
     },
     globalSearch() {
       this.$router.push({ name: 'search', query: { term: this.searchTermString } });
@@ -177,22 +175,14 @@ export default {
     formatSearchResultLabel(type, element, searchTerm) {
       const re = new RegExp(`(${searchTerm})`, 'ig');
       let s = '';
-      this.itemKeys[this.model.database_name][type].filter(key => element[key]).forEach((key) => {
+      this.itemKeys[type].filter(key => element[key]).forEach((key) => {
         if (key === 'equation') {
           s = `${s} ‒ ${chemicalReaction(element[key].replace(re, '<b>$1</b>'), element.is_reversible)}`;
         } else {
           // do not HL the compartment name
-          s = key === 'compartment' ? `${s} ‒ ${element[key]}` : `${s} ‒ ${element[key].replace(re, '<b>$1</b>')}`;
+          s = key === 'compartment_str' ? `${s} ‒ ${element[key]}` : `${s} ‒ ${element[key].replace(re, '<b>$1</b>')}`;
         }
       });
-      if (!s.toLowerCase().includes(searchTerm.toLowerCase())) {
-        // add info in the label containing the search string
-        ['hmdb_id', 'uniprot_id', 'ncbi_id', 'formula', 'pubchem_id', 'aliases', 'name']
-          .filter(k => element[k] && element[k].toLowerCase().includes(searchTerm.toLowerCase()))
-          .forEach((k) => {
-            s = `${s} ‒ ${element[k].replace(re, '<b>$1</b>')}`;
-          });
-      }
       if (s.length !== 0) {
         return s.slice(2);
       }
@@ -243,11 +233,9 @@ export default {
 
   .searchResultSection {
     padding: 0px 10px;
-    div {
+    a {
+      display:block;
       padding: 7px 0px;
-    }
-    div:hover, label:hover {
-      color: #00549E;
     }
   }
 }

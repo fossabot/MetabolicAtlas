@@ -158,21 +158,10 @@ class Reaction(models.Model):
     gene_rule_wname = models.TextField(null=True) # string or/and with gene name
     subsystem_str = models.CharField(max_length=1000, null=True)
     subsystem = models.ManyToManyField('Subsystem', related_name='reactions', through='SubsystemReaction')
-    compartment = models.CharField(max_length=255)
+    compartment_str = models.CharField(max_length=255)
+    compartment = models.ManyToManyField('Compartment', related_name='reactions', through='ReactionCompartment')
     is_transport = models.BooleanField(default=False)
     is_reversible = models.BooleanField(default=False)
-    external_id1 = models.CharField(max_length=100, null=True) # e.g. MNXref, KEGG
-    external_id2 = models.CharField(max_length=100, null=True)
-    external_id3 = models.CharField(max_length=100, null=True)
-    external_id4 = models.CharField(max_length=100, null=True)
-    external_id5 = models.CharField(max_length=100, null=True)
-    external_id6 = models.CharField(max_length=100, null=True)
-    external_link1 = models.CharField(max_length=255, null=True)
-    external_link2 = models.CharField(max_length=255, null=True)
-    external_link3 = models.CharField(max_length=255, null=True)
-    external_link4 = models.CharField(max_length=255, null=True)
-    external_link5 = models.CharField(max_length=255, null=True)
-    external_link6 = models.CharField(max_length=255, null=True)
     related_group = models.IntegerField(default=0)
 
     metabolites = models.ManyToManyField('ReactionComponent', related_name='reactions_as_metabolite', through='ReactionMetabolite')
@@ -197,6 +186,16 @@ class ReactionReference(models.Model):
         db_table = "reaction_reference"
         unique_together = (('reaction', 'pmid'),)
 
+class ReactionEID(models.Model):
+    reaction = models.ForeignKey('Reaction', related_name='external_databases', on_delete=models.CASCADE)
+    db_name = models.CharField(max_length=255)
+    external_id = models.CharField(max_length=255)
+    external_link = models.CharField(max_length=255, null=True)
+
+    class Meta:
+        db_table = "reaction_eid"
+        unique_together = (('reaction', 'db_name', 'external_id'),)
+
 # corresponds to either metabolite or gene, should be Serialized with the proper serializer
 class ReactionComponent(models.Model):
     id = models.CharField(max_length=50, primary_key=True)  # ID in the SBML/YAML model
@@ -205,14 +204,6 @@ class ReactionComponent(models.Model):
     alt_name1 = models.CharField(max_length=255, null=True)  # can be ORF ID in case of yeast, proteine name, metabolite short_name etc
     alt_name2 = models.CharField(max_length=255, null=True)  # can be ORF ID in case of yeast, proteine name, metabolite short_name etc
     aliases = models.CharField(max_length=2000, null=True)  # alias of gene name (including gene short name) or alias of metabolite name, semi-colon separated values
-    external_id1 = models.CharField(max_length=100, null=True)  # e.g. MNXref, HMDB, chebi or kegg or uniprot or ensembl, etc need to be specify in the serializer
-    external_id2 = models.CharField(max_length=100, null=True)
-    external_id3 = models.CharField(max_length=100, null=True)
-    external_id4 = models.CharField(max_length=100, null=True)
-    external_id5 = models.CharField(max_length=100, null=True)
-    external_id6 = models.CharField(max_length=100, null=True)
-    external_id7 = models.CharField(max_length=100, null=True)
-    external_id8 = models.CharField(max_length=100, null=True)
     component_type = models.CharField(max_length=1, db_index=True)  # 'm' or 'e' for metabolite or gene
     formula = models.CharField(max_length=255, null=True)  # only metabolites have this! should be in metabolite table but will simplify the queries if here
     compartment_str = models.CharField(max_length=255, null=True)
@@ -241,6 +232,16 @@ class ReactionComponent(models.Model):
             models.Index(fields=['related_formula_group']),
         ]
 
+class ReactionComponentEID(models.Model):
+    rc = models.ForeignKey('ReactionComponent', related_name='external_databases', on_delete=models.CASCADE)
+    db_name = models.CharField(max_length=255)
+    external_id = models.CharField(max_length=255)
+    external_link = models.CharField(max_length=255, null=True)
+
+    class Meta:
+        db_table = "rc_eid"
+        unique_together = (('rc', 'db_name', 'external_id'),)
+
 class Metabolite(models.Model):
     rc = models.OneToOneField(
             'ReactionComponent',
@@ -254,15 +255,6 @@ class Metabolite(models.Model):
     mass = models.FloatField(null=True)
     mass_avg = models.FloatField(null=True)
     inchi = models.CharField(max_length=255, null=True)
-    name_link = models.CharField(max_length=255, null=True)
-    external_link1 = models.CharField(max_length=255, null=True)
-    external_link2 = models.CharField(max_length=255, null=True)
-    external_link3 = models.CharField(max_length=255, null=True)
-    external_link4 = models.CharField(max_length=255, null=True)
-    external_link5 = models.CharField(max_length=255, null=True)
-    external_link6 = models.CharField(max_length=255, null=True)
-    external_link7 = models.CharField(max_length=255, null=True)
-    external_link8 = models.CharField(max_length=255, null=True)
 
     class Meta:
         db_table = "metabolite"
@@ -275,15 +267,6 @@ class Gene(models.Model):
     ec = models.CharField(max_length=255, null=True)
     catalytic_activity = models.CharField(max_length=2000, null=True)
     cofactor = models.CharField(max_length=255, null=True)
-    name_link = models.CharField(max_length=255, null=True)
-    external_link1 = models.CharField(max_length=255, null=True)
-    external_link2 = models.CharField(max_length=255, null=True)
-    external_link3 = models.CharField(max_length=255, null=True)
-    external_link4 = models.CharField(max_length=255, null=True)
-    external_link5 = models.CharField(max_length=255, null=True)
-    external_link6 = models.CharField(max_length=255, null=True)
-    external_link7 = models.CharField(max_length=255, null=True)
-    external_link8 = models.CharField(max_length=255, null=True)
 
     class Meta:
         db_table = "gene"
@@ -298,17 +281,9 @@ class CoFactor(models.Model):
 
 class Subsystem(models.Model):
     name = models.CharField(max_length=100, unique=True)
-    name_id = models.CharField(max_length=100, unique=True) # use to request the subsystem by url
+    name_id = models.CharField(max_length=100, unique=True) # renamed to id when serialized
     system = models.CharField(max_length=100)
     subsystem_svg = models.ForeignKey('SubsystemSvg', on_delete=models.SET_NULL, null=True, related_name='+')
-    external_id1 = models.CharField(max_length=100, null=True)
-    external_id2 = models.CharField(max_length=100, null=True)
-    external_id3 = models.CharField(max_length=100, null=True)
-    external_id4 = models.CharField(max_length=100, null=True)
-    external_link1 = models.CharField(max_length=255, null=True)
-    external_link2 = models.CharField(max_length=255, null=True)
-    external_link3 = models.CharField(max_length=255, null=True)
-    external_link4 = models.CharField(max_length=255, null=True)
     description = models.CharField(max_length=3000, null=True)
     compartment = models.ManyToManyField('Compartment', related_name='s_compartments', through='SubsystemCompartment')
     reaction_count = models.IntegerField(default=0)
@@ -322,9 +297,19 @@ class Subsystem(models.Model):
     class Meta:
         db_table = "subsystem"
 
+class SubsystemEID(models.Model):
+    subsystem = models.ForeignKey('Subsystem', related_name='external_databases', on_delete=models.CASCADE)
+    db_name = models.CharField(max_length=255)
+    external_id = models.CharField(max_length=255)
+    external_link = models.CharField(max_length=255, null=True)
+
+    class Meta:
+        db_table = "subsystem_eid"
+        unique_together = (('subsystem', 'db_name', 'external_id'),)
+
 class SubsystemSvg(models.Model):
     name = models.CharField(max_length=100, unique=True)
-    name_id = models.CharField(max_length=100, unique=True) # use to request the subsystem by url
+    name_id = models.CharField(max_length=100, unique=True)
     subsystem = models.ForeignKey('Subsystem',on_delete=models.CASCADE, related_name='+')
     filename = models.CharField(max_length=100, unique=True)
     reaction_count = models.IntegerField(default=0)
@@ -333,17 +318,13 @@ class SubsystemSvg(models.Model):
     gene_count = models.IntegerField(default=0)
     compartment_count = models.IntegerField(default=0)
     sha = models.CharField(max_length=256, unique=True, null=True)
-    # min_zoom_level = models.FloatField(default=0)
-    # max_zoom_level = models.FloatField(default=0)
-    # node_zoom_level = models.FloatField(default=0)
-    # label_zoom_level = models.FloatField(default=0)
 
     class Meta:
         db_table = "subsystemsvg"
 
 class Compartment(models.Model):
     name = models.CharField(max_length=50, unique=True)
-    name_id = models.CharField(max_length=50, unique=True) # use to request the compartement by url
+    name_id = models.CharField(max_length=50, unique=True) # renamed to id when serialized
     letter_code = models.CharField(max_length=3, unique=True)
     subsystem = models.ManyToManyField('Subsystem', related_name='c_subsystems', through='SubsystemCompartment')
     compartment_svg = models.ForeignKey('CompartmentSvg', on_delete=models.SET_NULL, null=True, related_name='+')
@@ -361,7 +342,7 @@ class Compartment(models.Model):
 
 class CompartmentSvg(models.Model):
     name = models.CharField(max_length=50, unique=True)
-    name_id = models.CharField(max_length=50, unique=True) # use to request the subsystem by url
+    name_id = models.CharField(max_length=50, unique=True)
     compartment = models.ForeignKey('Compartment', on_delete=models.CASCADE, related_name='+')
     subsystem = models.ManyToManyField('Subsystem', related_name='csvg_subsystems', through='SubsystemCompartmentSvg')
     filename = models.CharField(max_length=50, unique=True)
@@ -372,27 +353,9 @@ class CompartmentSvg(models.Model):
     unique_metabolite_count = models.IntegerField(default=0)
     gene_count = models.IntegerField(default=0)
     sha = models.CharField(max_length=256, unique=True, null=True)
-    # min_zoom_level = models.FloatField(default=0)
-    # max_zoom_level = models.FloatField(default=0)
-    # node_zoom_level = models.FloatField(default=0)
-    # label_zoom_level = models.FloatField(default=0)
 
     class Meta:
         db_table = "compartmentsvg"
-
-class MetaboliteReaction(object):
-    def __init__(self, reaction, role):
-        self.reaction_id = reaction.id
-        self.gene_role = role
-        self.reactants = reaction.reactants
-        self.products = reaction.products
-        self.genes = reaction.genes
-
-class ConnectedMetabolites(object):
-    def __init__(self, gene, compartment, reactions):
-        self.gene = gene
-        self.compartment = compartment
-        self.reactions = reactions
 
 class GemBrowserTile(object):
     def __init__(self, compartment, subsystems, reactions, metabolites, genes):

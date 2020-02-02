@@ -24,7 +24,7 @@
     </div>
     <div id="svgSearch" class="overlay">
       <div class="control" :class="{ 'is-loading' : isLoadingSearch }">
-        <input id="searchInput" v-model.trim="searchTerm"
+        <input id="searchInput" v-model.trim="searchTerm" data-hj-whitelist
                title="Exact search by id, name, alias. Press Enter for results" class="input"
                type="text" :class="searchInputClass"
                :disabled="!loadedMap" placeholder="Exact search by id, name, alias"
@@ -350,8 +350,7 @@ export default {
             this.loadSvgPanZoom(callback);
           }, 0);
         } else {
-          const svgLink = `${this.svgMapURL}/${this.model.database_name}/${newSvgName}`;
-          axios.get(svgLink)
+          axios.get(`${this.svgMapURL}/${this.model.database_name}/${newSvgName}`)
             .then((response) => {
               this.svgContent = response.data;
               this.svgName = newSvgName;
@@ -379,7 +378,7 @@ export default {
       const blob = new Blob([document.getElementById('svg-wrapper').innerHTML], {
         type: 'data:text/tsv;charset=utf-8',
       });
-      FileSaver.saveAs(blob, `${this.loadedMap.name_id}.svg`);
+      FileSaver.saveAs(blob, `${this.loadedMap.id}.svg`);
     },
     applyHPARNAlevelsOnMap(RNAlevels) {
       this.HPARNAlevels = RNAlevels;
@@ -422,21 +421,16 @@ export default {
       this.isLoadingSearch = true;
       axios.get(`${this.model.database_name}/get_id/${this.searchTerm}`)
         .then((response) => {
-          this.haveSearched = true;
-          this.searchInputClass = 'is-success';
+          // results are on the model, but may not be on the map!
           this.idsFound = response.data;
           this.findElementsOnSVG(true);
         })
-        .catch((error) => {
+        .catch(() => {
+          this.searchInputClass = 'is-danger';
+        })
+        .then(() => {
           this.isLoadingSearch = false;
-          const status = error.status || error.response.status;
-          if (status !== 404) {
-            this.$emit('loadComplete', false, messages.unknownError, 'danger');
-            this.searchInputClass = 'is-info';
-          } else {
-            this.searchInputClass = 'is-danger';
-            this.haveSearched = true;
-          }
+          this.haveSearched = true;
         });
     },
     findElementsOnSVG(zoomOn) {
@@ -459,7 +453,11 @@ export default {
           this.elmFound.push($(elms[j]));
         }
       }
-      this.isLoadingSearch = false;
+      if (this.elmFound.length === 0) {
+        this.searchInputClass = 'is-danger';
+        return;
+      }
+      this.searchInputClass = 'is-success';
       if (zoomOn) {
         this.centerElementOnSVG(1);
       } else {

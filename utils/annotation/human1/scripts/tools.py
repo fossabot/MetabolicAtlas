@@ -37,13 +37,13 @@ def file_to_dicts_values(file):
                     header[0] = header[0][1:]
                 else:
                     new_d = dict(zip(header, arr))
-                    if 'ID' not in new_d or not new_d['ID']:
+                    if 'id' not in new_d or not new_d['id']:
                         print ("Error: ID key not found or empty when parsing annotation file")
                         exit(1)
-                    if new_d['ID'] in IDs:
-                        print ("Error: duplicate ID '%s'" % new_d['ID'])
+                    if new_d['id'] in IDs:
+                        print ("Error: duplicate ID '%s'" % new_d['id'])
                         exit(1)
-                    d[new_d['ID']] = new_d
+                    d[new_d['id']] = new_d
     except Exception as e:
         print(e)
         exit(1)
@@ -90,7 +90,7 @@ def merge_values(annotation_file, dict_values_dicts):
             continue
         else:
             # merge dicts_values and dict_file
-            dict_values_dicts[ID].pop('ID', None)  # prevent changing the ID
+            dict_values_dicts[ID].pop('id', None)  # prevent changing the ID
             dico.update(dict_values_dicts[ID])
         contains_ID.add(ID)
 
@@ -99,8 +99,8 @@ def merge_values(annotation_file, dict_values_dicts):
         if ID in contains_ID:
             continue
 
-        d.pop('ID', None)  # prevent changing the ID
-        d['ID'] = ID
+        d.pop('id', None)  # prevent changing the ID
+        d['id'] = ID
         ordered_dict[ID] = d  # might not contains all the headercolumns
 
     return ordered_dict

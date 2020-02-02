@@ -14,13 +14,11 @@
         <div class="column is-three-fifths-desktop is-three-quarters-tablet is-fullwidth-mobile control">
           <div id="input-wrapper is-size-3">
             <p class="control has-icons-right has-icons-left">
-              <input id="search" v-model="searchTerm"
+              <input id="search" v-model="searchTerm" data-hj-whitelist
                      class="input is-medium" type="text"
                      placeholder="uracil, SULT1A3, ATP => cAMP + PPi, Acyl-CoA hydrolysis"
                      @keyup.enter="updateSearch()">
-              <span v-show="showSearchCharAlert"
-                    class="has-text-danger icon is-small is-right"
-                    style="width: 200px">
+              <span v-show="showSearchCharAlert" class="has-text-info icon is-right" style="width: 220px">
                 Type at least 2 characters
               </span>
               <span class="icon is-medium is-left">
@@ -30,7 +28,18 @@
           </div>
         </div>
       </div>
-      <br>
+      <!-- eslint-disable-next-line max-len -->
+      <div v-if="notFoundSuggestions.length !== 0 && searchResults.length === 0" class="columns is-centered">
+        <div class="column is-three-fifths-desktop is-three-quarters-tablet is-fullwidth-mobile control is-size-5">
+          Do you mean:&nbsp;
+          <template v-for="v in notFoundSuggestions">
+            <!-- eslint-disable-next-line vue/valid-v-for -->
+            <router-link :to="{ name: 'search', query: { term: v }}">
+              <span class="suggestions">{{ v }}</span>
+            </router-link>&nbsp;
+          </template>?
+        </div>
+      </div>
       <div>
         <div v-if="showTabType" class="tabs is-boxed is-fullwidth">
           <ul>
@@ -52,7 +61,7 @@
           <div class="columns is-centered">
             <div v-if="Object.keys(searchResults).length === 0"
                  class="column is-three-fifths-desktop is-three-quarters-tablet is-fullwidth-mobile">
-              <div v-if="searchedTerm" class="has-text-centered notification">
+              <div v-if="searchedTerm" class="has-text-centered notification is-size-5">
                 {{ messages.searchNoResult }} for <b><i>{{ searchedTerm }}</i></b><br>
                 If this is an alias or external identifier, it means it is not present in any of the models.
               </div>
@@ -100,7 +109,7 @@
                 </div>
                 <template slot="table-row" slot-scope="props">
                   <!-- eslint-disable max-len -->
-                  <template v-if="props.column.field == 'model'">
+                  <template v-if="props.column.field === 'model'">
                     {{ props.formattedRow[props.column.field].name }}
                   </template>
                   <template v-else-if="props.column.field === 'equation'">
@@ -119,40 +128,27 @@
                       {{ "" }}
                     </template>
                     <template v-for="(sub, i) in props.formattedRow[props.column.field]" v-else>
-                      <template v-if="i != 0">; </template>
+                      <template v-if="i !== 0">; </template>
                       <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key max-len -->
-                      <router-link :to="{ path: `/explore/gem-browser/${props.row.model.id}/subsystem/${idfy(sub)}` }"> {{ sub }}</router-link>
+                      <router-link :to="{ path: `/explore/gem-browser/${props.row.model.id}/subsystem/${sub.id}` }"> {{ sub.name }}</router-link>
                     </template>
                   </template>
-                  <template v-else-if="props.column.field === 'compartment'">
+                  <template v-else-if="['compartment', 'compartments'].includes(props.column.field)">
                     <template v-if="props.formattedRow[props.column.field].length === 0">
                       {{ "" }}
                     </template>
-                    <template v-else-if="['subsystem', 'gene'].includes(header)">
+                    <template v-else-if="['gene', 'subsystem', 'reaction'].includes(header)">
                       <template v-for="(comp, i) in props.formattedRow[props.column.field]">
                         <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
-                        <template v-if="i != 0">; </template><router-link :to="{ path: `/explore/gem-browser/${props.row.model.id}/compartment/${idfy(comp)}` }">{{ comp }}</router-link>
-                      </template>
-                    </template>
-                    <template v-else-if="header === 'reaction'">
-                      <template v-for="(RP, i) in props.formattedRow[props.column.field].split(' => ')">
-                        <template v-if="i != 0"> &#8658; </template>
-                        <template v-for="(compo, j) in RP.split(' + ')">
-                          <template v-if="j != 0"> + </template>
-                          <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
-                          <router-link
-                            :to="{ path: `/explore/gem-browser/${props.row.model.id}/compartment/${idfy(compo)}` }">
-                            {{ compo }}
-                          </router-link>
-                        </template>
+                        <template v-if="i != 0">; </template><router-link :to="{ path: `/explore/gem-browser/${props.row.model.id}/compartment/${comp.id}` }">{{ comp.name }}</router-link>
                       </template>
                     </template>
                     <template v-else-if="Array.isArray(props.formattedRow[props.column.field])">
                       {{ props.formattedRow[props.column.field].join("; ") }}
                     </template>
                     <template v-else>
-                      <router-link :to="{ path: `/explore/gem-browser/${props.row.model.id}/compartment/${idfy(props.formattedRow[props.column.field])}` }">
-                        {{ props.formattedRow[props.column.field] }}
+                      <router-link :to="{ path: `/explore/gem-browser/${props.row.model.id}/compartment/${props.formattedRow[props.column.field].id}` }">
+                        {{ props.formattedRow[props.column.field].name }}
                       </router-link>
                     </template>
                   </template>
@@ -181,7 +177,7 @@ import Loader from '@/components/Loader';
 import ExportTSV from '@/components/explorer/gemBrowser/ExportTSV';
 import 'vue-good-table/dist/vue-good-table.css';
 import { chemicalFormula } from '../helpers/chemical-formatters';
-import { idfy, reformatEqSign, sortResults } from '../helpers/utils';
+import { reformatEqSign, sortResults } from '../helpers/utils';
 import { default as messages } from '../helpers/messages';
 
 export default {
@@ -359,7 +355,7 @@ export default {
             sortable: true,
           }, {
             label: 'Compartment',
-            field: 'compartment',
+            field: 'compartments',
             filterOptions: {
               enabled: true,
               filterDropdownItems: [],
@@ -410,7 +406,7 @@ export default {
           },
           {
             label: 'Metabolites',
-            field: 'metaboliteCount',
+            field: 'metabolite_count',
             filterOptions: {
               enabled: false,
             },
@@ -418,7 +414,7 @@ export default {
           },
           {
             label: 'Genes',
-            field: 'geneCount',
+            field: 'gene_count',
             filterOptions: {
               enabled: false,
             },
@@ -426,7 +422,7 @@ export default {
           },
           {
             label: 'Reactions',
-            field: 'reactionCount',
+            field: 'reaction_count',
             filterOptions: {
               enabled: false,
             },
@@ -434,7 +430,7 @@ export default {
           },
           {
             label: 'Subsystems',
-            field: 'subsystemCount',
+            field: 'subsystem_count',
             filterOptions: {
               enabled: false,
             },
@@ -456,6 +452,7 @@ export default {
         subsystem: [],
         compartment: [],
       },
+      notFoundSuggestions: [],
     };
   },
   beforeRouteEnter(to, from, next) { // eslint-disable-line no-unused-vars
@@ -502,7 +499,7 @@ export default {
         },
         subsystem: {
           model: {},
-          compartment: {},
+          compartments: {},
         },
         compartment: {
           model: {},
@@ -529,58 +526,37 @@ export default {
                 filterTypeDropdown[componentType][field][el[field].id] = el[field].name;
               } else if (field === 'subsystem') {
                 el[field]
-                  .filter(v => !(v in filterTypeDropdown[componentType][field]))
+                  .filter(v => !(v.id in filterTypeDropdown[componentType][field]))
                   .forEach((v) => {
-                    filterTypeDropdown[componentType][field][v] = 1;
+                    filterTypeDropdown[componentType][field][v.id] = 1;
                   });
               } else if (!(el[field] in filterTypeDropdown[componentType][field])) {
                 filterTypeDropdown[componentType][field][el[field]] = 1;
               }
             });
-            rows[componentType].push({
-              id: el.id,
-              model: el.model,
-              name: el.name,
-              formula: el.formula,
-              charge: el.charge,
-              subsystem: el.subsystem,
-              compartment: el.compartment,
-            });
+            rows[componentType].push(el);
           } else if (componentType === 'gene') {
             Object.keys(filterTypeDropdown[componentType]).forEach((field) => {
               if (field === 'model') {
                 filterTypeDropdown[componentType][field][el[field].id] = el[field].name;
               } else if (['compartment', 'subsystem'].includes(field)) {
                 el[field]
-                  .filter(v => !(v in filterTypeDropdown[componentType][field]))
+                  .filter(v => !(v.id in filterTypeDropdown[componentType][field]))
                   .forEach((v) => {
-                    filterTypeDropdown[componentType][field][v] = 1;
+                    filterTypeDropdown[componentType][field][v.id] = 1;
                   });
               } else if (!(el[field] in filterTypeDropdown[componentType][field])) {
                 filterTypeDropdown[componentType][field][el[field]] = 1;
               }
             });
-            rows[componentType].push({
-              id: el.id,
-              model: el.model,
-              name: el.name,
-              subsystem: el.subsystem,
-              compartment: el.compartment,
-            });
+            rows[componentType].push(el);
           } else if (componentType === 'reaction') {
             Object.keys(filterTypeDropdown[componentType]).forEach((field) => {
-              if (field === 'subsystem' && el[field]) {
+              if (['compartment', 'subsystem'].includes(field) && el[field]) {
                 el[field]
                   .filter(v => !(v in filterTypeDropdown[componentType][field]))
                   .forEach((v) => {
                     filterTypeDropdown[componentType][field][v] = 1;
-                  });
-              } else if (field === 'compartment' && el[field]) {
-                el[field].split(/[^a-zA-Z0-9 ]+/)
-                  .filter(compartment => compartment.trim()
-                    && !(compartment.trim() in filterTypeDropdown[componentType][field]))
-                  .forEach((compartment) => {
-                    filterTypeDropdown[componentType][field][compartment.trim()] = 1;
                   });
               } else if (field === 'model') {
                 filterTypeDropdown[componentType][field][el[field].id] = el[field].name;
@@ -598,11 +574,11 @@ export default {
             });
           } else if (componentType === 'subsystem') {
             Object.keys(filterTypeDropdown[componentType]).forEach((field) => {
-              if (field === 'compartment') {
+              if (field === 'compartments') {
                 el[field]
-                  .filter(compartment => !(compartment in filterTypeDropdown[componentType][field]))
+                  .filter(compartment => !(compartment.id in filterTypeDropdown[componentType][field]))
                   .forEach((compartment) => {
-                    filterTypeDropdown[componentType][field][compartment] = 1;
+                    filterTypeDropdown[componentType][field][compartment.id] = 1;
                   });
               } else if (field === 'model') {
                 filterTypeDropdown[componentType][field][el[field].id] = el[field].name;
@@ -610,15 +586,7 @@ export default {
                 filterTypeDropdown[componentType][field][el[field]] = 1;
               }
             });
-            rows[componentType].push({
-              id: el.name_id,
-              model: el.model,
-              name: el.name,
-              compartment: el.compartment,
-              metabolite_count: el.metabolite_count,
-              gene_count: el.gene_count,
-              reaction_count: el.reaction_count,
-            });
+            rows[componentType].push(el);
           } else if (componentType === 'compartment') {
             Object.keys(filterTypeDropdown[componentType]).forEach((field) => {
               if (field === 'model') {
@@ -627,15 +595,7 @@ export default {
                 filterTypeDropdown[componentType][field][el[field]] = 1;
               }
             });
-            rows[componentType].push({
-              id: el.name_id,
-              model: el.model,
-              name: el.name,
-              metaboliteCount: el.metabolite_count,
-              geneCount: el.gene_count,
-              reactionCount: el.reaction_count,
-              subsystemCount: el.subsystem_count,
-            });
+            rows[componentType].push(el);
           }
         });
         Object.keys(filterTypeDropdown[componentType]).forEach((field) => {
@@ -678,12 +638,14 @@ export default {
       this.rows = rows;
     },
     updateSearch() {
-      this.$router.push({
-        name: 'search',
-        query: {
-          term: this.searchTerm,
-        },
-      });
+      if (this.searchTerm !== this.searchedTerm) {
+        this.$router.push({
+          name: 'search',
+          query: {
+            term: this.searchTerm,
+          },
+        });
+      }
     },
     showTab(elementType) {
       return this.showTabType === elementType;
@@ -702,8 +664,7 @@ export default {
     },
     search() {
       this.loading = true;
-      const url = `all/search/${this.searchTerm}`;
-      axios.get(url)
+      axios.get(`all/search/${this.searchTerm}`)
         .then((response) => {
           const localResults = {
             metabolite: [],
@@ -727,7 +688,12 @@ export default {
           });
           this.searchResults = localResults;
         })
-        .catch(() => {
+        .catch((error) => {
+          if (error.response.headers.suggestions) {
+            this.notFoundSuggestions = JSON.parse(error.response.headers.suggestions);
+          } else {
+            this.notFoundSuggestions = [];
+          }
           this.searchResults = [];
         })
         .then(() => {
@@ -769,7 +735,6 @@ export default {
       }).join('\n');
       return `${header.join('\t')}\n${tsvContent}`;
     },
-    idfy,
     chemicalFormula,
     reformatEqSign,
     sortResults,
@@ -791,6 +756,10 @@ export default {
     }
   }
   padding-bottom: 6rem;
+  .suggestions {
+    text-decoration: underline;
+  }
+
 }
 
 </style>
