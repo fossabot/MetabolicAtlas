@@ -51,24 +51,11 @@
 
 import axios from 'axios';
 import $ from 'jquery';
-import JQPanZoom from 'jquery.panzoom';
-import JQMouseWheel from 'jquery-mousewheel';
+import Panzoom from '@panzoom/panzoom';
 import { default as FileSaver } from 'file-saver';
 import { default as EventBus } from '../../../event-bus';
 import { default as messages } from '../../../helpers/messages';
 import { reformatChemicalReactionHTML, isMobilePage } from '@/helpers/utils';
-
-// hack: the only way for jquery plugins to play nice with the plugins inside Vue
-$.Panzoom = JQPanZoom;
-$.fn.extend({
-  mousewheel: function fn(options) {
-    return this.each(function f() { return JQMouseWheel.mousewheel(this, options); });
-  },
-  unmousewheel: function fn() {
-    return this.each(function f() { return JQMouseWheel.unmousewheel(this); });
-  },
-});
-
 
 export default {
   name: 'Svgmap',
@@ -273,10 +260,10 @@ export default {
     loadSvgPanZoom(callback) {
       // load the lib svgPanZoom on the SVG loaded
       if (!this.$panzoom) {
-        this.$panzoom = $('#svg-wrapper').panzoom(this.panzoomOptions);
+        const elem = document.getElementById('svg-wrapper');
+        this.$panzoom = Panzoom(elem, this.panzoomOptions);
       } else {
-        this.$panzoom = $('#svg-wrapper').panzoom('reset', this.panzoomOptions);
-        this.$panzoom.off('mousewheel.focal');
+        this.$panzoom.panzoom('reset', this.panzoomOptions);
         this.$panzoom.off('panzoomzoom');
       }
       setTimeout(() => {
@@ -284,23 +271,17 @@ export default {
           this.svgboxHeight / $('#svg-wrapper svg').height());
         const focusX = ($('#svg-wrapper svg').width() / 2) - ($('.svgbox').width() / 2);
         const focusY = ($('#svg-wrapper svg').height() / 2) - (this.svgboxHeight / 2);
-        this.$panzoom.panzoom('pan', -focusX, -focusY);
-        this.$panzoom.panzoom('zoom', true, {
-          increment: 1 - minZoomScale,
+        this.$panzoom.pan(-focusX, -focusY);
+        this.$panzoom.zoom(minZoomScale, {
+          // increment: 1 - minZoomScale,
           focal: {
             clientX: this.clientFocusX(),
             clientY: this.clientFocusY(),
           },
         });
-        this.$panzoom.on('mousewheel.focal', (e) => {
-          e.preventDefault();
-          const delta = e.delta || e.originalEvent.wheelDelta;
-          const zoomOut = delta ? delta < 0 : e.originalEvent.deltaY > 0;
-          this.$panzoom.panzoom('zoom', zoomOut, { focal: e });
-        });
-        this.$panzoom.on('panzoomzoom', (e, panzoom, scale) => { // eslint-disable-line no-unused-vars
-          this.currentZoomScale = scale;
-        });
+        // this.$panzoom.on('panzoomzoom', (e, panzoom, scale) => { // eslint-disable-line no-unused-vars
+        //   this.currentZoomScale = scale;
+        // });
         this.unHighlight();
         if (callback) {
           if (callback === this.findElementsOnSVG) {
