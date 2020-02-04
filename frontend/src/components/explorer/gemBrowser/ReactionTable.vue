@@ -24,8 +24,8 @@
       <table ref="table" class="table is-bordered is-striped is-narrow is-fullwidth">
         <thead>
           <tr class="has-background-white-ter">
-            <th v-for="f in fields" :key="f.name"
-                v-show="showCol(f.name)" class="is-unselectable clickable"
+            <th v-for="f in fields" v-show="showCol(f.name)"
+                :key="f.name" class="is-unselectable clickable"
                 :title="`Sort by ${f.display}`"
                 @click="sortTable(f.name, null, null)">
               {{ f.display.replace(' ', '&nbsp;') }}
@@ -73,9 +73,9 @@
 
 <script>
 import $ from 'jquery';
-import { default as compare } from '../../../helpers/compare';
+import { default as compare } from '@/helpers/compare';
 import ExportTSV from '@/components/explorer/gemBrowser/ExportTSV';
-import { reformatCompEqString, idfy, reformatChemicalReactionHTML, getChemicalReaction } from '../../../helpers/utils';
+import { reformatCompEqString, idfy, reformatChemicalReactionHTML, getChemicalReaction } from '@/helpers/utils';
 
 export default {
   name: 'ReactionTable',
