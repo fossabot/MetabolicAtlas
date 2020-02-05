@@ -68,19 +68,19 @@ class GeneLiteSerializer(serializers.ModelSerializer):
         return obj.alt_name1
 
     def get_function1(self, obj):
-        return obj.gene.function1
+        return obj.gene.function1 if hasattr(obj, 'gene') else None
 
     def get_function2(self, obj):  # unused
-        return obj.gene.function2
+        return obj.gene.function2 if hasattr(obj, 'gene') else None
 
     def get_ec(self, obj):
-        return obj.gene.ec
+        return obj.gene.ec if hasattr(obj, 'gene') else None
 
     def get_catalytic_activity(self, obj):
-        return obj.gene.catalytic_activity
+        return obj.gene.catalytic_activity if hasattr(obj, 'gene') else None
 
     def read_cofactor(self, obj):  # unused
-        return obj.gene.cofactor
+        return obj.gene.cofactor if hasattr(obj, 'gene') else None
 
 
 # used in:
@@ -145,19 +145,19 @@ class MetaboliteLiteSerializer(serializers.ModelSerializer):
         return obj.alt_name1
 
     def get_description(self, obj):
-        return obj.metabolite.description
+        return obj.metabolite.description if hasattr(obj, 'metabolite') else None
 
     def get_function1(self, obj):  # unused
-        return obj.metabolite.function1
+        return obj.metabolite.function1 if hasattr(obj, 'metabolite') else None
 
     def get_function2(self, obj):  # unused
-        return obj.metabolite.function2
+        return obj.metabolite.function2 if hasattr(obj, 'metabolite') else None
 
     def get_charge(self, obj):
-        return obj.metabolite.charge
+        return obj.metabolite.charge if hasattr(obj, 'metabolite') else None
 
     def get_inchi(self, obj):
-        return obj.metabolite.inchi
+        return obj.metabolite.inchi if hasattr(obj, 'metabolite') else None
 
 # used in:
 # views get_metabolite
