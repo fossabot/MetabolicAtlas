@@ -59,14 +59,14 @@
           <h5>Metabolite page</h5>
           The Metabolite page shows information on the current selected metabolite. Metabolites in GEMs are often differentiated according to their cell compartment localization (e.g., endoplasmic reticulum). For this reason, one metabolic species, e.g. cholesterol, may correspond to several different metabolite entries in a GEM, such as cholesterol[c], cholesterol[m], etc. (the suffix indicates the compartment in which the metabolite is localized).<br>
           The top table contains basic information extracted from the GEM. If provided, several additional identifiers from external databases will be shown in the External IDs table below.<br>
-          On the right side of the page, users can access the <a href="#Interaction Partners">Interaction Partners</a> tool for the metabolite.
+          On the right side of the page, users can access the <a href="#Interaction-Partners">Interaction Partners</a> tool for the metabolite.
 
           <h6 class="has-text-grey">Reactions table</h6>
           Lists all the reactions involving the current metabolite as a reactant or a product. The current metabolite is denoted with a black text color in the reaction equations. Since metabolites are specific to a cell compartment, only reactions involving the metabolite in its specific compartment are displayed. To remove this restriction and display additional reactions involving the metabolite in any compartment, click the <i>Expand to all compartments</i> button.<br>
           Note that the number of reactions is limited to 200; to retrieve all the reactions we invite users to use the <a href="#API">API</a>.
 
           <h5>Gene page</h5>
-          Shows information about the current selected gene. The top table contains basic information extracted from the GEM. If provided, several additional identifiers from external databases will be shown in the external IDs table.<br>On the right side of the page, users can access the <a href="#Interaction Partners">Interaction Partners</a> tool for this gene.
+          Shows information about the current selected gene. The top table contains basic information extracted from the GEM. If provided, several additional identifiers from external databases will be shown in the external IDs table.<br>On the right side of the page, users can access the <a href="#Interaction-Partners">Interaction Partners</a> tool for this gene.
 
           <h6 class="has-text-grey">Reactions table</h6>
           Lists all the reactions catalyzed by the enzyme encoded by the current gene.<br>
@@ -85,7 +85,7 @@
 
           <h5 id="GEM Browser Search">Search</h5>
           Search for any term in metabolites, genes, reactions, subsystems, or compartments information.<br>
-          The search is restricted to the selected GEM and limited to 50 results per type. Alternatively, users can click on the banner under the search input field to run a <i>Global Search</i>, where the term is searched among all the integrated models' components and is unrestricted. To learn more about the search term possiblities, go to the <a href="#Global Search">Global Search</a> section of this page.
+          The search is restricted to the selected GEM and limited to 50 results per type. Alternatively, users can click on the banner under the search input field to run a <i>Global Search</i>, where the term is searched among all the integrated models' components and is unrestricted. To learn more about the search term possiblities, go to the <a href="#Global-Search">Global Search</a> section of this page.
 
           <h5 id="Interaction-Partners">Interaction Partners</h5>
           For a given metabolite or gene, this page shows the other metabolites and genes with which it interacts via shared reaction(s). The selected metabolite or gene is centered on the graph. Connectivity is determined based on the reactions with which this metabolite or gene is associated. For medium-sized networks of interaction partners, the user is prompted before generating the graph. For very large networks (e.g. for H<sub>2</sub>O) the graph will not be generated. Users can click on a node to display a context menu with 3 options:<br>
