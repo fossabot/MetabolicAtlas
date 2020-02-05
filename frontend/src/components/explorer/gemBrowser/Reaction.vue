@@ -73,7 +73,7 @@
             </td>
           </tr>
         </table>
-        <ExtIdTable :external-dbs="reaction.external_databases"></ExtIdTable>
+        <ExtIdTable :component-type="'reaction'" :external-dbs="reaction.external_databases"></ExtIdTable>
         <h4 class="title is-size-4">References via PubMed ID</h4>
         <table class="main-table table is-fullwidth">
           <template v-if="unformattedRefs.length === 0">
