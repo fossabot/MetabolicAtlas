@@ -22,17 +22,8 @@
                 class="td-key has-background-primary has-text-white-bis">
               {{ model.short_name }} ID</td>
             <td v-else class="td-key has-background-primary has-text-white-bis">{{ reformatTableKey(el.name) }}</td>
-            <td v-if="'isComposite' in el">
-              <span v-html="el.modifier()"></span>
-            </td>
-            <td v-else-if="el.name === 'ec' && reaction[el.name]">
-              <!-- eslint-disable-next-line max-len -->
-              <router-link v-for="eccode in reaction[el.name].split('; ')" :key="eccode" :to="{ name: 'search', query: { term: eccode }}">
-                {{ eccode }}
-              </router-link>
-            </td>
-            <td v-else-if="reaction[el.name]">
-              <template v-if="'modifier' in el" v-html="el.modifier(reaction[el.name])"></template>
+            <td v-if="reaction[el.name]">
+              <template v-if="'modifier' in el"><span v-html="el.modifier()"></span></template>
               <template v-else-if="el.name === 'subsystem'">
                 <template v-for="(v, i) in reaction[el.name]">
                   <template v-if="i !== 0">; </template>
@@ -50,11 +41,15 @@
                   (transport reaction)
                 </template>
               </template>
+              <template v-else-if="el.name === 'ec'">
+                <!-- eslint-disable-next-line max-len -->
+                <router-link v-for="eccode in reaction[el.name].split('; ')" :key="eccode" :to="{ name: 'search', query: { term: eccode }}">
+                  {{ eccode }}
+                </router-link>
+              </template>
               <template v-else>{{ reaction[el.name] }}</template>
             </td>
-            <td v-else-if="el.name === 'equation'">
-              <span v-html="el.modifier(reaction[el.name])"></span>
-            </td>
+            <td v-else-if="'modifier' in el"><span v-html="el.modifier()"></span></td>
             <td v-else> - </td>
           </tr>
           <tr v-if="relatedReactions.length !== 0">
@@ -147,9 +142,9 @@ export default {
       mainTableKey: [
         { name: 'id' },
         { name: 'equation', modifier: this.reformatEquation },
-        { name: 'is_reversible', display: 'Reversible', isComposite: true, modifier: this.reformatReversible },
-        { name: 'quantitative', isComposite: true, modifier: this.reformatQuant },
-        { name: 'gene_rule', isComposite: true, display: 'Gene rule', modifier: this.reformatGenes },
+        { name: 'is_reversible', display: 'Reversible', modifier: this.reformatReversible },
+        { name: 'quantitative', modifier: this.reformatQuant },
+        { name: 'gene_rule', display: 'Gene rule', modifier: this.reformatGenes },
         { name: 'ec', display: 'EC' },
         { name: 'compartment', display: 'Compartment(s)' },
         { name: 'subsystem', display: 'Subsystem(s)' },
