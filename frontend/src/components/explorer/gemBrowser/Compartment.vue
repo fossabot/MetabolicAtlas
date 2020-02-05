@@ -48,7 +48,7 @@
           <a href="/api/" target="_blank">API</a></span>
       </div>
       <div class="column is-2-widescreen is-3-desktop is-half-tablet has-text-centered">
-        <maps-available :id="cName" :model="model" :type="'compartment'" :element-i-d="''"></maps-available>
+        <maps-available :id="cName" :model="model" :type="type" :element-i-d="''"></maps-available>
       </div>
     </div>
   </div>
@@ -74,6 +74,7 @@ export default {
   data() {
     return {
       cName: this.$route.params.id,
+      type: 'compartment',
       showLoader: false,
       compartment: {},
       subsystems: [],

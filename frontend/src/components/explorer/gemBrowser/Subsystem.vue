@@ -64,10 +64,10 @@
             </td>
           </tr>
         </table>
-        <ExtIdTable :component-type="'subsystem'" :external-dbs="info.external_databases"></ExtIdTable>
+        <ExtIdTable :type="type" :external-dbs="info.external_databases"></ExtIdTable>
       </div>
       <div class="column is-2-widescreen is-3-desktop is-half-tablet has-text-centered">
-        <maps-available :id="sName" :model="model" :type="'subsystem'" :element-i-d="''"></maps-available>
+        <maps-available :id="sName" :model="model" :type="type" :element-i-d="''"></maps-available>
       </div>
     </div>
     <template v-if="!showLoader">
@@ -116,6 +116,7 @@ export default {
   data() {
     return {
       sName: this.$route.params.id,
+      type: 'subsystem',
       showLoader: true,
       showReactionLoader: true,
       info: {},

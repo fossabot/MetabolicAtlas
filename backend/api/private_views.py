@@ -466,44 +466,6 @@ def HPA_gene_info(request, ensembl_id): # ENSG00000110921
 
 #########################################################################################
 
-# @api_view()
-# @is_model_valid
-# def get_compartment_svg(request, model, compartment_name_id):
-#     try:
-#         compartment = APImodels.CompartmentSvg.objects.using(model).get(name_id__iexact=compartment_name_id)
-#     except APImodels.CompartmentSvg.DoesNotExist:
-#         return HttpResponse(status=404)
-
-#     serializer = APIserializer.CompartmentSvgSerializer(compartment)
-
-#     return JSONResponse(serializer.data)
-
-
-# @api_view()
-# @is_model_valid
-# def get_compartments_svg(request, model):
-#     try:
-#         compartment_svg_info = APImodels.CompartmentSvg.objects.using(model).select_related('compartment').all()
-#     except APImodels.CompartmentSvg.DoesNotExist:
-#         return HttpResponse(status=404)
-
-#     compartmentSvgSerializer = APIserializer.CompartmentSvgSerializer(compartment_svg_info, many=True)
-
-#     return JSONResponse(compartmentSvgSerializer.data)
-
-
-# @api_view()
-# @is_model_valid
-# def get_subsystems_svg(request, model):
-#     try:
-#         subsystem_svg_info = APImodels.SubsystemSvg.objects.using(model).select_related('subsystem').all()
-#     except APImodels.SubsystemSvg.DoesNotExist:
-#         return HttpResponse(status=404)
-
-#     subsystemSvgSerializer = APIserializer.SubsystemSvgSerializer(subsystem_svg_info, many=True)
-
-#     return JSONResponse(subsystemSvgSerializer.data)
-
 @api_view()
 @is_model_valid
 def get_data_viewer(request, model):

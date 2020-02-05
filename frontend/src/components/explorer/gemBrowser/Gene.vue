@@ -34,7 +34,7 @@
                   <td v-else> - </td>
                 </tr>
               </table>
-              <ExtIdTable :component-type="'gene'" :external-dbs="gene.external_databases"></ExtIdTable>
+              <ExtIdTable :type="type" :external-dbs="gene.external_databases"></ExtIdTable>
             </div>
             <div class="column is-2-widescreen is-3-desktop is-full-tablet has-text-centered">
               <router-link class="button is-info is-fullwidth is-outlined"
@@ -91,6 +91,7 @@ export default {
       showLoader: true,
       showReactionLoader: true,
       eId: '',
+      type: 'gene',
       gene: {},
       geneName: '',
       mainTableKey: [

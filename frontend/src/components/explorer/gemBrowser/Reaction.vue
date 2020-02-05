@@ -73,7 +73,7 @@
             </td>
           </tr>
         </table>
-        <ExtIdTable :component-type="'reaction'" :external-dbs="reaction.external_databases"></ExtIdTable>
+        <ExtIdTable :type="type" :external-dbs="reaction.external_databases"></ExtIdTable>
         <h4 class="title is-size-4">References via PubMed ID</h4>
         <table class="main-table table is-fullwidth">
           <template v-if="unformattedRefs.length === 0">
@@ -101,7 +101,7 @@
         </table>
       </div>
       <div class="column is-2-widescreen is-3-desktop is-half-tablet has-text-centered">
-        <maps-available :id="rId" :model="model" :type="'reaction'" :element-i-d="rId"></maps-available>
+        <maps-available :id="rId" :model="model" :type="type" :element-i-d="rId"></maps-available>
       </div>
     </div>
   </div>
@@ -131,6 +131,7 @@ export default {
   data() {
     return {
       rId: this.$route.params.id,
+      type: 'reaction',
       mainTableKey: [
         { name: 'id' },
         { name: 'equation', modifier: this.reformatEquation },

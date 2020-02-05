@@ -22,7 +22,7 @@
       </table>
     </template>
     <template v-else>
-      <span>This {{ componentType }} has no associations with external databases</span>
+      <span>This {{ type }} has no associations with external databases</span>
     </template>
   </div>
 </template>
@@ -33,7 +33,7 @@ import { reformatTableKey } from '../../../helpers/utils';
 export default {
   name: 'ExtIdTable',
   props: {
-    componentType: String,
+    type: String,
     externalDbs: Object,
   },
   computed: {
