@@ -153,9 +153,6 @@ def fetch_map_available(results, map_type, dim, model, database, filter_conditio
 
     if res:
         results[dim][map_type] = res
-        results[dim]["count"] += res.count()
-        results["count"] += res.count()
-
     return results
 
 
@@ -163,16 +160,14 @@ def fetch_map_available(results, map_type, dim, model, database, filter_conditio
 @is_model_valid
 def get_available_maps(request, model, component_type, component_id):
 
-    results = { "count" : 0,
+    results = {
         "2d" : {
             "compartment" : [],
             "subsystem" : [],
-            "count" : 0,
         },
         "3d" : {
             "compartment" : [],
             "subsystem" : [],
-            "count" : 0,
         },
       }
 
@@ -246,7 +241,9 @@ def get_available_maps(request, model, component_type, component_id):
         results = fetch_map_available(results, "subsystem", "3d", APImodels.Subsystem, model, Q(id=subsystem.id),
             None, "name", ('name_id', 'name'))
 
-    if results["count"] == 0:
+    if len(results["2d"]["compartment"]) + len(results["2d"]["subsystem"]) + \
+       len(results["3d"]["compartment"]) + len(results["3d"]["subsystem"]) == 0:
+        # not possible ?
         return HttpResponse(status=404)
 
     return JSONResponse(results)

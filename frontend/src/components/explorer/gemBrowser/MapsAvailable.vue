@@ -1,5 +1,5 @@
 <template>
-  <div class="card" title="Click on any of the links to directly load a map">
+  <div class="card" title="Click on any of the links to directly load a map" >
     <header class="card-header has-text-centered">
       <p class="card-header-title has-text-primary has-text-weight-bold is-size-5">
         <span class="icon is-medium"><i class="fa fa-map-o"></i></span>&nbsp;
@@ -8,15 +8,14 @@
     </header>
     <!-- eslint-disable-next-line max-len -->
     <div v-if="mapAvailableLimited" class="card-content" style="padding: 0.5rem; overflow-y: auto; max-height: 400px">
-      <div v-for="mapKey in ['2d', '3d']"
-           :key="mapKey"
+      <div v-for="mapKey in ['2d', '3d']" :key="mapKey"
            class="content has-text-left is-paddingless" style="padding-bottom: 1rem">
-        <template v-if="mapAvailableLimited[mapKey]['count'] !== 0">{{ mapKey.toUpperCase() }} maps
+        <!-- eslint-disable-next-line max-len -->
+        <template v-if="mapAvailableLimited[mapKey]['compartment'].length !== 0 || mapAvailableLimited[mapKey]['subsystem'].length !== 0">{{ mapKey.toUpperCase() }} maps
           <ul style="margin: 0 1rem">
             <template v-for="mapType in Object.keys(mapAvailableLimited[mapKey])">
               <template v-for="map in mapAvailableLimited[mapKey][mapType]">
-                <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
-                <li v-if="mapType !== 'count'">
+                <li :key="map[0]">
                   <!-- eslint-disable-next-line max-len -->
                   <router-link v-if="viewerSelectedID" :to="{ name: 'viewer', params: { model: model.database_name, type: mapType, map_id: map[0] }, query: { dim: mapKey, search: viewerSelectedID, sel: viewerSelectedID } }">
                     {{ map[1] }}

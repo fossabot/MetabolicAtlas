@@ -140,27 +140,27 @@
         </div>
         <div v-show="!showLoader" id="dataOverlayBar"
              class="column is-narrow has-text-white is-unselectable" :class="{
-               'is-paddingless': showDataOverlayPanel }"
+               'is-paddingless': dataOverlayPanelVisible }"
              title="Click to show the data overlay panel" @click="toggleDataOverlayPanel()">
           <p class="is-size-5 has-text-centered has-text-weight-bold">
             <span class="icon">
               <i class="fa"
-                 :class="{ 'fa-arrow-left': !showDataOverlayPanel, 'fa-arrow-right': showDataOverlayPanel}"></i>
+                 :class="{ 'fa-arrow-left': !dataOverlayPanelVisible, 'fa-arrow-right': dataOverlayPanelVisible}"></i>
             </span><br>
             D<br>A<br>T<br>A<br><br>
             O<br>V<br>E<br>R<br>L<br>A<br>Y<br>
             <span class="icon">
               <i class="fa"
-                 :class="{ 'fa-arrow-left': !showDataOverlayPanel, 'fa-arrow-right': showDataOverlayPanel}"></i>
+                 :class="{ 'fa-arrow-left': !dataOverlayPanelVisible, 'fa-arrow-right': dataOverlayPanelVisible}"></i>
             </span>
           </p>
         </div>
-        <DataOverlay v-show="showDataOverlayPanel" :model="model"
+        <DataOverlay v-show="dataOverlayPanelVisible" :model="model"
                      :map-type="currentDisplayedType"
                      :dim="dim" :map-name="currentDisplayedName">
         </DataOverlay>
         <URLhandler :model="model" :map-type="currentDisplayedType" :map-name="currentDisplayedName"
-          :dim="dim" :sel="selectionData.data" :panel="showDataOverlayPanel"></URLhandler>
+          :dim="dim" :sel="selectionData.data" :panel="dataOverlayPanelVisible"></URLhandler>
       </template>
     </div>
   </div>
@@ -227,7 +227,7 @@ export default {
       },
       showSelectionLoader: false,
       isHoverMenuItem: false,
-      showDataOverlayPanel: false,
+      dataOverlayPanelVisible: false,
       messages,
     };
   },
@@ -347,7 +347,7 @@ export default {
       $('#menu ul.l1, #menu ul.l2').hide();
     },
     toggleDataOverlayPanel() {
-      this.showDataOverlayPanel = !this.showDataOverlayPanel;
+      this.dataOverlayPanelVisible = !this.dataOverlayPanelVisible;
       if (this.show3D) {
         // fix the 3D canvas size when open/close dataOverlay
         EventBus.$emit('recompute3DCanvasBounds');
