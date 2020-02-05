@@ -49,9 +49,6 @@ export default {
     EventBus.$off('apply3DHPARNAlevels');
 
     EventBus.$on('show3Dnetwork', (type, name, ids) => {
-      if (name.toLowerCase().substr(0, 7) === 'cytosol') {
-        name = 'cytosol'; // eslint-disable-line no-param-reassign
-      }
       if (ids && ids.length === 1) {
         this.focusOnID = ids[0]; // eslint-disable-line prefer-destructuring
       } else {

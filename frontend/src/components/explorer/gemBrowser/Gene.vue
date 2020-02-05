@@ -1,13 +1,13 @@
 <template>
   <div class="connected-metabolites">
     <div v-if="componentNotFound" class="columns is-centered">
-      <notFound component="gene" :component-id="eId"></notFound>
+      <notFound :type="type" :component-id="eId"></notFound>
     </div>
     <div v-else>
       <div class="container columns">
         <div class="column">
           <h3 class="title is-3">
-            Gene {{ gene.geneName }}
+            <span class="is-capitalized">{{ type }}</span> {{ gene.geneName }}
           </h3>
         </div>
       </div>
@@ -15,12 +15,12 @@
         <div class="column">
           <div class="columns is-multiline is-variable is-8">
             <div id="gene-details" class="reaction-table column is-10-widescreen is-9-desktop is-full-tablet">
-              <table v-if="gene && Object.keys(gene).length != 0" class="table main-table is-fullwidth">
-                <tr v-for="el in mainTableKey[model.database_name]" :key="el.name">
+              <table v-if="gene && Object.keys(gene).length !== 0" class="table main-table is-fullwidth">
+                <tr v-for="el in mainTableKey" :key="el.name">
                   <td v-if="'display' in el"
                       class="td-key has-background-primary has-text-white-bis"
                       v-html="el.display"></td>
-                  <td v-else-if="el.name == 'id'"
+                  <td v-else-if="el.name === 'id'"
                       class="td-key has-background-primary has-text-white-bis">{{ model.short_name }} ID</td>
                   <td v-else
                       class="td-key has-background-primary has-text-white-bis">{{ reformatTableKey(el.name) }}</td>
@@ -34,7 +34,7 @@
                   <td v-else> - </td>
                 </tr>
               </table>
-              <ExtIdTable :model="model" :component="gene" type="gene"></ExtIdTable>
+              <ExtIdTable :type="type" :external-dbs="gene.external_databases"></ExtIdTable>
             </div>
             <div class="column is-2-widescreen is-3-desktop is-full-tablet has-text-centered">
               <router-link class="button is-info is-fullwidth is-outlined"
@@ -94,24 +94,16 @@ export default {
       showLoader: true,
       showReactionLoader: true,
       eId: '',
+      type: 'gene',
       gene: {},
       geneName: '',
-      mainTableKey: {
-        human1: [
-          { name: 'id' },
-          { name: 'geneName', display: 'Gene&nbsp;name' },
-          { name: 'description', display: 'Description' },
-          { name: 'gene_synonyms', display: 'Synonyms' },
-          { name: 'function' },
-        ],
-        yeast8: [
-          { name: 'id' },
-          { name: 'geneName', display: 'Gene&nbsp;name' },
-          { name: 'prot_name', display: 'Protein&nbsp;name' },
-          { name: 'gene_synonyms', display: 'Synonyms' },
-          { name: 'function' },
-        ],
-      },
+      mainTableKey: [
+        { name: 'id' },
+        { name: 'geneName', display: 'Gene&nbsp;name' },
+        { name: 'alternate_name', display: 'Alternate&nbsp;name' },
+        { name: 'synonyms' },
+        { name: 'function' },
+      ],
       reactions: [],
       limitReaction: 200,
       componentNotFound: false,

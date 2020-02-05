@@ -1,7 +1,7 @@
 <template>
   <div class="reaction-table">
     <div class="field">
-      <span class="tag is-medium" :class="reactions.length == limit ? 'is-warning' : ''">
+      <span class="tag is-medium" :class="reactions.length === limit ? 'is-warning' : ''">
         # Reactions: {{ reactions.length }}
       </span>
       <template v-if="transportReactionCount !== 0">
@@ -16,7 +16,7 @@
         :filename="`reaction_${sourceName}.tsv`"
         :format-function="formatToTSV"
       ></ExportTSV>
-      <span v-show="reactions.length == limit" class="tag is-medium is-warning is-pulled-right">
+      <span v-show="reactions.length === limit" class="tag is-medium is-warning is-pulled-right">
         The number of reactions displayed is limited to {{ limit }}.
       </span>
     </div>
@@ -37,7 +37,7 @@
             <td>
               <a
                 :href="`/explore/gem-browser/${model.database_name}/reaction/${r.id}`"
-                @click.prevent="e => $router.push(e.target.pathname)">
+                @click="handleLinkClick">
                 {{ r.id }}
               </a>
             </td>
@@ -56,8 +56,8 @@
               </template>
             </td>
             <td>
-              <template v-for="(RP, i) in r.compartment.split(' => ')">
-                <template v-if="i != 0">{{ r.is_reversible ? ' &#8660; ' : ' &#8658; ' }}</template>
+              <template v-for="(RP, i) in r.compartment_str.split(' => ')">
+                <template v-if="i !== 0">{{ r.is_reversible ? ' &#8660; ' : ' &#8658; ' }}</template>
                 <template v-for="(compo, j) in RP.split(' + ')">
                   <template v-if="j != 0"> + </template>
                   <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key max-len -->
@@ -110,7 +110,7 @@ export default {
         name: 'subsystem_str',
       }, {
         display: 'Compartment',
-        name: 'compartment',
+        name: 'compartment_str',
       }],
       // sortedReactions: [],
       sortOrder: 'asc',
@@ -142,12 +142,12 @@ export default {
             rCopy.cp = 'consume/produce';
           } else {
             const boolC = rCopy.reactionreactant_set.filter(
-              e => e.reactant.id === this.selectedElmId);
+              e => e.id === this.selectedElmId);
             if (boolC.length !== 0) {
               rCopy.cp = 'consume';
             } else {
               const boolP = rCopy.reactionproduct_set.filter(
-                e => e.product.id === this.selectedElmId);
+                e => e.id === this.selectedElmId);
               if (boolP.length !== 0) {
                 rCopy.cp = 'produce';
               }
@@ -210,7 +210,7 @@ export default {
         if (this.showSubsystem) {
           arr.push(r.subsystem_str);
         }
-        arr.push(r.compartment);
+        arr.push(r.compartment_str);
         return arr.join('\t');
       }).join('\n');
       return tsvContent;

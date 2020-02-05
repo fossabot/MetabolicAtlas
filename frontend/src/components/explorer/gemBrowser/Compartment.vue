@@ -1,11 +1,11 @@
 <template>
   <div v-if="componentNotFound" class="columns is-centered">
-    <notFound component="compartment" :component-id="cName"></notFound>
+    <notFound :type="type" :component-id="cName"></notFound>
   </div>
   <div v-else>
     <div class="columns">
       <div class="column">
-        <h3 class="title is-3">Compartment {{ compartment.name }}</h3>
+        <h3 class="title is-3"><span class="is-capitalized">{{ type }}</span> {{ compartment.name }}</h3>
       </div>
     </div>
     <loader v-show="showLoader"></loader>
@@ -48,8 +48,8 @@
           <a href="/api/" target="_blank">API</a></span>
       </div>
       <div class="column is-2-widescreen is-3-desktop is-half-tablet has-text-centered">
-        <maps-available :id="cName" :model="model" :type="'compartment'" :element-i-d="''"></maps-available>
-        <gem-contact :model="model" type="compartment" :id="compartment.name"/>
+        <maps-available :id="cName" :model="model" :type="type" :element-i-d="''"></maps-available>
+        <gem-contact :model="model" :type="type" :id="compartment.name"/>
       </div>
     </div>
   </div>
@@ -77,6 +77,7 @@ export default {
   data() {
     return {
       cName: this.$route.params.id,
+      type: 'compartment',
       showLoader: false,
       compartment: {},
       subsystems: [],
@@ -89,13 +90,13 @@ export default {
   computed: {
     subsystemListHtml() {
       const l = ['<span class="tags">'];
-      const sortedSubsystemList = this.subsystems.concat().sort((a, b) => (a < b ? -1 : 1));
+      const sortedSubsystemList = this.subsystems.concat().sort((a, b) => (a.name < b.name ? -1 : 1));
       for (let i = 0; i < sortedSubsystemList.length; i += 1) {
         const s = sortedSubsystemList[i];
         if (!this.showFullSubsystem && i === this.limitSubsystem) {
           break;
         }
-        l.push(`<span id="${s}" class="tag sub"><a class="is-size-6">${s}</a></span>`);
+        l.push(`<span id="${s.id}" class="tag sub"><a class="is-size-6">${s.name}</a></span>`);
       }
       l.push('</span>');
       return l.join('');

@@ -23,7 +23,7 @@
                     <li v-for="cKey in Object.keys(mapsData3D.compartments).sort()" :key="cKey"
                         class="clickable"
                         :class="{'has-text-warning': cKey === currentDisplayedName }"
-                        @click="showMap(mapsData3D.compartments[cKey].name_id)">
+                        @click="showMap(mapsData3D.compartments[cKey].id)">
                       {{ mapsData3D.compartments[cKey].name }}
                       {{ mapsData3D.compartments[cKey].reaction_count != 0 ?
                         `(${mapsData3D.compartments[cKey].reaction_count})` : '' }}
@@ -34,7 +34,7 @@
                         class="clickable"
                         :class="{ 'disable' : !mapsData2D.compartments[cKey].sha,
                                   'has-text-warning': cKey === currentDisplayedName }"
-                        @click="showMap(mapsData2D.compartments[cKey].name_id)">
+                        @click="showMap(mapsData2D.compartments[cKey].id)">
                       {{ mapsData2D.compartments[cKey].name }}
                       {{ mapsData2D.compartments[cKey].reaction_count != 0 ?
                         `(${mapsData2D.compartments[cKey].reaction_count})` : '' }}
@@ -50,7 +50,7 @@
                     <li v-for="sKey in Object.keys(mapsData3D.subsystems).sort()" :key="sKey"
                         class="clickable"
                         :class="{'has-text-warning': sKey === currentDisplayedName }"
-                        @click="showMap(mapsData3D.subsystems[sKey].name_id, 'subsystem')">
+                        @click="showMap(mapsData3D.subsystems[sKey].id, 'subsystem')">
                       {{ mapsData3D.subsystems[sKey].name }}
                       {{ mapsData3D.subsystems[sKey].reaction_count != 0 ?
                         `(${mapsData3D.subsystems[sKey].reaction_count})` : '' }}
@@ -58,10 +58,10 @@
                   </div>
                   <div v-else>
                     <template v-for="sKey in Object.keys(mapsData2D.subsystems).sort()">
-                      <template v-if="mapsData2D.subsystems[sKey].name_id && mapsData2D.subsystems[sKey].sha">
+                      <template v-if="mapsData2D.subsystems[sKey].id && mapsData2D.subsystems[sKey].sha">
                         <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
                         <li class="clickable" :class="{'has-text-warning': sKey === currentDisplayedName }"
-                            @click="showMap(mapsData2D.subsystems[sKey].name_id, 'subsystem')">
+                            @click="showMap(mapsData2D.subsystems[sKey].id, 'subsystem')">
                           {{ mapsData2D.subsystems[sKey].name }}
                           {{ mapsData2D.subsystems[sKey].reaction_count != 0 ?
                             `(${mapsData2D.subsystems[sKey].reaction_count})` : '' }}
@@ -420,34 +420,32 @@ export default {
         .then((response) => {
           this.mapsData3D.compartments = {};
           response.data.compartment.forEach((c) => {
-            this.mapsData3D.compartments[c.name_id] = c;
-            this.mapsData3D.compartments[c.name_id].id = c.name_id;
-            this.mapsData3D.compartments[c.name_id].alternateDim = c.compartment_svg;
-            this.compartmentMapping.dim2D[c.compartment_svg] = c.name_id;
+            this.mapsData3D.compartments[c.id] = c;
+            this.mapsData3D.compartments[c.id].alternateDim = c.compartment_svg;
+            this.compartmentMapping.dim3D[c.id] = c.compartment_svg;
           });
 
           this.mapsData2D.compartments = {};
           response.data.compartmentsvg.forEach((c) => {
-            this.mapsData2D.compartments[c.name_id] = c;
-            this.mapsData2D.compartments[c.name_id].id = c.compartment;
-            this.mapsData2D.compartments[c.name_id].alternateDim = c.compartment;
-            this.compartmentMapping.dim3D[c.compartment] = c.name_id;
+            this.mapsData2D.compartments[c.id] = c;
+            // this.mapsData2D.compartments[c.id].id = c.compartment;
+            this.mapsData2D.compartments[c.id].alternateDim = c.compartment;
+            this.compartmentMapping.dim2D[c.id] = c.compartment;
           });
 
           this.has2DCompartmentMaps = Object.keys(this.mapsData2D.compartments).length !== 0;
 
           this.mapsData3D.subsystems = {};
           response.data.subsystem.forEach((s) => {
-            this.mapsData3D.subsystems[s.name_id] = s;
-            this.mapsData3D.subsystems[s.name_id].id = s.name_id;
-            this.mapsData3D.subsystems[s.name_id].alternateDim = s.subsystem_svg;
+            this.mapsData3D.subsystems[s.id] = s;
+            this.mapsData3D.subsystems[s.id].alternateDim = s.subsystem_svg;
           });
 
           this.mapsData2D.subsystems = {};
           response.data.subsystemsvg.forEach((s) => {
-            this.mapsData2D.subsystems[s.name_id] = s;
-            this.mapsData2D.subsystems[s.name_id].id = s.subsystem;
-            this.mapsData2D.subsystems[s.name_id].alternateDim = s.subsystem;
+            this.mapsData2D.subsystems[s.id] = s;
+            // this.mapsData2D.subsystems[s.id].id = s.subsystem;
+            this.mapsData2D.subsystems[s.id].alternateDim = s.subsystem;
           });
 
           this.has2DSubsystemMaps = Object.keys(this.mapsData2D.subsystems).length !== 0;

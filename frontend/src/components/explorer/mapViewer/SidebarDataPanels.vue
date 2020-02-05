@@ -23,7 +23,7 @@
       </div>
     </template>
     <template v-else>
-      <div v-if="selectionData.data && mapType !== 'subsystem' && selectionData.type == 'subsystem'"
+      <div v-if="selectionData.data && mapType !== 'subsystem' && selectionData.type === 'subsystem'"
            class="card card-margin">
         <header class="card-header">
           <p class="card-header-title is-capitalized is-inline is-unselectable">
@@ -69,31 +69,27 @@
         </header>
         <div v-show="showSelectionCardContent" class="card-content card-content-compact">
           <div v-if="!selectionData.error" class="content">
-            <template v-for="item in selectedElementDataKeys[model.database_name][selectionData.type]
-              .filter(i => selectionData.data[i.name] != null || i.name === 'external_ids')">
-              <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
-              <template v-if="item.name === 'external_ids' && hasExternalIDs(item.value)">
-                <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
-                <span class="has-text-weight-bold">{{ item.display || item.name }} :</span>
-                <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
-                <p>
-                  <template v-for="eid in item.value.filter(e => selectionData.data[e[1]] && selectionData.data[e[2]])">
-                    <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
-                    <span class="has-text-weight-bold">{{ capitalize(eid[0]) }}:</span>
-                    <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
-                    <span v-html="reformatStringToLink(selectionData.data[eid[1]], selectionData.data[eid[2]])">
-                      <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
-                    </span><br>
-                  </template>
-                </p>
-              </template>
-              <template v-else-if="['aliases', 'subsystem_str'].includes(item.name)">
+            <template v-for="item in selectedElementDataKeys[selectionData.type]
+              .filter(i => selectionData.data[i.name] !== null)">
+              <template v-if="item.name === 'synonyms'">
                 <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
                 <span class="has-text-weight-bold">{{ capitalize(item.display || item.name) }}:</span><p>
                   <template v-for="s in selectionData.data[item.name].split('; ')">
                     <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
-                    &ndash;&nbsp;{{ s }}<br>
+                    &ndash;&nbsp;{{ s }}<br :key="s">
                   </template></p>
+              </template>
+              <template v-else-if="item.name === 'subsystem'">
+                <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
+                <span class="has-text-weight-bold">{{ capitalize(item.display || item.name) }}:</span><p>
+                  <template v-for="s in selectionData.data[item.name]">
+                    &ndash;&nbsp;{{ s.name }}<br :key="s.id">
+                  </template></p>
+              </template>
+              <template v-else-if="item.name === 'compartment'">
+                <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
+                <span class="has-text-weight-bold">{{ capitalize(item.display || item.name) }}:</span>
+                    {{ selectionData.data[item.name].name }}
               </template>
               <template v-else-if="['reactionreactant_set', 'reactionproduct_set'].includes(item.name)">
                 <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
@@ -102,7 +98,7 @@
                 <p>
                   <template v-for="s in selectionData.data[item.name]">
                     <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
-                    &ndash;&nbsp;{{ s[`${item.name.includes('reactant') ? 'reactant' : 'product' }`].full_name }}<br>
+                    &ndash;&nbsp;{{ s.full_name }}<br>
                   </template>
                 </p>
               </template>
@@ -160,46 +156,24 @@ export default {
     return {
       errorMessage: '',
       selectedElementDataKeys: {
-        human1: {
-          metabolite: [
-            { name: 'name' },
-            { name: 'model_name', display: 'Model&nbsp;name' },
-            { name: 'formula' },
-            { name: 'compartment' },
-            { name: 'aliases', display: 'Synonyms' },
-          ],
-          gene: [
-            { name: 'name', display: 'Gene&nbsp;name' },
-            { name: 'description', display: 'Description' },
-            { name: 'gene_synonyms', display: 'Synonyms' },
-          ],
-          reaction: [
-            { name: 'equation' },
-            { name: 'subsystem_str', display: 'Subsystems' },
-            { name: 'reactionreactant_set', display: 'Reactants' },
-            { name: 'reactionproduct_set', display: 'Products' },
-          ],
-        },
-        yeast8: {
-          metabolite: [
-            { name: 'name' },
-            { name: 'model_name', display: 'Model&nbsp;name' },
-            { name: 'formula' },
-            { name: 'compartment' },
-            { name: 'aliases', display: 'Synonyms' },
-          ],
-          gene: [
-            { name: 'name', display: 'Gene&nbsp;name' },
-            { name: 'description', display: 'Description' },
-            { name: 'gene_synonyms', display: 'Synonyms' },
-          ],
-          reaction: [
-            { name: 'equation' },
-            { name: 'subsystem_str', display: 'Subsystems' },
-            { name: 'reactionreactant_set', display: 'Reactants' },
-            { name: 'reactionproduct_set', display: 'Products' },
-          ],
-        },
+        metabolite: [
+          { name: 'name' },
+          { name: 'model_name', display: 'Model&nbsp;name' },
+          { name: 'formula' },
+          { name: 'compartment' },
+          { name: 'synonyms', display: 'Synonym(s)' },
+        ],
+        gene: [
+          { name: 'name', display: 'Gene&nbsp;name' },
+          { name: 'alternate_name', display: 'Alt&nbsp;name' },
+          { name: 'synonyms', display: 'Synonym(s)' },
+        ],
+        reaction: [
+          { name: 'equation' },
+          { name: 'subsystem', display: 'Subsystem(s)' },
+          { name: 'reactionreactant_set', display: 'Reactant(s)' },
+          { name: 'reactionproduct_set', display: 'Product(s)' },
+        ],
       },
       showMapCardContent: true,
       showSelectionCardContent: true,
@@ -207,24 +181,15 @@ export default {
     };
   },
   methods: {
-    hasExternalIDs(keys) {
-      for (let i = 0; i < keys.length; i += 1) {
-        const eid = keys[i];
-        if (this.selectionData.data[eid[1]] && this.selectionData.data[eid[2]]) {
-          return true;
-        }
-      }
-      return false;
-    },
     selectionHasNoData() {
       if (!(this.selectionData.type
-          in this.selectedElementDataKeys[this.model.database_name])) {
+          in this.selectedElementDataKeys)) {
         return true;
       }
       for (let i = 0;
-        i < this.selectedElementDataKeys[this.model.database_name][this.selectionData.type].length;
+        i < this.selectedElementDataKeys[this.selectionData.type].length;
         i += 1) {
-        const k = this.selectedElementDataKeys[this.model.database_name][this.selectionData.type][i];
+        const k = this.selectedElementDataKeys[this.selectionData.type][i];
         if (k.name in this.selectionData.data
           && this.selectionData.data[k.name]) {
           return false;
@@ -233,6 +198,7 @@ export default {
       return true;
     },
     isAvailableSubsystemMap(name) {
+      // get the name from the svg
       return this.mapsData.subsystems[idfy(name)]
         && this.mapsData.subsystems[idfy(name)].sha;
     },

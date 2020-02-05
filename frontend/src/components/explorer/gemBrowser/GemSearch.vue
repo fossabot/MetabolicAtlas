@@ -30,9 +30,9 @@
         </div>
         <div v-show="!showLoader" v-if="searchResults.length !== 0" class="resList">
           <template v-for="k in resultsOrder">
-            <div v-for="(r, i2) in searchResults[k]" :key="r.id" class="searchResultSection">
+            <div v-for="(r, i2) in searchResults[k]" :key="`${r.id}-${i2}`" class="searchResultSection">
               <hr v-if="i2 !== 0" class="is-marginless">
-              <router-link class="clickable" :to="getRouterUrl(k, r.id || r.name_id || r.name)"
+              <router-link class="clickable" :to="getRouterUrl(k, r.id || r.name)"
                            @click.native="showResults=false">
                 <b class="is-capitalized">{{ k }}: </b>
                 <label class="clickable" v-html="formatSearchResultLabel(k, r, searchTermString)"></label>
@@ -78,22 +78,12 @@ export default {
       showLoader: false,
       noResult: false,
       messages,
-
       itemKeys: {
-        human1: {
-          gene: ['id', 'name'],
-          reaction: ['id', 'equation'],
-          metabolite: ['id', 'name', 'compartment'],
-          subsystem: ['name', 'system'],
-          compartment: ['name'],
-        },
-        yeast8: {
-          gene: ['id', 'name'],
-          reaction: ['id', 'equation'],
-          metabolite: ['id', 'name', 'compartment'],
-          subsystem: ['name', 'system'],
-          compartment: ['name'],
-        },
+        gene: ['id', 'name'],
+        reaction: ['id', 'equation'],
+        metabolite: ['id', 'name', 'compartment'],
+        subsystem: ['name', 'system'],
+        compartment: ['name'],
       },
     };
   },
@@ -185,22 +175,14 @@ export default {
     formatSearchResultLabel(type, element, searchTerm) {
       const re = new RegExp(`(${searchTerm})`, 'ig');
       let s = '';
-      this.itemKeys[this.model.database_name][type].filter(key => element[key]).forEach((key) => {
+      this.itemKeys[type].filter(key => element[key]).forEach((key) => {
         if (key === 'equation') {
           s = `${s} ‒ ${chemicalReaction(element[key].replace(re, '<b>$1</b>'), element.is_reversible)}`;
         } else {
           // do not HL the compartment name
-          s = key === 'compartment' ? `${s} ‒ ${element[key]}` : `${s} ‒ ${element[key].replace(re, '<b>$1</b>')}`;
+          s = key === 'compartment_str' ? `${s} ‒ ${element[key]}` : `${s} ‒ ${element[key].replace(re, '<b>$1</b>')}`;
         }
       });
-      if (!s.toLowerCase().includes(searchTerm.toLowerCase())) {
-        // add info in the label containing the search string
-        ['hmdb_id', 'uniprot_id', 'ncbi_id', 'formula', 'pubchem_id', 'aliases', 'name']
-          .filter(k => element[k] && element[k].toLowerCase().includes(searchTerm.toLowerCase()))
-          .forEach((k) => {
-            s = `${s} ‒ ${element[k].replace(re, '<b>$1</b>')}`;
-          });
-      }
       if (s.length !== 0) {
         return s.slice(2);
       }
