@@ -13,10 +13,10 @@
 
 <script>
 import axios from 'axios';
-import { default as EventBus } from '../../../event-bus';
+import { default as EventBus } from '@/event-bus';
 import RNALegend from '@/components/explorer/mapViewer/RNALegend.vue';
 import { getSingleRNAExpressionColor, getComparisonRNAExpressionColor, multipleColors } from '@/expression-sources/hpa';
-import { default as messages } from '../../../helpers/messages';
+import { default as messages } from '@/helpers/messages';
 
 export default {
   name: 'RNAexpression',

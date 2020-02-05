@@ -68,6 +68,7 @@
       </div>
       <div class="column is-2-widescreen is-3-desktop is-half-tablet has-text-centered">
         <maps-available :id="sName" :model="model" :type="type" :element-i-d="''"></maps-available>
+        <gem-contact :model="model" :type="type" :id="info.name"/>
       </div>
     </div>
     <template v-if="!showLoader">
@@ -97,6 +98,7 @@ import NotFound from '@/components/NotFound';
 import MapsAvailable from '@/components/explorer/gemBrowser/MapsAvailable';
 import ExtIdTable from '@/components/explorer/gemBrowser/ExtIdTable';
 import ReactionTable from '@/components/explorer/gemBrowser/ReactionTable';
+import GemContact from '@/components/shared/GemContact';
 import { reformatTableKey } from '../../../helpers/utils';
 
 export default {
@@ -107,6 +109,7 @@ export default {
     ReactionTable,
     ExtIdTable,
     Loader,
+    GemContact,
   },
   props: {
     model: {

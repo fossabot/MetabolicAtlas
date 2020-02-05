@@ -49,6 +49,7 @@
       </div>
       <div class="column is-2-widescreen is-3-desktop is-half-tablet has-text-centered">
         <maps-available :id="cName" :model="model" :type="type" :element-i-d="''"></maps-available>
+        <gem-contact :model="model" :type="type" :id="compartment.name"/>
       </div>
     </div>
   </div>
@@ -59,6 +60,7 @@ import axios from 'axios';
 import Loader from '@/components/Loader';
 import NotFound from '@/components/NotFound';
 import MapsAvailable from '@/components/explorer/gemBrowser/MapsAvailable';
+import GemContact from '@/components/shared/GemContact';
 import { reformatTableKey } from '../../../helpers/utils';
 
 export default {
@@ -67,6 +69,7 @@ export default {
     NotFound,
     Loader,
     MapsAvailable,
+    GemContact,
   },
   props: {
     model: Object,
