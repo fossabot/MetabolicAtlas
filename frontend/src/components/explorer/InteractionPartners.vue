@@ -43,9 +43,9 @@
         </div>
       </div>
       <div v-show="showGraphContextMenu && showNetworkGraph" id="contextMenuGraph" ref="contextMenuGraph">
-        <span v-show="clickedElmId !== mainNodeID"
+        <span v-show="clickedElmId && clickedElmId !== mainNodeID"
               class="button is-dark" @click="navigate">Load {{ messages.interPartName }}</span>
-        <span v-show="!expandedIds.includes(clickedElmId)"
+        <span v-show="clickedElmId && !expandedIds.includes(clickedElmId)"
               class="button is-dark" @click="loadExpansion">Expand {{ messages.interPartName }}</span>
         <div v-show="clickedElm">
           <span class="button is-dark">Highlight reaction:</span>
