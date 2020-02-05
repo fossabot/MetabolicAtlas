@@ -59,7 +59,7 @@
             <span class="icon"><i class="fa fa-connectdevelop fa-lg"></i></span>&nbsp;
             <span>{{ messages.interPartName }}</span>
           </router-link>
-          <gem-contact :model="model" type="metabolite" :id="mId"/>
+          <gem-contact :model="model" :type="type" :id="mId"/>
         </div>
       </div>
       <div class="columns">
