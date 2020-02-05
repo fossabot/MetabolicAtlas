@@ -862,12 +862,16 @@ def search(request, model, term):
 
         else:
             synonym_regex = r"(?:^" + re.escape(term) + r"(?:;|$)" + r")|(?:; " + re.escape(term) + r"(?:;|$))"
-            compartments = APImodels.Compartment.objects.using(model).filter(name__icontains=term)[:limit]
+            compartments = APImodels.Compartment.objects.using(model).filter(
+                Q(name_id__iexact=term) |
+                Q(name__icontains=term)
+            )[:limit]
 
             subsystems = APImodels.Subsystem.objects.using(model).prefetch_related('compartment', 'external_databases').filter(
+                Q(name_id__iexact=term) |
                 Q(name__icontains=term) |
                 Q(external_databases__external_id__iexact=term)
-            )[:limit]
+            ).distinct()[:limit]
 
             metabolites = APImodels.ReactionComponent.objects.using(model).select_related('metabolite').prefetch_related('subsystem_metabolite', 'external_databases').filter(
                 Q(component_type__exact='m') &
@@ -878,7 +882,7 @@ def search(request, model, term):
                 Q(aliases__iregex=synonym_regex) |
                 Q(formula__icontains=term) |
                 Q(external_databases__external_id__iexact=term))
-            )[:limit]
+            ).distinct()[:limit]
 
             exact_metabolites = APImodels.ReactionComponent.objects.using(model).filter(
                 Q(component_type__exact='m') &
@@ -892,7 +896,7 @@ def search(request, model, term):
                 Q(name__icontains=term) |
                 Q(ec__icontains=term) |
                 Q(external_databases__external_id__iexact=term)
-            )[:limit]
+            ).distinct()[:limit]
             if reactions.count() < limit:
                 reactions_mets = APImodels.Reaction.objects.using(model).prefetch_related('subsystem').distinct().filter(
                     Q(metabolites__in=exact_metabolites) & ~Q(id__in=reactions.values_list('id', flat=True)))[:(limit - reactions.count())]
@@ -906,7 +910,7 @@ def search(request, model, term):
                 Q(alt_name2__icontains=term) |
                 Q(aliases__iregex=synonym_regex) |
                 Q(external_databases__external_id__iexact=term))
-            )[:limit]
+            ).distinct()[:limit]
 
         if (metabolites.count() + genes.count() + compartments.count() + subsystems.count() + len(reactions)) != 0:
             match_found = True
@@ -963,7 +967,7 @@ def search(request, model, term):
             reaction_eid = APImodels.ReactionEID.objects.using(model).raw('SELECT id, external_id from reaction_eid where levenshtein_less_equal(\'%s\', LOWER(external_id), 2) <= 2 limit 10' % term)
 
             suggestions += [c.name for c in compartment_name] \
-                + [sub.name for s in subsystem_name] \
+                + [s.name for s in subsystem_name] \
                 + [rc.id for rc in reaction_component_id] \
                 + [rc.name for rc in reaction_component_name] \
                 + [rc.formula for rc in reaction_component_formula] \
