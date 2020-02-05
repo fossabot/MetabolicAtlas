@@ -1,13 +1,13 @@
 <template>
   <div id="metabolite-page">
     <div v-if="componentNotFound" class="columns is-centered">
-      <notFound component="metabolite" :component-id="mId"></notFound>
+      <notFound :type="type" :component-id="mId"></notFound>
     </div>
     <div v-else>
       <div class="columns">
         <div class="column">
           <h3 class="title is-3">
-            Metabolite {{ metabolite.name }}
+            <span class="is-capitalized">{{ type }}</span> {{ metabolite.name }}
             <span v-if="metabolite && metabolite.compartment" class="is-size-5 has-text-grey">
             {{ metabolite.compartment.id }}</span>
           </h3>
@@ -51,7 +51,7 @@
               </td>
             </tr>
           </table>
-          <ExtIdTable :externalDbs="metabolite.external_databases"></ExtIdTable>
+          <ExtIdTable :type="type" :external-dbs="metabolite.external_databases"></ExtIdTable>
         </div>
         <div class="column is-2-widescreen is-3-desktop is-full-tablet has-text-centered">
           <router-link class="button is-info is-fullwidth is-outlined"
@@ -59,6 +59,7 @@
             <span class="icon"><i class="fa fa-connectdevelop fa-lg"></i></span>&nbsp;
             <span>{{ messages.interPartName }}</span>
           </router-link>
+          <gem-contact :model="model" :type="type" :id="mId"/>
         </div>
       </div>
       <div class="columns">
@@ -73,6 +74,7 @@
 <script>
 import axios from 'axios';
 import Reactome from '@/components/explorer/gemBrowser/Reactome';
+import GemContact from '@/components/shared/GemContact';
 import NotFound from '@/components/NotFound';
 import ExtIdTable from '@/components/explorer/gemBrowser/ExtIdTable';
 import { chemicalFormula } from '../../../helpers/chemical-formatters';
@@ -85,6 +87,7 @@ export default {
     NotFound,
     ExtIdTable,
     Reactome,
+    GemContact,
   },
   props: {
     model: Object,
@@ -93,6 +96,7 @@ export default {
     return {
       messages,
       mId: this.$route.params.id,
+      type: 'metabolite',
       metaboliteID: '',
       mainTableKey: [
         { name: 'id' },

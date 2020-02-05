@@ -71,7 +71,7 @@
           <div v-if="!selectionData.error" class="content">
             <template v-for="item in selectedElementDataKeys[selectionData.type]
               .filter(i => selectionData.data[i.name] !== null)">
-              <template v-if="item.name === 'aliases'">
+              <template v-if="item.name === 'synonyms'">
                 <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
                 <span class="has-text-weight-bold">{{ capitalize(item.display || item.name) }}:</span><p>
                   <template v-for="s in selectionData.data[item.name].split('; ')">

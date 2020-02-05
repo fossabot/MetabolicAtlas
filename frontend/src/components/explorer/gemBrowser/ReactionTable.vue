@@ -35,22 +35,23 @@
         <tbody>
           <tr v-for="r in sortedReactions" :key="r.id">
             <td>
-              <router-link
-                :to="{path: `/explore/gem-browser/${model.database_name}/reaction/${r.id}` }">
+              <a
+                :href="`/explore/gem-browser/${model.database_name}/reaction/${r.id}`"
+                @click="handleLinkClick">
                 {{ r.id }}
-              </router-link>
+              </a>
             </td>
             <td v-html="reformatChemicalReactionHTML(r)"></td>
             <td>
-              <!-- eslint-disable-next-line max-len -->
-              <template v-for="(m, index) in r.genes">{{ index === 0 ? '' : ', ' }}<router-link :key="m.id" :to="{ path: `/explore/gem-browser/${model.database_name}/gene/${m.id}` }">{{ m.name || m.id }}</router-link>
+              <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key max-len -->
+              <template v-for="(m, index) in r.genes">{{ index == 0 ? '' : ', ' }}<a :href="`/explore/gem-browser/${model.database_name}/gene/${m.id}`" @click="handleLinkClick">{{ m.name || m.id }}</a>
               </template>
             </td>
             <td v-show="showCP">{{ r.cp }}</td>
             <td v-show="showSubsystem">
               <template v-if="r.subsystem_str">
-                <!-- eslint-disable-next-line  max-len -->
-                <template v-for="(s, index) in r.subsystem_str.split('; ')">{{ index === 0 ? '' : '; ' }}<router-link :key="s.id" :to="{ path: `/explore/gem-browser/${model.database_name}/subsystem/${idfy(s)}` }">{{ s }}</router-link>
+                <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key max-len -->
+                <template v-for="(s, index) in r.subsystem_str.split('; ')">{{ index == 0 ? '' : '; ' }}<a :href="`/explore/gem-browser/${model.database_name}/subsystem/${idfy(s)}`" @click="handleLinkClick">{{ s }}</a>
                 </template>
               </template>
             </td>
@@ -58,9 +59,9 @@
               <template v-for="(RP, i) in r.compartment_str.split(' => ')">
                 <template v-if="i !== 0">{{ r.is_reversible ? ' &#8660; ' : ' &#8658; ' }}</template>
                 <template v-for="(compo, j) in RP.split(' + ')">
-                  <template v-if="j !== 0"> + </template>
-                  <!-- eslint-disable-next-line max-len -->
-                  <router-link :to="{ path: `/explore/gem-browser/${model.database_name}/compartment/${idfy(compo)}` }" :key="`${compo}${i}`">{{ compo }}</router-link>
+                  <template v-if="j != 0"> + </template>
+                  <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key max-len -->
+                  <a :href="`/explore/gem-browser/${model.database_name}/compartment/${idfy(compo)}`" @click="handleLinkClick">{{ compo }}</a>
                 </template>
               </template>
             </td>
@@ -126,31 +127,37 @@ export default {
       return this.reactions.filter(r => r.is_transport).length;
     },
     sortedReactions() {
-      /* eslint-disable no-param-reassign */
-      if (this.reactions.length === 0) {
+      let reactionsCopy = [...this.reactions];
+
+      if (reactionsCopy.length === 0) {
         return [];
       }
+
       // create consume/produce column
       if (this.selectedElmId) {
-        this.reactions.forEach((reaction) => {
-          if (reaction.is_reversible) {
-            reaction.cp = 'consume/produce';
+        reactionsCopy = reactionsCopy.map((r) => {
+          const rCopy = { ...r };
+
+          if (rCopy.is_reversible) {
+            rCopy.cp = 'consume/produce';
           } else {
-            const boolC = reaction.reactionreactant_set.filter(
+            const boolC = rCopy.reactionreactant_set.filter(
               e => e.id === this.selectedElmId);
             if (boolC.length !== 0) {
-              reaction.cp = 'consume';
+              rCopy.cp = 'consume';
             } else {
-              const boolP = reaction.reactionproduct_set.filter(
+              const boolP = rCopy.reactionproduct_set.filter(
                 e => e.id === this.selectedElmId);
               if (boolP.length !== 0) {
-                reaction.cp = 'produce';
+                rCopy.cp = 'produce';
               }
             }
           }
+
+          return rCopy;
         });
       }
-      return this.reactions.concat().sort(
+      return reactionsCopy.concat().sort(
         compare(this.sortBy, this.sortPattern, this.sortOrder));
     },
   },
@@ -179,6 +186,10 @@ export default {
         return false;
       }
       return true;
+    },
+    handleLinkClick(e) {
+      e.preventDefault();
+      this.$router.push(e.target.pathname);
     },
     formatToTSV() {
       let tsvContent = `${this.fields.filter((e) => {

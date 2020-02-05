@@ -282,5 +282,5 @@ class GEMSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = APImodels.GEM
-        fields = ('short_name', 'full_name', 'database_name', 'description', 'version', 'link', 'authors', 'condition', 'date', 'sample', 'ref', 'metabolite_count', 'gene_count', 'reaction_count',)
+        fields = ('short_name', 'full_name', 'database_name', 'description', 'version', 'link', 'chat_link', 'authors', 'condition', 'date', 'sample', 'ref', 'metabolite_count', 'gene_count', 'reaction_count',)
 

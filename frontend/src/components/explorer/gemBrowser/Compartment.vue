@@ -1,11 +1,11 @@
 <template>
   <div v-if="componentNotFound" class="columns is-centered">
-    <notFound component="compartment" :component-id="cName"></notFound>
+    <notFound :type="type" :component-id="cName"></notFound>
   </div>
   <div v-else>
     <div class="columns">
       <div class="column">
-        <h3 class="title is-3">Compartment {{ compartment.name }}</h3>
+        <h3 class="title is-3"><span class="is-capitalized">{{ type }}</span> {{ compartment.name }}</h3>
       </div>
     </div>
     <loader v-show="showLoader"></loader>
@@ -48,7 +48,8 @@
           <a href="/api/" target="_blank">API</a></span>
       </div>
       <div class="column is-2-widescreen is-3-desktop is-half-tablet has-text-centered">
-        <maps-available :id="cName" :model="model" :type="'compartment'" :element-i-d="''"></maps-available>
+        <maps-available :id="cName" :model="model" :type="type" :element-i-d="''"></maps-available>
+        <gem-contact :model="model" :type="type" :id="compartment.name"/>
       </div>
     </div>
   </div>
@@ -59,6 +60,7 @@ import axios from 'axios';
 import Loader from '@/components/Loader';
 import NotFound from '@/components/NotFound';
 import MapsAvailable from '@/components/explorer/gemBrowser/MapsAvailable';
+import GemContact from '@/components/shared/GemContact';
 import { reformatTableKey } from '../../../helpers/utils';
 
 export default {
@@ -67,6 +69,7 @@ export default {
     NotFound,
     Loader,
     MapsAvailable,
+    GemContact,
   },
   props: {
     model: Object,
@@ -74,6 +77,7 @@ export default {
   data() {
     return {
       cName: this.$route.params.id,
+      type: 'compartment',
       showLoader: false,
       compartment: {},
       subsystems: [],

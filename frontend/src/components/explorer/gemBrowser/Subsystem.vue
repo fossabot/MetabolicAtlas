@@ -1,11 +1,11 @@
 <template>
   <div v-if="componentNotFound" class="columns is-centered">
-    <notFound component="subsystem" :component-id="sName"></notFound>
+    <notFound :type="type" :component-id="sName"></notFound>
   </div>
   <div v-else>
     <div class="columns">
       <div class="column">
-        <h3 class="title is-3">Subsystem {{ !showLoader ? info.name : '' }}</h3>
+        <h3 class="title is-3"><span class="is-capitalized">{{ type }}</span> {{ !showLoader ? info.name : '' }}</h3>
       </div>
     </div>
     <loader v-show="showLoader"></loader>
@@ -64,10 +64,11 @@
             </td>
           </tr>
         </table>
-        <ExtIdTable :externalDbs="info.external_databases"></ExtIdTable>
+        <ExtIdTable :type="type" :external-dbs="info.external_databases"></ExtIdTable>
       </div>
       <div class="column is-2-widescreen is-3-desktop is-half-tablet has-text-centered">
-        <maps-available :id="sName" :model="model" :type="'subsystem'" :element-i-d="''"></maps-available>
+        <maps-available :id="sName" :model="model" :type="type" :element-i-d="''"></maps-available>
+        <gem-contact :model="model" :type="type" :id="info.name"/>
       </div>
     </div>
     <template v-if="!showLoader">
@@ -97,6 +98,7 @@ import NotFound from '@/components/NotFound';
 import MapsAvailable from '@/components/explorer/gemBrowser/MapsAvailable';
 import ExtIdTable from '@/components/explorer/gemBrowser/ExtIdTable';
 import ReactionTable from '@/components/explorer/gemBrowser/ReactionTable';
+import GemContact from '@/components/shared/GemContact';
 import { reformatTableKey } from '../../../helpers/utils';
 
 export default {
@@ -107,6 +109,7 @@ export default {
     ReactionTable,
     ExtIdTable,
     Loader,
+    GemContact,
   },
   props: {
     model: {
@@ -116,6 +119,7 @@ export default {
   data() {
     return {
       sName: this.$route.params.id,
+      type: 'subsystem',
       showLoader: true,
       showReactionLoader: true,
       info: {},
