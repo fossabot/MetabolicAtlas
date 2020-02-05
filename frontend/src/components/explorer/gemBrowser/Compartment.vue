@@ -1,11 +1,11 @@
 <template>
   <div v-if="componentNotFound" class="columns is-centered">
-    <notFound component="compartment" :component-id="cName"></notFound>
+    <notFound :type="type" :component-id="cName"></notFound>
   </div>
   <div v-else>
     <div class="columns">
       <div class="column">
-        <h3 class="title is-3">Compartment {{ compartment.name }}</h3>
+        <h3 class="title is-3"><span class="is-capitalized">{{ type }}</span> {{ compartment.name }}</h3>
       </div>
     </div>
     <loader v-show="showLoader"></loader>

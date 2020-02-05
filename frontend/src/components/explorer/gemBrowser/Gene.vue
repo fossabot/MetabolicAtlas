@@ -1,13 +1,13 @@
 <template>
   <div class="connected-metabolites">
     <div v-if="componentNotFound" class="columns is-centered">
-      <notFound component="gene" :component-id="eId"></notFound>
+      <notFound :type="type" :component-id="eId"></notFound>
     </div>
     <div v-else>
       <div class="container columns">
         <div class="column">
           <h3 class="title is-3">
-            Gene {{ gene.geneName }}
+            <span class="is-capitalized">{{ type }}</span> {{ gene.geneName }}
           </h3>
         </div>
       </div>

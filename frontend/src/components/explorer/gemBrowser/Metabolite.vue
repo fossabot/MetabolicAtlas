@@ -1,13 +1,13 @@
 <template>
   <div id="metabolite-page">
     <div v-if="componentNotFound" class="columns is-centered">
-      <notFound component="metabolite" :component-id="mId"></notFound>
+      <notFound :type="type" :component-id="mId"></notFound>
     </div>
     <div v-else>
       <div class="columns">
         <div class="column">
           <h3 class="title is-3">
-            Metabolite {{ metabolite.name }}
+            <span class="is-capitalized">{{ type }}</span> {{ metabolite.name }}
             <span v-if="metabolite && metabolite.compartment" class="is-size-5 has-text-grey">
             {{ metabolite.compartment.id }}</span>
           </h3>

@@ -1,17 +1,17 @@
 <template>
   <div class="column has-text-centered is-three-fifths-desktop is-three-quarters-tablet is-fullwidth-mobile">
     <div class="box has-background-light content">
-      <template v-if="component">
+      <template v-if="type">
         <p class="title is-size-3">
-          <span class="is-capitalized">{{ component }}&nbsp;</span> "&nbsp;{{ componentID }}&nbsp;" &nbsp;not found
+          <span class="is-capitalized">{{ type }}&nbsp;</span> "&nbsp;{{ componentID }}&nbsp;" &nbsp;not found
         </p>
-        <template v-if="component === 'model'">
+        <template v-if="type === 'model'">
           <p>Visit the Explore page to select one of our integrated models</p>
         </template>
         <template v-else>
           <p class="is-size-5">
-            Probably there is a typo in the {{ component }} identifier in the URL
-            <br>Use the search bar above to find other {{ component }}s
+            Probably there is a typo in the {{ type }} identifier in the URL
+            <br>Use the search bar above to find other {{ type }}s
           </p>
         </template>
       </template>
@@ -33,7 +33,7 @@
 export default {
   name: 'NotFound',
   props: {
-    component: String,
+    type: String,
     componentID: String,
   },
 };
