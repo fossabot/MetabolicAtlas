@@ -51,7 +51,7 @@
           <span class="button is-dark">Highlight reaction:</span>
         </div>
         <div>
-          <template v-if="clickedElm !== null && clickedElm['reaction']">
+          <template v-if="clickedElm && clickedElm['reaction']">
             <template v-for="(r, index) in Array.from(clickedElm.reaction).slice(0,16)">
               <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
               <span v-if="index != 15" class="button is-dark is-small has-margin-left"
