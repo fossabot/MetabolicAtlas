@@ -53,8 +53,8 @@ import axios from 'axios';
 import $ from 'jquery';
 import Panzoom from '@panzoom/panzoom';
 import { default as FileSaver } from 'file-saver';
-import { default as EventBus } from '../../../event-bus';
-import { default as messages } from '../../../helpers/messages';
+import { default as EventBus } from '@/event-bus';
+import { default as messages } from '@/helpers/messages';
 import { reformatChemicalReactionHTML, isMobilePage } from '@/helpers/utils';
 
 export default {
@@ -355,7 +355,7 @@ export default {
       const blob = new Blob([document.getElementById('svg-wrapper').innerHTML], {
         type: 'data:text/tsv;charset=utf-8',
       });
-      FileSaver.saveAs(blob, `${this.loadedMap.name_id}.svg`);
+      FileSaver.saveAs(blob, `${this.loadedMap.id}.svg`);
     },
     applyHPARNAlevelsOnMap(RNAlevels) {
       this.HPARNAlevels = RNAlevels;

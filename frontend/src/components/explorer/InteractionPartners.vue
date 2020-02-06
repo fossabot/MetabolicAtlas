@@ -11,6 +11,7 @@
     <div class="columns is-centered">
       <gem-search ref="gemSearch" :model="model" :metabolites-and-genes-only="true"></gem-search>
     </div>
+    <br>
     <div v-if="!mainNodeID">
       <div class="columns is-centered">
         <p class="is-capitalized subtitle is-size-2-widescreen is-size-3-desktop is-size-4-tablet is-size-5-mobile
@@ -18,6 +19,9 @@
       </div>
       <div class="columns is-centered">
         <div class="column is-three-fifths-desktop is-three-quarters-tablet is-fullwidth-mobile">
+          <!-- eslint-disable max-len -->
+          <p class="is-size-5">For a given metabolite or gene, this page shows the other metabolites and genes with which it is connected via reactions. For more, see the <router-link :to="{ path: '/documentation', hash: 'Interaction-Partners' }">documentation on {{ messages.interPartName }}</router-link>.
+          </p><br>
           <video poster="@/assets/interPart-cover.jpg" playsinline controls muted loop>
             <source src="@/assets/interPart.mp4" type="video/mp4">
           </video>
@@ -39,15 +43,15 @@
         </div>
       </div>
       <div v-show="showGraphContextMenu && showNetworkGraph" id="contextMenuGraph" ref="contextMenuGraph">
-        <span v-show="clickedElmId !== mainNodeID"
+        <span v-show="clickedElmId && clickedElmId !== mainNodeID"
               class="button is-dark" @click="navigate">Load {{ messages.interPartName }}</span>
-        <span v-show="!expandedIds.includes(clickedElmId)"
+        <span v-show="clickedElmId && !expandedIds.includes(clickedElmId)"
               class="button is-dark" @click="loadExpansion">Expand {{ messages.interPartName }}</span>
         <div v-show="clickedElm">
           <span class="button is-dark">Highlight reaction:</span>
         </div>
         <div>
-          <template v-if="clickedElm !== null && clickedElm['reaction']">
+          <template v-if="clickedElm && clickedElm['reaction']">
             <template v-for="(r, index) in Array.from(clickedElm.reaction).slice(0,16)">
               <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
               <span v-if="index != 15" class="button is-dark is-small has-margin-left"
@@ -469,7 +473,7 @@ export default {
       this.reactionHL = null;
       this.compartmentHL = '';
       this.subsystemHL = '';
-      this.$router.push(`/explore/gem-browser/${this.model.database_name}/interaction/${this.clickedElmId}`);
+      this.$router.push(`/explore/interaction/${this.model.database_name}/${this.clickedElmId}`);
     },
     loadHPATissue() {
       axios.get(`${this.model.database_name}/gene/hpa_tissue/`)
@@ -492,6 +496,7 @@ export default {
           this.showGraphContextMenu = false;
           const { component } = response.data;
           this.reactions = response.data.reactions;
+          this.title = component.type === 'metabolite' ? this.chemicalName(component.name) : component.name;
           if (!this.reactions) {
             this.tooLargeNetworkGraph = true;
             this.showNetworkGraph = false;
@@ -505,14 +510,6 @@ export default {
           });
 
           this.componentName = component.name || component.id;
-
-          if ('formula' in component) {
-            this.title = `${this.chemicalName(this.componentName)}`;
-            component.type = 'metabolite';
-          } else {
-            this.title = this.componentName;
-            component.type = 'gene';
-          }
 
           [this.rawElms,
             this.rawRels,

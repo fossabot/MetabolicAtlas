@@ -49,7 +49,7 @@
               </div>
               <footer class="card-footer">
                 <router-link class="card-footer-item is-info is-outlined"
-                             :to="{ path: `/explore/gem-browser/${model.database_name}` }">
+                             :to="{ name: 'browserRoot', params: { model: model.database_name } }">
                   <span class="icon is-large"><i class="fa fa-table fa-lg"></i></span>
                   <span>{{ messages.gemBrowserName }}</span>
                 </router-link>
@@ -67,15 +67,14 @@
           While we do not provide support for these models, we are making them available to download.
           For support, the authors should be contacted. They are listed in the <i>References</i> section of each model.
           Click on a row to display more information. To download multiple models at once use the
-          <router-link :to=" { path: '/documentation', hash: 'FTP-download'} ">FTP server</router-link>.
+          <router-link :to=" { name: 'documentation', hash: 'FTP-download'} ">FTP server</router-link>.
         </p>
         <br>
         <loader v-show="showLoader"></loader>
         <div v-if="GEMS.length != 0">
-          <vue-good-table :columns="columns" :rows="GEMS"
-            :search-options="{ enabled: true }"
-            :sort-options="{ enabled: true }" style-class="vgt-table striped bordered"
-            :pagination-options="tablePaginationOpts" @on-row-click="getModel">
+          <vue-good-table :columns="columns" :rows="GEMS" :search-options="{ enabled: true }"
+                          :sort-options="{ enabled: true }" style-class="vgt-table striped bordered"
+                          :pagination-options="tablePaginationOpts" @on-row-click="getModel">
           </vue-good-table>
         </div>
         <div v-else>
@@ -98,7 +97,7 @@
                 </template>
               </h2>
               {{ selectedModel.description }}<br><br>
-              <table class="table main-table">
+              <table class="table main-table is-fullwidth">
                 <tbody>
                   <tr v-for="field in model_fields" :key="field.name">
                     <template v-if="['reaction_count', 'metabolite_count', 'gene_count'].includes(field.name)">
@@ -114,15 +113,10 @@
                       <td>{{ selectedModel[field.name] }}</td>
                     </template>
                   </tr>
-                  <template v-if="selectedModel.authors && selectedModel.authors.length !== 0">
-                    <tr v-for="a in selectedModel.authors" :key="`${a.given_name}${a.family_name}`">
-                      <td class="td-key has-background-primary has-text-white-bis"
-                          :rowspan="selectedModel.authors.length">
-                        Author(s)
-                      </td>
-                      <td>{{ a.given_name }} {{ a.family_name }}</td>
-                    </tr>
-                  </template>
+                  <tr v-if="selectedModel.authors && selectedModel.authors.length !== 0">
+                    <td class="td-key has-background-primary has-text-white-bis">Author(s)</td>
+                    <td>{{ selectedModel.authors.map(a => `${a.given_name} ${a.family_name}`).join(', ') }}</td>
+                  </tr>
                   <tr v-if="selectedModel.date">
                     <td class="td-key has-background-primary has-text-white-bis">Date</td>
                     <td>{{ selectedModel.date }}</td>
@@ -135,14 +129,11 @@
                     <td class="td-key has-background-primary has-text-white-bis">Reference(s)</td>
                     <td>
                       <template v-for="oneRef in selectedModel.ref">
-                        <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
-                        <p v-if="!oneRef.link">{{ oneRef.title }}</p>
-                        <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
-                        <a v-else :href="oneRef.link" target="_blank">
+                        <p v-if="!oneRef.link" :key="oneRef.title">{{ oneRef.title }}</p>
+                        <a v-else :href="oneRef.link" :key="oneRef.title" target="_blank">
                           {{ oneRef.title }} (PMID: {{ oneRef.pmid }})
                         </a>
-                        <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
-                        <br>
+                        <br :key="oneRef.title">
                       </template>
                     </td>
                   </tr>
@@ -151,8 +142,7 @@
               <template v-if="selectedModel.files">
                 <p class="subtitle has-text-weight-bold">Files</p>
                 <template v-for="file in selectedModel.files">
-                  <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
-                  <a class="button" :href="`${filesURL}${file.path}`">{{ file.format }}</a>&nbsp;
+                  <a class="button" :href="`${filesURL}${file.path}`" :key="file.path">{{ file.format }}</a>&nbsp;
                 </template>
               </template>
             </div>

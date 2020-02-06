@@ -107,7 +107,7 @@
               <div class="card-content has-text-justified">
                 <p v-for="el in card.text" :key="el.date">
                   <template v-if="el.date">
-                    <router-link :to="{ 'path': '/about', hash: el.hash }" v-html="el.date"></router-link> -
+                    <router-link :to="{ path: '/about', hash: el.hash }" v-html="el.date"></router-link> -
                   </template>
                   <span v-html="el.text"></span>
                 </p>
@@ -138,20 +138,20 @@ export default {
         { title: messages.gemBrowserName,
           text: 'The <b>GEM Browser</b> enables powerful query and exploration of model content in tabular format.<br><br>A wide range of attributes, including reaction equations, metabolite formulas, gene rules and subsystem contents, are presented as a detailed network of individual model components. They are highly interconnected and rationally associated to easily navigate and switch between them.<br><br>Visit the documentation to learn about the different functionalities provided by the GEM Browser.',
           img: require('../assets/gemBrowser.jpg'),
-          cardLink: 'Explore Human1 on the GEM Browser',
+          cardLink: 'Explore Human-GEM on the GEM Browser',
           url: { name: 'browserRoot', params: { model: 'human1' } },
           icon: 'table' },
         { title: messages.mapViewerName,
           text: 'For easy visualization, <b>Metabolic Atlas</b> handles both 2D and 3D maps. For each of the integrated models, the website automatically generates 3D graphs at both compartment and subsystem level.<br><br>Both compartment and subsystem 2D maps of the Human-GEM have been created by the contributors to Human-GEM and are manually curated. On these maps, one can search for reactions, metabolites or genes. Moreover, RNA expression data from Human Protein Atlas can be overlaid.<br><br>By clicking on an element on the map, more information of that element will be shown on the left sidebar. From there, one can navigate back to the <b>GEM Browser</b> for detailed information.',
           img: require('../assets/mapViewer.jpg'),
-          cardLink: 'Explore Human1 on the Map Viewer',
+          cardLink: 'Explore Human-GEM on the Map Viewer',
           url: { name: 'viewer', params: { model: 'human1' } },
           icon: 'map-o' },
         { title: messages.interPartName,
           text: `The <b>Interaction Partners</b> graph shows connectivity between metabolites and genes based on their associated reactions.<br><br>The graph is dynamically generated and is customizable. One can interact with a restricted part of the metabolic network, or further expand the interaction partners of any element already on the graph. Moreover, RNA expression data from the Human Protein Atlas can be overlaid onto the graph. <br><br>This feature is available only for metabolites and genes, and is accessible via the <b>${messages.gemBrowserName}</b>.`,
           img: require('../assets/interaction.png'),
           cardLink: 'View glyoxalate[p] in Interaction Partners',
-          url: { path: '/explore/gem-browser/human1/interaction/m02007p' },
+          url: { path: '/explore/interaction/human1/m02007p' },
           icon: 'connectdevelop' },
         { title: 'Search',
           text: 'The menu bar contains a shortcut to the <b>Global search</b> function, which enables users to easily search cellular components across all the integrated models. Further filtering is also available, based on result type (e.g. metabolite) and its parameters (e.g. compartment).<br><br>For retrieving larger subsets of the model, we recommend experienced users to use our the API. Alternatively, models can be downloaded from the <b>GEM Repository</b> page or from their original repository on GitHub.<br><br>',

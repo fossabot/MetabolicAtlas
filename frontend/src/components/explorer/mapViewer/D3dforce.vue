@@ -12,7 +12,7 @@
 import axios from 'axios';
 import forceGraph3D from '3d-force-graph';
 import { default as FileSaver } from 'file-saver';
-import { default as EventBus } from '../../../event-bus';
+import { default as EventBus } from '@/event-bus';
 import { reformatChemicalReactionHTML, isMobilePage } from '@/helpers/utils';
 
 export default {
@@ -49,9 +49,6 @@ export default {
     EventBus.$off('apply3DHPARNAlevels');
 
     EventBus.$on('show3Dnetwork', (type, name, ids) => {
-      if (name.toLowerCase().substr(0, 7) === 'cytosol') {
-        name = 'cytosol'; // eslint-disable-line no-param-reassign
-      }
       if (ids && ids.length === 1) {
         this.focusOnID = ids[0]; // eslint-disable-line prefer-destructuring
       } else {

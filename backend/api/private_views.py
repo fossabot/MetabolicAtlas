@@ -8,8 +8,8 @@ from itertools import chain
 import api.models as APImodels
 import api.serializers as APIserializer
 import api.serializers_rc as APIrcSerializer
+import api.serializers_cs as APIcsSerializer
 from api.views import is_model_valid
-from api.views import componentDBserializerSelector
 from functools import reduce
 from random import randint
 import re
@@ -72,7 +72,7 @@ def get_reaction(request, model, id):
     except APImodels.Reaction.DoesNotExist:
         return HttpResponse(status=404)
 
-    reactionserializer = APIserializer.ReactionPageSerializer(reaction[0], context={'model': model})
+    reactionserializer = APIserializer.ReactionPageSerializer(reaction[0])
 
     pmids = APImodels.ReactionReference.objects.using(model).filter(reaction_id=reaction[0].id)
     pmidserializer = APIserializer.ReactionReferenceSerializer(pmids, many=True)
@@ -95,7 +95,7 @@ def get_related_reactions(request, model, id):
     except APImodels.Reaction.DoesNotExist:
         return HttpResponse(status=404)
 
-    return JSONResponse(APIserializer.ReactionBasicRTSerializer(related_reactions, many=True).data)
+    return JSONResponse(APIserializer.ReactionRTSerializer(related_reactions, many=True).data)
 
 
 @api_view()
@@ -110,32 +110,20 @@ def get_id(request, model, term):
     query |= Q(id__iexact=term)
     reaction_query |= Q(id__iexact=term)
     reaction_query |= Q(name__iexact=term)
-    reaction_query |= Q(external_id1__iexact=term)
-    reaction_query |= Q(external_id2__iexact=term)
-    reaction_query |= Q(external_id3__iexact=term)
-    reaction_query |= Q(external_id4__iexact=term)
-    reaction_query |= Q(external_id5__iexact=term)
-    reaction_query |= Q(external_id6__iexact=term)
+    reaction_query |= Q(external_databases__external_id__iexact=term)
     query |= Q(name__iexact=term)
     query |= Q(full_name__iexact=term)
     query |= Q(alt_name1__iexact=term)
     query |= Q(alt_name2__iexact=term)
     query |= Q(aliases__iregex=synonym_regex)
-    query |= Q(external_id1__iexact=term)
-    query |= Q(external_id2__iexact=term)
-    query |= Q(external_id3__iexact=term)
-    query |= Q(external_id4__iexact=term)
-    query |= Q(external_id5__iexact=term)
-    query |= Q(external_id6__iexact=term)
-    query |= Q(external_id7__iexact=term)
-    query |= Q(external_id8__iexact=term)
+    query |= Q(external_databases__external_id__iexact=term)
     query |= Q(formula__iexact=term)
 
     # get the list of component id
-    reaction_component_ids = APImodels.ReactionComponent.objects.using(model).filter(query).values_list('id', flat=True);
+    reaction_component_ids = APImodels.ReactionComponent.objects.using(model).prefetch_related('external_databases').filter(query).values_list('id', flat=True).distinct()
 
     # get the list of reaction id
-    reaction_ids = APImodels.Reaction.objects.using(model).filter(reaction_query).values_list('id', flat=True)
+    reaction_ids = APImodels.Reaction.objects.using(model).prefetch_related('external_databases').filter(reaction_query).values_list('id', flat=True).distinct()
 
     if not reaction_component_ids.count() and not reaction_ids.count():
         return HttpResponse(status=404)
@@ -480,45 +468,6 @@ def HPA_gene_info(request, ensembl_id): # ENSG00000110921
 
 @api_view()
 @is_model_valid
-def get_compartment_svg(request, model, compartment_name_id):
-    try:
-        compartment = APImodels.CompartmentSvg.objects.using(model).get(name_id__iexact=compartment_name_id)
-    except APImodels.CompartmentSvg.DoesNotExist:
-        return HttpResponse(status=404)
-
-    serializer = APIserializer.CompartmentSvgSerializer(compartment)
-
-    return JSONResponse(serializer.data)
-
-
-@api_view()
-@is_model_valid
-def get_compartments_svg(request, model):
-    try:
-        compartment_svg_info = APImodels.CompartmentSvg.objects.using(model).select_related('compartment').all()
-    except APImodels.CompartmentSvg.DoesNotExist:
-        return HttpResponse(status=404)
-
-    compartmentSvgSerializer = APIserializer.CompartmentSvgSerializer(compartment_svg_info, many=True)
-
-    return JSONResponse(compartmentSvgSerializer.data)
-
-
-@api_view()
-@is_model_valid
-def get_subsystems_svg(request, model):
-    try:
-        subsystem_svg_info = APImodels.SubsystemSvg.objects.using(model).select_related('subsystem').all()
-    except APImodels.SubsystemSvg.DoesNotExist:
-        return HttpResponse(status=404)
-
-    subsystemSvgSerializer = APIserializer.SubsystemSvgSerializer(subsystem_svg_info, many=True)
-
-    return JSONResponse(subsystemSvgSerializer.data)
-
-
-@api_view()
-@is_model_valid
 def get_data_viewer(request, model):
     try:
         compartments = APImodels.Compartment.objects.using(model).all()
@@ -541,10 +490,10 @@ def get_data_viewer(request, model):
         return HttpResponse(status=404)
 
     return JSONResponse({
-            'subsystem': APIserializer.SubsystemMapViewerSerializer(subsystems, many=True).data,
-            'subsystemsvg': APIserializer.SubsystemSvgSerializer(subsystems_svg, many=True).data,
-            'compartment':  APIserializer.CompartmentMapViewerSerializer(compartments, many=True).data,
-            'compartmentsvg': APIserializer.CompartmentSvgSerializer(compartments_svg, many=True).data
+            'subsystem': APIcsSerializer.SubsystemMapViewerSerializer(subsystems, many=True).data,
+            'subsystemsvg': APIcsSerializer.SubsystemSvgSerializer(subsystems_svg, many=True).data,
+            'compartment':  APIcsSerializer.CompartmentMapViewerSerializer(compartments, many=True).data,
+            'compartmentsvg': APIcsSerializer.CompartmentSvgSerializer(compartments_svg, many=True).data
         })
 
 ##########################################################################################
@@ -601,18 +550,17 @@ def get_component_with_interaction_partners(request, model, id):
     except APImodels.ReactionComponent.DoesNotExist:
         return HttpResponse(status=404)
 
-    if (component.component_type == 'e'):
-        RCSerializerClass = componentDBserializerSelector(model, 'gene')
-    else:
-        RCSerializerClass = componentDBserializerSelector(model, 'metabolite')
-
-    component_serializer = RCSerializerClass(component, context={'model': model})
+    component_serializer = APIrcSerializer.ReactionComponentBasicSerializer(component)
+    c = {}
+    c.update(component_serializer.data)
+    c['type'] = 'metabolite' if component.component_type == 'm' else 'gene';
+    print (c)
     reactions_count = component.reactions_as_metabolite.count() + \
         component.reactions_as_gene.count()
 
     if reactions_count > 200:
         result = {
-             'component': component_serializer.data,
+             'component': c,
              'reactions': None
          }
 
@@ -629,13 +577,11 @@ def get_component_with_interaction_partners(request, model, id):
             'reactants__compartment', 'products__compartment', 'genes__compartment').all()
     ))
 
-    InteractionPartnerSerializerClass = componentDBserializerSelector(model, 'interaction partner')
-    reactions_serializer = InteractionPartnerSerializerClass(reactions, many=True)
-
+    reactions_serializer = APIserializer.InteractionPartnerSerializer(reactions, many=True)
     result = {
-                 'component': component_serializer.data,
-                 'reactions': reactions_serializer.data
-             }
+        'component': c,
+        'reactions': reactions_serializer.data
+    }
 
     return JSONResponse(result)
 
@@ -741,21 +687,21 @@ def search(request, model, term):
             ~name
         subsystem:
             ~name
-            =external_idX
+            =external_ids
         reaction:
             =id
             ~name
             ~equation
             ~name_equation
             ~ec
-            =external_idX
+            =external_ids
         metabolite:
             =id
             ~full_name
             ~alt_name1
             ~alt_name2
             ~aliases
-            =external_idX
+            =external_ids
             ~formula
         gene:
             same as metabolite, but name instead of full_name
@@ -916,33 +862,27 @@ def search(request, model, term):
 
         else:
             synonym_regex = r"(?:^" + re.escape(term) + r"(?:;|$)" + r")|(?:; " + re.escape(term) + r"(?:;|$))"
-            compartments = APImodels.Compartment.objects.using(model).filter(name__icontains=term)[:limit]
-
-            subsystems = APImodels.Subsystem.objects.using(model).prefetch_related('compartment').filter(
-                Q(name__icontains=term) |
-                Q(external_id1__iexact=term) |
-                Q(external_id2__iexact=term) |
-                Q(external_id3__iexact=term) |
-                Q(external_id4__iexact=term)
+            compartments = APImodels.Compartment.objects.using(model).filter(
+                Q(name_id__iexact=term) |
+                Q(name__icontains=term)
             )[:limit]
 
-            metabolites = APImodels.ReactionComponent.objects.using(model).select_related('metabolite').prefetch_related('subsystem_metabolite').filter(
+            subsystems = APImodels.Subsystem.objects.using(model).prefetch_related('compartment', 'external_databases').filter(
+                Q(name_id__iexact=term) |
+                Q(name__icontains=term) |
+                Q(external_databases__external_id__iexact=term)
+            ).distinct()[:limit]
+
+            metabolites = APImodels.ReactionComponent.objects.using(model).select_related('metabolite').prefetch_related('subsystem_metabolite', 'external_databases').filter(
                 Q(component_type__exact='m') &
                 (Q(id__iexact=term) |
                 Q(full_name__icontains=term) |
                 Q(alt_name1__icontains=term) |
                 Q(alt_name2__icontains=term) |
                 Q(aliases__iregex=synonym_regex) |
-                Q(external_id1__iexact=term) |
-                Q(external_id2__iexact=term) |
-                Q(external_id3__iexact=term) |
-                Q(external_id4__iexact=term) |
-                Q(external_id5__iexact=term) |
-                Q(external_id6__iexact=term) |
-                Q(external_id7__iexact=term) |
-                Q(external_id8__iexact=term) |
-                Q(formula__icontains=term))
-            )[:limit]
+                Q(formula__icontains=term) |
+                Q(external_databases__external_id__iexact=term))
+            ).distinct()[:limit]
 
             exact_metabolites = APImodels.ReactionComponent.objects.using(model).filter(
                 Q(component_type__exact='m') &
@@ -951,52 +891,41 @@ def search(request, model, term):
                 Q(full_name__iexact=term))
             )
 
-            reactions = APImodels.Reaction.objects.using(model).prefetch_related('subsystem').filter(
+            reactions = APImodels.Reaction.objects.using(model).prefetch_related('subsystem', 'external_databases').filter(
                 Q(id__iexact=term) |
                 Q(name__icontains=term) |
                 Q(ec__icontains=term) |
-                Q(external_id1__iexact=term) |
-                Q(external_id2__iexact=term) |
-                Q(external_id3__iexact=term) |
-                Q(external_id4__iexact=term) |
-                Q(external_id5__iexact=term) |
-                Q(external_id6__iexact=term)
-            )[:limit]
+                Q(external_databases__external_id__iexact=term)
+            ).distinct()[:limit]
             if reactions.count() < limit:
                 reactions_mets = APImodels.Reaction.objects.using(model).prefetch_related('subsystem').distinct().filter(
                     Q(metabolites__in=exact_metabolites) & ~Q(id__in=reactions.values_list('id', flat=True)))[:(limit - reactions.count())]
                 reactions = list(chain(reactions, reactions_mets))
 
-            genes = APImodels.ReactionComponent.objects.using(model).select_related('gene').prefetch_related('subsystem_gene', 'compartment_gene').filter(
+            genes = APImodels.ReactionComponent.objects.using(model).select_related('gene').prefetch_related('subsystem_gene', 'compartment_gene', 'external_databases').filter(
                 Q(component_type__exact='e') &
                 (Q(id__iexact=term) |
                 Q(name__icontains=term) |
                 Q(alt_name1__icontains=term) |
                 Q(alt_name2__icontains=term) |
                 Q(aliases__iregex=synonym_regex) |
-                Q(external_id1__iexact=term) |
-                Q(external_id2__iexact=term) |
-                Q(external_id3__iexact=term) |
-                Q(external_id4__iexact=term) |
-                Q(external_id5__iexact=term) |
-                Q(external_id6__iexact=term) |
-                Q(external_id7__iexact=term) |
-                Q(external_id8__iexact=term))
-            )[:limit]
+                Q(external_databases__external_id__iexact=term))
+            ).distinct()[:limit]
 
         if (metabolites.count() + genes.count() + compartments.count() + subsystems.count() + len(reactions)) != 0:
             match_found = True
 
-        MetaboliteSerializerClass = componentDBserializerSelector(model, 'metabolite', serializer_type='lite' if quickSearch else 'search', api_version=request.version)
-        GeneSerializerClass = componentDBserializerSelector(model, 'gene', serializer_type='lite' if quickSearch else 'search', api_version=request.version)
-        ReactionSerializerClass= componentDBserializerSelector(model, 'reaction', serializer_type='basic' if quickSearch else 'search', api_version=request.version)
-        SubsystemSerializerClass = componentDBserializerSelector(model, 'subsystem', serializer_type='lite' if quickSearch else 'search', api_version=request.version)
+        MetaboliteSerializerClass = APIrcSerializer.ReactionComponentLiteSerializer if quickSearch else APIrcSerializer.MetaboliteSearchSerializer
+        GeneSerializerClass = APIrcSerializer.ReactionComponentBasicSerializer if quickSearch else APIrcSerializer.GeneSearchSerializer
+        ReactionSerializerClass = APIserializer.ReactionBasicSerializer if quickSearch else APIserializer.ReactionSearchSerializer
+        SubsystemSerializerClass = APIcsSerializer.SubsystemBasicSerializer if quickSearch else APIcsSerializer.SubsystemSearchSerializer
+        CompartmentSerializerClass = APIcsSerializer.CompartmentBasicSerializer if quickSearch else APIcsSerializer.CompartmentSerializer
 
         metaboliteSerializer = MetaboliteSerializerClass(metabolites, many=True)
         geneSerializer = GeneSerializerClass(genes, many=True)
-        compartmentSerializer = APIserializer.CompartmentSerializer(compartments, many=True)
-        subsystemSerializer = SubsystemSerializerClass(subsystems, many=True, context={'model': model})
-        reactionSerializer = ReactionSerializerClass(reactions, many=True, context={'model': model})
+        compartmentSerializer = CompartmentSerializerClass(compartments, many=True)
+        subsystemSerializer = SubsystemSerializerClass(subsystems, many=True)
+        reactionSerializer = ReactionSerializerClass(reactions, many=True)
 
         results[model]['metabolite'] = metaboliteSerializer.data
         results[model]['gene'] = geneSerializer.data
@@ -1020,65 +949,33 @@ def search(request, model, term):
         # limit to 10 suggestions in total
         for model in models:
             compartment_name = APImodels.Compartment.objects.using(model).raw('SELECT id, name from compartment where levenshtein_less_equal(\'%s\', LOWER(name), %d) <= %d limit 10' % (term, mismatch_for_name, mismatch_for_name))
+
             subsystem_name = APImodels.Subsystem.objects.using(model).raw('SELECT id, name from subsystem where levenshtein_less_equal(\'%s\', LOWER(name), %d) <= %d limit 10' % (term, mismatch_for_name, mismatch_for_name))
+            subsystem_eid = APImodels.SubsystemEID.objects.using(model).raw('SELECT id, external_id from subsystem_eid where levenshtein_less_equal(\'%s\', LOWER(external_id), 2) <= 2 limit 10' % term)
+
             reaction_component_id = APImodels.ReactionComponent.objects.using(model).raw(
                 'SELECT id, id from reaction_component where levenshtein_less_equal(\'%s\', LOWER(id), 1) <= 1' % term)
             reaction_component_name = APImodels.ReactionComponent.objects.using(model).raw(
                 'SELECT id, name from reaction_component where levenshtein_less_equal(\'%s\', LOWER(name), %d) <= %d' % (term, mismatch_for_name, mismatch_for_name))
             reaction_component_formula = APImodels.ReactionComponent.objects.using(model).raw(
                 'SELECT id, formula from reaction_component where levenshtein_less_equal(\'%s\', LOWER(formula), %d) <= %d' % (term, mismatch_for_name, mismatch_for_name))
-            reaction_component_ex1 = APImodels.ReactionComponent.objects.using(model).raw(
-                'SELECT id, external_id1 from reaction_component where external_id1 is not NULL and levenshtein_less_equal(\'%s\', LOWER(external_id1), 2) <= 2 limit 10' % term)
-            reaction_component_ex2 = APImodels.ReactionComponent.objects.using(model).raw(
-                'SELECT id, external_id2 from reaction_component where external_id2 is not NULL and levenshtein_less_equal(\'%s\', LOWER(external_id2), 2) <= 2 limit 10' % term)
-            reaction_component_ex3 = APImodels.ReactionComponent.objects.using(model).raw(
-                'SELECT id, external_id3 from reaction_component where external_id3 is not NULL and levenshtein_less_equal(\'%s\', LOWER(external_id3), 2) <= 2 limit 10' % term)
-            reaction_component_ex4 = APImodels.ReactionComponent.objects.using(model).raw(
-                'SELECT id, external_id4 from reaction_component where external_id4 is not NULL and levenshtein_less_equal(\'%s\', LOWER(external_id4), 2) <= 2 limit 10' % term)
-            reaction_component_ex5 = APImodels.ReactionComponent.objects.using(model).raw(
-                'SELECT id, external_id5 from reaction_component where external_id5 is not NULL and levenshtein_less_equal(\'%s\', LOWER(external_id5), 2) <= 2 limit 10' % term)
-            reaction_component_ex6 = APImodels.ReactionComponent.objects.using(model).raw(
-                'SELECT id, external_id6 from reaction_component where external_id6 is not NULL and levenshtein_less_equal(\'%s\', LOWER(external_id6), 2) <= 2 limit 10' % term)
-            reaction_component_ex7 = APImodels.ReactionComponent.objects.using(model).raw(
-                'SELECT id, external_id7 from reaction_component where external_id7 is not NULL and levenshtein_less_equal(\'%s\', LOWER(external_id7), 2) <= 2 limit 10' % term)
-            reaction_component_ex8 = APImodels.ReactionComponent.objects.using(model).raw(
-                'SELECT id, external_id8 from reaction_component where external_id8 is not NULL and levenshtein_less_equal(\'%s\', LOWER(external_id8), 2) <= 2 limit 10' % term)
+            reaction_component_eid = APImodels.ReactionComponentEID.objects.using(model).raw(
+                'SELECT id, external_id from rc_eid where levenshtein_less_equal(\'%s\', LOWER(external_id), 2) <= 2 limit 10' % term)
+
             reaction_id = APImodels.Reaction.objects.using(model).raw('SELECT id, id from reaction where levenshtein_less_equal(\'%s\', LOWER(id), 1) <= 1 limit 10' % term)
             reaction_name = APImodels.Reaction.objects.using(model).raw('SELECT id, name from reaction where levenshtein_less_equal(\'%s\', LOWER(name), %d) <= %d limit 10' % (term, mismatch_for_name, mismatch_for_name))
-            reaction_ex1 = APImodels.Reaction.objects.using(model).raw(
-                'SELECT id, external_id1 from reaction where external_id1 is not NULL and levenshtein_less_equal(\'%s\', LOWER(external_id1), 2) <= 2 limit 10' % term)
-            reaction_ex2 = APImodels.Reaction.objects.using(model).raw(
-                'SELECT id, external_id2 from reaction where external_id2 is not NULL and levenshtein_less_equal(\'%s\', LOWER(external_id2), 2) <= 2 limit 10' % term)
-            reaction_ex3 = APImodels.Reaction.objects.using(model).raw(
-                'SELECT id, external_id3 from reaction where external_id3 is not NULL and levenshtein_less_equal(\'%s\', LOWER(external_id3), 2) <= 2 limit 10' % term)
-            reaction_ex4 = APImodels.Reaction.objects.using(model).raw(
-                'SELECT id, external_id4 from reaction where external_id4 is not NULL and levenshtein_less_equal(\'%s\', LOWER(external_id4), 2) <= 2 limit 10' % term)
-            reaction_ex5 = APImodels.Reaction.objects.using(model).raw(
-                'SELECT id, external_id5 from reaction where external_id5 is not NULL and levenshtein_less_equal(\'%s\', LOWER(external_id5), 2) <= 2 limit 10' % term)
-            reaction_ex6 = APImodels.Reaction.objects.using(model).raw(
-                'SELECT id, external_id6 from reaction where external_id6 is not NULL and levenshtein_less_equal(\'%s\', LOWER(external_id6), 2) <= 2 limit 10' % term)
+            reaction_eid = APImodels.ReactionEID.objects.using(model).raw('SELECT id, external_id from reaction_eid where levenshtein_less_equal(\'%s\', LOWER(external_id), 2) <= 2 limit 10' % term)
 
             suggestions += [c.name for c in compartment_name] \
-                + [sub.name for s in subsystem_name] \
+                + [s.name for s in subsystem_name] \
                 + [rc.id for rc in reaction_component_id] \
                 + [rc.name for rc in reaction_component_name] \
                 + [rc.formula for rc in reaction_component_formula] \
-                + [rc.external_id1 for rc in reaction_component_ex1] \
-                + [rc.external_id2 for rc in reaction_component_ex2] \
-                + [rc.external_id3 for rc in reaction_component_ex3] \
-                + [rc.external_id4 for rc in reaction_component_ex4] \
-                + [rc.external_id5 for rc in reaction_component_ex5] \
-                + [rc.external_id6 for rc in reaction_component_ex6] \
-                + [rc.external_id7 for rc in reaction_component_ex7] \
-                + [rc.external_id8 for rc in reaction_component_ex8] \
+                + [rc.external_id for rc in reaction_component_eid] \
                 + [r.id for r in reaction_id] \
                 + [r.name for r in reaction_name] \
-                + [r.external_id1 for r in reaction_ex1] \
-                + [r.external_id2 for r in reaction_ex2] \
-                + [r.external_id3 for r in reaction_ex3] \
-                + [r.external_id4 for r in reaction_ex4] \
-                + [r.external_id5 for r in reaction_ex5] \
-                + [r.external_id6 for r in reaction_ex6]
+                + [r.external_id for r in reaction_eid] \
+                + [s.external_id for s in subsystem_eid]
 
         response = HttpResponse(status=404)
         response['suggestions'] = json.dumps(list(set([s for s in suggestions if s]))[:10])
