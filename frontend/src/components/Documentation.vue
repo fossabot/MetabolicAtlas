@@ -12,23 +12,23 @@
             </p>
             <ul class="menu-list">
               <li>
-                <a href="#GEM Browser"><b>GEM Browser</b></a>
+                <a href="#GEM-Browser"><b>GEM Browser</b></a>
                 <ul class="menu-list">
-                  <li><a href="#GEM Browser Search">Search</a></li>
+                  <li><a href="#GEM-Browser-Search">Search</a></li>
                   <li><a href="#Interaction-Partners">Interaction Partners</a></li>
                 </ul>
-                <a href="#Map Viewer"><b>Map Viewer</b></a>
+                <a href="#Map-Viewer"><b>Map Viewer</b></a>
                 <ul class="menu-list">
-                  <li><a href="#2D Viewer">2D Viewer</a></li>
-                  <li><a href="#3D Viewer">3D Viewer</a></li>
-                  <li><a href="#Data overlay">Data Overlay</a></li>
+                  <li><a href="#2D-Viewer">2D Viewer</a></li>
+                  <li><a href="#3D-Viewer">3D Viewer</a></li>
+                  <li><a href="#Data-overlay">Data Overlay</a></li>
                 </ul>
               </li>
               <a href="#Global-search"><b>Global search</b></a>
               <li>
                 <a href="#GEMs"><b>GEMs</b></a>
                 <ul class="menu-list">
-                  <li><a href="#Integrated models">Integrated models</a></li>
+                  <li><a href="#Integrated-models">Integrated models</a></li>
                   <li><a href="#Repository">Repository</a></li>
                   <li><a href="#Comparison">Comparison</a></li>
                   <li><a href="#FTP-download">FTP download</a></li>
@@ -44,12 +44,12 @@
           </aside>
         </div>
         <div id="documentation" class="column content is-medium has-text-justified">
-          Metabolic Atlas allows users to vizualize the content of the integrated <a href="#Integrated-models">Genome-scale metabolic models (GEMs)</a> by using the <a href="#GEM Browser">GEM browser</a> tool, and enables navigation of the metabolic network maps via the <a href="#Map-Viewer">Map viewer</a> tool. These two tools are available upon selecting one of the integrated models. The selected model is indicated to the right of the Metabolic Atlas logo in the top navigation bar. Leaving the <i>Explore</i> section (or the <i>GEM Browser</i> / <i>Map Viewer</i> tools) will unselect the model, and remove its name from the navigation bar.<br>
+          Metabolic Atlas allows users to vizualize the content of the integrated <a href="#Integrated-models">Genome-scale metabolic models (GEMs)</a> by using the <a href="#GEM-Browser">GEM browser</a> tool, and enables navigation of the metabolic network maps via the <a href="#Map-Viewer">Map viewer</a> tool. These two tools are available upon selecting one of the integrated models. The selected model is indicated to the right of the Metabolic Atlas logo in the top navigation bar. Leaving the <i>Explore</i> section (or the <i>GEM Browser</i> / <i>Map Viewer</i> tools) will unselect the model, and remove its name from the navigation bar.<br>
           To browse our integrated GEMs, visit the <router-link :to="{ name: 'gems'}">GEM Repository</router-link> page.<br>
           The <i>GEM Browser</i> and the <i>Map Viewer</i> are closely connected, and users can navigate between the two tools using the buttons in the top navigation bar.
 
           <hr>
-          <h3 id="GEM Browser">GEM Browser</h3>
+          <h3 id="GEM-Browser">GEM Browser</h3>
           The <i>GEM Browser</i> is a set of dedicated pages for different components of the model; reactions, metabolites, genes, subsystems, and compartments.
 
           <h5>Reaction page</h5>
@@ -83,7 +83,7 @@
           <h5>Compartment page</h5>
           Shows information on the current selected compartment. The full list of metabolites, genes and reactions is available through the <a href="#API">API</a>.
 
-          <h5 id="GEM Browser Search">Search</h5>
+          <h5 id="GEM-Browser-Search">Search</h5>
           Search for any term in metabolites, genes, reactions, subsystems, or compartments information.<br>
           The search is restricted to the selected GEM and limited to 50 results per type. Alternatively, users can click on the banner under the search input field to run a <i>Global Search</i>, where the term is searched among all the integrated models' components and is unrestricted. To learn more about the search term possiblities, go to the <a href="#Global-Search">Global Search</a> section of this page.
 
@@ -94,7 +94,7 @@
             <li>Expand interaction partners: add additional interaction partner nodes for the clicked node to the graph. Expanded interactions are represented with dashed lines.</li>
             <li>Highlight reaction: some nodes may be involve in many different reactions. Select a reaction from the list to show the other interaction partners associated with the selected reaction (other interaction partners will be grayed-out). The directionality of each edge is indicated as a triangle, or diamonds in case of a reversible reaction. To remove the highlight, click on the "eraser" button at the top of the graph.</li>
           </ul>
-          Clicking on a node also shows a link on the right sidebar to quickly access the <a href="#GEM Browser">GEM browser</a> page for that node.
+          Clicking on a node also shows a link on the right sidebar to quickly access the <a href="#GEM-Browser">GEM browser</a> page for that node.
           The top-left buttons allow users to (from left to right): customize the graph node's shape and colors, zoom in, zoom out, reset the display, reload the graph (remove expanded interaction partners), and remove any highlighting. The nodes can also be moved around the graph by the user.
           Expression levels from the Human Protein Atlas can be loaded in the <i>Interaction Partners</i> graph using the panel on the right, and in the <i>Map Viewer</i> using the corresponding sidebar button. Doing so will update the gene's node color according to the legend. Some genes may not have RNA levels available - in such case their color corresponds to the n/a color.
 
@@ -108,23 +108,23 @@
           Information of the reactions are listed in this table. Selecting a label of metabolite or gene in the table will select the corresponding node on the graph, and vice versa. Selecting a reaction ID label highlight the reaction on the graph. The search bar above the table can be used to filter out rows to find a given component. The table can be exported via the "Export to TSV" button.
 
           <hr>
-          <h3 id="Map Viewer">Map Viewer</h3>
+          <h3 id="Map-Viewer">Map Viewer</h3>
           The <i>Map Viewer</i> is a separate and independent interface, accessible after an integrated model has been selected. It includes a 2D viewer to vizualize metabolic maps in SVG format, and a 3D viewer to explore the metabolic network in 3 dimensions. Users can easly toggle between the <i>GEM Browser</i> and <i>Map Viewer</i> using the buttons in the top navigation bar.<br>
           To switch between 2D maps and 3D network, use the "Switch to 2D" or "Switch to 3D" button in the top left of the map, respectively. This button is disabled for a model without 2D maps, or when the corresponding 2D version of a 3D network is not available. The two left sidebar buttons are used to select which compartment or subsystem will be shown in the viewer.
 
-          <h5 id="2D Viewer">2D Viewer</h5>
+          <h5 id="2D-Viewer">2D Viewer</h5>
           2D SVG maps are provided for integrated GEMs. They represent either a cell compartment or a subsystem/pathway. While a very high percentage of the reactions in the model are represented on the 2D maps, some may be unavailable.<br>
           Three buttons on the top left of the UI allow users to zoom in, zoom out and show/hide the genes on the current map.<br>
           Users can interact with the maps by clicking and dragging the mouse to pan the view or using the mouse wheel to zoom in/out.<br>
           A search function is available for 2D maps using the search bar. The window will zoom and center on each component found. Click the 'highlight' button to color all found components on the maps in red. To remove the highlight, simply clear the search bar.<br>
           The SVGs are interactive; click on a node (metabolite, reaction, gene) or a subsystem to load some of its information in the sidebar. Additonal information on the corresponding selected element can be accessed by clicking the <i>GEM browser</i> button.<br>
 
-          <h5 id="3D Viewer">3D Viewer</h5>
+          <h5 id="3D-Viewer">3D Viewer</h5>
           3D renderings of the metabolic network are automatically generated from the GEM data. This 3D graph contains all the reactions in the model, grouped by cellular compartment or subsystem.<br>
           Interaction with the 3D graph is possible using the mouse by holding left-click and moving the mose to rotate the view, right-click to pan, and use the mouse wheel to zoom in/out.<br>
           Users can also hover a node to view its name/id or left-clik on a node (once the graph has stopped moving) to display some of its information in the sidebar. Additonal information on the corresponding selected element can be accessed by clicking the <i>GEM browser</i> button.<br>
 
-          <h5 id="Data overlay">Data overlay</h5>
+          <h5 id="Data-overlay">Data overlay</h5>
           <div class="columns is-marginless">
             <div class="column is-paddingless is-8 content">
               Gene expression levels for genes from <a href="https://www.proteinatlas.org/about/releases#18" target="_blank">The Human Protein Atlas v18</a> can be loaded using the <i>Data overlay</i> sidebar on the right side. Once selected, the RNA levels corresponding to the chosen tissue will be used to color each gene on the respective map, as shown in the legend. To clear the RNA levels, select the <i>None</i> option. RNA levels are available for both the 2D and 3D Map Viewer. The data is obtained from version 18 of the Protein Atlas with the units in log<sub>2</sub>(TPM+1) associated with a gradient colorbar.<br>
@@ -140,9 +140,7 @@
               </blockquote>
               <RNALegend></RNALegend>
               <br>
-              <RNALegend text="log<sub>2</sub>(TPM<sub>T2</sub>+1 / TPM<sub>T1</sub>+1)" left-value="-5"
-                         right-value="5"
-                         :gradient="`${multipleColors}`"></RNALegend>
+              <RNALegend text="log<sub>2</sub>(TPM<sub>T2</sub>+1 / TPM<sub>T1</sub>+1)" left-value="-5" right-value="5" :gradient="`${multipleColors}`"></RNALegend>
             </div>
           </div>
 
@@ -160,7 +158,7 @@
           <h3 id="GEMs">GEMs</h3>
           A genome-scale metabolic model (GEM) is a mathematical representation of a metabolic reaction network.
 
-          <h5 id="Integrated models">Integrated GEMs</h5>
+          <h5 id="Integrated-models">Integrated GEMs</h5>
           Currently, Metabolic Atlas contains two integrated models, <i>Yeast-GEM</i> and <i>Human-GEM</i>.
 
           <h5 id="Repository">GEM Repository</h5>
