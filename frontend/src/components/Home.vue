@@ -98,6 +98,7 @@
             </div>
           </div>
         </div>
+        <br>
         <div id="newsandcommunity" class="columns is-variable is-6">
           <div v-for="card in cards" :key="card.title" class="column is-half">
             <div class="card card-fullheight is-size-5">
@@ -185,6 +186,9 @@ export default {
       cards: [
         { title: 'Latest news',
           text: [
+            { date: '2020.02.07',
+              hash: '7-February-2020',
+              text: 'Metabolic Atlas v1.5' },
             { date: '2019.09.11',
               hash: '11-September-2019',
               text: 'Metabolic Atlas was presented in a course' },
@@ -206,18 +210,6 @@ export default {
             { date: '2019.05.02',
               hash: '2-May-2018',
               text: '<i>Human1</i> is integrated, with complete maps' },
-            { date: '2018.12.17',
-              hash: 'December-2018',
-              text: 'MapViewer is faster when browsing manually curated maps' },
-            { date: '2018.12.08',
-              hash: 'December-2018',
-              text: 'New maps for <i>Human1</i> are being created' },
-            { date: '2018.11.28',
-              hash: 'November-2018',
-              text: 'A draft version of the <i>Human1</i> model is now integrated' },
-            { date: '2018.11.23',
-              hash: 'November-2018',
-              text: 'A draft version of the <i>Yeast8</i> model is now integrated' },
           ],
         },
         { title: 'Community',
