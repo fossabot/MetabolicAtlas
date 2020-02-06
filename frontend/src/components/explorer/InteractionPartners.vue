@@ -473,7 +473,7 @@ export default {
       this.reactionHL = null;
       this.compartmentHL = '';
       this.subsystemHL = '';
-      this.$router.push(`/explore/gem-browser/${this.model.database_name}/interaction/${this.clickedElmId}`);
+      this.$router.push(`/explore/interaction/${this.model.database_name}/${this.clickedElmId}`);
     },
     loadHPATissue() {
       axios.get(`${this.model.database_name}/gene/hpa_tissue/`)
