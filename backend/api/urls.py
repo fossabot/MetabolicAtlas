@@ -24,9 +24,9 @@ urlpatterns = [
     url(r'^(?P<model>[^/]+)/metabolite/(?P<id>[^/]+)/reactions/all_compartments/?$', views.get_metabolite_reactions_all_compartment),
 
     url(r'^(?P<model>[^/]+)/subsystems/?$', views.get_subsystems),
-    url(r'^(?P<model>[^/]+)/subsystem/(?P<subsystem_name_id>[^/]+)/?$', views.get_subsystem),
-    url(r'^(?P<model>[^/]+)/subsystem/(?P<subsystem_name_id>[^/]+)/reactions/?$', views.get_subsystem_reactions),
+    url(r'^(?P<model>[^/]+)/subsystem/(?P<id>[^/]+)/?$', views.get_subsystem),
+    url(r'^(?P<model>[^/]+)/subsystem/(?P<id>[^/]+)/reactions/?$', views.get_subsystem_reactions),
 
     url(r'^(?P<model>[^/]+)/compartments/?$', views.get_compartments),
-    url(r'^(?P<model>[^/]+)/compartment/(?P<compartment_name_id>[^/]+)/?$', views.get_compartment),
+    url(r'^(?P<model>[^/]+)/compartment/(?P<id>[^/]+)/?$', views.get_compartment),
 ]

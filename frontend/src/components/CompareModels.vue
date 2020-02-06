@@ -6,73 +6,79 @@
         <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
         <h4 class="title is-size-4">{{ c.models.A.modelId }} vs. {{ c.models.B.modelId }}</h4>
         <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
-        <table class="is-fullwidth table is-narrow">
-          <thead>
-            <tr>
-              <th>Model</th>
-              <th>Description</th>
-              <th>Reactions</th>
-              <th>Shared reactions</th>
-              <th>Exclusive reactions</th>
-              <th>Exclusive reactions %</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="model in c.models" :key="model.modeName">
-              <td>{{ model.modelId }}</td>
-              <td v-html="model.modelName"></td>
-              <td>{{ model.totalReactions }}</td>
-              <td>{{ model.sharedReactions }}%</td>
-              <td>{{ model.exclusiveReactions }}</td>
-              <td>{{ model.exclusivePercentage }}</td>
-            </tr>
-          </tbody>
-        </table>
+        <div class="table-container">
+          <table class="is-fullwidth table is-narrow">
+            <thead>
+              <tr>
+                <th>Model</th>
+                <th>Description</th>
+                <th>Reactions</th>
+                <th>Shared reactions</th>
+                <th>Exclusive reactions</th>
+                <th>Exclusive reactions %</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="model in c.models" :key="model.modeName">
+                <td>{{ model.modelId }}</td>
+                <td v-html="model.modelName"></td>
+                <td>{{ model.totalReactions }}</td>
+                <td>{{ model.sharedReactions }}%</td>
+                <td>{{ model.exclusiveReactions }}</td>
+                <td>{{ model.exclusivePercentage }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
         <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
         <div class="columns is-variable is-8">
           <div class="column">
             <h5 class="title is-size-5">Exclusive reactions by compartment</h5>
-            <table class="table is-fullwidth is-striped is-hoverable">
-              <thead>
-                <tr>
-                  <th>Compartment</th>
-                  <th>Human1 total</th>
-                  <th>{{ c.models.A.modelId }}-exclusive</th>
-                  <th>{{ c.models.B.modelId }}-exclusive</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="subsys in c.compartments" :key="subsys.name">
-                  <td>{{ subsys.name }}</td>
-                  <td>{{ subsys.totalMissing }}</td>
-                  <td>{{ subsys.missingReactionsFromA }}</td>
-                  <td>{{ subsys.missingReactionsFromB }}</td>
-                </tr>
-              </tbody>
-            </table>
+            <div class="table-container">
+              <table class="table is-fullwidth is-striped is-hoverable">
+                <thead>
+                  <tr>
+                    <th>Compartment</th>
+                    <th>Human1 total</th>
+                    <th>{{ c.models.A.modelId }}-exclusive</th>
+                    <th>{{ c.models.B.modelId }}-exclusive</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="subsys in c.compartments" :key="subsys.name">
+                    <td>{{ subsys.name }}</td>
+                    <td>{{ subsys.totalMissing }}</td>
+                    <td>{{ subsys.missingReactionsFromA }}</td>
+                    <td>{{ subsys.missingReactionsFromB }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
             <p>Note: some reactions are associated with multiple compartments.</p>
           </div>
 
           <div class="column">
             <h5 class="title is-size-5">Exclusive reactions by subsystem</h5>
-            <table class="table is-fullwidth is-striped is-hoverable">
-              <thead>
-                <tr>
-                  <th>Subsystem</th>
-                  <th>Human1 total</th>
-                  <th>{{ c.models.A.modelId }}-exclusive</th>
-                  <th>{{ c.models.B.modelId }}-exclusive</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="subsys in c.subsystems" :key="subsys.name">
-                  <td>{{ subsys.name }}</td>
-                  <td>{{ subsys.totalMissing }}</td>
-                  <td>{{ subsys.missingReactionsFromA }}</td>
-                  <td>{{ subsys.missingReactionsFromB }}</td>
-                </tr>
-              </tbody>
-            </table>
+            <div class="table-container">
+              <table class="table is-fullwidth is-striped is-hoverable">
+                <thead>
+                  <tr>
+                    <th>Subsystem</th>
+                    <th>Human1 total</th>
+                    <th>{{ c.models.A.modelId }}-exclusive</th>
+                    <th>{{ c.models.B.modelId }}-exclusive</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="subsys in c.subsystems" :key="subsys.name">
+                    <td>{{ subsys.name }}</td>
+                    <td>{{ subsys.totalMissing }}</td>
+                    <td>{{ subsys.missingReactionsFromA }}</td>
+                    <td>{{ subsys.missingReactionsFromB }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
         <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->

@@ -27,9 +27,10 @@ def is_model_valid(view_func):
         if not model:
             model = args.get('model')
         try:
-            m = APImodels.GEM.objects.get(database_name=model)
+            m = APImodels.GEM.objects.get(Q(database_name=model) | Q(short_name__iexact=model))
+            kwargs['model'] = m.database_name
         except APImodels.GEM.DoesNotExist:
-            return HttpResponse("Invalid model name '%s'" % model, status=404)
+            return HttpResponse("Invalid model '%s'" % model, status=404)
         return view_func(request, *args, **kwargs)
     return wrapper
 
@@ -412,12 +413,12 @@ def get_gene_reactions(request, model, id, api=True):
 
 @api_view()
 @is_model_valid
-def get_subsystem(request, model, subsystem_name_id, api=True):
+def get_subsystem(request, model, id, api=True):
     """
     For a given subsystem name, list all the containing metabolites and genes/genes.
     """
     try:
-        subsystem = APImodels.Subsystem.objects.using(model).get(Q(name_id__iexact=subsystem_name_id) | Q(name__iexact=subsystem_name_id))
+        subsystem = APImodels.Subsystem.objects.using(model).get(Q(name_id__iexact=id) | Q(name__iexact=id))
         subsystem_id = subsystem.id
     except APImodels.Subsystem.DoesNotExist:
         return HttpResponse(status=404)
@@ -442,12 +443,12 @@ def get_subsystem(request, model, subsystem_name_id, api=True):
 
 @api_view()
 @is_model_valid
-def get_subsystem_reactions(request, model, subsystem_name_id, api=True):
+def get_subsystem_reactions(request, model, id, api=True):
     """
     For a given subsystem/pathway name, list all the containing reactions.
     """
     try:
-        subsystem = APImodels.Subsystem.objects.using(model).get(Q(name_id__iexact=subsystem_name_id) | Q(name__iexact=subsystem_name_id))
+        subsystem = APImodels.Subsystem.objects.using(model).get(Q(name_id__iexact=id) | Q(name__iexact=id))
         subsystem_id = subsystem.id
     except APImodels.Subsystem.DoesNotExist:
         return HttpResponse(status=404)
@@ -507,12 +508,12 @@ def get_compartments(request, model):
 
 @api_view()
 @is_model_valid
-def get_compartment(request, model, compartment_name_id, api=True):
+def get_compartment(request, model, id, api=True):
     """
     For a given compartment name (e.g., Golgi apparatus or golgi_apparatus), returns all containing metabolites, genes, reactions and subsystems.
     """
     try:
-        compartment = APImodels.Compartment.objects.using(model).prefetch_related('subsystem').get(Q(name_id__iexact=compartment_name_id) | Q(name__iexact=compartment_name_id))
+        compartment = APImodels.Compartment.objects.using(model).prefetch_related('subsystem').get(Q(name_id__iexact=id) | Q(name__iexact=id))
         compartment_id = compartment.id
     except APImodels.Compartment.DoesNotExist:
         return HttpResponse(status=404)
@@ -553,7 +554,7 @@ def get_models(request):
 @api_view()
 def get_model(request, name):
     """
-    List all information for a given model available on the GEM browser, supply its name e.g., 'humanGEM'.
+    List all information for a given model available on the GEM browser, supply its name e.g., 'Human-GEM'.
     """
 
     try:

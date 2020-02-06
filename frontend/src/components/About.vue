@@ -133,7 +133,7 @@ export default {
           { date: '17 May 2019',
             text: '<b>Metabolic Atlas v1.0</b> is publicly available. We have finalized two main tools, the <i>GEM Browser</i> (including <i>Interaction Partners</i>) and <i>Map Viewer</i>. Additionally, Metabolic Atlas is hosting GEMs in a repository. More details can be found in <a href="https://github.com/SysBioChalmers/MetabolicAtlas/releases/tag/v1.0" target="_blank">on GitHub</a>.',
             icon: 'flag' },
-          { date: '2 May 2018',
+          { date: '2 May 2019',
             text: '<i>Human1</i> is integrated, with complete compartment maps, and a significant number of the subsystem maps.' },
         ],
         2018: [

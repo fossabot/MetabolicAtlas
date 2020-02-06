@@ -115,7 +115,7 @@
                   </tr>
                   <tr v-if="selectedModel.authors && selectedModel.authors.length !== 0">
                     <td class="td-key has-background-primary has-text-white-bis">Author(s)</td>
-                    <td>{{ selectedModel.authors.map(a => `${a.given_name}${a.family_name}`).join(', ') }}</td>
+                    <td>{{ selectedModel.authors.map(a => `${a.given_name} ${a.family_name}`).join(', ') }}</td>
                   </tr>
                   <tr v-if="selectedModel.date">
                     <td class="td-key has-background-primary has-text-white-bis">Date</td>
