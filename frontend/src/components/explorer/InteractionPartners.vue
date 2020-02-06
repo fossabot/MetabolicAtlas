@@ -496,6 +496,7 @@ export default {
           this.showGraphContextMenu = false;
           const { component } = response.data;
           this.reactions = response.data.reactions;
+          this.title = component.type === 'metabolite' ? this.chemicalName(component.name) : component.name;
           if (!this.reactions) {
             this.tooLargeNetworkGraph = true;
             this.showNetworkGraph = false;
