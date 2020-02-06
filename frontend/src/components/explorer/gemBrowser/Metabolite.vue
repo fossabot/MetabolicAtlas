@@ -169,12 +169,4 @@ export default {
 };
 </script>
 
-<style lang="scss">
-
-.metabolite-table, .model-table, .reaction-table, .subsystem-table {
-  .main-table tr td.td-key, #ed-table tr td.td-key {
-    width: 150px;
-  }
-}
-
-</style>
+<style lang="scss"></style>
