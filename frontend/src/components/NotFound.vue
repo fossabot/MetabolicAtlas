@@ -3,7 +3,7 @@
     <div class="box has-background-light content">
       <template v-if="type">
         <p class="title is-size-3">
-          <span class="is-capitalized">{{ type }}&nbsp;</span> "&nbsp;{{ componentID }}&nbsp;" &nbsp;not found
+          <span class="is-capitalized">{{ type }}&nbsp;</span> "&nbsp;{{ componentId }}&nbsp;" &nbsp;not found
         </p>
         <template v-if="type === 'model'">
           <p>Visit the Explore page to select one of our integrated models</p>
@@ -34,7 +34,7 @@ export default {
   name: 'NotFound',
   props: {
     type: String,
-    componentID: String,
+    componentId: String,
   },
 };
 
