@@ -6,8 +6,8 @@ export default function (
   const enzExpSource = nodeDisplayParams.geneExpSource;
   const enzExpType = nodeDisplayParams.geneExpType;
   const enzSample = nodeDisplayParams.geneExpSample;
-  for (const id of Object.keys(elms)) {
-    const elm = elms[id];
+  /* eslint-disable no-param-reassign */
+  Object.values(elms).forEach((elm) => {
     if (elm.type === 'gene') {
       if (!elm.expressionLvl) {
         elm.expressionLvl = {};
@@ -42,11 +42,9 @@ export default function (
         },
       });
     }
-  }
+  });
 
-  for (const id of Object.keys(rels)) {
-    const rel = rels[id];
-
+  Object.values(rels).forEach((rel) => {
     elmsjson.push({
       group: 'edges',
       data: {
@@ -58,7 +56,8 @@ export default function (
         direction: rel.direction,
       },
     });
-  }
+  });
+  // for (const id of Object.keys(rels)) {
 
   const metaboliteColor = nodeDisplayParams.metaboliteNodeColor.hex;
   const textColor = '#363636';
@@ -75,7 +74,8 @@ export default function (
       'font-weight': function f(e) {
         if (reactionHL && e.data().reaction && e.data().reaction.has(reactionHL)) {
           return 'bold';
-        } else if (!reactionHL) {
+        }
+        if (!reactionHL) {
           return 'normal';
         }
         return 'normal';
@@ -111,7 +111,8 @@ export default function (
       opacity: function f(e) {
         if (reactionHL && e.data().reaction && e.data().reaction.has(reactionHL)) {
           return 1;
-        } else if (!reactionHL) {
+        }
+        if (!reactionHL) {
           return 1;
         }
         return 0.6;
@@ -152,7 +153,8 @@ export default function (
       opacity: function f(e) {
         if (reactionHL && e.data().reaction && e.data().reaction.has(reactionHL)) {
           return 1;
-        } else if (!reactionHL) {
+        }
+        if (!reactionHL) {
           return 1;
         }
         return 0.6;
@@ -165,7 +167,8 @@ export default function (
       opacity: function f(e) {
         if (reactionHL && e.data().reaction && e.data().reaction.has(reactionHL)) {
           return 1;
-        } else if (!reactionHL) {
+        }
+        if (!reactionHL) {
           return 1;
         }
         return 0.2;
@@ -182,7 +185,8 @@ export default function (
         if (e.data().direction && reactionHL in e.data().direction) {
           if (e.data().direction[reactionHL] === 1) {
             return 'triangle-tee';
-          } else if (e.data().direction[reactionHL] === 0) {
+          }
+          if (e.data().direction[reactionHL] === 0) {
             return 'diamond';
           }
           return 'none';
@@ -194,7 +198,8 @@ export default function (
         if (e.data().direction && reactionHL in e.data().direction) {
           if (e.data().direction[reactionHL] === -1) {
             return 'triangle-tee';
-          } else if (e.data().direction[reactionHL] === 0) {
+          }
+          if (e.data().direction[reactionHL] === 0) {
             return 'diamond';
           }
           return 'none';

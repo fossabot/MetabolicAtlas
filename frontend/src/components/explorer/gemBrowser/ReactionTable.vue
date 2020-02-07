@@ -1,7 +1,7 @@
 <template>
   <div class="reaction-table">
     <div class="field">
-      <span class="tag is-medium" :class="reactions.length == limit ? 'is-warning' : ''">
+      <span class="tag is-medium" :class="reactions.length === limit ? 'is-warning' : ''">
         # Reactions: {{ reactions.length }}
       </span>
       <template v-if="transportReactionCount !== 0">
@@ -10,66 +10,89 @@
           {{ transportReactionCount }} transport reactions
         </span>
       </template>
-      <span v-show="reactions.length == limit" class="tag is-medium is-warning is-pulled-right">
+      <ExportTSV
+        class="is-pulled-right"
+        :style="{ 'margin-left': '1rem' }"
+        :filename="`reaction_${sourceName}.tsv`"
+        :format-function="formatToTSV"
+      ></ExportTSV>
+      <span v-show="reactions.length === limit" class="tag is-medium is-warning is-pulled-right">
         The number of reactions displayed is limited to {{ limit }}.
       </span>
     </div>
-    <table class="table is-bordered is-striped is-narrow is-fullwidth" ref="table">
-      <thead>
-        <tr class="has-background-white-ter">
-          <th class="is-unselectable clickable"
-          v-for="f in fields" v-show="showCol(f.name)"
-            @click="sortTable(f.name, null, null)"
-            :title="`Sort by ${f.display}`">
+    <div class="table-container">
+      <table ref="table" class="table is-bordered is-striped is-narrow is-fullwidth">
+        <thead>
+          <tr class="has-background-white-ter">
+            <th v-for="f in fields" v-show="showCol(f.name)"
+                :key="f.name" class="is-unselectable clickable"
+                :title="`Sort by ${f.display}`"
+                @click="sortTable(f.name, null, null)">
               {{ f.display.replace(' ', '&nbsp;') }}
             </th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="(r, index) in sortedReactions">
-          <td>
-            <router-link :to="{path: `/explore/gem-browser/${model.database_name}/reaction/${r.id}` }">{{ r.id }}</router-link>
-          </td>
-          <td v-html="getReformatChemicalReactionHTML(r)"></td>
-          <td>
-            <template v-for="(m, index) in r.genes">{{ index == 0 ? '' : ', '}}<router-link :to="{ path: `/explore/gem-browser/${model.database_name}/gene/${m.id}` }">{{ m.name || m.id }}</router-link>
-            </template>
-          </td>
-          <td v-show="showCP">{{ r.cp }}</td>
-          <td v-show="showSubsystem">
-            <template v-if="r.subsystem_str">
-              <template v-for="(s, index) in r.subsystem_str.split('; ')">
-              {{ index == 0 ? '' : '; '}}<router-link :to="{ path: `/explore/gem-browser/${model.database_name}/subsystem/${idfy(s)}` }">{{ s }}</router-link>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="r in sortedReactions" :key="r.id">
+            <td>
+              <a
+                :href="`/explore/gem-browser/${model.database_name}/reaction/${r.id}`"
+                @click="handleLinkClick">
+                {{ r.id }}
+              </a>
+            </td>
+            <td v-html="reformatChemicalReactionHTML(r)"></td>
+            <td>
+              <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key max-len -->
+              <template v-for="(m, index) in r.genes">{{ index == 0 ? '' : ', ' }}<a :href="`/explore/gem-browser/${model.database_name}/gene/${m.id}`" @click="handleLinkClick">{{ m.name || m.id }}</a>
               </template>
-            </template>
-          </td>
-          <td>
-            <template v-for="(RP, i) in r.compartment.split(' => ')">
-              <template v-if="i != 0">{{ r.is_reversible ? ' &#8660; ' : ' &#8658; ' }}</template>
-              <template v-for="(compo, j) in RP.split(' + ')">
-                <template v-if="j != 0"> + </template>
-                <router-link :to="{ path: `/explore/gem-browser/${model.database_name}/compartment/${idfy(compo)}` }"> {{ compo }}</router-link>
+            </td>
+            <td v-show="showCP">{{ r.cp }}</td>
+            <td v-show="showSubsystem">
+              <template v-if="r.subsystem_str">
+                <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key max-len -->
+                <template v-for="(s, index) in r.subsystem_str.split('; ')">{{ index == 0 ? '' : '; ' }}<a :href="`/explore/gem-browser/${model.database_name}/subsystem/${idfy(s)}`" @click="handleLinkClick">{{ s }}</a>
+                </template>
               </template>
-            </template>
-          </td>
-        </tr>
-      </tbody>
-    </table>
+            </td>
+            <td>
+              <template v-for="(RP, i) in r.compartment_str.split(' => ')">
+                <template v-if="i !== 0">{{ r.is_reversible ? ' &#8660; ' : ' &#8658; ' }}</template>
+                <template v-for="(compo, j) in RP.split(' + ')">
+                  <template v-if="j != 0"> + </template>
+                  <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key max-len -->
+                  <a :href="`/explore/gem-browser/${model.database_name}/compartment/${idfy(compo)}`" @click="handleLinkClick">{{ compo }}</a>
+                </template>
+              </template>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </template>
 
 <script>
 import $ from 'jquery';
-import { default as compare } from '../../../helpers/compare';
-import { chemicalReaction } from '../../../helpers/chemical-formatters';
-import { reformatCompEqString, idfy, reformatChemicalReactionHTML } from '../../../helpers/utils';
+import { default as compare } from '@/helpers/compare';
+import ExportTSV from '@/components/explorer/gemBrowser/ExportTSV';
+import { reformatCompEqString, idfy, reformatChemicalReactionHTML, getChemicalReaction } from '@/helpers/utils';
 
 export default {
-  name: 'reaction-table',
-  props: ['reactions', 'selectedElmId', 'showSubsystem', 'model', 'limit'],
+  name: 'ReactionTable',
+  components: {
+    ExportTSV,
+  },
+  props: {
+    model: Object,
+    sourceName: String,
+    reactions: Array,
+    selectedElmId: String,
+    limit: Number,
+    showSubsystem: Boolean,
+  },
   data() {
     return {
-      showCP: false,
       fields: [{
         display: 'Reaction ID',
         name: 'id',
@@ -87,7 +110,7 @@ export default {
         name: 'subsystem_str',
       }, {
         display: 'Compartment',
-        name: 'compartment',
+        name: 'compartment_str',
       }],
       // sortedReactions: [],
       sortOrder: 'asc',
@@ -95,6 +118,48 @@ export default {
       sortPattern: '',
       reformatCompEqString,
     };
+  },
+  computed: {
+    showCP() {
+      return this.selectedElmId; // true or false
+    },
+    transportReactionCount() {
+      return this.reactions.filter(r => r.is_transport).length;
+    },
+    sortedReactions() {
+      let reactionsCopy = [...this.reactions];
+
+      if (reactionsCopy.length === 0) {
+        return [];
+      }
+
+      // create consume/produce column
+      if (this.selectedElmId) {
+        reactionsCopy = reactionsCopy.map((r) => {
+          const rCopy = { ...r };
+
+          if (rCopy.is_reversible) {
+            rCopy.cp = 'consume/produce';
+          } else {
+            const boolC = rCopy.reactionreactant_set.filter(
+              e => e.id === this.selectedElmId);
+            if (boolC.length !== 0) {
+              rCopy.cp = 'consume';
+            } else {
+              const boolP = rCopy.reactionproduct_set.filter(
+                e => e.id === this.selectedElmId);
+              if (boolP.length !== 0) {
+                rCopy.cp = 'produce';
+              }
+            }
+          }
+
+          return rCopy;
+        });
+      }
+      return reactionsCopy.concat().sort(
+        compare(this.sortBy, this.sortPattern, this.sortOrder));
+    },
   },
   updated() {
     if (this.selectedElmId) {
@@ -104,44 +169,7 @@ export default {
       $(`.${this.selectedElmId}`).addClass('cms');
     }
   },
-  computed: {
-    transportReactionCount() {
-      return this.reactions.filter(r => r.is_transport).length;
-    },
-    sortedReactions() {
-      if (this.reactions.length === 0) {
-        return [];
-      }
-      // create consume/produce column
-      if (this.selectedElmId) {
-        this.showCP = true;
-        for (const reaction of this.reactions) {
-          if (reaction.is_reversible) {
-            reaction.cp = 'consume/produce';
-          } else {
-            const boolC = reaction.reactionreactant_set.filter(
-              e => e.reactant.id === this.selectedElmId);
-            if (boolC.length !== 0) {
-              reaction.cp = 'consume';
-            } else {
-              const boolP = reaction.reactionproduct_set.filter(
-                e => e.product.id === this.selectedElmId);
-              if (boolP.length !== 0) {
-                reaction.cp = 'produce';
-              }
-            }
-          }
-        }
-      }
-      return this.reactions.sort(
-         compare(this.sortBy, this.sortPattern, this.sortOrder));
-    },
-  },
   methods: {
-    formatChemicalReaction(v, r) { return chemicalReaction(v, r); },
-    getReformatChemicalReactionHTML(r) {
-      return reformatChemicalReactionHTML(r);
-    },
     sortTable(field, pattern, order) {
       if (order) {
         this.sortOrder = order;
@@ -154,12 +182,38 @@ export default {
       this.sortPattern = pattern;
     },
     showCol(name) {
-      if (name === 'cp' && !this.showCP) {
-        return false;
-      } else if (name === 'subsystem_str' && !this.showSubsystem) {
+      if ((name === 'cp' && !this.showCP) || (name === 'subsystem_str' && !this.showSubsystem)) {
         return false;
       }
       return true;
+    },
+    handleLinkClick(e) {
+      e.preventDefault();
+      this.$router.push(e.target.pathname);
+    },
+    formatToTSV() {
+      let tsvContent = `${this.fields.filter((e) => {
+        if ((e.name === 'cp' && !this.showCP)
+          || (e.name === 'subsystem_str' && !this.showSubsystem)) {
+          return false;
+        }
+        return true;
+      }).map(e => e.display).join('\t')}\n`;
+      tsvContent += this.sortedReactions.map((r) => {
+        const arr = [];
+        arr.push(r.id);
+        arr.push(getChemicalReaction(r));
+        arr.push(r.genes.map(g => g.name || g.id).join('; '));
+        if (this.showCP) {
+          arr.push(r.cp);
+        }
+        if (this.showSubsystem) {
+          arr.push(r.subsystem_str);
+        }
+        arr.push(r.compartment_str);
+        return arr.join('\t');
+      }).join('\n');
+      return tsvContent;
     },
     idfy,
     reformatChemicalReactionHTML,

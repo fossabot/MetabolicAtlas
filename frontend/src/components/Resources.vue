@@ -1,13 +1,14 @@
 <template>
   <section class="section section-no-top extended-section">
-    <div class="container">
+    <div class="container is-size-5">
       <template v-for="(elems, category) in resources">
-        <h2 class="title is-2">{{ category}}</h2>
-        <div class="columns" v-for="elem in elems">
+        <!-- eslint-disable-next-line vue/require-v-for-key -->
+        <h2 class="title is-2">{{ category }}</h2>
+        <div v-for="elem in elems" :key="elem.name" class="columns">
           <div class="column is-1">
             <a :href="elem.link" target="_blank">
               <template v-if="elem.img">
-                <img :src="elem.img"/>
+                <img :src="elem.img" />
               </template>
               <template v-else>
                 {{ elem.name }}
@@ -27,9 +28,9 @@
 
 <script>
 
-/* eslint-disable global-require*/
+/* eslint-disable global-require */
 export default {
-  name: 'resources',
+  name: 'Resources',
   data() {
     return {
       resources: {

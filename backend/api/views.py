@@ -8,7 +8,7 @@ from rest_framework import permissions
 import api.models as APImodels
 import api.serializers as APIserializer
 import api.serializers_rc as APIrcSerializer
-
+import api.serializers_cs as APIcsSerializer
 import requests
 import logging
 import functools
@@ -27,9 +27,10 @@ def is_model_valid(view_func):
         if not model:
             model = args.get('model')
         try:
-            m = APImodels.GEM.objects.get(database_name=model)
+            m = APImodels.GEM.objects.get(Q(database_name=model) | Q(short_name__iexact=model))
+            kwargs['model'] = m.database_name
         except APImodels.GEM.DoesNotExist:
-            return HttpResponse("Invalid model name '%s'" % model, status=404)
+            return HttpResponse("Invalid model '%s'" % model, status=404)
         return view_func(request, *args, **kwargs)
     return wrapper
 
@@ -44,80 +45,26 @@ class IsModelValid(permissions.BasePermission):
 
 
 def componentDBserializerSelector(database, type, serializer_type=None, api_version=None):
-    serializer_choice = ['basic', 'lite', 'table', 'search', None]
+    serializer_choice = ['basic', 'lite', 'table', None]
     if serializer_type not in serializer_choice:
         raise ValueError("Error serializer type, choices are %s" % ", ".join([str(e) for e in serializer_choice]))
 
-    if database in ['hmr2', 'human1']:
-        if type == 'reaction component':
-            if serializer_type in ['lite', 'basic']:
-                return APIrcSerializer.ReactionComponentLiteSerializer
-            return APIrcSerializer.HmrReactionComponentSerializer
-        elif type == 'metabolite':
-            if serializer_type in ['lite', 'basic']:
-                return APIrcSerializer.HmrMetaboliteReactionComponentLiteSerializer
-            if serializer_type in ['search']:
-                return APIrcSerializer.MetaboliteReactionComponentSearchSerializer
-            return APIrcSerializer.HmrMetaboliteReactionComponentSerializer
-        elif type == 'gene':
-            if serializer_type in ['lite', 'basic']:
-                return APIrcSerializer.HmrGeneReactionComponentLiteSerializer
-            elif serializer_type in ['search']:
-                return APIrcSerializer.GeneReactionComponentSearchSerializer
-            return APIrcSerializer.HmrGeneReactionComponentSerializer
-        elif type == 'reaction':
-            if serializer_type == 'basic':
-                return APIserializer.ReactionBasicSerializer
-            if serializer_type == 'lite':
-                return APIserializer.HmrReactionLiteSerializer
-            if serializer_type == 'table':
-                return APIserializer.ReactionBasicRTSerializer
-            if serializer_type == 'search':
-                return APIserializer.ReactionSearchSerializer
-            return APIserializer.HmrReactionSerializer
-        elif type == 'subsystem':
-            if serializer_type == 'lite':
-                return APIserializer.SubsystemLiteSerializer
-            elif serializer_type == 'search':
-                return APIserializer.SubsystemSearchSerializer
-            return APIserializer.HmrSubsystemSerializer
-        elif type == 'interaction partner':
-            return APIserializer.InteractionPartnerSerializer
-    else:
-        if type == 'reaction component':
-            if serializer_type in ['lite', 'basic']:
-                return APIrcSerializer.ReactionComponentLiteSerializer
-            return APIrcSerializer.ReactionComponentSerializer
-        elif type == 'metabolite':
-            if serializer_type in ['lite', 'basic']:
-                return APIrcSerializer.ReactionComponentSerializer
-            elif serializer_type in ['search']:
-                return APIrcSerializer.MetaboliteReactionComponentSearchSerializer
-            return APIrcSerializer.MetaboliteReactionComponentSerializer
-        elif type == 'gene':
-            if serializer_type in ['lite', 'basic']:
-                return APIrcSerializer.ReactionComponentSerializer
-            if serializer_type in ['search']:
-                return APIrcSerializer.GeneReactionComponentSearchSerializer
-            return APIrcSerializer.GeneReactionComponentSerializer
-        elif type == 'reaction':
-            if serializer_type == 'basic':
-                return APIserializer.ReactionBasicSerializer
-            if serializer_type == 'lite':
-                return APIserializer.ReactionLiteSerializer
-            if serializer_type == 'table':
-                return APIserializer.ReactionBasicRTSerializer
-            if serializer_type == 'search':
-                return APIserializer.ReactionSearchSerializer
-            return APIserializer.ReactionSerializer
-        elif type == 'subsystem':
-            if serializer_type == 'lite':
-                return APIserializer.SubsystemLiteSerializer
-            elif serializer_type =='search':
-                return APIserializer.SubsystemSearchSerializer
-            return APIserializer.SubsystemSerializer
-        elif type == 'interaction partner':
-            return APIserializer.InteractionPartnerSerializer
+    if type == 'reaction':
+        if serializer_type == 'basic':
+            return APIserializer.ReactionBasicSerializer
+        if serializer_type == 'table':
+            return APIserializer.ReactionRTSerializer
+        return APIserializer.ReactionSerializer
+    elif type == 'subsystem':
+        return APIcsSerializer.SubsystemSerializer
+    elif type == 'metabolite':
+        if serializer_type in ['lite']:
+            return APIrcSerializer.MetaboliteLiteSerializer
+        return APIrcSerializer.MetaboliteSerializer
+    elif type == 'gene':
+        if serializer_type in ['lite']:
+            return APIrcSerializer.GeneLiteSerializer
+        return APIrcSerializer.GeneSerializer
 
 
 
@@ -127,11 +74,11 @@ def get_reactions(request, model):
     """
     List all reactions for the given model.
     """
-    reactions = APImodels.Reaction.objects.using(model).all()
+    reactions = APImodels.Reaction.objects.using(model).all().prefetch_related('subsystem', 'compartment')
 
-    serializerClass = componentDBserializerSelector(model, 'reaction', serializer_type="basic", api_version=request.version)
+    ReactionSerializerClass = componentDBserializerSelector(model, 'reaction', serializer_type="basic", api_version=request.version)
 
-    serializer = serializerClass(reactions, many=True, context={'model': model})
+    serializer = ReactionSerializerClass(reactions, many=True)
     return JSONResponse(serializer.data)
 
 
@@ -147,7 +94,7 @@ def get_reaction(request, model, id):
         return HttpResponse(status=404)
 
     ReactionSerializerClass = componentDBserializerSelector(model, 'reaction', serializer_type=None, api_version=request.version)
-    reactionserializer = ReactionSerializerClass(reaction, context={'model': model})
+    reactionserializer = ReactionSerializerClass(reaction)
 
     pmids = APImodels.ReactionReference.objects.using(model).filter(reaction_id=reaction.id)
     pmidserializer = APIserializer.ReactionReferenceSerializer(pmids, many=True)
@@ -170,7 +117,7 @@ def get_reaction_reactants(request, model, id):
         return HttpResponse(status=404)
 
     ReactantsSerializerClass = componentDBserializerSelector(model, 'metabolite', serializer_type='lite', api_version=request.version)
-    serializer = ReactantsSerializerClass(reaction.reactants, many=True, context={'model': model})
+    serializer = ReactantsSerializerClass(reaction.reactants.prefetch_related('subsystem_metabolite', 'compartment'), many=True)
     return JSONResponse(serializer.data)
 
 
@@ -186,7 +133,7 @@ def get_reaction_products(request, model, id):
         return HttpResponse(status=404)
 
     ProductsSerializerClass = componentDBserializerSelector(model, 'metabolite', serializer_type='lite', api_version=request.version)
-    serializer = ProductsSerializerClass(reaction.products, many=True, context={'model': model})
+    serializer = ProductsSerializerClass(reaction.products.prefetch_related('subsystem_metabolite', 'compartment'), many=True)
     return JSONResponse(serializer.data)
 
 
@@ -202,7 +149,7 @@ def get_reaction_genes(request, model, id):
         return HttpResponse(status=404)
 
     GenesSerializerClass = componentDBserializerSelector(model, 'gene', serializer_type='lite', api_version=request.version)
-    serializer = GenesSerializerClass(reaction.genes, many=True, context={'model': model})
+    serializer = GenesSerializerClass(reaction.genes.prefetch_related('subsystem_gene', 'compartment_gene'), many=True)
     return JSONResponse(serializer.data)
 
 
@@ -250,7 +197,7 @@ def get_interaction_partners(request, model, id, type=None):
             if el.id in IP_dict:
                 # this interaction is already known, just add the reaction
                 IP_dict[el.id]['reactions'].append({
-                    'reaction_id': r.id,
+                    'id': r.id,
                     'equation': r.equation,
                     'reversible': r.is_reversible
                 })
@@ -260,7 +207,7 @@ def get_interaction_partners(request, model, id, type=None):
                 'id': el.id,
                 'name': el.full_name,
                 'reactions': [{
-                    'reaction_id': r.id,
+                    'id': r.id,
                     'equation': r.equation,
                     'reversible': r.is_reversible
                 }]
@@ -275,7 +222,7 @@ def get_interaction_partners(request, model, id, type=None):
             if gene.id in IP_dict:
                 # this interaction is already known, just add the reaction
                 IP_dict[gene.id]['reactions'].append({
-                    'reaction_id': r.id,
+                    'id': r.id,
                     'equation': r.equation,
                     'reversible': r.is_reversible
                 })
@@ -285,7 +232,7 @@ def get_interaction_partners(request, model, id, type=None):
                 'id': gene.id,
                 'name': gene.name,
                 'reactions': [{
-                    'reaction_id': r.id,
+                    'id': r.id,
                     'equation': r.equation,
                     'reversible': r.is_reversible
                 }]
@@ -311,10 +258,11 @@ def get_genes(request, model):
     List all the genes in the given model.
     """
 
-    genes = APImodels.ReactionComponent.objects.using(model).filter(component_type='e').select_related('gene')
+    genes = APImodels.ReactionComponent.objects.using(model).filter(component_type='e') \
+        .select_related('gene').prefetch_related('subsystem_gene', 'compartment_gene')
 
-    GeneSerializerClass = componentDBserializerSelector(model, 'gene', api_version=request.version)
-    serializer = GeneSerializerClass(genes, many=True, context={'model': model})
+    GeneSerializerClass = componentDBserializerSelector(model, 'gene', serializer_type='lite', api_version=request.version)
+    serializer = GeneSerializerClass(genes, many=True)
 
     return JSONResponse(serializer.data)
 
@@ -332,8 +280,8 @@ def get_gene(request, model, id):
     except APImodels.ReactionComponent.DoesNotExist:
         return HttpResponse(status=404)
 
-    serializerClass = componentDBserializerSelector(model, 'gene', api_version=request.version)
-    serializer = serializerClass(component, context={'model': model})
+    GeneSerializerClass = componentDBserializerSelector(model, 'gene', serializer_type=None, api_version=request.version)
+    serializer = GeneSerializerClass(component)
 
     return JSONResponse(serializer.data)
 
@@ -345,10 +293,11 @@ def get_metabolites(request, model):
     List all the metabolites in the given model.
     """
 
-    genes = APImodels.ReactionComponent.objects.using(model).filter(component_type='m').select_related('metabolite')
+    metabolites = APImodels.ReactionComponent.objects.using(model).filter(component_type='m') \
+        .select_related('metabolite').prefetch_related('subsystem_metabolite', 'compartment')
 
-    MetaboliteSerializerClass = componentDBserializerSelector(model, 'metabolite', api_version=request.version)
-    serializer = MetaboliteSerializerClass(genes, many=True, context={'model': model})
+    MetaboliteSerializerClass = componentDBserializerSelector(model, 'metabolite', serializer_type='lite', api_version=request.version)
+    serializer = MetaboliteSerializerClass(metabolites, many=True)
 
     return JSONResponse(serializer.data)
 
@@ -366,8 +315,8 @@ def get_metabolite(request, model, id):
     except APImodels.ReactionComponent.DoesNotExist:
         return HttpResponse(status=404)
 
-    serializerClass = componentDBserializerSelector(model, 'metabolite', api_version=request.version)
-    serializer = serializerClass(component, context={'model': model})
+    MetaboliteSerializerClass = componentDBserializerSelector(model, 'metabolite', serializer_type=None, api_version=request.version)
+    serializer = MetaboliteSerializerClass(component)
 
     return JSONResponse(serializer.data)
 
@@ -407,7 +356,7 @@ def get_metabolite_reactions(request, model, id, all_compartment=False, api=True
     for c in component:
         if api:
             reactions_as_met = c.reactions_as_metabolite.using(model). \
-                prefetch_related('reactants', 'products', 'genes').distinct()
+                prefetch_related('reactants', 'products', 'genes', 'subsystem', 'compartment').distinct()
         else:
             reactions_as_met = c.reactions_as_metabolite.using(model). \
                 prefetch_related('reactionreactant_set', 'reactionreactant_set__reactant',
@@ -417,12 +366,11 @@ def get_metabolite_reactions(request, model, id, all_compartment=False, api=True
     reactions = reactions.distinct()
     if not api:
         reactions = reactions[:200]
-        ReactionSerializerClass= componentDBserializerSelector(model, 'reaction', serializer_type='table', api_version=request.version)
+        ReactionSerializerClass = componentDBserializerSelector(model, 'reaction', serializer_type='table', api_version=request.version)
     else:
-        ReactionSerializerClass= componentDBserializerSelector(model, 'reaction', serializer_type='basic', api_version=request.version)
+        ReactionSerializerClass = componentDBserializerSelector(model, 'reaction', serializer_type='basic', api_version=request.version)
 
-    serializer = ReactionSerializerClass(reactions, many=True, context={'model': model})
-
+    serializer = ReactionSerializerClass(reactions, many=True)
     return JSONResponse(serializer.data)
 
  
@@ -444,7 +392,7 @@ def get_gene_reactions(request, model, id, api=True):
     for c in component:
         if api:
             reactions_as_gene = c.reactions_as_gene.using(model). \
-                prefetch_related('reactants', 'products', 'genes').distinct()
+                prefetch_related('reactants', 'products', 'genes', 'subsystem', 'compartment').distinct()
         else:
             reactions_as_gene = c.reactions_as_gene.using(model). \
                 prefetch_related('reactionreactant_set', 'reactionreactant_set__reactant',
@@ -454,79 +402,69 @@ def get_gene_reactions(request, model, id, api=True):
     reactions = reactions.distinct()
     if not api:
         reactions = reactions[:200]
-        ReactionSerializerClass= componentDBserializerSelector(model, 'reaction', serializer_type='table', api_version=request.version)
+        ReactionSerializerClass = componentDBserializerSelector(model, 'reaction', serializer_type='table', api_version=request.version)
     else:
-        ReactionSerializerClass= componentDBserializerSelector(model, 'reaction', serializer_type='basic', api_version=request.version)
+        ReactionSerializerClass = componentDBserializerSelector(model, 'reaction', serializer_type='basic', api_version=request.version)
 
-    serializer = ReactionSerializerClass(reactions, many=True, context={'model': model})
+    serializer = ReactionSerializerClass(reactions, many=True)
 
     return JSONResponse(serializer.data)
 
 
 @api_view()
 @is_model_valid
-def get_subsystem(request, model, subsystem_name_id, api=True):
+def get_subsystem(request, model, id, api=True):
     """
     For a given subsystem name, list all the containing metabolites and genes/genes.
     """
     try:
-        subsystem = APImodels.Subsystem.objects.using(model).get(Q(name_id__iexact=subsystem_name_id) | Q(name__iexact=subsystem_name_id))
+        subsystem = APImodels.Subsystem.objects.using(model).get(Q(name_id__iexact=id) | Q(name__iexact=id))
         subsystem_id = subsystem.id
     except APImodels.Subsystem.DoesNotExist:
         return HttpResponse(status=404)
 
-    SubsystemSerializerClass = componentDBserializerSelector(model, 'subsystem', serializer_type='lite', api_version=request.version)
+    SubsystemSerializerClass = componentDBserializerSelector(model, 'subsystem', serializer_type=None, api_version=request.version)
     if not api:
         limit = 1000
-        smsQuerySet = APImodels.ReactionComponent.objects.using(model).filter(subsystem_metabolite__id=subsystem_id)[:limit]
-        sesQuerySet = APImodels.ReactionComponent.objects.using(model).filter(subsystem_gene__id=subsystem_id)[:limit]
         results = {
-            'info': SubsystemSerializerClass(subsystem, context={'model': model}).data,
-            'metabolites': APIrcSerializer.ReactionComponentLiteSerializer(smsQuerySet, many=True, context={'model': model}).data,
-            'genes': APIrcSerializer.ReactionComponentLiteSerializer(sesQuerySet, many=True, context={'model': model}).data,
-            'limit': limit
+            'info': SubsystemSerializerClass(subsystem).data,
+            'metabolites': APIrcSerializer.ReactionComponentBasicSerializer(subsystem.metabolites.all()[:limit], many=True).data,
+            'genes': APIrcSerializer.ReactionComponentBasicSerializer(subsystem.genes.all()[:limit], many=True).data,
+            'limit': limit,
          }
     else:
-        smsQuerySet = APImodels.SubsystemMetabolite.objects.using(model). \
-            filter(subsystem_id=subsystem_id).values_list('rc_id', flat=True)
-        sesQuerySet = APImodels.SubsystemGene.objects.using(model). \
-            filter(subsystem_id=subsystem_id).values_list('rc_id', flat=True)
-
         results = {}
-        results.update(SubsystemSerializerClass(subsystem, context={'model': model}).data)
-        results['metabolites'] =  smsQuerySet
-        results['genes'] =  sesQuerySet
+        results.update(SubsystemSerializerClass(subsystem).data)
+        results['metabolites'] = APIrcSerializer.ReactionComponentBasicSerializer(subsystem.metabolites.all(), many=True).data
+        results['genes'] = APIrcSerializer.ReactionComponentBasicSerializer(subsystem.genes.all(), many=True).data
 
     return JSONResponse(results)
 
 
 @api_view()
 @is_model_valid
-def get_subsystem_reactions(request, model, subsystem_name_id, api=True):
+def get_subsystem_reactions(request, model, id, api=True):
     """
     For a given subsystem/pathway name, list all the containing reactions.
     """
     try:
-        subsystem = APImodels.Subsystem.objects.using(model).get(Q(name_id__iexact=subsystem_name_id) | Q(name__iexact=subsystem_name_id))
+        subsystem = APImodels.Subsystem.objects.using(model).get(Q(name_id__iexact=id) | Q(name__iexact=id))
         subsystem_id = subsystem.id
     except APImodels.Subsystem.DoesNotExist:
         return HttpResponse(status=404)
 
     if api:
         r = APImodels.Reaction.objects.using(model).filter(subsystem=subsystem_id). \
-            prefetch_related('genes').distinct()
+            prefetch_related('genes', 'subsystem', 'compartment').distinct()
+        ReactionSerializerClass = componentDBserializerSelector(model, 'reaction', serializer_type='basic', api_version=request.version)
     else:
         r = APImodels.Reaction.objects.using(model).filter(subsystem=subsystem_id). \
             prefetch_related('reactionreactant_set', 'reactionreactant_set__reactant',
                  'reactionproduct_set', 'reactionproduct_set__product', 'genes').distinct()[:1000]
-
-    if api:
-        ReactionSerializerClass= componentDBserializerSelector(model, 'reaction', serializer_type='basic', api_version=request.version)
-    else:
-        ReactionSerializerClass= componentDBserializerSelector(model, 'reaction', serializer_type='table', api_version=request.version)
+        ReactionSerializerClass = componentDBserializerSelector(model, 'reaction', serializer_type='table', api_version=request.version)
 
     results = {
-        'reactions': ReactionSerializerClass(r, many=True, context={'model': model}).data,
+        'reactions': ReactionSerializerClass(r, many=True).data,
         'limit': 1000,
     }
 
@@ -542,12 +480,12 @@ def get_subsystems(request, model):
     List all the subsystems/pathways/collection of reactions for the given model.
     """
     try:
-        subsystems = APImodels.Subsystem.objects.using(model).all().prefetch_related('compartment')
+        subsystems = APImodels.Subsystem.objects.using(model).all().prefetch_related('compartment', 'external_databases')
     except APImodels.Subsystem.DoesNotExist:
         return HttpResponse(status=404)
 
-    serializerClass = componentDBserializerSelector(model, 'subsystem', api_version=request.version)
-    serializer = serializerClass(subsystems, many=True, context={'model': model})
+    serializerClass = componentDBserializerSelector(model, 'subsystem', serializer_type=None, api_version=request.version)
+    serializer = serializerClass(subsystems, many=True)
 
     return JSONResponse(serializer.data)
 
@@ -563,42 +501,37 @@ def get_compartments(request, model):
     except APImodels.Compartment.DoesNotExist:
         return HttpResponse(status=404)
 
-    serializer = APIserializer.CompartmentSerializer(compartment, many=True)
+    serializer = APIcsSerializer.CompartmentSerializer(compartment, many=True)
 
     return JSONResponse(serializer.data)
 
 
 @api_view()
 @is_model_valid
-def get_compartment(request, model, compartment_name_id, api=True):
-    # api is False when this function is called from the compartment page
-    # True when called using the swagger api
+def get_compartment(request, model, id, api=True):
     """
     For a given compartment name (e.g., Golgi apparatus or golgi_apparatus), returns all containing metabolites, genes, reactions and subsystems.
     """
     try:
-        compartment = APImodels.Compartment.objects.using(model).get(Q(name_id__iexact=compartment_name_id) | Q(name__iexact=compartment_name_id))
+        compartment = APImodels.Compartment.objects.using(model).prefetch_related('subsystem').get(Q(name_id__iexact=id) | Q(name__iexact=id))
         compartment_id = compartment.id
     except APImodels.Compartment.DoesNotExist:
         return HttpResponse(status=404)
 
-    subsystems = APImodels.SubsystemCompartment.objects.using(model).filter(compartment_id=compartment_id). \
-        prefetch_related('subsystem').distinct().values_list('subsystem__name', flat=True)
-
     if not api:
         results = {
-            'info': APIserializer.CompartmentSerializer(compartment, context={'model': model}).data,
-            'subsystems': subsystems,
+            'info': APIcsSerializer.CompartmentSerializer(compartment).data,
+            'subsystems': APIcsSerializer.SubsystemBasicSerializer(compartment.subsystem, many=True).data,
         }
     else:
         sms = APImodels.ReactionComponentCompartment.objects.using(model).filter(compartment_id=compartment_id).values_list('rc_id', flat=True)
-        ses = APImodels.CompartmentGene.objects.using(model).filter(compartment_id=compartment_id).values_list('rc_id', flat=True)
         reactions = APImodels.ReactionCompartment.objects.using(model).filter(compartment_id=compartment_id).values_list('reaction_id', flat=True)
 
         results = {}
-        results.update(APIserializer.CompartmentSerializer(compartment, context={'model': model}).data)
-        results['metabolite'] = sms
-        results['genes'] = ses
+        results.update(APIcsSerializer.CompartmentSerializer(compartment).data)
+        results['subsystems'] = APIcsSerializer.SubsystemBasicSerializer(compartment.subsystem, many=True).data
+        results['metabolites'] = sms
+        results['genes'] = compartment.genes.all().values_list('id', flat=True)
         results['reactions'] = reactions
 
     return JSONResponse(results)
@@ -621,7 +554,7 @@ def get_models(request):
 @api_view()
 def get_model(request, name):
     """
-    List all information for a given model available on the GEM browser, supply its name e.g., 'humanGEM'.
+    List all information for a given model available on the GEM browser, supply its name e.g., 'Human-GEM'.
     """
 
     try:

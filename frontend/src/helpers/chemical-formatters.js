@@ -14,7 +14,7 @@ export function chemicalName(value) {
     return '';
   }
   return value.replace(/([^\s])(\+)([^\s]?)/g, '$1<sup class="top">+</sup>$3')
-  .replace(/H2O/g, 'H<sub>2</sub>O').replace(/(O|H)(2|3)(-?)/g, '$1<sub>$2$3</sub>');
+    .replace(/H2O/g, 'H<sub>2</sub>O').replace(/(O|H)(2|3)(-?)/g, '$1<sub>$2$3</sub>');
 }
 
 export function chemicalNameExternalLink(value, link) {
@@ -50,7 +50,7 @@ export function chemicalReaction(value, r) {
   return chemicalReactionSign(value, r);
 }
 
-function formatSpan(currentVal, index, array, elements, addComp) {
+function formatSpan(currentVal, index, array, elements, addComp) { // eslint-disable-line no-unused-vars
   const regex = /([0-9]+ )?(.+)\[([a-z]{1,3})\]/g;
   const match = regex.exec(currentVal);
   if (!addComp) {

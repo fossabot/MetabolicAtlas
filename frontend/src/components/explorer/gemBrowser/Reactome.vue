@@ -1,5 +1,5 @@
 <template>
-  <div class="reactome column" v-show="showTable">
+  <div v-show="showTable" class="reactome column">
     <h4 class="title is-4">Reactions</h4>
     <div class="container">
       <p class="control field">
@@ -7,8 +7,9 @@
           {{ !expandAllCompartment ? "Expand to all compartments" : "Restrict to current compartment" }}
         </button>
       </p>
-      <reaction-table v-show="!showLoader" :showSubsystem="true" :model="model" :limit="200"
-        :reactions="!expandAllCompartment ? reactions : reactionsAllcompartment" :selectedElmId="ID">
+      <reaction-table v-show="!showLoader" :show-subsystem="true" :model="model" :limit="200"
+                      :reactions="!expandAllCompartment ? reactions : reactionsAllcompartment"
+                      :selected-elm-id="ID" :source-name="metaboliteID">
       </reaction-table>
       <div v-if="errorMessage" class="columns">
         <div class="column notification is-danger is-half is-offset-one-quarter has-text-centered">
@@ -29,12 +30,16 @@ import Loader from '@/components/Loader';
 import ReactionTable from '@/components/explorer/gemBrowser/ReactionTable';
 
 export default {
-  name: 'reactome',
+  name: 'Reactome',
   components: {
     ReactionTable,
     Loader,
   },
-  props: ['model', 'metaboliteID', 'disableBut'],
+  props: {
+    model: Object,
+    metaboliteID: String,
+    disableBut: Boolean,
+  },
   data() {
     return {
       errorMessage: '',
@@ -61,9 +66,9 @@ export default {
   },
   methods: {
     loadReactions(ID) {
-      if (this.reactomeID &&
-          ((this.expandAllCompartment && this.reactionsAllcompartment.length !== 0) ||
-         (!this.expandAllCompartment && this.reactions.length !== 0))) {
+      if (this.reactomeID
+          && ((this.expandAllCompartment && this.reactionsAllcompartment.length !== 0)
+         || (!this.expandAllCompartment && this.reactions.length !== 0))) {
         this.reactomeID = ID;
         return;
       }

@@ -1,15 +1,18 @@
 <template>
   <div id="sidebar_mapviewer">
-    <div class="card card-margin" v-if="mapName">
+    <div v-if="mapName" class="card card-margin">
       <header class="card-header" @click.prevent="showMapCardContent = !showMapCardContent">
         <p class="card-header-title is-capitalized is-inline">
           {{ mapType }}:
-          <i>{{ mapsData.compartments[mapName] ? mapsData.compartments[mapName].name : mapsData.subsystems[mapName] ? mapsData.subsystems[mapName].name : '' }}</i>
+          <i>{{ mapsData.compartments[mapName] ?
+            mapsData.compartments[mapName].name : mapsData.subsystems[mapName] ?
+              mapsData.subsystems[mapName].name : '' }}</i>
         </p>
       </header>
       <footer class="card-footer">
-        <router-link class="is-paddingless is-info is-outlined card-footer-item has-text-centered" :to="{ path: `/explore/gem-browser/${model.database_name}/${mapType}/${ mapsData.compartments[mapName] ? mapsData.compartments[mapName].id : mapsData.subsystems[mapName] ? mapsData.subsystems[mapName].id : '' }`}">
-          <span class="icon is-large"><i class="fa fa-database fa-lg"></i></span>
+        <router-link class="is-paddingless is-info is-outlined card-footer-item has-text-centered"
+                     :to="{ path: `/explore/gem-browser/${model.database_name}/${mapType}/${ mapsData.compartments[mapName] ? mapsData.compartments[mapName].id : mapsData.subsystems[mapName] ? mapsData.subsystems[mapName].id : '' }`}">  <!-- eslint-disable-line max-len -->
+          <span class="icon is-large"><i class="fa fa-table fa-lg"></i></span>
           <span>{{ messages.gemBrowserName }}</span>
         </router-link>
       </footer>
@@ -19,28 +22,41 @@
         <a class="button is-large is-loading"></a>
       </div>
     </template>
-    <template v-else>
-      <div class="card card-margin" v-if="selectionData.data && mapType !== 'subsystem' && selectionData.type == 'subsystem'">
+    <template v-else-if="!selectionData.error">
+      <div v-if="selectionData.data && mapType !== 'subsystem' && selectionData.type === 'subsystem'"
+           class="card card-margin">
         <header class="card-header">
           <p class="card-header-title is-capitalized is-inline is-unselectable">
             {{ selectionData.type }}: <i>{{ selectionData.data.id }}</i>
           </p>
         </header>
-        <footer class="card-footer" v-if="!selectionData.error">
-          <router-link class="is-paddingless is-info is-outlined card-footer-item has-text-centered" :to="{ path: `/explore/gem-browser/${model.database_name}/${selectionData.type}/${idfy(selectionData.data.id)}`}">
-            <span class="icon is-large"><i class="fa fa-database fa-lg"></i></span>
+        <footer class="card-footer">
+          <router-link class="is-paddingless is-info is-outlined card-footer-item has-text-centered"
+                       :to="{ path: `/explore/gem-browser/${model.database_name}/${selectionData.type}/${idfy(selectionData.data.id)}`}">  <!-- eslint-disable-line max-len -->
+            <span class="icon is-large"><i class="fa fa-table fa-lg"></i></span>
             <span>{{ messages.gemBrowserName }}</span>
           </router-link>
-          <div class="is-paddingless is-primary is-outlined card-footer-item has-text-centered"
-            @click="(mapsData.subsystems[idfy(selectionData.data.id)] && mapsData.subsystems[idfy(selectionData.data.id)].sha) && showSubsystem(idfy(selectionData.data.id))"
-            :disabled="!mapsData.subsystems[idfy(selectionData.data.id)] || !mapsData.subsystems[idfy(selectionData.data.id)].sha">
-            <span class="icon is-large"><i class="fa fa-map-o fa-lg"></i></span>
-            <span>Load map</span>
-          </div>
+          <template v-if="isAvailableSubsystemMap(selectionData.data.id)">
+            <router-link
+              class="is-paddingless is-primary is-outlined card-footer-item has-text-centered"
+              :to="{ path: `/explore/map-viewer/${model.database_name}/${selectionData.type}/${idfy(selectionData.data.id)}?dim=2d` }">  <!-- eslint-disable-line max-len -->
+              <span class="icon is-large"><i class="fa fa-map-o fa-lg"></i></span>
+              <span>Load map</span>
+            </router-link>
+          </template>
+          <template v-else>
+            <div class="is-paddingless is-primary is-outlined card-footer-item has-text-centered" disabled
+                 title="Subsystem map not available">
+              <span class="icon is-large"><i class="fa fa-map-o fa-lg"></i></span>
+              <span :style="{ cursor: 'not-allowed' }">Load map</span>
+            </div>
+          </template>
         </footer>
       </div>
-      <div class="card card-margin" v-else-if="selectionData.data && ['metabolite', 'gene', 'reaction'].includes(selectionData.type)">
-        <header class="card-header clickable" v-if="!selectionData.error" @click.prevent="showSelectionCardContent = !showSelectionCardContent">
+      <div v-else-if="selectionData.data && ['metabolite', 'gene', 'reaction'].includes(selectionData.type)"
+           class="card card-margin">
+        <header class="card-header clickable"
+                @click.prevent="showSelectionCardContent = !showSelectionCardContent">
           <p class="card-header-title is-inline is-capitalized is-unselectable">
             {{ selectionData.type }}: <i>{{ selectionData.data.id }}</i>
           </p>
@@ -50,48 +66,56 @@
             </span>
           </a>
         </header>
-        <div class="card-content card-content-compact" v-show="showSelectionCardContent">
-          <div class="content" v-if="!selectionData.error">
-            <p v-if="selectionData.data['rnaLvl'] != null">
-              <span class="has-text-weight-bold">RNA&nbsp;level:&nbsp;</span><span>{{ selectionData.data['rnaLvl'][1] }}</span>
-            </p>
-            <template v-for="item in selectedElementDataKeys[model.database_name][selectionData.type]"
-              v-if="selectionData.data[item.name] != null || item.name === 'external_ids'" >
-              <template v-if="item.name === 'external_ids'">
-                <span class="has-text-weight-bold"
-                v-if="hasExternalIDs(item.value)">{{ item.display || item.name}} :</span>
-                <p v-if="hasExternalIDs(item.value)">
-                  <template v-for="eid in item.value" v-if="selectionData.data[eid[1]] && selectionData.data[eid[2]]">
-                    <span class="has-text-weight-bold">{{ capitalize(eid[0]) }}:</span>
-                    <span v-html="reformatStringToLink(selectionData.data[eid[1]], selectionData.data[eid[2]])"></span><br>
-                  </template>
-                </p>
-              </template>
-              <template v-else-if="['aliases', 'subsystem_str'].includes(item.name)">
+        <div v-show="showSelectionCardContent" class="card-content card-content-compact">
+          <div class="content">
+            <template v-for="item in selectedElementDataKeys[selectionData.type]
+              .filter(i => selectionData.data[i.name] !== null)">
+              <template v-if="item.name === 'synonyms'">
+                <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
                 <span class="has-text-weight-bold">{{ capitalize(item.display || item.name) }}:</span><p>
-                <template v-for="s in selectionData.data[item.name].split('; ')">
-                  &ndash;&nbsp;{{ s }}<br>
-                </template></p>
+                  <template v-for="s in selectionData.data[item.name].split('; ')">
+                    <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
+                    &ndash;&nbsp;{{ s }}<br :key="s">
+                  </template></p>
+              </template>
+              <template v-else-if="item.name === 'subsystem'">
+                <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
+                <span class="has-text-weight-bold">{{ capitalize(item.display || item.name) }}:</span><p>
+                  <template v-for="s in selectionData.data[item.name]">
+                    &ndash;&nbsp;{{ s.name }}<br :key="s.id">
+                  </template></p>
+              </template>
+              <template v-else-if="item.name === 'compartment'">
+                <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
+                <span class="has-text-weight-bold">{{ capitalize(item.display || item.name) }}:</span>
+                    {{ selectionData.data[item.name].name }}
               </template>
               <template v-else-if="['reactionreactant_set', 'reactionproduct_set'].includes(item.name)">
+                <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
                 <span class="has-text-weight-bold">{{ capitalize(item.display || item.name) }}:</span>
+                <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
                 <p>
                   <template v-for="s in selectionData.data[item.name]">
-                    &ndash;&nbsp;{{ s[`${item.name.includes('reactant') ? 'reactant' : 'product' }`].full_name }}<br>
+                    <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
+                    &ndash;&nbsp;{{ s.full_name }}<br>
                   </template>
                 </p>
               </template>
               <template v-else-if="item.name === 'equation'">
+                <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
                 <p><span class="has-text-weight-bold" v-html="capitalize(item.display || item.name) + ':'"></span><br>
-                <span v-html="chemicalReaction(selectionData.data[item.name], selectionData.data['is_reversible'])"></span></p>
+                  <span v-html="chemicalReaction(selectionData.data[item.name], selectionData.data['is_reversible'])">
+                  </span></p>
               </template>
               <template v-else-if="item.name === 'formula'">
+                <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
                 <p><span class="has-text-weight-bold" v-html="capitalize(item.display || item.name) + ': '"></span>
-                <span v-html="chemicalFormula(selectionData.data[item.name], selectionData.data.charge)"></span></p>
+                  <span v-html="chemicalFormula(selectionData.data[item.name], selectionData.data.charge)"></span></p>
               </template>
-              <template v-else>
+              <template v-else-if="selectionData.data[item.name]">
+                <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
                 <p><span class="has-text-weight-bold" v-html="capitalize(item.display || item.name) + ':'"></span>
-                {{ selectionData.data[item.name] }}</p>
+                  {{ selectionData.data[item.name] }}</p>
               </template>
             </template>
             <template v-if="selectionHasNoData()">
@@ -99,12 +123,23 @@
             </template>
           </div>
         </div>
-        <footer class="card-footer" v-if="!selectionData.error">
-          <router-link class="is-paddingless is-info is-outlined card-footer-item has-text-centered" :to="{ path: `/explore/gem-browser/${model.database_name}/${selectionData.type}/${idfy(selectionData.data.id)}`}">
-            <span class="icon is-large"><i class="fa fa-database fa-lg"></i></span>
+        <footer class="card-footer">
+          <router-link class="is-paddingless is-info is-outlined card-footer-item has-text-centered"
+                       :to="{ path: `/explore/gem-browser/${model.database_name}/${selectionData.type}/${idfy(selectionData.data.id)}`}"> <!-- eslint-disable-line max-len -->
+            <span class="icon is-large"><i class="fa fa-table fa-lg"></i></span>
             <span>{{ messages.gemBrowserName }}</span>
           </router-link>
         </footer>
+      </div>
+    </template>
+    <template v-else>
+      <div class="card card-margin">
+        <header class="card-header clickable">
+          <p class="card-header-title is-inline is-unselectable has-text-weight-normal">
+            This {{ selectionData.type }} does not exist in {{ model.short_name }}.
+            Email us at contact@metabolicatlas.org
+          </p>
+        </header>
       </div>
     </template>
   </div>
@@ -114,55 +149,40 @@
 import { capitalize, reformatStringToLink, idfy } from '../../../helpers/utils';
 import { chemicalFormula, chemicalReaction } from '../../../helpers/chemical-formatters';
 import { default as messages } from '../../../helpers/messages';
-import { default as EventBus } from '../../../event-bus';
 
 export default {
-  name: 'sidebar-data-panels',
-  props: ['model', 'dim', 'mapType', 'mapName', 'mapsData', 'selectionData', 'loading'],
+  name: 'SidebarDataPanels',
+  props: {
+    model: Object,
+    dim: String,
+    mapType: String,
+    mapName: String,
+    mapsData: Object,
+    selectionData: Object,
+    loading: Boolean,
+  },
   data() {
     return {
       errorMessage: '',
       selectedElementDataKeys: {
-        human1: {
-          metabolite: [
-            { name: 'name' },
-            { name: 'model_name', display: 'Model&nbsp;name' },
-            { name: 'formula' },
-            { name: 'compartment' },
-            { name: 'aliases', display: 'Synonyms' },
-          ],
-          gene: [
-            { name: 'name', display: 'Gene&nbsp;name' },
-            { name: 'description', display: 'Description' },
-            { name: 'gene_synonyms', display: 'Synonyms' },
-          ],
-          reaction: [
-            { name: 'equation' },
-            { name: 'subsystem_str', display: 'Subsystems' },
-            { name: 'reactionreactant_set', display: 'Reactants' },
-            { name: 'reactionproduct_set', display: 'Products'  },
-          ],
-        },
-        yeast8: {
-          metabolite: [
-            { name: 'name' },
-            { name: 'model_name', display: 'Model&nbsp;name' },
-            { name: 'formula' },
-            { name: 'compartment' },
-            { name: 'aliases', display: 'Synonyms' },
-          ],
-          gene: [
-            { name: 'name', display: 'Gene&nbsp;name' },
-            { name: 'description', display: 'Description' },
-            { name: 'gene_synonyms', display: 'Synonyms' },
-          ],
-          reaction: [
-            { name: 'equation' },
-            { name: 'subsystem_str', display: 'Subsystems' },
-            { name: 'reactionreactant_set', display: 'Reactants' },
-            { name: 'reactionproduct_set', display: 'Products'  },
-          ],
-        },
+        metabolite: [
+          { name: 'name' },
+          { name: 'model_name', display: 'Model&nbsp;name' },
+          { name: 'formula' },
+          { name: 'compartment' },
+          { name: 'synonyms', display: 'Synonym(s)' },
+        ],
+        gene: [
+          { name: 'name', display: 'Gene&nbsp;name' },
+          { name: 'alternate_name', display: 'Alt&nbsp;name' },
+          { name: 'synonyms', display: 'Synonym(s)' },
+        ],
+        reaction: [
+          { name: 'equation' },
+          { name: 'subsystem', display: 'Subsystem(s)' },
+          { name: 'reactionreactant_set', display: 'Reactant(s)' },
+          { name: 'reactionproduct_set', display: 'Product(s)' },
+        ],
       },
       showMapCardContent: true,
       showSelectionCardContent: true,
@@ -170,29 +190,26 @@ export default {
     };
   },
   methods: {
-    hasExternalIDs(keys) {
-      for (const eid of keys) {
-        if (this.selectionData.data[eid[1]] && this.selectionData.data[eid[2]]) {
-          return true;
-        }
-      }
-      return false;
-    },
     selectionHasNoData() {
-      if (!(this.selectionData.type in
-          this.selectedElementDataKeys[this.model.database_name])) {
+      if (!(this.selectionData.type
+          in this.selectedElementDataKeys)) {
         return true;
       }
-      for (const k of this.selectedElementDataKeys[this.model.database_name][this.selectionData.type]) {  // eslint-disable-line max-len
-        if (k.name in this.selectionData.data &&
-          this.selectionData.data[k.name]) {
+      for (let i = 0;
+        i < this.selectedElementDataKeys[this.selectionData.type].length;
+        i += 1) {
+        const k = this.selectedElementDataKeys[this.selectionData.type][i];
+        if (k.name in this.selectionData.data
+          && this.selectionData.data[k.name]) {
           return false;
         }
       }
       return true;
     },
-    showSubsystem(id) {
-      EventBus.$emit('showAction', 'subsystem', id, [], false);
+    isAvailableSubsystemMap(name) {
+      // get the name from the svg
+      return this.mapsData.subsystems[idfy(name)]
+        && this.mapsData.subsystems[idfy(name)].sha;
     },
     capitalize,
     reformatStringToLink,

@@ -1,220 +1,262 @@
 <template>
-  <div class="closest-interaction-partners">
-    <loader v-show="loading"></loader>
-    <div v-show="!loading">
-      <div v-if="errorMessage" class="columns">
-        <div class="column notification is-danger is-half is-offset-one-quarter has-text-centered">
-          {{ errorMessage }}
+  <div class="interaction-partners">
+    <div v-if="!mainNodeID" class="columns">
+      <div class="column container has-text-centered">
+        <h3 class="title is-3">Explore {{ model.short_name }} with the {{ messages.interPartName }}</h3>
+        <h5 class="subtitle is-5 has-text-weight-normal">
+          use the search field to find the component of interest
+        </h5>
+      </div>
+    </div>
+    <div class="columns is-centered">
+      <gem-search ref="gemSearch" :model="model" :metabolites-and-genes-only="true"></gem-search>
+    </div>
+    <br>
+    <div v-if="!mainNodeID">
+      <div class="columns is-centered">
+        <p class="is-capitalized subtitle is-size-2-widescreen is-size-3-desktop is-size-4-tablet is-size-5-mobile
+           has-text-weight-light has-text-grey-light">Demo</p>
+      </div>
+      <div class="columns is-centered">
+        <div class="column is-three-fifths-desktop is-three-quarters-tablet is-fullwidth-mobile">
+          <!-- eslint-disable max-len -->
+          <p class="is-size-5">For a given metabolite or gene, this page shows the other metabolites and genes with which it is connected via reactions. For more, see the <router-link :to="{ path: '/documentation', hash: 'Interaction-Partners' }">documentation on {{ messages.interPartName }}</router-link>.
+          </p><br>
+          <video poster="@/assets/interPart-cover.jpg" playsinline controls muted loop>
+            <source src="@/assets/interPart.mp4" type="video/mp4">
+          </video>
         </div>
       </div>
-      <div v-show="!errorMessage">
-        <div class="container columns">
-          <div class="column is-8">
-            <h3 class="title is-3 is-marginless" v-html="`${messages.interPartName} for ${title}`"></h3>
+    </div>
+    <template v-if="componentNotFound">
+      <div class="columns is-centered">
+        <notFound component="Interaction Partners" :component-id="mainNodeID"></notFound>
+      </div>
+    </template>
+    <template v-if="loading">
+      <loader></loader>
+    </template>
+    <template v-else-if="mainNodeID && !componentNotFound">
+      <div class="container columns">
+        <div class="column is-8">
+          <h3 class="title is-3 is-marginless" v-html="`${messages.interPartName} for ${title}`"></h3>
+        </div>
+      </div>
+      <div v-show="showGraphContextMenu && showNetworkGraph" id="contextMenuGraph" ref="contextMenuGraph">
+        <span v-show="clickedElmId && clickedElmId !== mainNodeID"
+              class="button is-dark" @click="navigate">Load {{ messages.interPartName }}</span>
+        <span v-show="clickedElmId && !expandedIds.includes(clickedElmId)"
+              class="button is-dark" @click="loadExpansion">Expand {{ messages.interPartName }}</span>
+        <div v-show="clickedElm">
+          <span class="button is-dark">Highlight reaction:</span>
+        </div>
+        <div>
+          <template v-if="clickedElm && clickedElm['reaction']">
+            <template v-for="(r, index) in Array.from(clickedElm.reaction).slice(0,16)">
+              <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
+              <span v-if="index != 15" class="button is-dark is-small has-margin-left"
+                    @click="highlightReaction(r)">
+                {{ r }}
+              </span>
+              <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
+              <span v-else class="has-margin-left">
+                {{ `${Array.from(clickedElm.reaction).length - 15} others reaction(s)...` }}
+              </span>
+            </template>
+          </template>
+        </div>
+      </div>
+      <div class="container columns is-multiline">
+        <template v-if="tooLargeNetworkGraph">
+          <div class="column is-8-desktop is-fullwidth-tablet">
+            <div class="notification is-warning has-text-centered">
+              The query has returned many nodes.
+              <br>
+              The network cannot been generated.
+            </div>
           </div>
-          <div class="column">
-            <div class="dropdown" id="dropdownMenuExport">
-              <div class="dropdown-trigger">
-                <button class="button is-primary" aria-haspopup="true" aria-controls="dropdown-menu"
-                @click="showMenuExport=!showMenuExport" v-show="showNetworkGraph">
-                  <span>Export graph</span>
-                  <span class="icon is-small">
-                    &#9663;
-                  </span>
-                </button>
+        </template>
+        <template v-if="largeNetworkGraph">
+          <div class="column is-8-desktop is-fullwidth-tablet">
+            <div class="notification is-warning has-text-centered">
+              <div>
+                The query has returned many nodes.
+                <br>
+                The network has not been generated.
               </div>
-              <div class="dropdown-menu" id="dropdown-menu" role="menu" v-show="showMenuExport"
-              v-on:mouseleave="showMenuExport = false">
+              <span class="button" @click="generateGraph(fitGraph)">Generate</span>
+            </div>
+          </div>
+        </template>
+        <template v-else-if="showNetworkGraph">
+          <div class="column is-8-desktop is-fullwidth-tablet">
+            <div id="graphOption">
+              <span class="button" :class="[{ 'is-active': showGraphLegend }, '']"
+                    title="Options" @click="toggleGraphLegend"><i class="fa fa-cog"></i></span>
+              <span class="button" title="Zoom In" @click="zoomGraph(true)"><i class="fa fa-search-plus"></i></span>
+              <span class="button" title="Zoom Out" @click="zoomGraph(false)">
+                <i class="fa fa-search-minus"></i>
+              </span>
+              <span class="button" title="Fit to frame" @click="fitGraph()"><i class="fa fa-arrows-alt"></i></span>
+              <span class="button" title="Reload" @click="resetGraph(true)"><i class="fa fa-refresh"></i></span>
+              <span class="button" title="Clean selection/highlight" @click="resetGraph(false)">
+                <i class="fa fa-eraser"></i>
+              </span>
+            </div>
+            <div v-show="showGraphLegend" id="contextGraphLegend" ref="contextGraphLegend">
+              <button class="delete" @click="toggleGraphLegend"></button>
+              <span class="label">Gene</span>
+              <div class="comp">
+                <span>Shape:</span>
+                <div class="select">
+                  <select v-model="nodeDisplayParams.geneNodeShape" @change="redrawGraph()">
+                    <option v-for="shape in availableNodeShape" :key="shape">
+                      {{ shape }}
+                    </option>
+                  </select>
+                </div>
+                <span>Color:</span>
+                <span class="color-span clickable"
+                      :style="{ background: nodeDisplayParams.geneNodeColor.hex }"
+                      @click="toggleGeneColorPicker()">
+                  <compact-picker v-show="showColorPickerEnz"
+                                  v-model="nodeDisplayParams.geneNodeColor"
+                                  @input="updateExpAndredrawGraph(false, 'gene')">
+                  </compact-picker>
+                </span>
+              </div>
+              <br>
+              <span class="label">Metabolite</span>
+              <div class="comp">
+                <span>Shape:</span>
+                <div class="select">
+                  <select v-model="nodeDisplayParams.metaboliteNodeShape"
+                          @change="redrawGraph()">
+                    <option v-for="shape in availableNodeShape" :key="shape">
+                      {{ shape }}
+                    </option>
+                  </select>
+                </div>
+                <span>Color:</span>
+                <span class="color-span clickable"
+                      :style="{ background: nodeDisplayParams.metaboliteNodeColor.hex }"
+                      @click="toggleMetaboliteColorPicker()">
+                  <compact-picker v-show="showColorPickerMeta"
+                                  v-model="nodeDisplayParams.metaboliteNodeColor"
+                                  @input="updateExpAndredrawGraph(false, 'metabolite')">
+                  </compact-picker>
+                </span>
+              </div>
+            </div>
+            <div id="cy" ref="cy" class="card is-paddingless">
+            </div>
+          </div>
+        </template>
+        <div class="column">
+          <template v-if="showNetworkGraph">
+            <div id="dropdownMenuExport" class="dropdown">
+              <div class="dropdown-trigger">
+                <a v-show="showNetworkGraph" class="button is-primary is-outlined" aria-haspopup="true"
+                   aria-controls="dropdown-menu" @click="showMenuExport=!showMenuExport">
+                  <span class="icon is-large"><i class="fa fa-download"></i></span>
+                  <span>Export graph</span>
+                  <span class="icon is-large"><i class="fa fa-caret-down"></i></span>
+                </a>
+              </div>
+              <div v-show="showMenuExport" id="dropdown-menu"
+                   class="dropdown-menu" role="menu"
+                   @mouseleave="showMenuExport = false">
                 <div class="dropdown-content">
-                  <a class="dropdown-item" v-on:click="exportGraphml">
+                  <a class="dropdown-item" @click="exportGraphml">
                     Graphml
                   </a>
-                  <a class="dropdown-item" v-on:click="exportPNG">
+                  <a class="dropdown-item" @click="exportPNG">
                     PNG
                   </a>
                 </div>
               </div>
             </div>
-          </div>
-        </div>
-        <div v-show="showGraphContextMenu && showNetworkGraph" id="contextMenuGraph" ref="contextMenuGraph">
-          <span v-show="clickedElmId !== id"
-          class="button is-dark" v-on:click="navigate">Load {{ messages.interPartName }}</span>
-          <span v-show="!expandedIds.includes(clickedElmId)"
-          class="button is-dark" v-on:click="loadExpansion">Expand {{ messages.interPartName }}</span>
-          <div v-show="clickedElm">
-            <span class="button is-dark">Highlight reaction:</span>
-          </div>
-          <div>
-            <template v-if="clickedElm !== null && clickedElm['reaction']">
-               <template v-for="r, index of Array.from(clickedElm.reaction).slice(0,16)">
-                <span class="button is-dark is-small has-margin-left" v-on:click="highlightReaction(r)" v-if="index != 15">
-                  {{ r }}
-                </span>
-                <span v-else class="has-margin-left">
-                  {{ `${Array.from(clickedElm.reaction).length - 15} others reaction(s)...` }}
-                </span>
-               </template>
-            </template>
-          </div>
-        </div>
-        <div id="cip-graph">
-          <div v-show="showNetworkGraph" class="container columns">
-            <div class="column is-8">
-              <transition name="slide-fade">
-                <article id="errorExpBar" class="message is-danger" v-if="errorExpMessage">
-                  <div class="message-header">
-                    <i class="fa fa-warning"></i>
-                  </div>
-                  <div class="message-body">
-                    <h5 class="title is-5">{{ errorExpMessage }}</h5>
-                  </div>
-                </article>
-              </transition>
-              <div id="graphOption">
-                <span class="button" v-bind:class="[{ 'is-active': showGraphLegend }, '']"
-                v-on:click="toggleGraphLegend" title="Options"><i class="fa fa-cog"></i></span>
-                <span class="button" v-on:click="zoomGraph(true)" title="Zoom In"><i class="fa fa-search-plus"></i></span>
-                <span class="button" v-on:click="zoomGraph(false)" title="Zoom Out"><i class="fa fa-search-minus"></i></span>
-                <span class="button" v-on:click="fitGraph()" title="Fit to frame"><i class="fa fa-arrows-alt"></i></span>
-                <span class="button" v-on:click="resetGraph(true)" title="Reload"><i class="fa fa-refresh"></i></span>
-                <span class="button" v-on:click="resetGraph(false)" title="Clean selection/highlight"><i class="fa fa-eraser"></i></span>
-              </div>
-              <div v-show="showGraphLegend" id="contextGraphLegend" ref="contextGraphLegend">
-                <button class="delete" v-on:click="toggleGraphLegend"></button>
-                <span class="label">Gene</span>
-                <div class="comp">
-                  <span>Shape:</span>
-                  <div class="select">
-                    <select v-model="nodeDisplayParams.geneNodeShape"
-                    v-on:change="redrawGraph()">
-                      <option v-for="shape in availableNodeShape">
-                      {{ shape }}
-                      </option>
-                    </select>
-                  </div>
-                  <span>Color:</span>
-                  <span class="color-span clickable"
-                    v-bind:style="{ background: nodeDisplayParams.geneNodeColor.hex }"
-                    v-on:click="toggleGeneColorPicker()">
-                    <compact-picker v-show="showColorPickerEnz"
-                    v-model="nodeDisplayParams.geneNodeColor" @input="updateExpAndredrawGraph(false, 'gene')"></compact-picker>
-                  </span>
-                </div>
+            <br><br>
+            <div class="card ">
+              <header class="card-header">
+                <p class="card-header-title">
+                  <label class="checkbox is-unselectable"
+                         :title="disableExpLvl ? 'Expression levels are not available' : `Click to ${toggleGeneExpLevel ? 'disable' : 'activate'} expression RNA levels`"> <!-- eslint-disable-line max-len -->
+                    <input v-model="toggleGeneExpLevel" type="checkbox"
+                           :disabled="disableExpLvl"
+                           @click="applyLevels('gene', 'HPA', 'RNA', selectedSample)">
+                    Enable <a href="https://www.proteinatlas.org/" target="_blank">proteinAtlas.org</a>&nbsp;RNA levels
+                  </label>
+                </p>
+              </header>
+              <div v-show="toggleGeneExpLevel" class="card-content card-content-compact">
+                <RNALegend></RNALegend>
                 <br>
-                <span class="label">Metabolite</span>
-                <div class="comp">
-                  <span>Shape:</span>
-                  <div class="select">
-                    <select v-model="nodeDisplayParams.metaboliteNodeShape"
-                    v-on:change="redrawGraph()">
-                      <option v-for="shape in availableNodeShape">
-                      {{ shape }}
+                <div v-show="toggleGeneExpLevel && !disableExpLvl"
+                     class="select is-fullwidth"
+                     :class="{ 'is-loading' : loadingHPA && toggleGeneExpLevel}">
+                  <select id="enz-select" ref="enzHPAselect"
+                          v-model="selectedSample" :disabled="!toggleGeneExpLevel"
+                          title="Select a tissue type"
+                          @change.prevent="applyLevels('gene', 'HPA', 'RNA', selectedSample)">
+                    <optgroup label="HPA - RNA levels - Tissues">
+                      <!--  <option value="None">None</option> -->
+                      <option v-for="tissue in tissues['HPA']" :key="tissue" :value="tissue">
+                        {{ tissue }}
                       </option>
-                    </select>
-                  </div>
-                  <span>Color:</span>
-                   <span class="color-span clickable"
-                    v-bind:style="{ background: nodeDisplayParams.metaboliteNodeColor.hex }"
-                    v-on:click="toggleMetaboliteColorPicker()">
-                    <compact-picker v-show="showColorPickerMeta"
-                    v-model="nodeDisplayParams.metaboliteNodeColor" @input="updateExpAndredrawGraph(false, 'metabolite')"></compact-picker>
-                  </span>
+                    </optgroup>
+                    <optgroup v-if="false" label="HPA - RNA levels - Cell-type">
+                      <option v-for="cellType in cellLines['HPA']" :key="cellType" :value="cellType">
+                        {{ cellType }}
+                      </option>
+                    </optgroup>
+                  </select>
                 </div>
               </div>
-              <div id="cy" ref="cy" class="card is-paddingless">
-              </div>
-            </div>
-            <div class="column">
-              <div class="card " v-if="model.database_name === 'human1'">
-                <header class="card-header">
-                  <p class="card-header-title">
-                    <label class="checkbox is-unselectable"
-                    :title="`Click to ${toggleGeneExpLevel ? 'disable' : 'activate'} expression RNA levels`">
-                      <input type="checkbox" v-model="toggleGeneExpLevel" :disabled="disableExpLvl"
-                      @click="applyLevels('gene', 'HPA', 'RNA', selectedSample)">
-                      Enable <a href="https://www.proteinatlas.org/" target="_blank">proteinAtlas.org</a>&nbsp;RNA levels
-                    </label>
-                  </p>
-                </header>
-                <div class="card-content" v-show="toggleGeneExpLevel">
-                  <RNALegend></RNALegend>
-                  <br>
-                  <div class="select is-fullwidth" :class="{ 'is-loading' : loadingHPA && toggleGeneExpLevel}" v-show="toggleGeneExpLevel && !disableExpLvl">
-                    <select id="enz-select" ref="enzHPAselect" v-model="selectedSample" :disabled="!toggleGeneExpLevel"
-                    @change.prevent="applyLevels('gene', 'HPA', 'RNA', selectedSample)"
-                    title="Select a tissue type">
-                      <optgroup label="HPA - RNA levels - Tissues">
-                       <!--  <option value="None">None</option> -->
-                        <option v-for="tissue in tissues['HPA']" :value="tissue">
-                          {{ tissue }}
-                        </option>
-                      </optgroup>
-                      <optgroup label="HPA - RNA levels - Cell-type" v-if="false">
-                        <option v-for="cellType in cellLines['HPA']" :value="cellType">
-                          {{ cellType }}
-                        </option>
-                      </optgroup>
-                    </select>
-                  </div>
-                </div>
-              </div>
-              <br>
-              <div class="card" v-if="compartmentList.length != 0 || subsystemList.length != 0">
-                <header class="card-header">
-                  <p class="card-header-title">
-                    Highlight
-                  </p>
-                </header>
-                <div class="card-content">
-                  <div class="select is-fullwidth">
-                    <select v-model="compartmentHL" @change.prevent="highlightCompartment" :disabled="disableCompartmentHL">
-                      <option value="" disabled v-if="!disableCompartmentHL">Select a compartment</option>
-                      <option v-for="compartment in compartmentList" :value="disableCompartmentHL ? '' : compartment">
-                        {{ compartment }}
-                      </option>
-                    </select>
-                  </div>
-                  <div v-show="subsystemList.length != 0">
-                    <br>
-                    <div class="select is-fullwidth">
-                      <select v-model="subsystemHL" @change.prevent="highlightSubsystem">
-                        <option value="" disabled>Select a subsystem</option>
-                        <option v-for="sub in subsystemList" :value="sub">
-                          {{ sub }}
-                        </option>
-                      </select>
-                    </div>
-                  </div>
-                 </div>
-              </div>
-              <br>
-              <sidebar id="sidebar" :selectedElm="clickedElm" :view="'interaction'" :model="model"></sidebar>
-            </div>
-          </div>
-          <div v-show="!showNetworkGraph" class="container columns">
-            <div class="column is-4 is-offset-4 notification is-warning has-text-centered">
-              <div>Warning: The query has returned too many elements to be displayed.<br>The network has not been generated.</div>
-              <span v-show="nodeCount <= maxNodeCount"
-              class="button" v-on:click="generateGraph(fitGraph)">Generate</span>
             </div>
             <br>
-          </div>
-        </div>
-        <div id="cip-table">
-          <cytoscape-table
-            :reactions="reactions"
-            :selected-elm-id="clickedElmId"
-            :selected-reaction-id="reactionHL"
-            :is-graph-visible="showNetworkGraph"
-            :filename="filename"
-            :sheetname="componentName"
-            @highlight="highlightNode($event)"
-            @HLreaction="highlightReaction($event)"
-          ></cytoscape-table>
+            <div v-if="compartmentList.length !== 0 || subsystemList.length != 0" class="card">
+              <header class="card-header">
+                <p class="card-header-title">
+                  Highlight
+                </p>
+              </header>
+              <div class="card-content card-content-compact">
+                <div class="select is-fullwidth">
+                  <select v-model="compartmentHL" :disabled="disableCompartmentHL"
+                          @change.prevent="highlightCompartment">
+                    <option v-if="!disableCompartmentHL" value="" disabled>Select a compartment</option>
+                    <option v-for="compartment in compartmentList"
+                            :key="compartment" :value="disableCompartmentHL ? '' : compartment">
+                      {{ compartment }}
+                    </option>
+                  </select>
+                </div>
+                <div v-show="subsystemList.length !== 0">
+                  <br>
+                  <div class="select is-fullwidth">
+                    <select v-model="subsystemHL" @change.prevent="highlightSubsystem">
+                      <option value="" disabled>Select a subsystem</option>
+                      <option v-for="sub in subsystemList" :key="sub" :value="sub">
+                        {{ sub }}
+                      </option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <br>
+          </template>
+          <sidebar id="sidebar" :selected-elm="clickedElm" :view="'interaction'" :model="model">
+          </sidebar>
         </div>
       </div>
-    </div>
+      <cytoscape-table :reactions="reactions" :selected-elm-id="clickedElmId" :selected-reaction-id="reactionHL"
+                       :is-graph-visible="showNetworkGraph"
+                       :filename="filename"
+                       @highlight="highlightNode($event)" @HLreaction="highlightReaction($event)">
+      </cytoscape-table>
+    </template>
   </div>
 </template>
 
@@ -227,53 +269,61 @@ import cola from 'cytoscape-cola';
 import { Compact } from 'vue-color';
 import { default as FileSaver } from 'file-saver';
 
-import Sidebar from '@/components/explorer/gemBrowser/Sidebar';
-import CytoscapeTable from '@/components/explorer/gemBrowser/CytoscapeTable';
+import GemSearch from '@/components/explorer/gemBrowser/GemSearch';
+import Sidebar from '@/components/explorer/interactionPartners/Sidebar';
+import CytoscapeTable from '@/components/explorer/interactionPartners/CytoscapeTable';
 import Loader from '@/components/Loader';
 import RNALegend from '@/components/explorer/mapViewer/RNALegend.vue';
+import NotFound from '@/components/NotFound';
 
-import { default as EventBus } from '../../../event-bus';
+import { default as EventBus } from '../../event-bus';
 
-import { default as transform } from '../../../data-mappers/hmr-closest-interaction-partners';
-import { default as graph } from '../../../graph-stylers/hmr-closest-interaction-partners';
+import { default as transform } from '../../data-mappers/hmr-closest-interaction-partners';
+import { default as graph } from '../../graph-stylers/hmr-closest-interaction-partners';
 
-import { chemicalName } from '../../../helpers/chemical-formatters';
-import { default as convertGraphML } from '../../../helpers/graph-ml-converter';
+import { chemicalName } from '../../helpers/chemical-formatters';
+import { default as convertGraphML } from '../../helpers/graph-ml-converter';
 
-import { getSingleRNAExpressionColor } from '../../../expression-sources/hpa';
-import { default as messages } from '../../../helpers/messages';
+import { getSingleRNAExpressionColor } from '../../expression-sources/hpa';
+import { default as messages } from '../../helpers/messages';
 
 
 export default {
-  name: 'closest-interaction-partners',
+  name: 'InteractionPartners',
   components: {
+    NotFound,
+    GemSearch,
     Sidebar,
     CytoscapeTable,
     Loader,
     'compact-picker': Compact,
     RNALegend,
   },
-  props: ['model'],
+  props: {
+    model: Object,
+  },
   data() {
     return {
-      loading: true,
+      loading: false,
       loadingHPA: false,
+      componentNotFound: false,
       errorMessage: '',
-      errorExpMessage: '',
       title: '',
 
       nodeCount: 0,
       warnNodeCount: 50,
       maxNodeCount: 100,
       showNetworkGraph: false,
+      largeNetworkGraph: false,
+      tooLargeNetworkGraph: false,
 
       rawRels: {},
       rawElms: {},
       reactions: [],
+      reactionSet: null,
 
-      id: '',
-      selectedElmId: '',
-      selectedElm: null,
+      mainNodeID: '',
+      mainNode: null,
 
       clickedElmId: '',
       clickedElm: null,
@@ -321,7 +371,6 @@ export default {
         'roundrectangle',
         'cutrectangle',
         'ellipse',
-        'rectangle',
         'triangle',
         'pentagon',
         'hexagon',
@@ -377,7 +426,7 @@ export default {
   },
   computed: {
     filename() {
-      return `ma_interaction_partners_${this.componentName}`;
+      return `MetAtlas Interaction Partners for ${this.componentName} ${this.mainNodeID}`;
     },
     elms() {
       if (Object.keys(this.rawElms).length !== 0) {
@@ -393,7 +442,7 @@ export default {
     /* eslint-disable quote-props */
     '$route': function watchSetup() {
       if (this.$route.path.includes('/interaction/')) {
-        if (this.id !== this.$route.params.id) {
+        if (this.mainNodeID !== this.$route.params.id) {
           this.setup();
         }
       }
@@ -401,63 +450,77 @@ export default {
   },
   beforeMount() {
     cytoscape.use(cola);
+    jquery(window).resize(() => {
+      jquery('#cy').height(jquery('#cy').width() / 1.5);
+      this.fitGraph();
+    });
     this.setup();
   },
   methods: {
     setup() {
-      this.id = this.$route.params.id;
-      this.selectedElmId = '';
-      this.selectedElm = null;
+      this.mainNodeID = this.$route.params.id;
+      this.mainNode = null;
+      this.reactionHL = null;
+      this.compartmentHL = '';
+      this.subsystemHL = '';
       this.loadHPATissue();
-      this.load();
+      if (this.mainNodeID) {
+        this.load();
+        jquery('#cy').height(jquery('#cy').width() / 1.5);
+      }
     },
     navigate() {
       this.reactionHL = null;
       this.compartmentHL = '';
       this.subsystemHL = '';
-      this.$router.push(`/explore/gem-browser/${this.model.database_name}/interaction/${this.clickedElmId}`);
+      this.$router.push(`/explore/interaction/${this.model.database_name}/${this.clickedElmId}`);
     },
     loadHPATissue() {
       axios.get(`${this.model.database_name}/gene/hpa_tissue/`)
         .then((response) => {
           Vue.set(this.tissues, 'HPA', response.data);
-        })
-        .catch((error) => {
-          switch (error.response.status) {
-            default:
-              this.errorMessage = messages.unknownError;
+          if (response.data.length === 0) {
+            this.disableExpLvl = true;
           }
+        })
+        .catch(() => {
+          // HPA tissue might not be available, depending on the selected model
+          this.disableExpLvl = true;
         });
     },
     load() {
-      axios.get(`${this.model.database_name}/reaction_components/${this.id}/with_interaction_partners`)
+      this.loading = true;
+      axios.get(`${this.model.database_name}/reaction_components/${this.mainNodeID}/with_interaction_partners`)
         .then((response) => {
-          this.loading = false;
+          this.componentNotFound = false;
           this.showGraphContextMenu = false;
-          const component = response.data.component;
+          const { component } = response.data;
           this.reactions = response.data.reactions;
+          this.title = component.type === 'metabolite' ? this.chemicalName(component.name) : component.name;
+          if (!this.reactions) {
+            this.tooLargeNetworkGraph = true;
+            this.showNetworkGraph = false;
+            return;
+          }
+          this.tooLargeNetworkGraph = false;
+
+          this.reactionSet = new Set();
+          this.reactions.forEach((r) => {
+            this.reactionSet.add(r.id);
+          });
 
           this.componentName = component.name || component.id;
-          this.id = component.id;
-          if ('formula' in component) {
-            this.title = `${this.chemicalName(this.componentName)}`;
-            component.type = 'metabolite';
-          } else {
-            this.title = this.componentName;
-            if (component.uniprot != null) {
-              this.title = `${this.title} (<a href="${component.uniprot_link}" target="_blank">${component.uniprot}</a>)`;
-            }
-            component.type = 'gene';
-          }
 
-          [this.rawElms, this.rawRels, this.compartmentList, this.subsystemList] =
-            transform(component, this.reactions, null, null, null, null);
+          [this.rawElms,
+            this.rawRels,
+            this.compartmentList,
+            this.subsystemList] = transform(component, this.reactions, null, null, null, null);
           if (this.compartmentList.length === 1) {
             this.compartmentHL = '';
             this.disableCompartmentHL = true;
           }
-          this.selectedElm = this.rawElms[component.id];
-          this.selectedElm.name = this.componentName;
+          this.mainNode = this.rawElms[component.id];
+          this.mainNode.name = this.componentName;
 
           this.expandedIds = [];
           this.expandedIds.push(component.id);
@@ -465,9 +528,11 @@ export default {
           this.nodeCount = Object.keys(this.rawElms).length;
           if (this.nodeCount > this.warnNodeCount) {
             this.showNetworkGraph = false;
+            this.largeNetworkGraph = true;
             this.errorMessage = '';
             return;
           }
+          this.largeNetworkGraph = false;
           this.showNetworkGraph = true;
           this.errorMessage = '';
 
@@ -475,37 +540,48 @@ export default {
 
           // The set time out wrapper enforces this happens last.
           setTimeout(() => {
-            this.constructGraph(this.rawElms, this.rawRels);
+            this.constructGraph(this.rawElms, this.rawRels, this.fitGraph);
           }, 0);
         })
         .catch((error) => {
-          this.loading = false;
           switch (error.response.status) {
-            case 406:
-              this.errorMessage = messages.tooManyInteractionPartner;
-              break;
             case 404:
-              this.errorMessage = messages.notFoundError;
+              this.componentNotFound = true;
               break;
             default:
               this.errorMessage = messages.unknownError;
           }
+        }).then(() => {
+          this.loading = false;
         });
     },
     loadExpansion() {
       axios.get(`${this.model.database_name}/reaction_components/${this.clickedElmId}/with_interaction_partners`)
         .then((response) => {
           this.reactionHL = null;
-          this.loading = false;
           this.errorMessage = null;
           this.showGraphContextMenu = false;
 
-          const component = response.data.component;
-          const reactions = response.data.reactions;
+          const { component } = response.data;
+          let { reactions } = response.data;
+          if (!reactions) {
+            this.tooLargeNetworkGraph = true;
+            this.showNetworkGraph = false;
+            return;
+          }
+          this.tooLargeNetworkGraph = false;
+
+          reactions = reactions.filter(r => !this.reactionSet.has(r.id));
           this.reactions = this.reactions.concat(reactions);
-          [this.rawElms, this.rawRels, this.compartmentList, this.subsystemList] =
-            transform(component, reactions, this.rawElms, this.rawRels,
-             this.compartmentList, this.subsystemList);
+          this.reactions.forEach((r) => {
+            this.reactionSet.add(r.id);
+          });
+
+          [this.rawElms,
+            this.rawRels,
+            this.compartmentList,
+            this.subsystemList] = transform(component, reactions, this.rawElms, this.rawRels,
+            this.compartmentList, this.subsystemList);
           if (this.compartmentList.length === 1) {
             this.compartmentHL = '';
             this.disableCompartmentHL = true;
@@ -536,25 +612,20 @@ export default {
           }, 0);
         })
         .catch((error) => {
-          this.loading = false;
           switch (error.response.status) {
-            case 406:
-              this.errorExpMessage = messages.tooManyInteractionPartner;
-              setTimeout(() => {
-                this.errorExpMessage = '';
-              }, 3000);
-              break;
             case 404:
               this.errorMessage = messages.notFoundError;
               break;
             default:
               this.errorMessage = messages.unknownError;
           }
+        }).then(() => {
+          this.loading = false;
         });
     },
     isCompartmentSubsystemHLDisabled() {
-      return ((this.compartmentHL === '' && this.subsystemHL === '') ||
-        (this.compartmentList.length < 2 && this.subsystemList.length === 0));
+      return ((this.compartmentHL === '' && this.subsystemHL === '')
+        || (this.compartmentList.length < 2 && this.subsystemList.length === 0));
     },
     highlightReaction(rid) {
       if (this.cy) {
@@ -582,9 +653,11 @@ export default {
     },
     fixEnzSelectOption() {
       const option = document.getElementById('enz-select')
-      .getElementsByTagName('optgroup')[0].childNodes[0];
-      option.selected = 'selected';
-      this.nodeDisplayParams.geneExpSample = option.label;
+        .getElementsByTagName('optgroup')[0].childNodes[0];
+      if (option) {
+        option.selected = 'selected';
+        this.nodeDisplayParams.geneExpSample = option.label;
+      }
     },
     updateExpAndredrawGraph(usingExpressionLevel, nodeType, expSource, expType, expSample) {
       setTimeout(() => {
@@ -595,8 +668,8 @@ export default {
           }
         }
         if (!usingExpressionLevel) {
-          if ((nodeType === 'gene' && this.toggleGeneExpLevel) ||
-            (nodeType === 'metabolite' && this.toggleMetaboliteExpLevel)) {
+          if ((nodeType === 'gene' && this.toggleGeneExpLevel)
+            || (nodeType === 'metabolite' && this.toggleMetaboliteExpLevel)) {
             return;
           }
         }
@@ -612,8 +685,7 @@ export default {
     },
     resetGraph(reload) {
       this.reactionHL = null;
-      this.selectedElm = null;
-      this.selectedElmId = '';
+      this.mainNode = null;
       this.clickedElm = null;
       this.clickedElmId = '';
       this.showGraphContextMenu = false;
@@ -626,9 +698,9 @@ export default {
       }
     },
     redrawGraph() {
-      const stylesheet = graph(this.id,
+      const stylesheet = graph(this.mainNodeID,
         this.rawElms, this.rawRels, this.nodeDisplayParams,
-         this.reactionHL, this.compartmentHL, this.subsystemHL)[1];
+        this.reactionHL, this.compartmentHL, this.subsystemHL)[1];
       const cyzoom = this.cy.zoom();
       const cypan = this.cy.pan();
       this.cy.style(stylesheet);
@@ -638,6 +710,7 @@ export default {
       });
     },
     fitGraph() {
+      jquery('#cy').height(jquery('#cy').width() / 1.5);
       setTimeout(() => {
         this.cy.fit(null, 10);
         this.minZoom = this.cy.zoom() / 2.0;
@@ -647,14 +720,19 @@ export default {
       this.showGraphContextMenu = false;
       this.reactionHL = null;
       this.clickedElmId = elmId;
-      this.cy.nodes().deselect();
-      const node = this.cy.getElementById(elmId);
-      node.json({ selected: true });
-      node.trigger('tap');
-      this.redrawGraph();
+      this.clickedElm = this.rawElms[elmId];
+
+      if (this.showNetworkGraph) {
+        this.cy.nodes().deselect();
+        const node = this.cy.getElementById(elmId);
+        node.json({ selected: true });
+        node.trigger('tap');
+        this.redrawGraph();
+      }
     },
     generateGraph(callback) {
       this.showNetworkGraph = true;
+      this.largeNetworkGraph = false;
       this.errorMessage = null;
 
       this.resetGeneExpression();
@@ -666,9 +744,8 @@ export default {
     },
     // this.switchSVG(compartmentID,
     constructGraph: function constructGraph(elms, rels, callback) {
-      const [elements, stylesheet] = graph(this.id,
+      const [elements, stylesheet] = graph(this.mainNodeID,
         elms, rels, this.nodeDisplayParams, this.reactionHL, this.compartmentHL, this.subsystemHL);
-      // const id = this.id;
 
       const colaOptions = {
         animate: true, // whether to show the layout as it's running
@@ -712,7 +789,7 @@ export default {
         // infinite layout options
         infinite: false, // overrides all other options for a forces-all-the-time mode
       };
-      const id = this.id;
+      const { mainNodeID } = this;
       this.cy = cytoscape({
         container: this.$refs.cy,
         elements,
@@ -725,7 +802,7 @@ export default {
             if (node.degree() === 1) {
               return 1;
             }
-            if (node.data().id === id) {
+            if (node.data().id === mainNodeID) {
               return 10000;
             }
             if (node.data().type === 'gene') {
@@ -761,7 +838,7 @@ export default {
         });
       });
 
-      const contextMenuGraph = this.$refs.contextMenuGraph;
+      const { contextMenuGraph } = this.$refs;
       this.showGraphContextMenu = false;
       this.showNetworkGraph = true;
 
@@ -822,8 +899,8 @@ export default {
     exportGraphml: function exportGraphml() {
       const output = convertGraphML(this.cy);
       const blob = new Blob([output], { type: 'text/graphml' });
-      const filename = `${this.id}_interaction_partners.graphml`;
-      FileSaver.saveAs(blob, filename);
+      const fn = `${this.filename}.graphml`;
+      FileSaver.saveAs(blob, fn);
     },
     exportPNG: function exportPNG() {
       const a = document.createElement('a');
@@ -832,7 +909,7 @@ export default {
       });
 
       a.href = output;
-      a.download = `${this.id}_interaction_partners.png`;
+      a.download = `${this.filename}.png`;
       a.target = '_blank';
       a.style.display = 'none';
       document.body.appendChild(a);
@@ -840,7 +917,7 @@ export default {
       document.body.removeChild(a);
     },
     applyLevels(componentType, expSource, expType, expSample) {
-      setTimeout(() => {  // wait this.toggleGeneExpLevel
+      setTimeout(() => { // wait this.toggleGeneExpLevel
         if (this.disableExpLvl) {
           return;
         }
@@ -853,8 +930,8 @@ export default {
               this.nodeDisplayParams.geneExpSource = expSource;
               this.nodeDisplayParams.geneExpType = expType;
               // check if this source for ths type of component have been already loaded
-              if (!Object.keys(this.expSourceLoaded[componentType]).length === 0 ||
-                !this.expSourceLoaded[componentType][expSource]) {
+              if (!Object.keys(this.expSourceLoaded[componentType]).length === 0
+                || !this.expSourceLoaded[componentType][expSource]) {
                 // sources that load all exp type
                 if (expSource === 'HPA') {
                   this.getHPAexpression(this.rawElms, expSample);
@@ -908,8 +985,8 @@ export default {
         lvl = this.maxZoom;
       }
 
-      if ((lvl === this.maxZoom && zoom === this.maxZoom) ||
-        (lvl === this.minZoom && zoom === this.minZoom)) {
+      if ((lvl === this.maxZoom && zoom === this.maxZoom)
+        || (lvl === this.minZoom && zoom === this.minZoom)) {
         return;
       }
 
@@ -919,7 +996,7 @@ export default {
     },
     viewReactionComponent(type) {
       EventBus.$emit('GBnavigateTo', type,
-       this.selectedElm.real_id ? this.selectedElm.real_id : this.selectedElm.id);
+        this.mainNode.real_id ? this.mainNode.real_id : this.mainNode.id);
     },
     viewReaction(ID) {
       EventBus.$emit('GBnavigateTo', 'reaction', ID);
@@ -943,55 +1020,55 @@ export default {
       const geneIDs = genes.map(k => rawElms[k].id);
 
       axios.post(`${this.model.database_name}/gene/hpa_rna_levels/`, { data: geneIDs })
-      .then((response) => {
-        const matLevels = response.data.levels;
-        for (let i = 0; i < matLevels.length; i += 1) {
-          const array = matLevels[i];
-          const enzID = array[0];
+        .then((response) => {
+          const matLevels = response.data.levels;
+          for (let i = 0; i < matLevels.length; i += 1) {
+            const array = matLevels[i];
+            const enzID = array[0];
 
-          if (!(enzID in this.rawElms)) {
-            continue; // eslint-disable-line no-continue
-          }
+            if (!(enzID in this.rawElms)) {
+              continue; // eslint-disable-line no-continue
+            }
 
-          if (!this.rawElms[enzID].expressionLvl) {
-            this.rawElms[enzID].expressionLvl = {};
-          }
-          if (!this.rawElms[enzID].expressionLvl.HPA) {
-            this.rawElms[enzID].expressionLvl.HPA = {};
-          }
-          if (!this.rawElms[enzID].expressionLvl.HPA.RNA) {
-            this.rawElms[enzID].expressionLvl.HPA.RNA = {};
-          }
+            if (!this.rawElms[enzID].expressionLvl) {
+              this.rawElms[enzID].expressionLvl = {};
+            }
+            if (!this.rawElms[enzID].expressionLvl.HPA) {
+              this.rawElms[enzID].expressionLvl.HPA = {};
+            }
+            if (!this.rawElms[enzID].expressionLvl.HPA.RNA) {
+              this.rawElms[enzID].expressionLvl.HPA.RNA = {};
+            }
 
-          for (let j = 0; j < this.tissues.HPA.length; j += 1) {
-            const tissue = this.tissues.HPA[j];
-            let level = Math.log2(parseFloat(array[1].split(',')[j]) + 1);
-            level = Math.round((level + 0.00001) * 100) / 100;
-            this.rawElms[enzID].expressionLvl.HPA.RNA[tissue] = getSingleRNAExpressionColor(level);
+            for (let j = 0; j < this.tissues.HPA.length; j += 1) {
+              const tissue = this.tissues.HPA[j];
+              let level = Math.log2(parseFloat(array[1].split(',')[j]) + 1);
+              level = Math.round((level + 0.00001) * 100) / 100;
+              this.rawElms[enzID].expressionLvl.HPA.RNA[tissue] = getSingleRNAExpressionColor(level);
+            }
           }
-        }
-        this.expSourceLoaded.gene.HPA = {};
-        this.expSourceLoaded.gene.HPA.RNA = true;
-        this.disableExpLvl = false;
-        this.loadingHPA = false;
-        setTimeout(() => {
+          this.expSourceLoaded.gene.HPA = {};
+          this.expSourceLoaded.gene.HPA.RNA = true;
+          this.disableExpLvl = false;
+          this.loadingHPA = false;
+          setTimeout(() => {
           // if ((expSource && expType) && !expSample) {
             // fix option selection! because of optgroup?
             // if (this.toggleGeneExpLevel) {
-          this.fixEnzSelectOption();
+            this.fixEnzSelectOption();
             // }
-          //  }
-          this.redrawGraph(true);
-        }, 0);
-      })
-      .catch(() => {
-        this.loadingHPA = false;
-        this.toggleGeneExpLevel = false;
-        this.disableExpLvl = true;
-        this.nodeDisplayParams.geneExpSource = false;
-        this.nodeDisplayParams.geneExpType = false;
-        this.nodeDisplayParams.geneExpSample = false;
-      });
+            //  }
+            this.redrawGraph(true);
+          }, 0);
+        })
+        .catch(() => {
+          this.loadingHPA = false;
+          this.toggleGeneExpLevel = false;
+          this.disableExpLvl = true;
+          this.nodeDisplayParams.geneExpSource = false;
+          this.nodeDisplayParams.geneExpType = false;
+          this.nodeDisplayParams.geneExpSample = false;
+        });
     },
     toggleGeneColorPicker() {
       this.showColorPickerMeta = false;
@@ -1009,20 +1086,20 @@ export default {
 </script>
 
 <style lang='scss'>
-.closest-interaction-partners {
+.interaction-partners {
 
   h1, h2 {
     font-weight: normal;
   }
 
   #cy {
-    /* position: static; */
     margin: auto;
-    height: 820px;
+    width: 100%;
+    height: 100%;
   }
 
   #sidebar {
-    max-height: 820px;
+    max-height: 620px;
     overflow-y: auto;
   }
 

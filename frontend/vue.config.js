@@ -2,18 +2,18 @@
 const IS_DEV = process.env.NODE_ENV === 'development';
 
 // plugins for compressing the static files
-const CompressionPlugin = require("compression-webpack-plugin");
+const CompressionPlugin = require('compression-webpack-plugin');
 
 module.exports = {
   productionSourceMap: false,
-  lintOnSave: IS_DEV,
+  lintOnSave: 'default',
   css: {
     loaderOptions: {
       sass: {
         // @/ is an alias to src/  so this assumes you have a file named `src/vars.scss`
-        data: `@import "~@/style/vars.scss";`
+        data: '@import "~@/style/vars.scss";',
       },
-    }
+    },
   },
   pluginOptions: {
     webpackBundleAnalyzer: {
@@ -21,10 +21,10 @@ module.exports = {
       // Using the same host name as the container name
       analyzerHost: 'frontend',
       analyzerPort: 81,
-      openAnalyzer: false
-    }
+      openAnalyzer: false,
+    },
   },
   configureWebpack: {
-    plugins: [new CompressionPlugin]
-  }
-}
+    plugins: [new CompressionPlugin()],
+  },
+};

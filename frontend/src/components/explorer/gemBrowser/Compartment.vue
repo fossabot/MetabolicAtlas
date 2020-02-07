@@ -1,13 +1,11 @@
 <template>
-  <div v-if="errorMessage" class="columns">
-    <div class="column notification is-danger is-half is-offset-one-quarter has-text-centered">
-      {{ errorMessage }}
-    </div>
+  <div v-if="componentNotFound" class="columns is-centered">
+    <notFound :type="type" :component-id="cName"></notFound>
   </div>
   <div v-else>
     <div class="columns">
       <div class="column">
-        <h3 class="title is-3">Compartment {{ compartment.name }}</h3>
+        <h3 class="title is-3"><span class="is-capitalized">{{ type }}</span> {{ compartment.name }}</h3>
       </div>
     </div>
     <loader v-show="showLoader"></loader>
@@ -16,37 +14,42 @@
         <table v-if="compartment && Object.keys(compartment).length != 0" class="table main-table is-fullwidth">
           <tr>
             <td class="td-key has-background-primary has-text-white-bis">Name</td>
-            <td> {{ this.compartment.name }}</td>
+            <td> {{ compartment.name }}</td>
           </tr>
           <tr>
             <td class="td-key has-background-primary has-text-white-bis">Subsystems</td>
-             <td>
+            <td>
               <div v-html="subsystemListHtml"></div>
-              <div v-if="!this.showFullSubsystem && this.subsystems.length > this.limitSubsystem">
+              <div v-if="!showFullSubsystem && subsystems.length > limitSubsystem">
                 <br>
                 <button class="is-small button" @click="showFullSubsystem=true">
-                  ... and {{ this.subsystems.length - this.limitSubsystem}} more
+                  ... and {{ subsystems.length - limitSubsystem }} more
                 </button>
               </div>
             </td>
           </tr>
           <tr>
             <td class="td-key has-background-primary has-text-white-bis">Reactions</td>
-            <td> {{ this.compartment.reaction_count }}</td>
+            <td> {{ compartment.reaction_count }}</td>
           </tr>
           <tr>
             <td class="td-key has-background-primary has-text-white-bis">Metabolites</td>
-            <td> {{ this.compartment.metabolite_count }}</td>
+            <td> {{ compartment.metabolite_count }}</td>
           </tr>
           <tr>
             <td class="td-key has-background-primary has-text-white-bis">Genes</td>
-            <td> {{ this.compartment.gene_count }}</td>
+            <td> {{ compartment.gene_count }}</td>
           </tr>
         </table>
-        <span class="is-size-5">The <a :href="`/api/${model.database_name}/compartment/${this.cName}/`" target="_blank">complete list in JSON format</a> of reactions / metabolites / genes is available using our <a href="/api/" target="_blank">API</a></span>
+        <span class="is-size-5">The
+          <a :href="`/api/${model.database_name}/compartment/${cName}/`"
+             target="_blank">complete list in JSON format</a>
+          of reactions / metabolites / genes is available using our
+          <a href="/api/" target="_blank">API</a></span>
       </div>
-      <div class="column is-2-widescreen is-3-desktop is-full-tablet has-text-centered">
-        <maps-available :model="model" :type="'compartment'" :id="cName" :elementID="''"></maps-available>
+      <div class="column is-2-widescreen is-3-desktop is-half-tablet has-text-centered">
+        <maps-available :id="cName" :model="model" :type="type" :element-i-d="''"></maps-available>
+        <gem-contact :model="model" :type="type" :id="compartment.name"/>
       </div>
     </div>
   </div>
@@ -55,28 +58,49 @@
 <script>
 import axios from 'axios';
 import Loader from '@/components/Loader';
+import NotFound from '@/components/NotFound';
 import MapsAvailable from '@/components/explorer/gemBrowser/MapsAvailable';
+import GemContact from '@/components/shared/GemContact';
 import { reformatTableKey } from '../../../helpers/utils';
-import { default as messages } from '../../../helpers/messages';
 
 export default {
-  name: 'subsystem',
+  name: 'Subsystem',
   components: {
+    NotFound,
     Loader,
     MapsAvailable,
+    GemContact,
   },
-  props: ['model'],
+  props: {
+    model: Object,
+  },
   data() {
     return {
-      messages,
       cName: this.$route.params.id,
+      type: 'compartment',
       showLoader: false,
       compartment: {},
       subsystems: [],
       errorMessage: '',
       showFullSubsystem: false,
       limitSubsystem: 30,
+      componentNotFound: false,
     };
+  },
+  computed: {
+    subsystemListHtml() {
+      const l = ['<span class="tags">'];
+      const sortedSubsystemList = this.subsystems.concat().sort((a, b) => (a.name < b.name ? -1 : 1));
+      for (let i = 0; i < sortedSubsystemList.length; i += 1) {
+        const s = sortedSubsystemList[i];
+        if (!this.showFullSubsystem && i === this.limitSubsystem) {
+          break;
+        }
+        l.push(`<span id="${s.id}" class="tag sub"><a class="is-size-6">${s.name}</a></span>`);
+      }
+      l.push('</span>');
+      return l.join('');
+    },
   },
   watch: {
     /* eslint-disable quote-props */
@@ -88,21 +112,8 @@ export default {
       }
     },
   },
-  computed: {
-    subsystemListHtml() {
-      const l = ['<span class="tags">'];
-      this.subsystems.sort((a, b) => (a < b ? -1 : 1));
-      let i = 0;
-      for (const s of this.subsystems) {
-        if (!this.showFullSubsystem && i === this.limitSubsystem) {
-          break;
-        }
-        i += 1;
-        l.push(`<span id="${s}" class="tag sub"><a class="is-size-6">${s}</a></span>`);
-      }
-      l.push('</span>');
-      return l.join('');
-    },
+  beforeMount() {
+    this.setup();
   },
   methods: {
     setup() {
@@ -112,19 +123,18 @@ export default {
     load() {
       this.showLoader = true;
       axios.get(`${this.model.database_name}/compartment/${this.cName}/summary/`)
-      .then((response) => {
-        this.compartment = response.data.info;
-        this.subsystems = response.data.subsystems;
-        this.showLoader = false;
-      })
-      .catch(() => {
-        this.errorMessage = messages.notFoundError;
-      });
+        .then((response) => {
+          this.componentNotFound = false;
+          this.compartment = response.data.info;
+          this.subsystems = response.data.subsystems;
+          this.showLoader = false;
+        })
+        .catch(() => {
+          this.componentNotFound = true;
+          document.getElementById('search').focus();
+        });
     },
     reformatKey(k) { return reformatTableKey(k); },
-  },
-  beforeMount() {
-    this.setup();
   },
 };
 </script>

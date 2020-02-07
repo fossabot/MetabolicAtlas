@@ -1,10 +1,19 @@
 <template>
-  <div class="column is-one-fifth-widescreen is-one-quarter-desktop is-one-quarter-tablet is-half-mobile has-background-lightgray" style="padding-left: 0; overflow-y: scroll;">
+  <div class="column is-one-fifth-widescreen is-one-quarter-desktop
+              is-one-quarter-tablet is-half-mobile has-background-lightgray"
+       style="padding-left: 0; overflow-y: scroll;">
     <div class="title is-size-4 has-text-centered">Gene expression data</div>
-    <div class="has-text-centered" title="Load a TSV file with gene IDs and TPM values. More information can be found in the documentation.">Load custom gene expression data<span class="icon"><i class="fa fa-info-circle"></i></span></div>
+    <div class="has-text-centered"
+         title="Load a TSV file with gene IDs and TPM values.
+         More information can be found in the documentation.">
+      Load custom gene expression data<span class="icon"><i class="fa fa-info-circle"></i></span>
+    </div>
     <div id="fileSelectBut" class="file is-centered">
       <label class="file-label">
-        <input class="file-input" type="file" name="resume" @change="getFileName">
+        <input class="file-input"
+               type="file"
+               name="resume"
+               @change="getFileName">
         <span class="file-cta">
           <span class="file-icon">
             <i class="fa fa-upload"></i>
@@ -15,44 +24,46 @@
         </span>
       </label>
     </div>
-    <div id="fileNameBox" v-if="customFileName">
-      <div class="tags has-addons is-centered" v-show="!showFileLoader"
-        :title="this.errorCustomFile ? this.errorCustomFileMsg : this.customFileInfo">
-        <span class="tag" :class="this.errorCustomFile ? 'is-danger' : 'is-success'">
+    <div v-if="customFileName" id="fileNameBox">
+      <div v-show="!showFileLoader" class="tags has-addons is-centered"
+           :title="errorCustomFile ? errorCustomFileMsg : customFileInfo">
+        <span class="tag" :class="errorCustomFile ? 'is-danger' : 'is-success'">
           <div class="is-size-6">{{ customFileName }}</div>
         </span>
-        <a class="tag is-delete" @click="unloadUploadedFile()" title="Unload file"></a>
+        <a class="tag is-delete" title="Unload file" @click="unloadUploadedFile()"></a>
       </div>
-      <div class="has-text-centered" v-show="showFileLoader">
+      <div v-show="showFileLoader" class="has-text-centered">
         <a class="button is-small is-loading"></a>
       </div>
     </div>
     <div class="card card-margin">
-        <div class="card-content card-content-compact">
-          <div class="has-text-centered title is-size-6">Data 1</div>
-          <div class="control">
-            <p>RNA levels from <a href="https://www.proteinatlas.org" target="_blank">proteinAtlas.org</a></p>
-            <div class="select is-fullwidth">
-              <select v-model="HPATissue1" @change="setFirstTissue('HPA')">
-                <option>None</option>
-                <option v-for="tissue in HPATissues" class="clickable is-capitalized">{{ tissue }}</option>
-              </select>
-            </div>
+      <div class="card-content card-content-compact">
+        <div class="has-text-centered title is-size-6">Data 1</div>
+        <div class="control">
+          <p>RNA levels from <a href="https://www.proteinatlas.org" target="_blank">proteinAtlas.org</a></p>
+          <div class="select is-fullwidth">
+            <select v-model="HPATissue1" @change="setFirstTissue('HPA')">
+              <option>None</option>
+              <option v-for="tissue in HPATissues" :key="tissue"
+                      class="clickable is-capitalized">{{ tissue }}</option>
+            </select>
           </div>
-          <p>Or uploaded data</p>
-          <div class="control">
-            <div class="select is-fullwidth">
-              <select
-              :disabled="disabledCustomSelectData"
+        </div>
+        <p>Or uploaded data</p>
+        <div class="control">
+          <div class="select is-fullwidth">
+            <select
               v-model="customTissue1"
+              :disabled="disabledCustomSelectData"
               @change="setFirstTissue('custom')">
-                <option v-if="!disabledCustomSelectData">None</option>
-                <option v-for="tissue in customTissues" class="clickable is-capitalized">{{ tissue }}</option>
-              </select>
-            </div>
+              <option v-if="!disabledCustomSelectData">None</option>
+              <option v-for="tissue in customTissues" :key="tissue"
+                      class="clickable is-capitalized">{{ tissue }}</option>
+            </select>
           </div>
         </div>
       </div>
+    </div>
     <div class="card card-margin">
       <div class="card-content card-content-compact">
         <div class="has-text-centered title is-size-6">Data 2 (for comparison)</div>
@@ -61,7 +72,8 @@
           <div class="select is-fullwidth">
             <select v-model="HPATissue2" @change="setSecondTissue('HPA')">
               <option>None</option>
-              <option v-for="tissue in HPATissues" class="clickable is-capitalized">{{ tissue }}</option>
+              <option v-for="tissue in HPATissues" :key="tissue"
+                      class="clickable is-capitalized">{{ tissue }}</option>
             </select>
           </div>
         </div>
@@ -69,39 +81,47 @@
         <div class="control">
           <div class="select is-fullwidth">
             <select
-            :disabled="disabledCustomSelectData"
-            v-model="customTissue2"
-            @change="setSecondTissue('custom')">
+              v-model="customTissue2"
+              :disabled="disabledCustomSelectData"
+              @change="setSecondTissue('custom')">
               <option v-if="!disabledCustomSelectData">None</option>
-              <option v-for="tissue in customTissues" class="clickable is-capitalized">{{ tissue }}</option>
+              <option v-for="tissue in customTissues"
+                      :key="tissue"
+                      class="clickable is-capitalized">{{ tissue }}</option>
             </select>
           </div>
         </div>
       </div>
     </div>
     <RNAexpression class="card-margin"
-      :model="model"
-      :mapType="mapType"
-      :mapName="mapName"
-      @loadedHPARNAtissue="setHPATissues($event)"
-      @loadedCustomTissues="setCustomTissues($event)"
-      @errorCustomFile="handleErrorCustomFile($event)">
+                   :model="model"
+                   :map-type="mapType"
+                   :map-name="mapName"
+                   @loadedHPARNAtissue="setHPATissues($event)"
+                   @loadedCustomTissues="setCustomTissues($event)"
+                   @errorCustomFile="handleErrorCustomFile($event)">
     </RNAexpression>
   </div>
 </template>
 
 <script>
-import axios from 'axios';
+
 import $ from 'jquery';
 import RNAexpression from '@/components/explorer/mapViewer/RNAexpression.vue';
 import { default as EventBus } from '../../../event-bus';
-import { default as messages } from '../../../helpers/messages';
+
+const NOFILELOADED = 'No file loaded';
 
 export default {
   name: 'DataOverlay',
-  props: ['model', 'mapType', 'mapName', 'dim'],
   components: {
     RNAexpression,
+  },
+  props: {
+    model: Object,
+    mapType: String,
+    mapName: String,
+    dim: String,
   },
   data() {
     return {
@@ -109,12 +129,12 @@ export default {
 
       showLvlCardContent: true,
       HPATissues: [],
-      customTissues: ['No file uploaded'],
+      customTissues: [NOFILELOADED],
 
       HPATissue1: 'None',
-      customTissue1: 'No file uploaded',
+      customTissue1: NOFILELOADED,
       HPATissue2: 'None',
-      customTissue2: 'No file uploaded',
+      customTissue2: NOFILELOADED,
 
       tissue1Source: '',
       tissue2Source: '',
@@ -131,7 +151,7 @@ export default {
       return !this.mapName || this.HPATissue.length === 0;
     },
     disabledCustomSelectData() {
-      return this.customTissues.length === 1 && this.customTissues[0] === 'No file uploaded';
+      return this.customTissues.length === 1 && this.customTissues[0] === NOFILELOADED;
     },
     isSelectedHPAtissue1() {
       return this.HPATissues.length !== 0 && this.HPATissue1 !== 'None';
@@ -140,10 +160,10 @@ export default {
       return this.HPATissues.length !== 0 && this.HPATissue2 !== 'None';
     },
     isSelectedCustomtissue1() {
-      return !this.disabledCustomSelectData && !('No file loaded', 'None').includes(this.customTissue1);
+      return !this.disabledCustomSelectData && !(NOFILELOADED, 'None').includes(this.customTissue1);
     },
     isSelectedCustomtissue2() {
-      return !this.disabledCustomSelectData && !('No file loaded', 'None').includes(this.customTissue2);
+      return !this.disabledCustomSelectData && !(NOFILELOADED, 'None').includes(this.customTissue2);
     },
     isSelectedTissue1() {
       return this.isSelectedHPAtissue1 || this.isSelectedCustomtissue1;
@@ -192,6 +212,7 @@ export default {
         this.errorCustomFileMsg = '';
         this.customFileInfo = '';
         EventBus.$emit('loadCustomGeneExpData', e.target.files[0]);
+        $('.file-input')[0].value = '';
       } else {
         this.customFileName = '';
       }
@@ -226,14 +247,14 @@ export default {
     },
     clearCustomTissue1Selection() {
       if (this.disabledCustomSelectData) {
-        this.customTissue1 = 'No file uploaded';
+        this.customTissue1 = NOFILELOADED;
       } else {
         this.customTissue1 = 'None';
       }
     },
     clearCustomTissue2Selection() {
       if (this.disabledCustomSelectData) {
-        this.customTissue2 = 'No file uploaded';
+        this.customTissue2 = NOFILELOADED;
       } else {
         this.customTissue2 = 'None';
       }
@@ -254,9 +275,9 @@ export default {
     },
     unloadUploadedFile() {
       this.customFileName = '';
-      this.customTissues = ['No file uploaded'];
-      this.customTissue1 = 'No file uploaded';
-      this.customTissue2 = 'No file uploaded';
+      this.customTissues = [NOFILELOADED];
+      this.customTissue1 = NOFILELOADED;
+      this.customTissue2 = NOFILELOADED;
       if (this.isSelectedTissue1 || this.isSelectedTissue2) {
         EventBus.$emit('selectTissues', this.selectedTissue1, this.tissue1Source, this.selectedTissue2, this.tissue2Source, this.dim);
       }
@@ -265,7 +286,7 @@ export default {
       this.errorCustomFile = true;
       this.errorCustomFileMsg = errorMsg;
       this.showFileLoader = false;
-    }
+    },
   },
 };
 </script>

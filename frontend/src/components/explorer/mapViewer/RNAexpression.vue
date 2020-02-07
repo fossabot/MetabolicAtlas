@@ -1,9 +1,11 @@
 <template>
-  <div v-if="this.mode === 'single'">
+  <div v-if="mode === 'single'">
     <RNALegend></RNALegend>
   </div>
-  <div v-else-if="this.mode === 'comparison'">
-    <RNALegend text="log<sub>2</sub>(TPM<sub>T2</sub>+1 / TPM<sub>T1</sub>+1)" leftValue="-5" rightValue="5" :gradient="`${multipleColors}`" natext="n/a"></RNALegend>
+  <div v-else-if="mode === 'comparison'">
+    <RNALegend text="log<sub>2</sub>(TPM<sub>T2</sub>+1 / TPM<sub>T1</sub>+1)" left-value="-5"
+               right-value="5"
+               :gradient="`${multipleColors}`" natext="n/a"></RNALegend>
   </div>
   <div v-else>
   </div>
@@ -11,17 +13,20 @@
 
 <script>
 import axios from 'axios';
-import $ from 'jquery';
-import { default as EventBus } from '../../../event-bus';
+import { default as EventBus } from '@/event-bus';
 import RNALegend from '@/components/explorer/mapViewer/RNALegend.vue';
 import { getSingleRNAExpressionColor, getComparisonRNAExpressionColor, multipleColors } from '@/expression-sources/hpa';
-import { default as messages } from '../../../helpers/messages';
+import { default as messages } from '@/helpers/messages';
 
 export default {
   name: 'RNAexpression',
-  props: ['model', 'mapType', 'mapName'],
   components: {
     RNALegend,
+  },
+  props: {
+    model: Object,
+    mapType: String,
+    mapName: String,
   },
   data() {
     return {
@@ -45,6 +50,16 @@ export default {
       multipleColors,
     };
   },
+  computed: {
+    mode() {
+      if (this.tissue1 !== 'None' && this.tissue2 !== 'None') {
+        return 'comparison';
+      } if (this.tissue1 !== 'None' || this.tissue2 !== 'None') {
+        return 'single';
+      }
+      return 'inactive';
+    },
+  },
   created() {
     EventBus.$off('selectTissues');
     EventBus.$off('selectFirstTissue');
@@ -65,26 +80,18 @@ export default {
         EventBus.$emit('unselectSecondTissue', true);
         EventBus.$emit('selectFirstTissue', tissue1, tissue1Source, dim);
       } else {
-        EventBus.$emit('selectFirstTissue', tissue1, tissue1Source, dim, true);
-        EventBus.$emit('selectSecondTissue', tissue2, tissue2Source, dim);
+        // EventBus.$emit('selectFirstTissue', tissue1, tissue1Source, dim, true);
+        // EventBus.$emit('selectSecondTissue', tissue2, tissue2Source, dim);
+        this.selectFirstTissue(tissue1, tissue1Source, dim, true);
+        this.selectSecondTissue(tissue2, tissue2Source, dim);
       }
     });
 
     EventBus.$on('selectFirstTissue', (tissue, tissueSource, dim, skipCompute = false) => {
-      if (!this.isTissueValid(tissue, tissueSource)) {
-        // handle error
-        // console.log('error tissue1 unknown: ', tissue, 'for source', tissueSource);
-        return;
-      }
       this.selectFirstTissue(tissue, tissueSource, dim, skipCompute);
     });
 
     EventBus.$on('selectSecondTissue', (tissue, tissueSource, dim, skipCompute = false) => {
-      if (!this.isTissueValid(tissue, tissueSource)) {
-        // handle error
-        // console.log('error tissue2 unknown: ', tissue, 'for source', tissueSource);
-        return;
-      }
       this.selectSecondTissue(tissue, tissueSource, dim, skipCompute);
     });
 
@@ -111,34 +118,7 @@ export default {
     });
     this.getHPATissues();
   },
-  computed: {
-    mode() {
-      let m;
-      if (this.tissue1 !== 'None' && this.tissue2 !== 'None') {
-        return 'comparison';
-      }
-      else if (this.tissue1 !== 'None' || this.tissue2 !== 'None') {
-        return 'single';
-      }
-      return 'inactive';
-    },
-  },
   methods: {
-    isTissueValid(tissue, tissueSource) {
-      return tissueSource === 'HPA' ? this.isHPATissueValid(tissue) : this.isCustomTissueValid(tissue);
-    },
-    isHPATissueValid(tissue) {
-      if (!this.HPATissues || this.HPATissues.indexOf(tissue) === -1) {
-        return false;
-      }
-      return true;
-    },
-    isCustomTissueValid(tissue) {
-      if (!this.customTissues || this.customTissues.indexOf(tissue) === -1) {
-        return false;
-      }
-      return true;
-    },
     selectFirstTissue(tissue, tissueSource, dim, skipCompute = false) {
       this.dim = dim;
       this.tissue1 = tissue;
@@ -181,50 +161,53 @@ export default {
         return;
       }
       axios.get(`${this.model.database_name}/gene/hpa_rna_levels/${this.mapType}/${dim}/${this.mapName}`)
-      .then((response) => {
-        if (!(this.mapName in this.HPARNAlevelsHistory)) {
-          this.HPARNAlevelsHistory[this.mapName] = {};
-        }
-        this.HPARNAlevelsHistory[this.mapName][dim] = response.data;
-        setTimeout(() => {
-          this.parseHPARNAlevels(tissue, dim, index, callback);
-        }, 0);
-      })
-      .catch((error) => {
-        EventBus.$emit('loadRNAComplete', false, '');
-        return;
-      });
+        .then((response) => {
+          if (!(this.mapName in this.HPARNAlevelsHistory)) {
+            this.HPARNAlevelsHistory[this.mapName] = {};
+          }
+          this.HPARNAlevelsHistory[this.mapName][dim] = response.data;
+          setTimeout(() => {
+            this.parseHPARNAlevels(tissue, dim, index, callback);
+          }, 0);
+        })
+        .catch(() => {
+          EventBus.$emit('loadRNAComplete', false, '');
+        });
     },
     parseHPARNAlevels(tissue, dim, index, callback) {
       const RNAlevels = {};
-      const tissue_index = this.HPARNAlevelsHistory[this.mapName][dim].tissues.indexOf(tissue);
-      const levels = this.HPARNAlevelsHistory[this.mapName][dim].levels;
-      for (const array of levels) {
+      const tissueIndex = this.HPARNAlevelsHistory[this.mapName][dim].tissues.indexOf(tissue);
+      const { levels } = this.HPARNAlevelsHistory[this.mapName][dim];
+      levels.forEach((array) => {
         const enzID = array[0];
-        let level = parseFloat(array[1].split(',')[tissue_index]);
+        const level = parseFloat(array[1].split(',')[tissueIndex]);
         RNAlevels[enzID] = level;
-      }
+      });
       RNAlevels['n/a'] = 'n/a';
-      index === 0 ? this.firstRNAlevels = RNAlevels : this.secondRNAlevels = RNAlevels;
+      if (index === 0) {
+        this.firstRNAlevels = RNAlevels;
+      } else {
+        this.secondRNAlevels = RNAlevels;
+      }
       if (callback) {
         callback();
       }
     },
     loadCustomRNAlevels(file) {
-      //get the tissues / columns and the series
+      // get the tissues / columns and the series
       this.$emit('loadingCustomFile');
       const reader = new FileReader();
 
       // assigning handler
       reader.onloadend = (evt) => {
-        let lines = evt.target.result.split(/\r?\n/);
+        const lines = evt.target.result.split(/\r?\n/);
         let indexLine = 1;
         // fetch Tissue
         if (lines[0].split('\t').length !== 1) {
           const arrLine = lines[0].split('\t');
           const v = Number(arrLine[1]);
           if (Number.isNaN(v)) {
-            this.customTissues = lines[0].split('\t')
+            this.customTissues = lines[0].split('\t');
             this.customTissues.shift();
             lines.shift();
           } else {
@@ -234,14 +217,15 @@ export default {
             }
           }
         } else {
-          this.$emit('errorCustomFile', `Error: invalid TSV format, expect at least two columns`);
+          this.$emit('errorCustomFile', 'Error: invalid TSV format, expect at least two columns');
           return;
         }
 
         // parse lines
         const data = {};
         // make tissues key;
-        for (const tissue of this.customTissues) {
+        for (let i = 0; i < this.customTissues.length; i += 1) {
+          const tissue = this.customTissues[i];
           if (tissue in data) {
             this.$emit('errorCustomFile', `Error: duplicated column '${tissue}'`);
             return;
@@ -250,7 +234,8 @@ export default {
         }
 
         let entriesCount = 0;
-        for (const line of lines) {
+        for (let k = 0; k < lines.length; k += 1) {
+          const line = lines[k];
           if (line) {
             const arrLine = line.split('\t');
             if (arrLine.length !== this.customTissues.length + 1) {
@@ -263,9 +248,8 @@ export default {
                 if (Number.isNaN(v)) {
                   this.$emit('errorCustomFile', `Error: invalid value line ${indexLine}`);
                   return;
-                } else {
-                  data[this.customTissues[i-1]][arrLine[0]] = v;
                 }
+                data[this.customTissues[i - 1]][arrLine[0]] = v;
               }
             }
             entriesCount += 1;
@@ -284,7 +268,11 @@ export default {
     parseCustomRNAlevels(tissue, index, callback) {
       const RNAlevels = this.customRNALevels[tissue];
       RNAlevels['n/a'] = 'n/a';
-      index === 0 ? this.firstRNAlevels = RNAlevels : this.secondRNAlevels = RNAlevels;
+      if (index === 0) {
+        this.firstRNAlevels = RNAlevels;
+      } else {
+        this.secondRNAlevels = RNAlevels;
+      }
       if (callback) {
         callback();
       }
@@ -292,7 +280,7 @@ export default {
     computeRNAlevels() {
       if (Object.keys(this.firstRNAlevels).length === 0 && Object.keys(this.secondRNAlevels).length === 0) {
         // nothing to compute
-        EventBus.$emit(this.dim === '2d' ? 'apply2DHPARNAlevels' : 'apply3DHPARNAlevels' , {});
+        EventBus.$emit(this.dim === '2d' ? 'apply2DHPARNAlevels' : 'apply3DHPARNAlevels', {});
         this.RNAExpressionLegend = false;
         return;
       }
@@ -300,48 +288,52 @@ export default {
       let RNAlevels = null;
       if (this.mode === 'single') {
         RNAlevels = Object.keys(this.firstRNAlevels).length === 0 ? this.secondRNAlevels : this.firstRNAlevels;
-        for (const enzID of Object.keys(RNAlevels)) {
-          let level = Math.log2(RNAlevels[enzID] + 1);
-          level = Math.round((level + 0.00001) * 100) / 100;
+        Object.keys(RNAlevels).forEach((enzID) => {
+          const level = this.roundValue(Math.log2(RNAlevels[enzID] + 1));
           this.computedRNAlevels[enzID] = [getSingleRNAExpressionColor(level), level];
-        }
+        });
         this.computedRNAlevels['n/a'] = [getSingleRNAExpressionColor(NaN), 'n/a'];
       } else {
         // comparison
         if (this.tissue1Source === 'HPA' && this.tissue1Source === this.tissue2Source) {
           // HPA tissues data have the same entries, so no need to check for missing geneID
-          for (const enzID of Object.keys(this.firstRNAlevels)) {
-            const log2tpm1 = Math.round((Math.log2(this.firstRNAlevels[enzID] + 1) + 0.00001) * 100) / 100;
-            const log2tpm2 = Math.round((Math.log2(this.secondRNAlevels[enzID] + 1) + 0.00001) * 100) / 100;
-            let level = Math.log2((this.secondRNAlevels[enzID] + 1) / (this.firstRNAlevels[enzID] + 1));
-            level = Math.round((level + 0.00001) * 100) / 100;
+          Object.keys(this.firstRNAlevels).forEach((enzID) => {
+            const log2tpm1 = this.roundValue(Math.log2(this.firstRNAlevels[enzID] + 1));
+            const log2tpm2 = this.roundValue(Math.log2(this.secondRNAlevels[enzID] + 1));
+            const level = this.roundValue(
+              Math.log2((this.secondRNAlevels[enzID] + 1) / (this.firstRNAlevels[enzID] + 1))
+            );
             this.computedRNAlevels[enzID] = [getComparisonRNAExpressionColor(level), level, log2tpm1, log2tpm2];
-          }
+          });
         } else {
           // HPA/custom file comparison or custom/custom comparison
-          for (const enzID of Object.keys(this.firstRNAlevels)) {
-            const log2tpm1 = Math.round((Math.log2(this.firstRNAlevels[enzID] + 1) + 0.00001) * 100) / 100;
+          Object.keys(this.firstRNAlevels).forEach((enzID) => {
+            const log2tpm1 = this.roundValue(Math.log2(this.firstRNAlevels[enzID] + 1));
             if (enzID in this.secondRNAlevels) {
-              const log2tpm2 = Math.round((Math.log2(this.secondRNAlevels[enzID] + 1) + 0.00001) * 100) / 100;
-              let level = Math.log2((this.secondRNAlevels[enzID] + 1) / (this.firstRNAlevels[enzID] + 1));
-              level = Math.round((level + 0.00001) * 100) / 100;
+              const log2tpm2 = this.roundValue(Math.log2(this.secondRNAlevels[enzID] + 1));
+              const level = this.roundValue(
+                Math.log2((this.secondRNAlevels[enzID] + 1) / (this.firstRNAlevels[enzID] + 1))
+              );
               this.computedRNAlevels[enzID] = [getComparisonRNAExpressionColor(level), level, log2tpm1, log2tpm2];
             } else {
               this.computedRNAlevels[enzID] = [getComparisonRNAExpressionColor(NaN), 'n/a', log2tpm1, 'n/a'];
             }
-          }
-          for (const enzID of Object.keys(this.secondRNAlevels)) {
-            if (!(enzID in this.firstRNAlevels)) {
-              const log2tpm2 = Math.round((Math.log2(this.secondRNAlevels[enzID] + 1) + 0.00001) * 100) / 100;
+          });
+          Object.keys(this.secondRNAlevels)
+            .filter(enzID => !(enzID in this.firstRNAlevels))
+            .forEach((enzID) => {
+              const log2tpm2 = this.roundValue(Math.log2(this.secondRNAlevels[enzID] + 1));
               this.computedRNAlevels[enzID] = [getComparisonRNAExpressionColor(NaN), 'n/a', 'n/a', log2tpm2];
-            }
-          }
+            });
         }
         this.computedRNAlevels['n/a'] = [getComparisonRNAExpressionColor(NaN), 'n/a'];
       }
       this.$nextTick(() => {
-        EventBus.$emit(this.dim === '2d' ? 'apply2DHPARNAlevels' : 'apply3DHPARNAlevels' , this.computedRNAlevels);
+        EventBus.$emit(this.dim === '2d' ? 'apply2DHPARNAlevels' : 'apply3DHPARNAlevels', this.computedRNAlevels);
       });
+    },
+    roundValue(value) {
+      return Math.round((value + 0.00001) * 100) / 100;
     },
   },
 };

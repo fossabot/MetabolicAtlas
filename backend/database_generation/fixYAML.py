@@ -14,10 +14,10 @@ f.close()
 f = open(sys.argv[1], "w")
 in_pmid = False
 for line in lines:
-    if not line.startswith("      - pmid:"):
+    if not line.startswith("    - references:") or not line.startswith("      - pmid:"):
         if not in_pmid:
             f.write(line)
-        elif not line.startswith("        - "):
+        elif not line.startswith("      - ") or not line.startswith("        - "):
             in_pmid = False
             f.write(line)
     else:

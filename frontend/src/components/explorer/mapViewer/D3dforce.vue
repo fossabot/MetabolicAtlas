@@ -1,6 +1,9 @@
 <template>
   <div ref="graphParent">
     <div id="graph3D"></div>
+    <div class="canvasOption overlay">
+      <span class="button" title="Download as PNG" @click="downloadPNG()"><i class="fa fa-download"></i></span>
+    </div>
   </div>
 </template>
 
@@ -8,14 +11,15 @@
 
 import axios from 'axios';
 import forceGraph3D from '3d-force-graph';
+import { default as FileSaver } from 'file-saver';
 import { default as EventBus } from '../../../event-bus';
 import { reformatChemicalReactionHTML } from '../../../helpers/utils';
 
 export default {
-  name: 'd3dforce',
-  props: [
-    'model',
-  ],
+  name: 'D3dforce',
+  props: {
+    model: Object,
+  },
   data() {
     return {
       errorMessage: '',
@@ -45,11 +49,8 @@ export default {
     EventBus.$off('apply3DHPARNAlevels');
 
     EventBus.$on('show3Dnetwork', (type, name, ids) => {
-      if (name.toLowerCase().substr(0, 7) === 'cytosol') {
-        name = 'cytosol'; // eslint-disable-line no-param-reassign
-      }
       if (ids && ids.length === 1) {
-        this.focusOnID = ids[0];
+        this.focusOnID = ids[0]; // eslint-disable-line prefer-destructuring
       } else {
         // do not handle multiple ids for now;
         this.focusOnID = null;
@@ -150,10 +151,9 @@ export default {
             const partialID = n.id.split('-')[0];
             if (this.HPARNAlevels[partialID] !== undefined) {
               return this.HPARNAlevels[partialID][0];
-            } else {
-              return this.HPARNAlevels['n/a'][0];
             }
-          } else if (n.g === 'r') {
+            return this.HPARNAlevels['n/a'][0];
+          } if (n.g === 'r') {
             return '#fff';
           }
           return '#9df';
@@ -169,9 +169,9 @@ export default {
             this.resetCameraPosition();
           }
           this.updateGraphBounds();
-          if (this.graph !== null &&
-            this.graph.emitLoadComplete !== undefined &&
-            !this.graph.emitLoadComplete) {
+          if (this.graph !== null
+            && this.graph.emitLoadComplete !== undefined
+            && !this.graph.emitLoadComplete) {
             this.graph.emitLoadComplete = true;
           } else if (this.graph.graphData().nodes.length !== 0) {
             this.$emit('loadComplete', true, '');
@@ -183,7 +183,7 @@ export default {
     },
     updateGraphBounds() {
       setTimeout(() => {
-        if (this.$refs.graphParent.offsetParent) {
+        if (this.$refs.graphParent && this.$refs.graphParent.offsetParent) {
           const width = this.$refs.graphParent.offsetParent.offsetWidth; // FIXME
           const height = this.$refs.graphParent.offsetParent.offsetHeight; // FIXME
           if (this.graph.width() !== width || this.graph.height() !== height) {
@@ -192,10 +192,19 @@ export default {
         }
       }, 0);
     },
+    downloadPNG() {
+      window.requestAnimationFrame(() => {
+        document.getElementById('graph3D')
+          .getElementsByTagName('canvas')[0]
+          .toBlob((blob) => {
+            FileSaver.saveAs(blob, `${this.loadedComponentName}.png`);
+          });
+      });
+    },
     getElementIdAndType(element) {
       if (element.g === 'r') {
         return [element.id, 'reaction'];
-      } else if (element.g === 'e') {
+      } if (element.g === 'e') {
         return [element.id.split('-')[0], 'gene'];
       }
       return [element.id.split('-')[0], 'metabolite'];
@@ -221,7 +230,7 @@ export default {
       EventBus.$emit('startSelectedElement');
       axios.get(`${this.model.database_name}/${type === 'reaction' ? 'get_reaction' : type}/${id}`)
         .then((response) => {
-          let data = response.data;
+          let { data } = response;
           if (type === 'reaction') {
             data = data.reaction;
             data.equation = this.reformatChemicalReactionHTML(data, true);
@@ -253,7 +262,7 @@ export default {
       if (node.length !== 1) {
         return;
       }
-      node = node[0];
+      node = node[0]; // eslint-disable-line prefer-destructuring
       this.selectElement(node, false);
       const np = node.__threeObj.position; // eslint-disable-line no-underscore-dangle
       setTimeout(() => {
@@ -266,7 +275,7 @@ export default {
             z: np.z * distRatio,
           },
           np, // lookAt ({ x, y, z })
-          3000, // ms transition duration
+          3000 // ms transition duration
         );
       }, 0);
     },
@@ -274,7 +283,7 @@ export default {
       this.graph.cameraPosition(
         { x: 0, y: 0, z: 0 },
         { x: 0, y: 0, z: 0 }, // lookAt ({ x, y, z })
-        0, // ms transition duration
+        0 // ms transition duration
       );
       this.graph.camera().position.z = Math.cbrt(this.graph.graphData().nodes.length) * 150;
     },

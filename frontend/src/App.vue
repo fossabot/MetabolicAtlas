@@ -4,45 +4,55 @@
     <nav id="navbar" class="navbar has-background-primary-lighter" role="navigation" aria-label="main navigation">
       <div class="container">
         <div class="navbar-brand">
-          <router-link id="logo" class="navbar-item" to="/">
-            <img :src="require('./assets/logo.png')"/>
+          <router-link class="navbar-item" :to="{ path: '/' }" active-class="" @click.native="isMobileMenu = false">
+            <img :src="require('./assets/logo.png')" />
           </router-link>
-          <div class="navbar-burger" :class="{ 'is-active': isMobileMenu }"
-            @click="isMobileMenu = !isMobileMenu">
+          <div class="navbar-burger" :class="{ 'is-active': isMobileMenu }" @click="isMobileMenu = !isMobileMenu">
             <span aria-hidden="true"></span>
             <span aria-hidden="true"></span>
             <span aria-hidden="true"></span>
           </div>
         </div>
         <div id="#nav-menu" class="navbar-menu" :class="{ 'is-active': isMobileMenu }">
-          <div class="navbar-start has-text-centered" v-show="model" title="Click to toggle between the GEM Browser and the Map Viewer">
-            <router-link v-if="activeViewerBut || activeBrowserBut" :to="{ path: '/explore'}" class="navbar-item is-size-3 has-text-primary has-text-weight-bold is-unselectable"
-              title="Current selected model, click to change your selection">{{ model ? model.short_name : '' }}
+          <div v-show="model" class="navbar-start has-text-centered"
+               title="Click to toggle between the GEM Browser and the Map Viewer">
+            <router-link v-if="activeViewerBut || activeBrowserBut" :to="{ path: '/explore'}"
+                         class="navbar-item is-size-3 has-text-primary has-text-weight-bold is-unselectable"
+                         title="Current selected model, click to change your selection" exact>
+              {{ model ? model.short_name : '' }}
             </router-link>
-            <a class="navbar-item is-unselectable underline" v-if="activeViewerBut || activeBrowserBut"
-              :class="{ 'is-active': activeBrowserBut }" @click="goToGemBrowser()">
-                GEM Browser
+            <a v-if="activeViewerBut || activeBrowserBut" class="navbar-item is-unselectable is-active-underline"
+               :class="{ 'router-link-active': activeBrowserBut }" @click="goToGemBrowser()">
+              GEM Browser
             </a>
-            <a class="navbar-item is-unselectable underline" v-if="activeViewerBut || activeBrowserBut"
-              :class="{ 'is-active': activeViewerBut }" @click="goToMapViewer()">
-                Map Viewer
+            <a v-if="activeViewerBut || activeBrowserBut" class="navbar-item is-unselectable is-active-underline"
+               :class="{ 'router-link-active': activeViewerBut }" @click="goToMapViewer()">
+              Map Viewer
             </a>
           </div>
           <div class="navbar-end has-background-primary-lighter">
             <template v-for="(menuPath, menuName) in menuElems">
               <template v-if="typeof menuPath === 'string'">
-                <router-link class="navbar-item is-unselectable underline"  :to="{ path: menuPath }"
-                  :class="{ 'is-active': isActiveRoute(menuPath, true) }" v-html="menuName">
+                <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
+                <router-link class="navbar-item is-unselectable is-active-underline"
+                             :to="{ path: menuPath }" @click.native="isMobileMenu = false" v-html="menuName">
                 </router-link>
               </template>
               <template v-else>
                 <template v-for="(submenus, menuurl) in menuPath">
+                  <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
                   <div class="navbar-item has-dropdown is-hoverable is-unselectable has-background-primary-lighter">
-                    <a class="navbar-link underline" :class="{ 'is-active': isActiveRoute(menuurl) }"> {{ menuName }} </a>
-                    <div class="navbar-dropdown has-background-primary-lighter">
+                    <a class="navbar-link is-active-underline"
+                       :class="{ 'router-link-active': $route.path.toLowerCase().includes(menuurl) }">
+                      {{ menuName }}
+                    </a>
+                    <div class="navbar-dropdown has-background-primary-lighter is-paddingless">
                       <template v-for="submenu in submenus">
                         <template v-for="(submenuPath, submenuName) in submenu">
-                          <router-link class="navbar-item is-unselectable has-background-primary-lighter" :to="{ path: submenuPath }" :class="{ 'is-active': isActiveRoute(submenuPath) }" v-html="submenuName">
+                          <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
+                          <router-link class="navbar-item is-unselectable has-background-primary-lighter"
+                                       :to="{ path: submenuPath }"
+                                       @click.native="isMobileMenu = false">{{ submenuName }}
                           </router-link>
                         </template>
                       </template>
@@ -79,7 +89,7 @@
                 <img src="./assets/wpcr.jpg" />
               </a>
               <a href="https://nbis.se/">
-                <img src="./assets/nbislogo-green.png" title="National Bioinformatics Infrastructure Sweden"/>
+                <img src="./assets/nbislogo-green.png" title="National Bioinformatics Infrastructure Sweden" />
               </a>
               <a href="https://www.scilifelab.se" title="Science for Life Laboratory (SciLifeLab)">
                 <img src="./assets/scilifelab-green.png" />
@@ -90,10 +100,16 @@
       </div>
     </footer>
     <div v-if="showCookieMsg" id="cookies" class="has-background-grey">
-      <div class="column has-text-centered">
+      <div class="column has-text-centered" style="padding: 0.25rem">
         <div class="has-text-white">
-          We use cookies to enhance the usability of our website. By continuing you are agreeing to our <router-link class="has-text-white has-text-weight-bold" :to="{path: '/about', hash: 'privacy'}">Privacy Notice and Terms of Use</router-link>&emsp;
-          <p class="button is-small is-rounded has-background-danger has-text-white has-text-weight-bold" @click="showCookieMsg=false; acceptCookiePolicy()">
+          We use cookies to enhance the usability of our website.
+          By continuing you are agreeing to our
+          <router-link class="has-text-white has-text-weight-bold"
+                       :to="{path: '/about', hash: 'privacy'}">
+            Privacy Notice and Terms of Use
+          </router-link>&emsp;
+          <p class="button is-small is-rounded has-background-danger has-text-white has-text-weight-bold"
+             @click="showCookieMsg=false; acceptCookiePolicy()">
             <span class="icon is-small"><i class="fa fa-check"></i></span>
             <span>OKAY</span>
           </p>
@@ -109,12 +125,12 @@ import { default as EventBus } from './event-bus';
 import { isCookiePolicyAccepted, acceptCookiePolicy } from './helpers/store';
 
 export default {
-  name: 'app',
+  name: 'App',
   data() {
     return {
       /* eslint-disable quote-props */
       menuElems: {
-        '<span class="icon is-large"><i class="fa fa-search fa-lg"></i></span>': '/search?term=',
+        '<span class="icon is-large"><i id="search-icon" class="fa fa-search"></i></span>': '/search?term=',
         'Explore': '/explore',
         'GEM': {
           '/gems/': [
@@ -128,7 +144,7 @@ export default {
       },
       activeBrowserBut: false,
       activeViewerBut: false,
-      showCookieMsg: !isCookiePolicyAccepted(),
+      showCookieMsg: navigator.doNotTrack !== '1' && !isCookiePolicyAccepted(),
       acceptCookiePolicy,
       activeDropMenu: '',
       model: null,
@@ -169,15 +185,6 @@ export default {
         this.activeViewerBut = false;
       }
     },
-    isActiveRoute(name, mainRoute = false) {
-      if (this.$route.path) {
-        if (mainRoute) {
-          return this.$route.path.toLowerCase() === name;
-        }
-        return this.$route.path.toLowerCase().includes(name);
-      }
-      return false;
-    },
     goToGemBrowser() {
       this.$router.push(this.browserLastPath || `/explore/gem-browser/${this.$route.params.model}`);
     },
@@ -202,6 +209,7 @@ export default {
 <style lang='scss'>
 
 @import '~bulma';
+@import '~bulma-timeline';
 
 .extended-section {
   flex: 1;
@@ -217,10 +225,6 @@ export default {
 
 .card-margin {
   margin: 0.75rem;
-}
-
-#logo {
-  margin-left: 0.5rem;
 }
 
 m, .clickable {
@@ -240,10 +244,8 @@ m, .clickable {
   height: 100%;
 }
 
-.card-selectable {
-  &:hover {
-    border: solid 1px gray;
-  }
+.hoverable:hover {
+  box-shadow: $shadow-primary-light;
 }
 
 .section-no-top {
@@ -275,17 +277,15 @@ m, .clickable {
     color: $black-bis;
     background-color: $grey-lighter;
   }
-  .underline {
-    &.is-active {
-      border-bottom: 1px solid $primary;
-    }
-    &.router-link-active {
+  .router-link-active {
+    color: $black-bis;
+    background-color: $grey-lighter;
+    &.is-active-underline {
       color: $black-bis;
       background-color: $grey-lighter;
       border-bottom: 1px solid $primary;
     }
   }
-
   .navbar-brand {
     a {
       font-weight: 400;
@@ -293,10 +293,7 @@ m, .clickable {
   }
   .navbar-burger{
     height: 4rem;
-    margin-right: 1.5rem;
-    width: 5rem;
-    padding-left: auto;
-    padding-right: auto;
+    padding-right: 0.5rem;
     span {
       height: 2px;
     }
@@ -306,6 +303,10 @@ m, .clickable {
   }
   .navbar-link:not(.is-arrowless)::after {
     border-color: $grey-darker;
+  }
+
+  #search-icon {
+    font-size: 1.8rem;
   }
 }
 
@@ -324,54 +325,6 @@ m, .clickable {
 .metabolite-table, .model-table, .reaction-table, .subsystem-table {
   .main-table tr td.td-key, #ed-table tr td.td-key {
     width: 150px;
-  }
-}
-
-#home {
-  .menu-list li {
-    &:first-child {
-      margin-top: 1em;
-    }
-    &:last-child {
-      margin-bottom: 1em;
-    }
-    a {
-      color: $white-bis;
-      padding-left: 1.5em;
-      line-height: 2;
-    }
-    a:hover {
-      color: $white-bis;
-      background-color: $primary-light;
-      border-radius: 0;
-    }
-    .is-active {
-      color: $black;
-      background-color: $white;
-      border-radius: 0;
-    }
-  }
-  .margin-fix {
-    margin-top: 1rem;
-    margin-bottom: 1rem;
-    margin-left: 0;
-  }
-  .more-padding {
-    @media only screen and (min-width: $desktop) {
-      padding: 1.5rem 2rem 1.5rem 2rem;
-    }
-  }
-  .card-header > .card-content {
-    padding-top: 0.5em;
-    padding-bottom: 0.5em;
-  }
-  .is-v-aligned {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  #mobileMenu {
-    margin-right: 0;
   }
 }
 
@@ -417,12 +370,27 @@ m, .clickable {
    margin-top: 2.75rem;
 }
 
-
 span.sc {
   border-radius: 10px;
   background: lightgray;
   padding-right: 4px;
   padding-left: 3px;
+}
+
+// CSS from nprogress https://github.com/rstacruz/nprogress/blob/master/nprogress.css
+/* Make clicks pass-through */
+#nprogress {
+  pointer-events: none;
+}
+
+#nprogress .bar {
+  background: $warning;
+  position: fixed;
+  z-index: 1000;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
 }
 
 </style>

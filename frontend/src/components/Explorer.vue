@@ -1,66 +1,84 @@
 <template>
   <section :class="{ 'section extended-section' : !extendWindow }">
     <div :class="{ 'container': !extendWindow }">
-      <template v-if="currentShowComponent">
+      <template v-if="modelNotFound">
+        <div class="columns is-centered">
+          <notFound component="model" :component-id="modelNotFound"></notFound>
+        </div>
+      </template>
+      <template v-else-if="currentShowComponent">
         <keep-alive>
-          <component v-bind:is="currentShowComponent" :model="model"></component>
+          <component :is="currentShowComponent" :model="model"></component>
         </keep-alive>
       </template>
       <template v-else>
-        <div>
-          <div class="columns has-text-centered">
-            <div class="column">
-              <h4 v-if="model" class="is-size-4 has-text-weight-bold">Explore a model: <i>{{ model.short_name }} v{{ model.version }}</i></h4>
-              <p class="has-text-weight-bold">
-                Select a model and start browsing or navigate on the maps
-              </p>
-            </div>
-          </div>
-          <div class="columns is-centered">
-            <div class="column is-three-fifths-desktop is-three-quarters-tablet is-fullwidth-mobile has-text-centered">
-              <div class="dropdown" :class="{'is-active' : showModelList}" >
-                <div class="dropdown-trigger">
-                  <button v-if="model" class="button is-medium is-fullwidth" aria-haspopup="true" aria-controls="dropdown-menu" @click="showModelList = true" @blur="showModelList = false"
-                    title="Click to view the list of integrated models">
-                    <span>Model: <span class="tag is-primary has-text-weight-bold is-medium">{{ model.short_name }} v{{ model.version }}</span></span>
-                    <span class="icon is-small">
-                      <i class="fa fa-angle-down" aria-hidden="true"></i>
-                    </span>
-                  </button>
-                </div>
-                <div class="dropdown-menu" id="dropdown-menu" role="menu" ref="dropdownmenu">
-                  <div class="dropdown-content">
-                   <a class="dropdown-item has-text-centered is-size-6"
-                      v-for="model, k in models"
-                      @mousedown.prevent="selectModel(model); showModelList = false" v-html="getModelDescription(model)">
-                    </a>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <br>
-          <div id="toolsSelect" class="columns is-multiline">
-            <template v-if="model" v-for="tool in explorerTools">
-              <div class="column is-12-tablet is-half-desktop">
-                <router-link :to="{ path: `${tool.url}/${model.database_name }` }" :title="`Click to access the ${tool.name} for ${model.short_name} model`">
-                  <div class="card card-fullheight card-selectable has-text-justified">
-                    <header class="card-header">
-                      <p class="card-header-title is-centered is-size-5">{{ tool.name }}</p>
-                    </header>
-                    <div class="card-content">
-                      <div class="content">
-                          <img :src="tool.img" />
-                      </div>
-                    </div>
-                  </div>
-              </router-link>
-              </div>
-            </template>
+        <div class="columns has-text-centered">
+          <div class="column">
+            <h3 class="title is-size-3">Explore the integrated models</h3>
           </div>
         </div>
+        <div class="columns">
+          <div class="column has-text-centered-tablet">
+            <p class="has-text-weight-bold is-size-5">1. Select a model:</p>
+          </div>
+        </div>
+        <div class="columns is-centered">
+          <div class="column is-8-widescreen is-10-desktop is-fullwidth-tablet is-size-5">
+            <div v-for="cmodel in Object.values(models).sort((a, b) =>
+                   (a.short_name.toLowerCase() < b.short_name.toLowerCase() ? -1 : 1))"
+                 id="selectedModel" :key="cmodel.database_name"
+                 class="box has-text-centered clickable hoverable"
+                 :class="cmodel.database_name === model.database_name ? 'selectedBox' : ''"
+                 :title="`Select ${cmodel.short_name} as the model to explore`"
+                 @mousedown.prevent="selectModel(cmodel)">
+              <div>
+                <span :class="cmodel.database_name === model.database_name ?
+                  'has-text-primary has-text-weight-bold' : ''">
+                  <span v-if="cmodel.database_name === model.database_name"
+                        class="icon"><i class="fa fa-check-square-o"></i></span>
+                  <span v-else><i class="fa fa-square-o"></i></span>
+                  {{ cmodel.short_name }} v{{ cmodel.version }}
+                </span> - {{ cmodel.full_name }}
+              </div>
+              <div class="has-text-grey">
+                {{ cmodel.reaction_count }} reactions -
+                {{ cmodel.metabolite_count }} metabolites -
+                {{ cmodel.gene_count }} genes
+              </div>
+            </div>
+          </div>
+        </div>
+        <br>
+        <div class="columns">
+          <div class="column has-text-centered-tablet">
+            <p class="has-text-weight-bold is-size-5">2. Select a tool:</p>
+          </div>
+        </div>
+        <div v-if="model" class="columns is-multiline">
+          <template v-for="tool in explorerTools">
+            <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
+            <div class="column is-one-third-widescreen is-half-desktop is-half-tablet is-fullwidth-mobile is-size-5">
+              <router-link :to="{ path: `${tool.url}/${model.database_name }` }"
+                           :title="`Click to access the ${tool.name} for ${model.short_name} model`">
+                <div class="card card-fullheight hoverable">
+                  <header class="card-header">
+                    <p class="card-header-title is-centered">
+                      <span class="icon is-medium"><i :class="`fa fa-${tool.icon}`"></i></span>
+                      &nbsp;{{ tool.name }}&nbsp;&nbsp;
+                      <span class="has-text-grey-light">{{ model.short_name }}</span>
+                    </p>
+                  </header>
+                  <div class="card-content">
+                    <div class="content">
+                      <img :src="tool.img" />
+                    </div>
+                  </div>
+                </div>
+              </router-link>
+            </div>
+          </template>
+        </div>
       </template>
-      </div>
     </div>
   </section>
 </template>
@@ -70,32 +88,40 @@ import axios from 'axios';
 import $ from 'jquery';
 import GemBrowser from '@/components/explorer/GemBrowser';
 import MapViewer from '@/components/explorer/MapViewer';
+import InteractionPartners from '@/components/explorer/InteractionPartners';
+import NotFound from '@/components/NotFound';
 import { idfy } from '../helpers/utils';
 import { default as EventBus } from '../event-bus';
 import { default as messages } from '../helpers/messages';
 
 export default {
-  name: 'explorer',
+  name: 'Explorer',
   components: {
     GemBrowser,
     MapViewer,
+    InteractionPartners,
+    NotFound,
   },
   data() {
     return {
-      /* eslint-disable global-require*/
+      /* eslint-disable global-require */
       explorerTools: [
         { name: messages.gemBrowserName,
           img: require('../assets/gemBrowser.jpg'),
           url: '/explore/gem-browser',
-        },
+          icon: 'table' },
         { name: messages.mapViewerName,
           img: require('../assets/mapViewer.jpg'),
           url: '/explore/map-viewer',
-        },
+          icon: 'map-o' },
+        { name: messages.interPartName,
+          img: require('../assets/interaction.png'),
+          url: '/explore/interaction',
+          icon: 'share-alt' },
       ],
       model: null,
       models: {},
-      showModelList: false,
+      modelNotFound: null,
       extendWindow: false,
       currentShowComponent: '',
 
@@ -104,12 +130,12 @@ export default {
     };
   },
   watch: {
-    /* eslint-disable quote-props */
+    /* eslint-disable-next-line quote-props */
     '$route': function watchSetup() {
       this.setup();
     },
   },
-  beforeRouteUpdate(to, from, next) {
+  beforeRouteUpdate(to, from, next) { // eslint-disable-line no-unused-vars
     this.setup();
     next();
   },
@@ -126,6 +152,9 @@ export default {
     });
     EventBus.$on('showGemBrowser', () => {
       this.displayBrowser();
+    });
+    EventBus.$on('showInteractionPartner', () => {
+      this.displayInterPartner();
     });
 
     $('body').on('click', 'td m', function f() {
@@ -154,13 +183,21 @@ export default {
         return;
       }
       // but redirect even if the model url do not match the model loaded
-      if (this.$route.params.model && this.$route.params.model in this.models) {
-        this.selectModel(this.models[this.$route.params.model]);
+      if (this.$route.params.model) {
+        if (this.$route.params.model in this.models) {
+          this.selectModel(this.models[this.$route.params.model]);
+        } else {
+          this.modelNotFound = this.$route.params.model;
+          return;
+        }
       }
+      this.modelNotFound = null;
       if (['viewer', 'viewerCompartment', 'viewerCompartmentRea', 'viewerSubsystem', 'viewerSubsystemRea'].includes(this.$route.name)) {
         this.displayViewer();
-      } else if (this.$route.name === 'browser' || this.$route.name === 'browserRoot') {
+      } else if (['browserRoot', 'browser'].includes(this.$route.name)) {
         this.displayBrowser();
+      } else if (['interPartnerRoot', 'interPartner'].includes(this.$route.name)) {
+        this.displayInterPartner();
       } else {
         EventBus.$emit('destroy3Dnetwork');
         this.extendWindow = false;
@@ -171,12 +208,12 @@ export default {
       // get integrated models list
       axios.get('models/')
         .then((response) => {
-          const models = {};
-          for (const model of response.data) {
-            models[model.database_name] = model;
-          }
-          this.models = models;
-          let defaultModel = this.models.human1 || this.models.hmr2 || this.models.yeast8;
+          this.models = {};
+          response.data.forEach((model) => {
+            model.email = model.authors[0].email; // eslint-disable-line no-param-reassign
+            this.models[model.database_name] = model;
+          });
+          let defaultModel = this.models.human1;
           if (this.$route.params.model && this.$route.params.model in this.models) {
             defaultModel = this.models[this.$route.params.model];
           }
@@ -186,14 +223,6 @@ export default {
         .catch(() => {
           this.errorMessage = messages.unknownError;
         });
-    },
-    getModelDescription(model) {
-      return `<div>${model.short_name} v${model.version} - ${model.full_name}<div>
-      <div class="has-text-grey">
-        ${model.reaction_count} reactions -
-        ${model.metabolite_count} metabolites -
-        ${model.gene_count} genes
-      </div>`;
     },
     selectModel(model) {
       if (!this.model || model.database_name !== this.model.database_name) {
@@ -209,6 +238,10 @@ export default {
       this.extendWindow = true;
       this.currentShowComponent = 'MapViewer';
     },
+    displayInterPartner() {
+      this.extendWindow = false;
+      this.currentShowComponent = 'InteractionPartners';
+    },
   },
 };
 
@@ -216,8 +249,8 @@ export default {
 
 <style lang="scss">
 
-.dropdown, .dropdown-trigger, #dropdown-menu {
-  width: 100%;
+#selectedModel.selectedBox {
+  box-shadow: $shadow-primary-light;
 }
 
 </style>
