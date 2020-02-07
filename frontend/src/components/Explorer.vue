@@ -190,8 +190,6 @@ export default {
           this.modelNotFound = this.$route.params.model;
           return;
         }
-      } else {
-        this.model = this.models.human1;
       }
       this.modelNotFound = null;
       if (['viewer', 'viewerCompartment', 'viewerCompartmentRea', 'viewerSubsystem', 'viewerSubsystemRea'].includes(this.$route.name)) {

@@ -270,8 +270,8 @@ import { Compact } from 'vue-color';
 import { default as FileSaver } from 'file-saver';
 
 import GemSearch from '@/components/explorer/gemBrowser/GemSearch';
-import Sidebar from '@/components/explorer/interactionPartners/Sidebar';
-import CytoscapeTable from '@/components/explorer/interactionPartners/CytoscapeTable';
+import Sidebar from '@/components/explorer/InteractionPartners/Sidebar';
+import CytoscapeTable from '@/components/explorer/InteractionPartners/CytoscapeTable';
 import Loader from '@/components/Loader';
 import RNALegend from '@/components/explorer/mapViewer/RNALegend.vue';
 import NotFound from '@/components/NotFound';
