@@ -3,8 +3,8 @@
     <div id="svg-wrapper" v-html="svgContent">
     </div>
     <div class="canvasOption overlay">
-      <span class="button" title="Zoom in" @click="zoomOut(false)"><i class="fa fa-search-plus"></i></span>
-      <span class="button" title="Zoom out" @click="zoomOut(true)"><i class="fa fa-search-minus"></i></span>
+      <span class="button" title="Zoom in" @click="zoomIn()"><i class="fa fa-search-plus"></i></span>
+      <span class="button" title="Zoom out" @click="zoomOut()"><i class="fa fa-search-minus"></i></span>
       <span class="button" title="Show/Hide genes" style="padding: 4.25px;" @click="toggleGenes()">
         <i class="fa fa-eye-slash">&thinsp;G</i>
       </span>
@@ -78,9 +78,10 @@ export default {
       panzoomOptions: {
         maxScale: 1,
         minScale: 0.03,
-        increment: 0.025,
+        step: 0.1,
         animate: false,
         linearZoom: true,
+      // contain: 'inside',
       },
       currentZoomScale: 1,
 
@@ -247,14 +248,14 @@ export default {
         this.isFullscreen = false;
       }
     },
-    zoomOut(bool) {
+    zoomIn() {
       if (this.$panzoom) {
-        this.$panzoom.panzoom('zoom', bool, {
-          focal: {
-            clientX: this.clientFocusX(),
-            clientY: this.clientFocusY(),
-          },
-        });
+        this.$panzoom.zoomIn();
+      }
+    },
+    zoomOut() {
+      if (this.$panzoom) {
+        this.$panzoom.zoomOut();
       }
     },
     loadSvgPanZoom(callback) {
@@ -262,6 +263,15 @@ export default {
       if (!this.$panzoom) {
         const elem = document.getElementById('svg-wrapper');
         this.$panzoom = Panzoom(elem, this.panzoomOptions);
+        elem.parentElement.addEventListener('wheel', (event) => {
+          if (!event.shiftKey) {
+            this.$panzoom.zoomWithWheel(event);
+          }
+        });
+        elem.addEventListener('panzoomchange', (e) => {
+          console.log(e.detail);
+          this.currentZoomScale = e.scale;
+        });
       } else {
         this.$panzoom.panzoom('reset', this.panzoomOptions);
         this.$panzoom.off('panzoomzoom');
@@ -269,19 +279,16 @@ export default {
       setTimeout(() => {
         const minZoomScale = Math.min($('.svgbox').width() / $('#svg-wrapper svg').width(),
           this.svgboxHeight / $('#svg-wrapper svg').height());
-        const focusX = ($('#svg-wrapper svg').width() / 2) - ($('.svgbox').width() / 2);
-        const focusY = ($('#svg-wrapper svg').height() / 2) - (this.svgboxHeight / 2);
+        const focusX = 7500; // ($('#svg-wrapper svg').width() / 2) - ($('.svgbox').width() / 2);
+        const focusY = 5000; // ($('#svg-wrapper svg').height() / 2) - (this.svgboxHeight / 2);
+        console.log(minZoomScale, focusX, focusY);
         this.$panzoom.pan(-focusX, -focusY);
-        this.$panzoom.zoom(minZoomScale, {
-          // increment: 1 - minZoomScale,
-          focal: {
-            clientX: this.clientFocusX(),
-            clientY: this.clientFocusY(),
-          },
+        this.$panzoom.zoom(0.5, {
+          // focal: {
+          //   x: 0,
+          //   y: 0,
+          // },
         });
-        // this.$panzoom.on('panzoomzoom', (e, panzoom, scale) => { // eslint-disable-line no-unused-vars
-        //   this.currentZoomScale = scale;
-        // });
         this.unHighlight();
         if (callback) {
           if (callback === this.findElementsOnSVG) {
@@ -566,21 +573,28 @@ export default {
     },
     clientFocusX() {
       const sidebarWidth = isMobilePage() ? 0 : $('#iSideBar').width();
-      return ($('.svgbox').width() / 2) + sidebarWidth;
+      const cfX = ($('.svgbox').width() / 2) + sidebarWidth;
+      console.log('cfX ', cfX);
+      return cfX;
     },
     clientFocusY() {
-      return isMobilePage() ? 270 : (this.svgboxHeight / 2) + $('#navbar').height();
+      const cfY = isMobilePage() ? 270 : (this.svgboxHeight / 2) + $('#navbar').height();
+      console.log('cfY ', cfY);
+      return cfY;
     },
     panToCoords(panX, panY) {
-      this.$panzoom.panzoom('zoom', 1.0, {
-        increment: 1 - this.currentZoomScale,
-        transition: false,
+      // this.$panzoom.zoomToPoint(scale, point, zoomOptions);
+      this.$panzoom.zoom(1.0, {
+        step: 1 - this.currentZoomScale,
+        animate: true,
         focal: {
-          clientX: this.clientFocusX(),
-          clientY: this.clientFocusY(),
+          x: this.clientFocusX(),
+          y: this.clientFocusY(),
         },
       });
-      this.$panzoom.panzoom('pan', -panX + ($('.svgbox').width() / 2), -panY + (this.svgboxHeight / 2));
+      this.$panzoom.pan(-panX + ($('.svgbox').width() / 2), -panY + (this.svgboxHeight / 2),
+        { animate: true }
+      );
       this.$emit('loadComplete', true, '');
     },
     reformatChemicalReactionHTML,
