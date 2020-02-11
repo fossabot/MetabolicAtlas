@@ -3,8 +3,8 @@
     <div id="svg-wrapper" v-html="svgContent">
     </div>
     <div class="canvasOption overlay">
-      <span class="button" title="Zoom in" @click="zoomIn()"><i class="fa fa-search-plus"></i></span>
-      <span class="button" title="Zoom out" @click="zoomOut()"><i class="fa fa-search-minus"></i></span>
+      <span class="button" title="Zoom in" @click="zoomIn(true)"><i class="fa fa-search-plus"></i></span>
+      <span class="button" title="Zoom out" @click="zoomIn(false)"><i class="fa fa-search-minus"></i></span>
       <span class="button" title="Show/Hide genes" style="padding: 4.25px;" @click="toggleGenes()">
         <i class="fa fa-eye-slash">&thinsp;G</i>
       </span>
@@ -51,7 +51,6 @@
 
 import axios from 'axios';
 import $ from 'jquery';
-import Panzoom from '@panzoom/panzoom';
 import { default as FileSaver } from 'file-saver';
 import { default as EventBus } from '@/event-bus';
 import { default as messages } from '@/helpers/messages';
@@ -74,16 +73,18 @@ export default {
       svgName: '',
       isFullscreen: false,
 
-      $panzoom: null,
-      panzoomOptions: {
-        maxScale: 1,
-        minScale: 0.03,
-        step: 0.1,
-        animate: false,
-        linearZoom: true,
-      // contain: 'inside',
+      svgParams: {
+        viewBox: {
+          x: 0,
+          y: 0,
+          width: 100,
+          height: 100,
+        },
+        elWidth: null,
+        elHeight: null,
+        aspectRatio: null,
+        zoom: 0.03,
       },
-      currentZoomScale: 1,
 
       idsFound: [],
       elmFound: [],
@@ -119,6 +120,9 @@ export default {
     },
     svgboxHeight() {
       return isMobilePage() ? 450 : $('.svgbox').height();
+    },
+    viewBoxString() {
+      return `${this.svgParams.viewBox.x} ${this.svgParams.viewBox.y} ${this.svgParams.viewBox.width} ${this.svgParams.viewBox.height}`;
     },
   },
   watch: {
@@ -248,47 +252,56 @@ export default {
         this.isFullscreen = false;
       }
     },
-    zoomIn() {
-      if (this.$panzoom) {
-        this.$panzoom.zoomIn();
+    zoomIn(directionBoolean) {
+      // const elem = document.getElementById('svg-wrapper').children[0];
+      // let amount = 500;
+      // if (directionBoolean === false) {
+      //   amount *= -1;
+      // }
+      // this.svgParams.viewBox.x += amount;
+      // this.svgParams.viewBox.y += amount;
+      // this.svgParams.viewBox.width -= 2 * amount;
+      // this.svgParams.viewBox.height -= 2 * amount;
+      // elem.setAttribute('viewBox', this.viewBoxString);
+      // console.log('zoomIn', directionBoolean);
+
+      let amount = 0.05;
+      if (directionBoolean === false) {
+        amount *= -1;
       }
+      this.svgParams.zoom += amount;
+      const elem = document.getElementById('svg-wrapper');
+      elem.setAttribute('style', `transform: matrix(${this.svgParams.zoom}, 0, 0, ${this.svgParams.zoom}, 0, 0);`);
     },
-    zoomOut() {
-      if (this.$panzoom) {
-        this.$panzoom.zoomOut();
-      }
+
+    stripPx(length) {
+      return +(length.replace('px', ''));
     },
+    svgConstrain() {
+      const elem = document.getElementById('svg-wrapper').children[0];
+      this.svgParams.elWidth = $('.svgbox').width();
+      this.svgParams.elHeight = this.svgboxHeight;
+      const horizontalAspectRatio = this.svgParams.viewBox.width / this.svgParams.elWidth;
+      const verticalAspectRatio = this.svgParams.viewBox.height / this.svgParams.elHeight;
+      const confinedAspectRatio = horizontalAspectRatio > verticalAspectRatio
+        ? horizontalAspectRatio : verticalAspectRatio;
+
+      console.log('vbw ', this.svgParams.viewBox.width, 'vbh ', this.svgParams.viewBox.height);
+      console.log('elWidth ', this.svgParams.elWidth, 'elHeight ', this.svgParams.elHeight);
+      console.log('horizontalAspectRatio ', horizontalAspectRatio, 'verticalalAspectRatio ', verticalAspectRatio, 'confinedAspectRatio ', confinedAspectRatio);
+
+      elem.setAttribute('viewBox', this.viewBoxString);
+    },
+
     loadSvgPanZoom(callback) {
-      // load the lib svgPanZoom on the SVG loaded
-      if (!this.$panzoom) {
-        const elem = document.getElementById('svg-wrapper');
-        this.$panzoom = Panzoom(elem, this.panzoomOptions);
-        elem.parentElement.addEventListener('wheel', (event) => {
-          if (!event.shiftKey) {
-            this.$panzoom.zoomWithWheel(event);
-          }
-        });
-        elem.addEventListener('panzoomchange', (e) => {
-          console.log(e.detail);
-          this.currentZoomScale = e.scale;
-        });
-      } else {
-        this.$panzoom.panzoom('reset', this.panzoomOptions);
-        this.$panzoom.off('panzoomzoom');
-      }
+      const elem = document.getElementById('svg-wrapper').children[0];
+      this.svgParams.viewBox.width = elem.getAttribute('width');
+      this.svgParams.viewBox.height = elem.getAttribute('height');
+      this.svgConstrain();
+      window.addEventListener('scroll', () => this.dirty());
+      // mouseDrag(this);
+
       setTimeout(() => {
-        const minZoomScale = Math.min($('.svgbox').width() / $('#svg-wrapper svg').width(),
-          this.svgboxHeight / $('#svg-wrapper svg').height());
-        const focusX = 7500; // ($('#svg-wrapper svg').width() / 2) - ($('.svgbox').width() / 2);
-        const focusY = 5000; // ($('#svg-wrapper svg').height() / 2) - (this.svgboxHeight / 2);
-        console.log(minZoomScale, focusX, focusY);
-        this.$panzoom.pan(-focusX, -focusY);
-        this.$panzoom.zoom(0.5, {
-          // focal: {
-          //   x: 0,
-          //   y: 0,
-          // },
-        });
         this.unHighlight();
         if (callback) {
           if (callback === this.findElementsOnSVG) {
@@ -572,30 +585,13 @@ export default {
       EventBus.$emit('unSelectedElement');
     },
     clientFocusX() {
-      const sidebarWidth = isMobilePage() ? 0 : $('#iSideBar').width();
-      const cfX = ($('.svgbox').width() / 2) + sidebarWidth;
-      console.log('cfX ', cfX);
-      return cfX;
+      // TODO;
     },
     clientFocusY() {
-      const cfY = isMobilePage() ? 270 : (this.svgboxHeight / 2) + $('#navbar').height();
-      console.log('cfY ', cfY);
-      return cfY;
+      // TODO;
     },
     panToCoords(panX, panY) {
-      // this.$panzoom.zoomToPoint(scale, point, zoomOptions);
-      this.$panzoom.zoom(1.0, {
-        step: 1 - this.currentZoomScale,
-        animate: true,
-        focal: {
-          x: this.clientFocusX(),
-          y: this.clientFocusY(),
-        },
-      });
-      this.$panzoom.pan(-panX + ($('.svgbox').width() / 2), -panY + (this.svgboxHeight / 2),
-        { animate: true }
-      );
-      this.$emit('loadComplete', true, '');
+      console.log(panX, panY);
     },
     reformatChemicalReactionHTML,
     isMobilePage,
@@ -627,6 +623,14 @@ export default {
     height: 100%;
     &.fullscreen {
       background: white;
+    }
+
+    #svg-wrapper {
+      height: 100%;
+      svg {
+        width: 100%;
+        height: 100%;
+      }
     }
   }
 
@@ -674,5 +678,9 @@ export default {
     position: absolute;
     display: none;
   }
+
+  // .lbl {
+    // display: none;
+  // }
 
 </style>
