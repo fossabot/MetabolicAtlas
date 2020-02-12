@@ -1,6 +1,10 @@
 <template>
   <div class="svgbox">
-    <div id="svg-wrapper" v-html="svgContent">
+    <div id="svg-wrapper"
+         @mousedown.prevent="startPanSVG"
+         @touchstart.prevent="startPanSVG"
+         @wheel.prevent="e => mouseZoom(e)"
+         v-html="svgContent">
     </div>
     <div class="canvasOption overlay">
       <span class="button" title="Zoom in" @click="zoomIn(true)"><i class="fa fa-search-plus"></i></span>
@@ -73,18 +77,11 @@ export default {
       svgName: '',
       isFullscreen: false,
 
-      svgParams: {
-        viewBox: {
-          x: 0,
-          y: 0,
-          width: 100,
-          height: 100,
-        },
-        elWidth: null,
-        elHeight: null,
-        aspectRatio: null,
-        zoom: 0.03,
-      },
+      svgCoordsBase: { x: 0, y: 0 },
+      svgCoordsPanStart: { x: 0, y: 0 },
+      svgCoordsDelta: { x: 0, y: 0 },
+      svgZoom: 1,
+      zoomFactor: 0.75,
 
       idsFound: [],
       elmFound: [],
@@ -121,9 +118,6 @@ export default {
     svgboxHeight() {
       return isMobilePage() ? 450 : $('.svgbox').height();
     },
-    viewBoxString() {
-      return `${this.svgParams.viewBox.x} ${this.svgParams.viewBox.y} ${this.svgParams.viewBox.width} ${this.svgParams.viewBox.height}`;
-    },
   },
   watch: {
     searchTerm() {
@@ -134,6 +128,15 @@ export default {
         this.searchInputClass = 'is-info';
       }
       this.haveSearched = false;
+    },
+    svgZoom() {
+      this.applySVGMotion();
+      // console.log('zoom changed to ', this.svgZoom);
+    },
+    svgCoordsDelta() {
+      this.applySVGMotion();
+      // console.log('coordinates changed by ', `${this.svgCoordsBase.x - this.svgCoordsDelta.x}px,
+      //   ${this.svgCoordsBase.y - this.svgCoordsDelta.y}px);`);
     },
   },
   created() {
@@ -252,55 +255,67 @@ export default {
         this.isFullscreen = false;
       }
     },
+    applySVGMotion() {
+      document.getElementById('svg-wrapper')
+        .setAttribute('style', `transform: scale(${this.svgZoom})
+          translate(${this.svgCoordsBase.x - this.svgCoordsDelta.x}px,
+            ${this.svgCoordsBase.y - this.svgCoordsDelta.y}px);`);
+    },
     zoomIn(directionBoolean) {
-      // const elem = document.getElementById('svg-wrapper').children[0];
-      // let amount = 500;
-      // if (directionBoolean === false) {
-      //   amount *= -1;
-      // }
-      // this.svgParams.viewBox.x += amount;
-      // this.svgParams.viewBox.y += amount;
-      // this.svgParams.viewBox.width -= 2 * amount;
-      // this.svgParams.viewBox.height -= 2 * amount;
-      // elem.setAttribute('viewBox', this.viewBoxString);
-      // console.log('zoomIn', directionBoolean);
-
-      let amount = 0.05;
+      let amount = this.zoomFactor;
       if (directionBoolean === false) {
+        if (this.svgZoom < amount * 2) {
+          return;
+        }
         amount *= -1;
       }
-      this.svgParams.zoom += amount;
-      const elem = document.getElementById('svg-wrapper');
-      elem.setAttribute('style', `transform: matrix(${this.svgParams.zoom}, 0, 0, ${this.svgParams.zoom}, 0, 0);`);
+      this.svgZoom += amount;
     },
-
-    stripPx(length) {
-      return +(length.replace('px', ''));
+    getEventCoords(evt) {
+      let coords;
+      if (evt.type === 'touchstart') {
+        coords = { x: (evt.touches[0].clientX), y: (evt.touches[0].clientY) };
+      } else {
+        coords = { x: (evt.clientX), y: (evt.clientY) };
+      }
+      return coords;
     },
-    svgConstrain() {
+    mouseZoom(event) {
+      // console.log(event);
+      const directionBoolean = Math.sign(event.deltaY) > 0;
+      this.zoomIn(directionBoolean);
+    },
+    panSVG(evt) {
+      const coords = this.getEventCoords(evt);
+      const delta = { x: this.svgCoordsPanStart.x - coords.x, y: this.svgCoordsPanStart.y - coords.y };
+      this.svgCoordsDelta = delta;
+      console.log(this.svgCoordsDelta);
+      // console.log(evt);
+    },
+    startPanSVG(evt) {
       const elem = document.getElementById('svg-wrapper').children[0];
-      this.svgParams.elWidth = $('.svgbox').width();
-      this.svgParams.elHeight = this.svgboxHeight;
-      const horizontalAspectRatio = this.svgParams.viewBox.width / this.svgParams.elWidth;
-      const verticalAspectRatio = this.svgParams.viewBox.height / this.svgParams.elHeight;
-      const confinedAspectRatio = horizontalAspectRatio > verticalAspectRatio
-        ? horizontalAspectRatio : verticalAspectRatio;
-
-      console.log('vbw ', this.svgParams.viewBox.width, 'vbh ', this.svgParams.viewBox.height);
-      console.log('elWidth ', this.svgParams.elWidth, 'elHeight ', this.svgParams.elHeight);
-      console.log('horizontalAspectRatio ', horizontalAspectRatio, 'verticalalAspectRatio ', verticalAspectRatio, 'confinedAspectRatio ', confinedAspectRatio);
-
-      elem.setAttribute('viewBox', this.viewBoxString);
+      if (evt.type === 'mousedown' && evt.button !== 0) return;
+      this.svgCoordsPanStart = this.getEventCoords(evt);
+      const stopFn = () => {
+        this.svgCoordsBase.x -= this.svgCoordsDelta.x;
+        this.svgCoordsBase.y -= this.svgCoordsDelta.y;
+        elem.removeEventListener('mousemove', this.panSVG);
+        elem.removeEventListener('touchmove', this.panSVG);
+        elem.removeEventListener('mouseup', stopFn);
+        elem.removeEventListener('touchend', stopFn);
+      };
+      elem.addEventListener('mousemove', this.panSVG);
+      elem.addEventListener('touchmove', this.panSVG);
+      elem.addEventListener('mouseup', stopFn);
+      elem.addEventListener('touchend', stopFn);
     },
-
     loadSvgPanZoom(callback) {
       const elem = document.getElementById('svg-wrapper').children[0];
-      this.svgParams.viewBox.width = elem.getAttribute('width');
-      this.svgParams.viewBox.height = elem.getAttribute('height');
-      this.svgConstrain();
+      // If no viewbox declared the css transform "cuts" the map
+      elem.setAttribute('viewBox', `0 0 ${elem.getAttribute('width')} ${elem.getAttribute('height')}`);
+      this.svgZoom = 1;
+      // this.svgCoordsBase = { x: 0, y: 0 };
       window.addEventListener('scroll', () => this.dirty());
-      // mouseDrag(this);
-
       setTimeout(() => {
         this.unHighlight();
         if (callback) {
@@ -583,15 +598,6 @@ export default {
       this.unHighlight();
       this.selectElementID = null;
       EventBus.$emit('unSelectedElement');
-    },
-    clientFocusX() {
-      // TODO;
-    },
-    clientFocusY() {
-      // TODO;
-    },
-    panToCoords(panX, panY) {
-      console.log(panX, panY);
     },
     reformatChemicalReactionHTML,
     isMobilePage,

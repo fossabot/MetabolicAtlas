@@ -14,7 +14,7 @@
         <div id="iSideBar" class="column is-one-fifth-widescreen is-one-quarter-desktop
         is-one-quarter-tablet has-background-lightgray om-2"
              :class=" isMobilePage() ? '' : 'fixed-height scroll' ">
-          <div id="menu">
+          <div>
 
             <span id="menuButtons">
               <button class="button is-whitesmoke is-rounded has-text-weight-bold"
@@ -512,21 +512,8 @@ export default {
 
 <style lang="scss">
 #mapViewer {
-  #menu {
-    // background: $primary;
-    // color: $white;
-    // font-size: 16px;
-    // li {
-    //   user-select: none;
-    //   &:hover {
-    //     background: $primary-light;
-    //   }
-    //   &.disable {
-    //     cursor: not-allowed;
-    //     background: $primary;
-    //     color: $grey;
-    //   }
-    // }
+  #graphframe {
+    overflow: hidden;
   }
 
   #iMainPanel {
