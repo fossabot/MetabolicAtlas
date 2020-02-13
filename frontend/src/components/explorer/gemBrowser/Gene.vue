@@ -42,7 +42,7 @@
                 <span class="icon"><i class="fa fa-connectdevelop fa-lg"></i></span>&nbsp;
                 <span>{{ messages.interPartName }}</span>
               </router-link>
-              <gem-contact :model="model" :type="type" :id="eId"/>
+              <gem-contact :id="eId" :model="model" :type="type" />
             </div>
           </div>
           <template v-if="!showLoader">

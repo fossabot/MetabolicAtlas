@@ -60,9 +60,10 @@
                       <p v-for="cKey in Object.keys(mapsData3D.compartments).sort()" :key="cKey"
                          :class="{'has-text-weight-bold': cKey === currentDisplayedName }"
                          @click="showMap(mapsData3D.compartments[cKey].id)">
-                        <a>{{ mapsData3D.compartments[cKey].name }}
-                           {{ mapsData3D.compartments[cKey].reaction_count != 0 ?
-                           `(${mapsData3D.compartments[cKey].reaction_count})` : '' }}
+                        <a>
+                          {{ mapsData3D.compartments[cKey].name }}
+                          {{ mapsData3D.compartments[cKey].reaction_count != 0 ?
+                            `(${mapsData3D.compartments[cKey].reaction_count})` : '' }}
                         </a>
                       </p>
                     </div>
@@ -71,9 +72,10 @@
                          :class="{ 'has-text-whitesmoke' : !mapsData2D.compartments[cKey].sha,
                                    'has-text-weight-bold': cKey === currentDisplayedName }"
                          @click="showMap(mapsData2D.compartments[cKey].id)">
-                        <a>{{ mapsData2D.compartments[cKey].name }}
-                           {{ mapsData2D.compartments[cKey].reaction_count != 0 ?
-                           `(${mapsData2D.compartments[cKey].reaction_count})` : '' }}
+                        <a>
+                          {{ mapsData2D.compartments[cKey].name }}
+                          {{ mapsData2D.compartments[cKey].reaction_count != 0 ?
+                            `(${mapsData2D.compartments[cKey].reaction_count})` : '' }}
                         </a>
                       </p>
                     </div>
@@ -83,11 +85,12 @@
                   <ul>
                     <div v-if="!has2DSubsystemMaps || show3D">
                       <p v-for="sKey in Object.keys(mapsData3D.subsystems).sort()" :key="sKey"
-                          :class="{'has-text-weight-bold': sKey === currentDisplayedName }"
-                          @click="showMap(mapsData3D.subsystems[sKey].id, 'subsystem')">
-                        <a>{{ mapsData3D.subsystems[sKey].name }}
-                           {{ mapsData3D.subsystems[sKey].reaction_count != 0 ?
-                           `(${mapsData3D.subsystems[sKey].reaction_count})` : '' }}
+                         :class="{'has-text-weight-bold': sKey === currentDisplayedName }"
+                         @click="showMap(mapsData3D.subsystems[sKey].id, 'subsystem')">
+                        <a>
+                          {{ mapsData3D.subsystems[sKey].name }}
+                          {{ mapsData3D.subsystems[sKey].reaction_count != 0 ?
+                            `(${mapsData3D.subsystems[sKey].reaction_count})` : '' }}
                         </a>
                       </p>
                     </div>
@@ -97,9 +100,10 @@
                           <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
                           <p :class="{'has-text-weight-bold': sKey === currentDisplayedName }"
                              @click="showMap(mapsData2D.subsystems[sKey].id, 'subsystem')">
-                            <a>{{ mapsData2D.subsystems[sKey].name }}
-                               {{ mapsData2D.subsystems[sKey].reaction_count != 0 ?
-                               `(${mapsData2D.subsystems[sKey].reaction_count})` : '' }}
+                            <a>
+                              {{ mapsData2D.subsystems[sKey].name }}
+                              {{ mapsData2D.subsystems[sKey].reaction_count != 0 ?
+                                `(${mapsData2D.subsystems[sKey].reaction_count})` : '' }}
                             </a>
                           </p>
                         </template>

@@ -130,7 +130,7 @@
                     <td>
                       <template v-for="oneRef in selectedModel.ref">
                         <p v-if="!oneRef.link" :key="oneRef.title">{{ oneRef.title }}</p>
-                        <a v-else :href="oneRef.link" :key="oneRef.title" target="_blank">
+                        <a v-else :key="oneRef.title" :href="oneRef.link" target="_blank">
                           {{ oneRef.title }} (PMID: {{ oneRef.pmid }})
                         </a>
                         <br :key="oneRef.title">
@@ -142,7 +142,7 @@
               <template v-if="selectedModel.files">
                 <p class="subtitle has-text-weight-bold">Files</p>
                 <template v-for="file in selectedModel.files">
-                  <a class="button" :href="`${filesURL}${file.path}`" :key="file.path">{{ file.format }}</a>&nbsp;
+                  <a :key="file.path" class="button" :href="`${filesURL}${file.path}`">{{ file.format }}</a>&nbsp;
                 </template>
               </template>
             </div>

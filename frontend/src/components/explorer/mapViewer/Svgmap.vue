@@ -289,7 +289,7 @@ export default {
       const coords = this.getEventCoords(evt);
       const delta = { x: this.svgCoordsPanStart.x - coords.x, y: this.svgCoordsPanStart.y - coords.y };
       this.svgCoordsDelta = delta;
-      console.log(this.svgCoordsDelta);
+      // console.log(this.svgCoordsDelta);
       // console.log(evt);
     },
     startPanSVG(evt) {
@@ -314,8 +314,7 @@ export default {
       // If no viewbox declared the css transform "cuts" the map
       elem.setAttribute('viewBox', `0 0 ${elem.getAttribute('width')} ${elem.getAttribute('height')}`);
       this.svgZoom = 1;
-      // this.svgCoordsBase = { x: 0, y: 0 };
-      window.addEventListener('scroll', () => this.dirty());
+      this.svgCoordsBase = { x: 0, y: 0 };
       setTimeout(() => {
         this.unHighlight();
         if (callback) {
