@@ -719,16 +719,11 @@ def search(request, model, term):
         return HttpResponse("Invalid query, term must be at least 2 characters long", status=400)
 
     results = {}
-    models_dict = {}
     quickSearch = model != 'all'
     if not quickSearch:
         models = [k for k in settings.DATABASES if k not in ['default', 'gems']]
         limit = 10000
     else:
-        try:
-            m = APImodels.GEM.objects.get(database_name=model)
-        except APImodels.GEM.DoesNotExist:
-            return HttpResponse("Invalid model name '%s'" % model, status=404)
         models = [model]
         limit = 50
 
@@ -737,20 +732,17 @@ def search(request, model, term):
     for model_db_name in models:
         try:
             m = APImodels.GEM.objects.get(database_name=model_db_name)
-            models_dict[model_db_name] = m.short_name
-            filtered_models.append(model_db_name)
+            filtered_models.append(m)
         except APImodels.GEM.DoesNotExist:
-            pass
+            return HttpResponse("Invalid model name '%s'" % model, status=404)
     models = filtered_models
 
-
     match_found = False
-    for model in models:
+    for modelData in models:
+        model = modelData.database_name
+        model_short_name = modelData.short_name
         if model not in results:
             results[model] = {}
-
-        m = APImodels.GEM.objects.get(database_name=model)
-        model_short_name = m.short_name
 
         term = term.replace("→", "=>")
         term = term.replace("⇒", "=>")
@@ -867,13 +859,14 @@ def search(request, model, term):
                 Q(name__icontains=term)
             )[:limit]
 
-            subsystems = APImodels.Subsystem.objects.using(model).prefetch_related('compartment', 'external_databases').filter(
+            subsystems = APImodels.Subsystem.objects.using(model).prefetch_related('compartment').filter(
                 Q(name_id__iexact=term) |
                 Q(name__icontains=term) |
-                Q(external_databases__external_id__iexact=term)
-            ).distinct()[:limit]
+                Q(id__in=APImodels.SubsystemEID.objects.using(model).filter(external_id__iexact=term).values('subsystem'))
+            )[:limit]
 
-            metabolites = APImodels.ReactionComponent.objects.using(model).select_related('metabolite').prefetch_related('subsystem_metabolite', 'external_databases').filter(
+            metabolites = APImodels.ReactionComponent.objects.using(model).select_related('metabolite'). \
+            prefetch_related('subsystem_metabolite').filter(
                 Q(component_type__exact='m') &
                 (Q(id__iexact=term) |
                 Q(full_name__icontains=term) |
@@ -881,8 +874,8 @@ def search(request, model, term):
                 Q(alt_name2__icontains=term) |
                 Q(aliases__iregex=synonym_regex) |
                 Q(formula__icontains=term) |
-                Q(external_databases__external_id__iexact=term))
-            ).distinct()[:limit]
+                Q(id__in=APImodels.ReactionComponentEID.objects.using(model).filter(external_id__iexact=term).values('rc')))
+            )[:limit]
 
             exact_metabolites = APImodels.ReactionComponent.objects.using(model).filter(
                 Q(component_type__exact='m') &
@@ -891,28 +884,30 @@ def search(request, model, term):
                 Q(full_name__iexact=term))
             )
 
-            reactions = APImodels.Reaction.objects.using(model).prefetch_related('subsystem', 'external_databases').filter(
+            reactions = APImodels.Reaction.objects.using(model).prefetch_related('subsystem').filter(
                 Q(id__iexact=term) |
                 Q(name__icontains=term) |
                 Q(ec__icontains=term) |
-                Q(external_databases__external_id__iexact=term)
-            ).distinct()[:limit]
-            if reactions.count() < limit:
+                Q(id__in=APImodels.ReactionEID.objects.using(model).filter(external_id__iexact=term).values('reaction'))
+            )[:limit]
+
+            if len(exact_metabolites) and len(reactions) < limit:
                 reactions_mets = APImodels.Reaction.objects.using(model).prefetch_related('subsystem').distinct().filter(
-                    Q(metabolites__in=exact_metabolites) & ~Q(id__in=reactions.values_list('id', flat=True)))[:(limit - reactions.count())]
+                    Q(metabolites__in=exact_metabolites) & ~Q(id__in=reactions))[:(limit - reactions.count())]
                 reactions = list(chain(reactions, reactions_mets))
 
-            genes = APImodels.ReactionComponent.objects.using(model).select_related('gene').prefetch_related('subsystem_gene', 'compartment_gene', 'external_databases').filter(
+            genes = APImodels.ReactionComponent.objects.using(model).select_related('gene'). \
+            prefetch_related('subsystem_gene', 'compartment_gene').filter(
                 Q(component_type__exact='e') &
                 (Q(id__iexact=term) |
                 Q(name__icontains=term) |
                 Q(alt_name1__icontains=term) |
                 Q(alt_name2__icontains=term) |
                 Q(aliases__iregex=synonym_regex) |
-                Q(external_databases__external_id__iexact=term))
-            ).distinct()[:limit]
+                Q(id__in=APImodels.ReactionComponentEID.objects.using(model).filter(external_id__iexact=term).values('rc')))
+            )[:limit]
 
-        if (metabolites.count() + genes.count() + compartments.count() + subsystems.count() + len(reactions)) != 0:
+        if (len(metabolites) or len(genes) or len(compartments) or len(subsystems) + len(reactions)) != 0:
             match_found = True
 
         MetaboliteSerializerClass = APIrcSerializer.ReactionComponentLiteSerializer if quickSearch else APIrcSerializer.MetaboliteSearchSerializer
@@ -947,7 +942,8 @@ def search(request, model, term):
         # search for similar results using levenshtein string distance function
         # allow a distance of 3 or less depending on the field
         # limit to 10 suggestions in total
-        for model in models:
+        for modelData in models:
+            model = modelData.database_name
             compartment_name = APImodels.Compartment.objects.using(model).raw('SELECT id, name from compartment where levenshtein_less_equal(\'%s\', LOWER(name), %d) <= %d limit 10' % (term, mismatch_for_name, mismatch_for_name))
 
             subsystem_name = APImodels.Subsystem.objects.using(model).raw('SELECT id, name from subsystem where levenshtein_less_equal(\'%s\', LOWER(name), %d) <= %d limit 10' % (term, mismatch_for_name, mismatch_for_name))
