@@ -131,7 +131,7 @@ export default {
     },
     svgZoom() {
       this.applySVGMotion();
-      // console.log('zoom changed to ', this.svgZoom);
+      console.log('zoom changed to ', this.svgZoom);
     },
     svgCoordsDelta() {
       this.applySVGMotion();
@@ -258,8 +258,8 @@ export default {
     applySVGMotion() {
       document.getElementById('svg-wrapper')
         .setAttribute('style', `transform: scale(${this.svgZoom})
-          translate(${this.svgCoordsBase.x - this.svgCoordsDelta.x}px,
-            ${this.svgCoordsBase.y - this.svgCoordsDelta.y}px);`);
+          translate(${this.svgCoordsBase.x - this.svgCoordsDelta.x}px, ${this.svgCoordsBase.y - this.svgCoordsDelta.y}px);`);
+      console.log(`translate(${this.svgCoordsBase.x - this.svgCoordsDelta.x}px, ${this.svgCoordsBase.y - this.svgCoordsDelta.y}px)`);
     },
     zoomIn(directionBoolean) {
       let amount = this.zoomFactor;
@@ -287,25 +287,40 @@ export default {
     },
     panSVG(evt) {
       const coords = this.getEventCoords(evt);
-      const delta = { x: this.svgCoordsPanStart.x - coords.x, y: this.svgCoordsPanStart.y - coords.y };
+      const delta = { x: (this.svgCoordsPanStart.x - coords.x) / this.svgZoom,
+        y: (this.svgCoordsPanStart.y - coords.y) / this.svgZoom };
       this.svgCoordsDelta = delta;
-      // console.log(this.svgCoordsDelta);
+      console.log(this.svgCoordsDelta.x, this.svgCoordsDelta.y);
       // console.log(evt);
     },
+    // debounced(delay, fn) {
+    //   let timerId;
+    //   return function (...args) {
+    //     if (timerId) {
+    //       clearTimeout(timerId);
+    //     }
+    //     timerId = setTimeout(() => {
+    //       fn(...args);
+    //       timerId = null;
+    //     }, delay);
+    //   };
+    // },
     startPanSVG(evt) {
-      const elem = document.getElementById('svg-wrapper').children[0];
+      const elem = document.getElementById('svg-wrapper');
       if (evt.type === 'mousedown' && evt.button !== 0) return;
       this.svgCoordsPanStart = this.getEventCoords(evt);
+      // const debouncedPan = this.debounced(30, this.panSVG);
+      const debouncedPan = this.panSVG;
       const stopFn = () => {
         this.svgCoordsBase.x -= this.svgCoordsDelta.x;
         this.svgCoordsBase.y -= this.svgCoordsDelta.y;
-        elem.removeEventListener('mousemove', this.panSVG);
-        elem.removeEventListener('touchmove', this.panSVG);
+        elem.removeEventListener('mousemove', debouncedPan);
+        elem.removeEventListener('touchmove', debouncedPan);
         elem.removeEventListener('mouseup', stopFn);
         elem.removeEventListener('touchend', stopFn);
       };
-      elem.addEventListener('mousemove', this.panSVG);
-      elem.addEventListener('touchmove', this.panSVG);
+      elem.addEventListener('mousemove', debouncedPan);
+      elem.addEventListener('touchmove', debouncedPan);
       elem.addEventListener('mouseup', stopFn);
       elem.addEventListener('touchend', stopFn);
     },
