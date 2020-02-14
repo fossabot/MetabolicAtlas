@@ -80,8 +80,8 @@ export default {
       svgCoordsBase: { x: 0, y: 0 },
       svgCoordsPanStart: { x: 0, y: 0 },
       svgCoordsDelta: { x: 0, y: 0 },
-      svgZoom: 1,
-      zoomFactor: 0.75,
+      svgZoom: 0.2,
+      zoomFactor: 0.05,
 
       idsFound: [],
       elmFound: [],
@@ -257,7 +257,7 @@ export default {
     },
     applySVGMotion() {
       document.getElementById('svg-wrapper')
-        .setAttribute('style', `transform: scale(${this.svgZoom}) translate(${this.svgCoordsBase.x - this.svgCoordsDelta.x}px, ${this.svgCoordsBase.y - this.svgCoordsDelta.y}px);`);
+        .setAttribute('style', `transform: matrix(${this.svgZoom}, 0, 0, ${this.svgZoom}, ${this.svgCoordsBase.x - this.svgCoordsDelta.x}, ${this.svgCoordsBase.y - this.svgCoordsDelta.y}); transform-origin: center center;`);
       // console.log(`translate(${this.svgCoordsBase.x - this.svgCoordsDelta.x}px, ${this.svgCoordsBase.y - this.svgCoordsDelta.y}px)`);
     },
     zoomIn(directionBoolean) {
@@ -328,10 +328,10 @@ export default {
     },
     loadSvgPanZoom(callback) {
       setTimeout(() => {
-        const elem = document.getElementById('svg-wrapper').children[0];
+        // const elem = document.getElementById('svg-wrapper').children[0];
         // If no viewbox declared the css transform "cuts" the map
-        elem.setAttribute('viewBox', `0 0 ${elem.getAttribute('width')} ${elem.getAttribute('height')}`);
-        this.svgZoom = 1;
+        // elem.setAttribute('viewBox', `0 0 ${elem.getAttribute('width')} ${elem.getAttribute('height')}`);
+        this.svgZoom = 0.03;
         this.svgCoordsBase = { x: 0, y: 0 };
         this.unHighlight();
         if (callback) {
@@ -652,13 +652,6 @@ export default {
       background: white;
     }
 
-    #svg-wrapper {
-      height: 100%;
-      svg {
-        width: 100%;
-        height: 100%;
-      }
-    }
   }
 
   #svgSearch {
