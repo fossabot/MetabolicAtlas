@@ -258,7 +258,7 @@ export default {
     applySVGMotion() {
       document.getElementById('svg-wrapper')
         .setAttribute('style', `transform: scale(${this.svgZoom}) translate(${this.svgCoordsBase.x - this.svgCoordsDelta.x}px, ${this.svgCoordsBase.y - this.svgCoordsDelta.y}px);`);
-      console.log(`translate(${this.svgCoordsBase.x - this.svgCoordsDelta.x}px, ${this.svgCoordsBase.y - this.svgCoordsDelta.y}px)`);
+      // console.log(`translate(${this.svgCoordsBase.x - this.svgCoordsDelta.x}px, ${this.svgCoordsBase.y - this.svgCoordsDelta.y}px)`);
     },
     zoomIn(directionBoolean) {
       let amount = this.zoomFactor;
@@ -515,8 +515,8 @@ export default {
       const yFromCenterPx = yFromCenter * $('.svgbox').height() / $('svg').attr('height');
       this.svgCoordsBase = { x: -xFromCenterPx, y: -yFromCenterPx };
       this.svgCoordsDelta = { x: 0, y: 0 };
-      console.log(xFromCenter, yFromCenter);
-      console.log(xFromCenterPx, yFromCenterPx);
+      // console.log(xFromCenter, yFromCenter);
+      // console.log(xFromCenterPx, yFromCenterPx);
     },
     getSvgElemCoordinates(el) {
       let transform = $(el).attr('transform');
@@ -566,7 +566,7 @@ export default {
       return [element.attr('id'), 'subsystem'];
     },
     selectElement(element) {
-      console.log(this.getSvgElemCoordinates(element));
+      // console.log(this.getSvgElemCoordinates(element));
       const [id, type] = this.getElementIdAndType(element);
       if (type === 'subsystem' && this.loadedMapType === 'subsystem') {
         return;
