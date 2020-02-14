@@ -131,7 +131,7 @@ export default {
     },
     svgZoom() {
       this.applySVGMotion();
-      console.log('zoom changed to ', this.svgZoom);
+      // console.log('zoom changed to ', this.svgZoom);
     },
     svgCoordsDelta() {
       this.applySVGMotion();
@@ -257,8 +257,7 @@ export default {
     },
     applySVGMotion() {
       document.getElementById('svg-wrapper')
-        .setAttribute('style', `transform: scale(${this.svgZoom})
-          translate(${this.svgCoordsBase.x - this.svgCoordsDelta.x}px, ${this.svgCoordsBase.y - this.svgCoordsDelta.y}px);`);
+        .setAttribute('style', `transform: scale(${this.svgZoom}) translate(${this.svgCoordsBase.x - this.svgCoordsDelta.x}px, ${this.svgCoordsBase.y - this.svgCoordsDelta.y}px);`);
       console.log(`translate(${this.svgCoordsBase.x - this.svgCoordsDelta.x}px, ${this.svgCoordsBase.y - this.svgCoordsDelta.y}px)`);
     },
     zoomIn(directionBoolean) {
@@ -290,7 +289,7 @@ export default {
       const delta = { x: (this.svgCoordsPanStart.x - coords.x) / this.svgZoom,
         y: (this.svgCoordsPanStart.y - coords.y) / this.svgZoom };
       this.svgCoordsDelta = delta;
-      console.log(this.svgCoordsDelta.x, this.svgCoordsDelta.y);
+      // console.log(this.svgCoordsDelta.x, this.svgCoordsDelta.y);
       // console.log(evt);
     },
     // debounced(delay, fn) {
@@ -318,19 +317,22 @@ export default {
         elem.removeEventListener('touchmove', debouncedPan);
         elem.removeEventListener('mouseup', stopFn);
         elem.removeEventListener('touchend', stopFn);
+        elem.removeEventListener('mouseleave', stopFn);
+        // console.log('should have stopped');
       };
       elem.addEventListener('mousemove', debouncedPan);
       elem.addEventListener('touchmove', debouncedPan);
       elem.addEventListener('mouseup', stopFn);
       elem.addEventListener('touchend', stopFn);
+      elem.addEventListener('mouseleave', stopFn);
     },
     loadSvgPanZoom(callback) {
-      const elem = document.getElementById('svg-wrapper').children[0];
-      // If no viewbox declared the css transform "cuts" the map
-      elem.setAttribute('viewBox', `0 0 ${elem.getAttribute('width')} ${elem.getAttribute('height')}`);
-      this.svgZoom = 1;
-      this.svgCoordsBase = { x: 0, y: 0 };
       setTimeout(() => {
+        const elem = document.getElementById('svg-wrapper').children[0];
+        // If no viewbox declared the css transform "cuts" the map
+        elem.setAttribute('viewBox', `0 0 ${elem.getAttribute('width')} ${elem.getAttribute('height')}`);
+        this.svgZoom = 1;
+        this.svgCoordsBase = { x: 0, y: 0 };
         this.unHighlight();
         if (callback) {
           if (callback === this.findElementsOnSVG) {
@@ -505,22 +507,26 @@ export default {
       this.unSelectElement();
       this.selectElement(currentElem);
 
-      let coords = this.getSvgElemCoordinates(currentElem);
-      if (!coords) {
-        coords = this.getSvgElemCoordinates($(currentElem).find('.shape')[0]);
-      }
-      this.panToCoords(coords[4], coords[5]);
+      this.svgZoom = 3;
+      const coords = this.getSvgElemCoordinates(currentElem);
+      const xFromCenter = coords.x - $('svg').attr('width') / 2;
+      const yFromCenter = coords.y - $('svg').attr('height') / 2;
+      const xFromCenterPx = xFromCenter * $('.svgbox').width() / $('svg').attr('width');
+      const yFromCenterPx = yFromCenter * $('.svgbox').height() / $('svg').attr('height');
+      this.svgCoordsBase = { x: -xFromCenterPx, y: -yFromCenterPx };
+      this.svgCoordsDelta = { x: 0, y: 0 };
+      console.log(xFromCenter, yFromCenter);
+      console.log(xFromCenterPx, yFromCenterPx);
     },
     getSvgElemCoordinates(el) {
-      // read and parse the transform attribut
-      const node = $(el);
-      let transform = node.attr('transform');
-      if (transform) {
-        transform = transform.substring(0, transform.length - 1);
-        transform = transform.substring(7, transform.length);
-        return transform.split(',').map(parseFloat);
+      let transform = $(el).attr('transform');
+      if (!transform) {
+        transform = $($(el).find('.shape')[0]).attr('transform');
       }
-      return null;
+      transform = transform.substring(0, transform.length - 1);
+      transform = transform.substring(7, transform.length);
+      transform = transform.split(',').map(parseFloat);
+      return { x: transform[4], y: transform[5] };
     },
     highlightElementsFound() {
       this.highlight(this.elmFound);
@@ -541,7 +547,7 @@ export default {
         }
       }
     },
-    unHighlight() { // un-highlight elements
+    unHighlight() {
       if (this.elmHL) {
         for (let i = 0; i < this.elmHL.length; i += 1) {
           $(this.elmHL[i]).removeClass('hl');
@@ -560,6 +566,7 @@ export default {
       return [element.attr('id'), 'subsystem'];
     },
     selectElement(element) {
+      console.log(this.getSvgElemCoordinates(element));
       const [id, type] = this.getElementIdAndType(element);
       if (type === 'subsystem' && this.loadedMapType === 'subsystem') {
         return;
