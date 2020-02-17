@@ -1,10 +1,9 @@
 <template>
-  <div class="svgbox">
-    <div id="svg-wrapper"
-         @mousedown.prevent="startPanSVG"
-         @touchstart.prevent="startPanSVG"
-         @wheel.prevent="e => mouseZoom(e)"
-         v-html="svgContent">
+  <div id="svgbox"
+       @mousedown.prevent="startPanSVG"
+       @touchstart.prevent="startPanSVG"
+       @wheel.prevent="e => zoomIn(Math.sign(e.deltaY) > 0)">
+    <div id="svg-wrapper" v-html="svgContent">
     </div>
     <div class="canvasOption overlay">
       <span class="button" title="Zoom in" @click="zoomIn(true)"><i class="fa fa-search-plus"></i></span>
@@ -116,7 +115,7 @@ export default {
       return true;
     },
     svgboxHeight() {
-      return isMobilePage() ? 450 : $('.svgbox').height();
+      return isMobilePage() ? 450 : $('#svgbox').height();
     },
   },
   watch: {
@@ -131,12 +130,9 @@ export default {
     },
     svgZoom() {
       this.applySVGMotion();
-      // console.log('zoom changed to ', this.svgZoom);
     },
     svgCoordsDelta() {
       this.applySVGMotion();
-      // console.log('coordinates changed by ', `${this.svgCoordsBase.x - this.svgCoordsDelta.x}px,
-      //   ${this.svgCoordsBase.y - this.svgCoordsDelta.y}px);`);
     },
   },
   created() {
@@ -190,21 +186,21 @@ export default {
       } else {
         return;
       }
-      self.$refs.tooltip.style.top = `${(e.pageY - $('.svgbox').first().offset().top) + 15}px`;
-      self.$refs.tooltip.style.left = `${(e.pageX - $('.svgbox').first().offset().left) + 15}px`;
+      self.$refs.tooltip.style.top = `${(e.pageY - $('#svgbox').first().offset().top) + 15}px`;
+      self.$refs.tooltip.style.left = `${(e.pageX - $('#svgbox').first().offset().left) + 15}px`;
       self.$refs.tooltip.style.display = 'block';
     });
     $('#svg-wrapper').on('mouseout', '.enz', () => {
       self.$refs.tooltip.innerHTML = '';
       self.$refs.tooltip.style.display = 'none';
     });
-    $('.svgbox').on('webkitfullscreenchange mozfullscreenchange fullscreenchange mozFullScreen MSFullscreenChange', (e) => {
-      $('.svgbox').first().toggleClass('fullscreen');
+    $('#svgbox').on('webkitfullscreenchange mozfullscreenchange fullscreenchange mozFullScreen MSFullscreenChange', (e) => {
+      $('#svgbox').first().toggleClass('fullscreen');
       $('#svgSearch').toggleClass('fullscreen');
       e.stopPropagation();
     });
     $(document).on('mozfullscreenchange', () => {
-      $('.svgbox').first().toggleClass('fullscreen');
+      $('#svgbox').first().toggleClass('fullscreen');
       $('#svgSearch').toggleClass('fullscreen');
     });
   },
@@ -227,7 +223,7 @@ export default {
       if (this.isFullScreenDisabled) {
         return;
       }
-      const elem = $('.svgbox').first()[0];
+      const elem = $('#svgbox').first()[0];
       if ((document.fullScreenElement !== undefined && document.fullScreenElement === null)
         || (document.msFullscreenElement !== undefined && document.msFullscreenElement === null)
         || (document.mozFullScreen !== undefined && !document.mozFullScreen)
@@ -257,11 +253,11 @@ export default {
     },
     applySVGMotion() {
       document.getElementById('svg-wrapper')
-        .setAttribute('style', `transform: matrix(${this.svgZoom}, 0, 0, ${this.svgZoom}, ${this.svgCoordsBase.x - this.svgCoordsDelta.x}, ${this.svgCoordsBase.y - this.svgCoordsDelta.y}); transform-origin: center center;`);
+        .setAttribute('style', `transform: matrix(${this.svgZoom}, 0, 0, ${this.svgZoom}, ${this.svgCoordsBase.x - this.svgCoordsDelta.x}, ${this.svgCoordsBase.y - this.svgCoordsDelta.y});`);
       // console.log(`translate(${this.svgCoordsBase.x - this.svgCoordsDelta.x}px, ${this.svgCoordsBase.y - this.svgCoordsDelta.y}px)`);
     },
     zoomIn(directionBoolean) {
-      let amount = this.zoomFactor;
+      let amount = this.zoomFactor * this.svgZoom;
       if (directionBoolean === false) {
         if (this.svgZoom < amount * 2) {
           return;
@@ -279,36 +275,17 @@ export default {
       }
       return coords;
     },
-    mouseZoom(event) {
-      // console.log(event);
-      const directionBoolean = Math.sign(event.deltaY) > 0;
-      this.zoomIn(directionBoolean);
-    },
     panSVG(evt) {
       const coords = this.getEventCoords(evt);
-      const delta = { x: (this.svgCoordsPanStart.x - coords.x) / this.svgZoom,
-        y: (this.svgCoordsPanStart.y - coords.y) / this.svgZoom };
-      this.svgCoordsDelta = delta;
-      // console.log(this.svgCoordsDelta.x, this.svgCoordsDelta.y);
-      // console.log(evt);
+      this.svgCoordsDelta = {
+        x: (this.svgCoordsPanStart.x - coords.x),
+        y: (this.svgCoordsPanStart.y - coords.y),
+      };
     },
-    // debounced(delay, fn) {
-    //   let timerId;
-    //   return function (...args) {
-    //     if (timerId) {
-    //       clearTimeout(timerId);
-    //     }
-    //     timerId = setTimeout(() => {
-    //       fn(...args);
-    //       timerId = null;
-    //     }, delay);
-    //   };
-    // },
     startPanSVG(evt) {
-      const elem = document.getElementById('svg-wrapper');
+      const elem = document.getElementById('svgbox');
       if (evt.type === 'mousedown' && evt.button !== 0) return;
       this.svgCoordsPanStart = this.getEventCoords(evt);
-      // const debouncedPan = this.debounced(30, this.panSVG);
       const debouncedPan = this.panSVG;
       const stopFn = () => {
         this.svgCoordsBase.x -= this.svgCoordsDelta.x;
@@ -318,7 +295,6 @@ export default {
         elem.removeEventListener('mouseup', stopFn);
         elem.removeEventListener('touchend', stopFn);
         elem.removeEventListener('mouseleave', stopFn);
-        // console.log('should have stopped');
       };
       elem.addEventListener('mousemove', debouncedPan);
       elem.addEventListener('touchmove', debouncedPan);
@@ -328,11 +304,15 @@ export default {
     },
     loadSvgPanZoom(callback) {
       setTimeout(() => {
-        // const elem = document.getElementById('svg-wrapper').children[0];
-        // If no viewbox declared the css transform "cuts" the map
-        // elem.setAttribute('viewBox', `0 0 ${elem.getAttribute('width')} ${elem.getAttribute('height')}`);
-        this.svgZoom = 0.03;
-        this.svgCoordsBase = { x: 0, y: 0 };
+        const svgElem = document.getElementById('svg-wrapper').children[0];
+        console.log($('#svgbox').width() / $('#svg-wrapper svg').width(),
+          this.svgboxHeight / $('#svg-wrapper svg').height());
+        this.svgZoom = Math.min($('#svgbox').width() / $('#svg-wrapper svg').width(),
+          this.svgboxHeight / $('#svg-wrapper svg').height());
+        this.svgCoordsBase = {
+          x: -svgElem.getAttribute('width') * this.svgZoom / 2,
+          y: -svgElem.getAttribute('height') / 2 + $('#svgbox').height() / 2,
+        };
         this.unHighlight();
         if (callback) {
           if (callback === this.findElementsOnSVG) {
@@ -511,8 +491,8 @@ export default {
       const coords = this.getSvgElemCoordinates(currentElem);
       const xFromCenter = coords.x - $('svg').attr('width') / 2;
       const yFromCenter = coords.y - $('svg').attr('height') / 2;
-      const xFromCenterPx = xFromCenter * $('.svgbox').width() / $('svg').attr('width');
-      const yFromCenterPx = yFromCenter * $('.svgbox').height() / $('svg').attr('height');
+      const xFromCenterPx = xFromCenter * $('#svgbox').width() / $('svg').attr('width');
+      const yFromCenterPx = yFromCenter * $('#svgbox').height() / $('svg').attr('height');
       this.svgCoordsBase = { x: -xFromCenterPx, y: -yFromCenterPx };
       this.svgCoordsDelta = { x: 0, y: 0 };
       // console.log(xFromCenter, yFromCenter);
@@ -566,7 +546,6 @@ export default {
       return [element.attr('id'), 'subsystem'];
     },
     selectElement(element) {
-      // console.log(this.getSvgElemCoordinates(element));
       const [id, type] = this.getElementIdAndType(element);
       if (type === 'subsystem' && this.loadedMapType === 'subsystem') {
         return;
@@ -643,7 +622,7 @@ export default {
     }
   }
 
-  .svgbox {
+  #svgbox {
     margin: 0;
     padding: 0;
     width: 100%;
