@@ -253,16 +253,18 @@ export default {
     },
     applySVGMotion() {
       document.getElementById('svg-wrapper')
-        .setAttribute('style', `transform: matrix(${this.svgZoom}, 0, 0, ${this.svgZoom}, ${this.svgCoordsBase.x - this.svgCoordsDelta.x}, ${this.svgCoordsBase.y - this.svgCoordsDelta.y});`);
+        .setAttribute('style', `transform: matrix(${this.svgZoom}, 0, 0, ${this.svgZoom}, ${(this.svgCoordsBase.x - this.svgCoordsDelta.x) * this.svgZoom}, ${this.svgCoordsBase.y - this.svgCoordsDelta.y});`);
       // console.log(`translate(${this.svgCoordsBase.x - this.svgCoordsDelta.x}px, ${this.svgCoordsBase.y - this.svgCoordsDelta.y}px)`);
     },
     zoomIn(directionBoolean) {
       let amount = this.zoomFactor * this.svgZoom;
       if (directionBoolean === false) {
-        if (this.svgZoom < amount * 2) {
+        if (this.svgZoom < 0.03) {
           return;
         }
         amount *= -1;
+      } else if (this.svgZoom > 2) {
+        return;
       }
       this.svgZoom += amount;
     },
@@ -286,18 +288,17 @@ export default {
       const elem = document.getElementById('svgbox');
       if (evt.type === 'mousedown' && evt.button !== 0) return;
       this.svgCoordsPanStart = this.getEventCoords(evt);
-      const debouncedPan = this.panSVG;
       const stopFn = () => {
         this.svgCoordsBase.x -= this.svgCoordsDelta.x;
         this.svgCoordsBase.y -= this.svgCoordsDelta.y;
-        elem.removeEventListener('mousemove', debouncedPan);
-        elem.removeEventListener('touchmove', debouncedPan);
+        elem.removeEventListener('mousemove', this.panSVG);
+        elem.removeEventListener('touchmove', this.panSVG);
         elem.removeEventListener('mouseup', stopFn);
         elem.removeEventListener('touchend', stopFn);
         elem.removeEventListener('mouseleave', stopFn);
       };
-      elem.addEventListener('mousemove', debouncedPan);
-      elem.addEventListener('touchmove', debouncedPan);
+      elem.addEventListener('mousemove', this.panSVG);
+      elem.addEventListener('touchmove', this.panSVG);
       elem.addEventListener('mouseup', stopFn);
       elem.addEventListener('touchend', stopFn);
       elem.addEventListener('mouseleave', stopFn);
@@ -308,9 +309,9 @@ export default {
         console.log($('#svgbox').width() / $('#svg-wrapper svg').width(),
           this.svgboxHeight / $('#svg-wrapper svg').height());
         this.svgZoom = Math.min($('#svgbox').width() / $('#svg-wrapper svg').width(),
-          this.svgboxHeight / $('#svg-wrapper svg').height());
+          this.svgboxHeight / $('#svg-wrapper svg').height()) - 0.005;
         this.svgCoordsBase = {
-          x: -svgElem.getAttribute('width') * this.svgZoom / 2,
+          x: -svgElem.getAttribute('width') / 2,
           y: -svgElem.getAttribute('height') / 2 + $('#svgbox').height() / 2,
         };
         this.unHighlight();
