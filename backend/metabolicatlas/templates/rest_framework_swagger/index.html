@@ -22,15 +22,92 @@
         </div>
       </div>
     </div>
-
   </div>
 
-  <div id="rest-swagger-ui"></div>
+
+  <div id="rest-swagger-ui">
+    [TO BE ERASED]
+
+    Metabolite Atlas can be accessed programmatically using this web API. Here we provide endpoints to get information on the list of models integrated in Metabolic Atlas and to retrieve bulk or details information on those models.
+    use model.short_name attribut (e.g. "Yeast-GEM", "Human-GEM") or model.database attribut as model parameter.
+    <br>
+    The API is still under developpment and might change without notice.
+    <br>
+    Please be respectful when using this service and do not flood requests.
+
+  </div>
   {% csrf_token %}
+
+  <footer id="footer">
+    <div style="width: 60%; display: inline-block">
+      <p style="font-size: 1rem">2019 © Department of Biology and Biological Engineering | Chalmers University of Technology</p>
+    </div>
+    <div id="imgc" style="display: inline-block; width: 38%;">
+      <div style="text-align: right !important;">
+        <p id="imgp" style="height: 30px">
+          <a href="https://www.sysbio.se" title="SysBio">
+            <img src="https://www.metabolicatlas.org/img/sysbio-logo.01f5484f.png" />
+          </a>
+          <a href="http://www.chalmers.se" title="Chalmers University of Technology">
+            <img src="https://www.metabolicatlas.org/img/chalmers.6b6c408a.png" />
+          </a>
+          <a href="https://kaw.wallenberg.org/" title="Knut and Alice Wallenberg Foundation">
+            <img src="https://www.metabolicatlas.org/img/wallenberg.8e202f5b.gif" />
+          </a>
+          <a href="https://www.kth.se/en/bio/centres/wcpr" title="CBH | KTH Royal Institute of Technology">
+            <img src="https://www.metabolicatlas.org/img/wpcr.b0598231.jpg" />
+          </a>
+          <a href="https://nbis.se/">
+            <img src="https://www.metabolicatlas.org/img/nbislogo-green.9bdea32d.png" title="National Bioinformatics Infrastructure Sweden" />
+          </a>
+          <a href="https://www.scilifelab.se" title="Science for Life Laboratory (SciLifeLab)">
+            <img src="https://www.metabolicatlas.org/img/scilifelab-green.4e4dc916.png" />
+          </a>
+        </p>
+      </div>
+    </div>
+  </footer>
 
   <style>
     .auth-wrapper {
       display: none !important;
+    }
+    #footer {
+      padding-bottom: 0.5em;
+      padding-top: 0.5em;
+      background-color: #eef0ef;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-top: 1rem;
+    }
+    #imgp img {
+      height: auto;
+      max-width:100%;
+      max-height:100%;
+    }
+    #imgp a {
+      text-decoration: none !important;;
+    }
+    .scheme-container {
+      display: none;
+    }
+    .opblock-tag-section {
+      margin-top:1rem;
+    }
+    .swagger-ui .opblock.opblock-get {
+      border-color: #25543C;
+      background: #F2F8F5;
+    }
+    .swagger-ui .opblock.opblock-get .opblock-summary {
+      border-color: #25543C;
+    }
+    .swagger-ui .opblock.opblock-get .opblock-summary-method {
+      background: #4C735F;
+    }
+    .swagger-ui .btn.execute {
+      background-color: #25543C;
+      border-color: #25543C;
     }
   </style>
   <script>
@@ -42,6 +119,7 @@
   {% block extra_scripts %}
   {# -- Add any additional scripts here -- #}
   {% endblock %}
+ 
 </body>
 
 </html>
