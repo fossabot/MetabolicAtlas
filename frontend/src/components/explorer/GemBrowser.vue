@@ -153,7 +153,6 @@ export default {
   methods: {
     setup() {
       if (['browser', 'browserRoot'].includes(this.$route.name)) {
-      if (['browser', 'browserRoot'].includes(this.$route.name)) {
         if (!this.model || this.model.database_name !== this.$route.params.model) {
           EventBus.$emit('modelSelected', '');
           this.errorMessage = `Error: ${messages.modelNotFound}`;

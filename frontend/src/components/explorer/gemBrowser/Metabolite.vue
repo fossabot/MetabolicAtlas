@@ -9,7 +9,7 @@
           <h3 class="title is-3">
             <span class="is-capitalized">{{ type }}</span> {{ metabolite.name }}
             <span v-if="metabolite && metabolite.compartment" class="is-size-5 has-text-grey">
-            {{ metabolite.compartment.id }}</span>
+              {{ metabolite.compartment.id }}</span>
           </h3>
         </div>
       </div>
@@ -44,6 +44,7 @@
               <td>
                 <span v-for="(rm, i) in relatedMetabolites" :key="rm.id">
                   <br v-if="i !== 0">
+                  <!-- eslint-disable-next-line max-len -->
                   <router-link :to="{ name: 'browser', params: { model: model.database_name, type: 'metabolite', id: rm.id } }">
                     {{ rm.full_name }}
                   </router-link> in {{ rm.compartment_str }}

@@ -1,5 +1,5 @@
 <template>
-  <div class="card" title="Click on any of the links to directly load a map" >
+  <div class="card" title="Click on any of the links to directly load a map">
     <header class="card-header has-text-centered">
       <p class="card-header-title has-text-primary has-text-weight-bold is-size-5">
         <span class="icon is-medium"><i class="fa fa-map-o"></i></span>&nbsp;
@@ -15,12 +15,14 @@
           <ul style="margin: 0 1rem">
             <template v-for="map in mapsAvailable[mapKey]['compartment'].concat(mapsAvailable[mapKey]['subsystem'])">
               <li :key="map[0]">
+                <!-- eslint-disable-next-line max-len -->
                 <router-link v-if="viewerSelectedID" :to="{ name: 'viewer', params: { model: model.database_name, type: mapType, map_id: map[0] }, query: { dim: mapKey, search: viewerSelectedID, sel: viewerSelectedID } }">
                 {{ map[1] }}
                 </router-link>
                 <!-- eslint-disable-next-line max-len -->
                 <router-link v-else :to="{ name: 'viewer', params: { model: model.database_name, type: mapType, map_id: map[0]}, query: { dim: mapKey } }">
                 {{ map[1] }}
+                </router-link>
               </li>
             </template>
             <!-- eslint-disable-next-line max-len -->

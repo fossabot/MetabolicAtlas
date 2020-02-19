@@ -81,9 +81,9 @@ export default {
     EventBus.$off('apply3DHPARNAlevels');
     EventBus.$off('recompute3DCanvasBounds');
 
-    EventBus.$on('show3Dnetwork', (type, name, searchTerm, ids, coords) => {
-      if (ids && ids.length === 1) {
-        this.focusOnID = ids[0]; // eslint-disable-line prefer-destructuring
+    EventBus.$on('show3Dnetwork', (type, name, searchTerm, selectIDs, coords) => {
+      if (selectIDs && selectIDs.length === 1) {
+        this.focusOnID = selectIDs[0]; // eslint-disable-line prefer-destructuring
       } else {
         // do not handle multiple ids for now;
         this.focusOnID = null;

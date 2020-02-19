@@ -205,10 +205,9 @@ export default {
       // get integrated models list
       axios.get('models/')
         .then((response) => {
-          this.models = {};
+          const models = {};
           response.data.forEach((model) => {
-            model.email = model.authors[0].email; // eslint-disable-line no-param-reassign
-            this.models[model.database_name] = model;
+            models[model.database_name] = { ...model, email: model.authors[0].email };
           });
           this.models = models;
           // the selected model corresponds to the first key
