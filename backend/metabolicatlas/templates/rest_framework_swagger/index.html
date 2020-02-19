@@ -24,18 +24,16 @@
     </div>
   </div>
 
-
-  <div id="rest-swagger-ui">
-    [TO BE ERASED]
-
-    Metabolite Atlas can be accessed programmatically using this web API. Here we provide endpoints to get information on the list of models integrated in Metabolic Atlas and to retrieve bulk or details information on those models.
-    use model.short_name attribut (e.g. "Yeast-GEM", "Human-GEM") or model.database attribut as model parameter.
-    <br>
+  <description style="display: none">
+    Metabolite Atlas can be accessed programmatically using this web API. Here we provide endpoints to get global information on the list of models integrated in Metabolic Atlas and to retrieve bulk or details information on those models.<br><br>
+    Use <i>model.short_name</i> attribut (e.g. "Yeast-GEM", "Human-GEM") or <i>model.database</i> attribut as <i>model</i> parameter.
+    <br><br>
     The API is still under developpment and might change without notice.
-    <br>
+    <br><br>
     Please be respectful when using this service and do not flood requests.
+  </description>
 
-  </div>
+  <div id="rest-swagger-ui"></div>
   {% csrf_token %}
 
   <footer id="footer">
@@ -119,6 +117,10 @@
   {% block extra_scripts %}
   {# -- Add any additional scripts here -- #}
   {% endblock %}
+  <script type="application/javascript">
+    document.getElementsByClassName('description')[0].innerHTML = document.getElementsByTagName('description')[0].innerHTML;
+    document.getElementsByTagName('description')[0].remove();
+  </script>
  
 </body>
 
