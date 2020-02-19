@@ -153,6 +153,7 @@ export default {
   methods: {
     setup() {
       if (['browser', 'browserRoot'].includes(this.$route.name)) {
+      if (['browser', 'browserRoot'].includes(this.$route.name)) {
         if (!this.model || this.model.database_name !== this.$route.params.model) {
           EventBus.$emit('modelSelected', '');
           this.errorMessage = `Error: ${messages.modelNotFound}`;
@@ -160,6 +161,8 @@ export default {
         }
         if (this.$route.name === 'browserRoot') {
           this.get_tiles_data();
+        } else if (this.selectedType === 'interaction') {
+          this.$router.replace(`/explore/interaction/${this.model.database_name}/${this.componentID}`);
         } else {
           this.selectedType = this.$route.params.type;
         }

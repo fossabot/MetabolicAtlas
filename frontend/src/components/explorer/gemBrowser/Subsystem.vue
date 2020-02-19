@@ -1,29 +1,24 @@
 <template>
   <div v-if="componentNotFound" class="columns is-centered">
-    <notFoundComponent component="subsystem" :componentID="sName"></notFoundComponent>
+    <notFound :type="type" :component-id="sName"></notFound>
   </div>
   <div v-else>
     <div class="columns">
       <div class="column">
-        <h3 class="title is-3">Subsystem {{ !showLoader ? info.name : '' }}</h3>
+        <h3 class="title is-3"><span class="is-capitalized">{{ type }}</span> {{ !showLoader ? info.name : '' }}</h3>
       </div>
     </div>
     <loader v-show="showLoader"></loader>
     <div v-show="!showLoader" class="columns is-multiline is-variable is-8">
       <div class="subsystem-table column is-10-widescreen is-9-desktop is-full-tablet">
-        <table v-if="info && Object.keys(info).length != 0" class="table main-table is-fullwidth">
-          <tr v-for="el in mainTableKey[model.database_name]"
-              :key="el.name_id"
-              class="m-row">
+        <table v-if="info && Object.keys(info).length !== 0" class="table main-table is-fullwidth">
+          <tr v-for="el in mainTableKey" :key="el.name" class="m-row">
             <template v-if="info[el.name]">
               <td v-if="el.display" class="td-key has-background-primary has-text-white-bis">{{ el.display }}</td>
               <td v-else class="td-key has-background-primary has-text-white-bis">{{ reformatKey(el.name) }}</td>
               <td v-if="info[el.name]">
-                <span v-if="el.modifier" v-html="el.modifier(info[el.name])">
-                </span>
-                <span v-else>
-                  {{ info[el.name] }}
-                </span>
+                <span v-if="el.modifier" v-html="el.modifier(info[el.name])"></span>
+                <span v-else>{{ info[el.name] }}</span>
               </td>
               <td v-else> - </td>
             </template>
@@ -31,12 +26,12 @@
           <tr>
             <td class="td-key has-background-primary has-text-white-bis">Compartments</td>
             <td>
-              <template v-for="(c, i) in info['compartment']">
+              <template v-for="(c, i) in info['compartments']">
                 <template v-if="i !== 0">, </template>
-                <!-- eslint-disable-next-line vue/valid-v-for -->
+                <!-- eslint-disable-next-line max-len -->
                 <router-link
-                  :to="{ name: 'browser', params: { model: model.database_name, type: 'compartment', id: idfy(c) } }"
-                >{{ c }}</router-link>
+                  :to="{ name: 'browser', params: { model: model.database_name, type: 'compartment', id: c.id } }"
+                >{{ c.name }}</router-link>
               </template>
             </td>
           </tr>
@@ -49,7 +44,7 @@
                 <button class="is-small button" @click="showFullMetabolite=true">
                   ... and {{ metabolites.length - displayedMetabolite }} more
                 </button>
-                <span v-show="metabolites.length == limitMetabolite" class="tag is-medium is-warning is-pulled-right">
+                <span v-show="metabolites.length === limitMetabolite" class="tag is-medium is-warning is-pulled-right">
                   The number of metabolites displayed is limited to {{ limitMetabolite }}.
                 </span>
               </div>
@@ -64,16 +59,18 @@
                 <button class="is-small button" @click="showFullGene=true">
                   ... and {{ genes.length - displayedGene }} more
                 </button>
-                <span v-show="genes.length == limitGene" class="tag is-medium is-warning is-pulled-right">
+                <span v-show="genes.length === limitGene" class="tag is-medium is-warning is-pulled-right">
                   The number of genes displayed is limited to {{ limitGene }}.
                 </span>
               </div>
             </td>
           </tr>
         </table>
+        <ExtIdTable :type="type" :external-dbs="info.external_databases"></ExtIdTable>
       </div>
       <div class="column is-2-widescreen is-3-desktop is-half-tablet has-text-centered">
-        <maps-available :id="sName" :model="model" :type="'subsystem'" :element-i-d="''"></maps-available>
+        <maps-available :id="sName" :model="model" :type="type" :element-i-d="''"></maps-available>
+        <gem-contact :model="model" :type="type" :id="info.name"/>
       </div>
     </div>
     <template v-if="!showLoader">
@@ -99,18 +96,22 @@
 
 import axios from 'axios';
 import Loader from '@/components/Loader';
-import NotFoundComponent from './NotFoundComponent';
+import NotFound from '@/components/NotFound';
 import MapsAvailable from '@/components/explorer/gemBrowser/MapsAvailable';
+import ExtIdTable from '@/components/explorer/gemBrowser/ExtIdTable';
 import ReactionTable from '@/components/explorer/gemBrowser/ReactionTable';
-import { reformatTableKey, idfy } from '../../../helpers/utils';
+import GemContact from '@/components/shared/GemContact';
+import { reformatTableKey } from '../../../helpers/utils';
 
 export default {
   name: 'Subsystem',
   components: {
-    NotFoundComponent,
+    NotFound,
     MapsAvailable,
     ReactionTable,
+    ExtIdTable,
     Loader,
+    GemContact,
   },
   props: {
     model: {
@@ -120,6 +121,7 @@ export default {
   data() {
     return {
       sName: this.$route.params.id,
+      type: 'subsystem',
       showLoader: true,
       showReactionLoader: true,
       info: {},
@@ -127,11 +129,9 @@ export default {
       genes: [],
       reactions: [],
       errorMessage: '',
-      mainTableKey: {
-        human1: [
-          { name: 'name', display: 'Name' },
-        ],
-      },
+      mainTableKey: [
+        { name: 'name', display: 'Name' },
+      ],
       showFullMetabolite: false,
       showFullGene: false,
       displayedMetabolite: 40,
@@ -140,7 +140,6 @@ export default {
       limitGene: 0,
       limitReaction: 0,
       componentNotFound: false,
-      idfy,
     };
   },
   computed: {

@@ -370,7 +370,7 @@ export default {
       const blob = new Blob([document.getElementById('svg-wrapper').innerHTML], {
         type: 'data:text/tsv;charset=utf-8',
       });
-      FileSaver.saveAs(blob, `${this.loadedMap.name_id}.svg`);
+      FileSaver.saveAs(blob, `${this.loadedMap.id}.svg`);
     },
     applyHPARNAlevelsOnMap(RNAlevels) {
       this.HPARNAlevels = RNAlevels;
@@ -540,11 +540,13 @@ export default {
           }
           selectionData.data = data;
           this.selectedItemHistory[id] = selectionData.data;
-          this.$emit('newSelection', selectionData);
-          this.$emit('endSelection', true);
+          EventBus.$emit('updatePanelSelectionData', selectionData);
+          EventBus.$emit('endSelectedElement', true);
         })
         .catch(() => {
-          this.$emit('endSelection', false);
+          EventBus.$emit('updatePanelSelectionData', selectionData);
+          this.$set(selectionData, 'error', true);
+          EventBus.$emit('endSelectedElement', false);
         });
     },
     unSelectElement() {

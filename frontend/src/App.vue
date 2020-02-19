@@ -4,7 +4,7 @@
     <nav id="navbar" class="navbar has-background-primary-lighter" role="navigation" aria-label="main navigation">
       <div class="container">
         <div class="navbar-brand">
-          <router-link active-class="" class="navbar-item" :to="{ name: 'home' }" @click.native="isMobileMenu = false">
+          <router-link class="navbar-item" :to="{ name: 'home' }" active-class="" @click.native="isMobileMenu = false">
             <img :src="require('./assets/logo.png')" />
           </router-link>
           <div class="navbar-burger" :class="{ 'is-active': isMobileMenu }" @click="isMobileMenu = !isMobileMenu">
@@ -44,7 +44,7 @@
                   <div class="navbar-item has-dropdown is-hoverable is-unselectable has-background-primary-lighter">
                     <a class="navbar-link is-active-underline"
                        :class="{ 'router-link-active': $route.path.toLowerCase().includes(menuurl) }">
-                       {{ menuName }}
+                      {{ menuName }}
                     </a>
                     <div class="navbar-dropdown has-background-primary-lighter is-paddingless">
                       <template v-for="submenu in submenus">
@@ -144,7 +144,7 @@ export default {
       },
       activeBrowserBut: false,
       activeViewerBut: false,
-      showCookieMsg: !isCookiePolicyAccepted(),
+      showCookieMsg: navigator.doNotTrack !== '1' && !isCookiePolicyAccepted(),
       acceptCookiePolicy,
       activeDropMenu: '',
       model: null,

@@ -81,19 +81,16 @@ export default {
     EventBus.$off('apply3DHPARNAlevels');
     EventBus.$off('recompute3DCanvasBounds');
 
-    EventBus.$on('show3Dnetwork', (type, name, searchTerm, selectIDs, coords, force) => {
-      // console.log('show3Dnetwork', type, name, searchTerm, selectIDs, coords, force);
-      if (force) {
-        this.loadedComponentName = null;
-      }
-      if (name.toLowerCase().substr(0, 7) === 'cytosol') {
-        name = 'cytosol'; // eslint-disable-line no-param-reassign
+    EventBus.$on('show3Dnetwork', (type, name, searchTerm, ids, coords) => {
+      if (ids && ids.length === 1) {
+        this.focusOnID = ids[0]; // eslint-disable-line prefer-destructuring
+      } else {
+        // do not handle multiple ids for now;
+        this.focusOnID = null;
       }
       this.searchTerm = searchTerm;
-      this.selectIDs = selectIDs || [];
       this.coords = coords !== '0,0,0,0,0,0' ? coords : null; // FIXME duplicated '0,0,0,0,0,0'
       if (this.loadedComponentType !== type || this.loadedComponentName !== name) {
-        // reset some values
         this.selectElementID = null;
         this.selectElementIDfull = null;
         this.$refs.mapsearch.reset();

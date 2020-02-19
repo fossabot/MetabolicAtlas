@@ -8,5 +8,5 @@ export function isCookiePolicyAccepted() {
 }
 
 export function acceptCookiePolicy() {
-  Vue.cookie.set('acceptCookiePolicy', true);
+  Vue.cookie.set('acceptCookiePolicy', 'true');
 }

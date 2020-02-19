@@ -9,8 +9,9 @@
       </div>
     </div>
     <div class="columns is-centered">
-      <gem-search ref="gemSearch" :model="model" :metabolitesAndGenesOnly="true"></gem-search>
+      <gem-search ref="gemSearch" :model="model" :metabolites-and-genes-only="true"></gem-search>
     </div>
+    <br>
     <div v-if="!mainNodeID">
       <div class="columns is-centered">
         <p class="is-capitalized subtitle is-size-2-widescreen is-size-3-desktop is-size-4-tablet is-size-5-mobile
@@ -18,17 +19,18 @@
       </div>
       <div class="columns is-centered">
         <div class="column is-three-fifths-desktop is-three-quarters-tablet is-fullwidth-mobile">
-          <video poster="@/assets/interPart-cover.jpg"
-                 playsinline controls
-                 muted loop>
-                 <source src="@/assets/interPart.mp4" type="video/mp4">
+          <!-- eslint-disable max-len -->
+          <p class="is-size-5">For a given metabolite or gene, this page shows the other metabolites and genes with which it is connected via reactions. For more, see the <router-link :to="{ path: '/documentation', hash: 'Interaction-Partners' }">documentation on {{ messages.interPartName }}</router-link>.
+          </p><br>
+          <video poster="@/assets/interPart-cover.jpg" playsinline controls muted loop>
+            <source src="@/assets/interPart.mp4" type="video/mp4">
           </video>
         </div>
       </div>
     </div>
     <template v-if="componentNotFound">
       <div class="columns is-centered">
-        <notFoundComponent component="Interaction Partners" :componentID="mainNodeID"></notFoundComponent>
+        <notFound component="Interaction Partners" :component-id="mainNodeID"></notFound>
       </div>
     </template>
     <template v-if="loading">
@@ -41,15 +43,15 @@
         </div>
       </div>
       <div v-show="showGraphContextMenu && showNetworkGraph" id="contextMenuGraph" ref="contextMenuGraph">
-        <span v-show="clickedElmId !== mainNodeID"
+        <span v-show="clickedElmId && clickedElmId !== mainNodeID"
               class="button is-dark" @click="navigate">Load {{ messages.interPartName }}</span>
-        <span v-show="!expandedIds.includes(clickedElmId)"
+        <span v-show="clickedElmId && !expandedIds.includes(clickedElmId)"
               class="button is-dark" @click="loadExpansion">Expand {{ messages.interPartName }}</span>
         <div v-show="clickedElm">
           <span class="button is-dark">Highlight reaction:</span>
         </div>
         <div>
-          <template v-if="clickedElm !== null && clickedElm['reaction']">
+          <template v-if="clickedElm && clickedElm['reaction']">
             <template v-for="(r, index) in Array.from(clickedElm.reaction).slice(0,16)">
               <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
               <span v-if="index != 15" class="button is-dark is-small has-margin-left"
@@ -155,7 +157,7 @@
             <div id="dropdownMenuExport" class="dropdown">
               <div class="dropdown-trigger">
                 <a v-show="showNetworkGraph" class="button is-primary is-outlined" aria-haspopup="true"
-                        aria-controls="dropdown-menu" @click="showMenuExport=!showMenuExport">
+                   aria-controls="dropdown-menu" @click="showMenuExport=!showMenuExport">
                   <span class="icon is-large"><i class="fa fa-download"></i></span>
                   <span>Export graph</span>
                   <span class="icon is-large"><i class="fa fa-caret-down"></i></span>
@@ -250,7 +252,8 @@
         </div>
       </div>
       <cytoscape-table :reactions="reactions" :selected-elm-id="clickedElmId" :selected-reaction-id="reactionHL"
-                       :is-graph-visible="showNetworkGraph" :filename="`${this.mainNodeID}_interaction_partners`"
+                       :is-graph-visible="showNetworkGraph"
+                       :filename="filename"
                        @highlight="highlightNode($event)" @HLreaction="highlightReaction($event)">
       </cytoscape-table>
     </template>
@@ -271,7 +274,7 @@ import Sidebar from '@/components/explorer/interactionPartners/Sidebar';
 import CytoscapeTable from '@/components/explorer/interactionPartners/CytoscapeTable';
 import Loader from '@/components/Loader';
 import RNALegend from '@/components/explorer/mapViewer/RNALegend.vue';
-import NotFoundComponent from '@/components/explorer/gemBrowser/NotFoundComponent';
+import NotFound from '@/components/NotFound';
 
 import { default as EventBus } from '../../event-bus';
 
@@ -288,7 +291,7 @@ import { default as messages } from '../../helpers/messages';
 export default {
   name: 'InteractionPartners',
   components: {
-    NotFoundComponent,
+    NotFound,
     GemSearch,
     Sidebar,
     CytoscapeTable,
@@ -423,7 +426,7 @@ export default {
   },
   computed: {
     filename() {
-      return `ma_interaction_partners_${this.componentName}`;
+      return `MetAtlas Interaction Partners for ${this.componentName} ${this.mainNodeID}`;
     },
     elms() {
       if (Object.keys(this.rawElms).length !== 0) {
@@ -467,6 +470,9 @@ export default {
       }
     },
     navigate() {
+      this.reactionHL = null;
+      this.compartmentHL = '';
+      this.subsystemHL = '';
       this.$router.push({ name: 'interPartner', params: { model: this.model.database_name, id: this.clickedElmId } });
     },
     loadHPATissue() {
@@ -490,6 +496,7 @@ export default {
           this.showGraphContextMenu = false;
           const { component } = response.data;
           this.reactions = response.data.reactions;
+          this.title = component.type === 'metabolite' ? this.chemicalName(component.name) : component.name;
           if (!this.reactions) {
             this.tooLargeNetworkGraph = true;
             this.showNetworkGraph = false;
@@ -503,14 +510,6 @@ export default {
           });
 
           this.componentName = component.name || component.id;
-
-          if ('formula' in component) {
-            this.title = `${this.chemicalName(this.componentName)}`;
-            component.type = 'metabolite';
-          } else {
-            this.title = this.componentName;
-            component.type = 'gene';
-          }
 
           [this.rawElms,
             this.rawRels,
@@ -900,8 +899,8 @@ export default {
     exportGraphml: function exportGraphml() {
       const output = convertGraphML(this.cy);
       const blob = new Blob([output], { type: 'text/graphml' });
-      const filename = `${this.mainNodeID}_interaction_partners.graphml`;
-      FileSaver.saveAs(blob, filename);
+      const fn = `${this.filename}.graphml`;
+      FileSaver.saveAs(blob, fn);
     },
     exportPNG: function exportPNG() {
       const a = document.createElement('a');
@@ -910,7 +909,7 @@ export default {
       });
 
       a.href = output;
-      a.download = `${this.mainNodeID}_interaction_partners.png`;
+      a.download = `${this.filename}.png`;
       a.target = '_blank';
       a.style.display = 'none';
       document.body.appendChild(a);
