@@ -1,9 +1,0 @@
-CREATE CONSTRAINT ON (metabolite:Metabolite) ASSERT metabolite.id IS UNIQUE
-
-LOAD CSV WITH HEADERS FROM "file:///metabolites.csv" AS csvLINE
-CREATE (m:Metabolite {id: csvLINE.id})
-
-LOAD CSV WITH HEADERS FROM "file:///metaboliteStates.csv" AS csvLINE
-MATCH (m:Metabolite {id: csvLINE.metaboliteId})
-CREATE (ms:MetaboliteState {alternateName: csvLINE.alternateName, synonyms: csvLINE.synonyms, description: csvLINE.description, formula: csvLINE.formula, charge: toInteger(csvLINE.charge), isCurrency: toBoolean(csvLINE.isCurrency)})
-CREATE (m)-[:V1]->(ms)
