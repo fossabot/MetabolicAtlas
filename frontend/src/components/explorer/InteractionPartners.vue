@@ -861,13 +861,10 @@ export default {
         this.cy.nodes().deselect();
         node.json({ selected: true });
         const elmId = node.data().id;
-
         this.clickedElmId = elmId;
         this.clickedElm = this.rawElms[elmId];
         updateContextMenuPosition(node);
-        if (evt.type === 'cxttap') {
-          this.showGraphContextMenu = true;
-        }
+        this.showGraphContextMenu = evt.type === 'cxttap';
       });
 
       if (callback) {
