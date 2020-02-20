@@ -55,6 +55,19 @@ const makeRels = (fields, recordsA, recordsB) =>
     [fields[1][0]]: recordsB[getRandInt(recordsB.length)].id
   }));
 
+let csvWriter;
+
+const createCsvFile = ({ header, records, filename }) => {
+  csvWriter = createCsvWriter({
+    path: `./data/${filename}.csv`,
+    header
+  });
+
+  csvWriter.writeRecords(records).then(() => {
+    console.log(`${filename} generated.`);
+  });
+};
+
 const buildCypherNodesWithStatesInstructions = ({ nodeType, fields }) => {
   const nodeLabel = nodeType.charAt(0).toUpperCase() + nodeType.slice(1);
   const stateNodeLabel = `${nodeLabel}State`;
@@ -103,103 +116,127 @@ CREATE (n1)-[:V1]->(n2);
 `;
 };
 
+// SCHEMA
+
+const SCHEMA = {
+  nodeTypes: {
+    metabolite: {
+      fields: [["id", fieldTypes.STRING]],
+      stateFields: [
+        ["metaboliteId", fieldTypes.STRING],
+        ["name", fieldTypes.STRING],
+        ["alternateName", fieldTypes.STRING],
+        ["synonyms", fieldTypes.STRING_LIST],
+        ["description", fieldTypes.STRING],
+        ["formula", fieldTypes.STRING],
+        ["charge", fieldTypes.INT],
+        ["isCurrency", fieldTypes.BOOL]
+      ]
+    },
+    compartment: {
+      fields: [["id", fieldTypes.STRING]],
+      stateFields: [
+        ["compartmentId", fieldTypes.STRING],
+        ["name", fieldTypes.STRING],
+        ["letterCode", fieldTypes.STRING]
+      ]
+    },
+    reaction: {
+      fields: [["id", fieldTypes.STRING]],
+      stateFields: [
+        ["reactionId", fieldTypes.STRING],
+        ["name", fieldTypes.STRING],
+        ["reversible", fieldTypes.BOOL],
+        ["lowerBound", fieldTypes.INT],
+        ["upperBound", fieldTypes.INT],
+        ["geneRule", fieldTypes.STRING],
+        ["ec", fieldTypes.STRING]
+      ]
+    }
+  },
+  relationships: [["metabolite", "compartment"], ["metabolite", "reaction"]]
+};
+
 // DATA GENERATION
-const metaboliteStateFields = [
-  ["metaboliteId", fieldTypes.STRING],
-  ["name", fieldTypes.STRING],
-  ["alternateName", fieldTypes.STRING],
-  ["synonyms", fieldTypes.STRING_LIST],
-  ["description", fieldTypes.STRING],
-  ["formula", fieldTypes.STRING],
-  ["charge", fieldTypes.INT],
-  ["isCurrency", fieldTypes.BOOL]
-];
-const metaboliteStateHeader = makeHeader(metaboliteStateFields);
-let csvWriter = createCsvWriter({
-  path: "./data/metaboliteStates.csv",
-  header: metaboliteStateHeader
-});
-const metaboliteStateRecords = makeRecords(metaboliteStateFields, 10);
-csvWriter.writeRecords(metaboliteStateRecords).then(() => {
-  console.log("Metabolite states generated.");
-});
 
-const metaboliteFields = [["id", fieldTypes.STRING]];
-const metaboliteHeader = makeHeader(metaboliteFields);
-csvWriter = createCsvWriter({
-  path: "./data/metabolites.csv",
-  header: metaboliteHeader
-});
-const metaboliteRecords = metaboliteStateRecords.map(r => ({
-  id: r.metaboliteId
-}));
-csvWriter.writeRecords(metaboliteRecords).then(() => {
-  console.log("Metabolites generated.");
-});
+const data = {};
+const nodeTypes = Object.keys(SCHEMA.nodeTypes);
+for (let nodeType of nodeTypes) {
+  const fields = SCHEMA.nodeTypes[nodeType].fields;
+  const stateFields = SCHEMA.nodeTypes[nodeType].stateFields;
+  let records;
 
-const compartmentStateFields = [
-  ["compartmentId", fieldTypes.STRING],
-  ["name", fieldTypes.STRING],
-  ["letterCode", fieldTypes.STRING]
-];
-const compartmentStateHeader = makeHeader(compartmentStateFields);
-csvWriter = createCsvWriter({
-  path: "./data/compartmentStates.csv",
-  header: compartmentStateHeader
-});
-const compartmentStateRecords = makeRecords(compartmentStateFields, 10);
-csvWriter.writeRecords(compartmentStateRecords).then(() => {
-  console.log("Compartment states generated.");
-});
+  if (stateFields) {
+    const stateRecords = makeRecords(stateFields, 100);
+    createCsvFile({
+      header: makeHeader(stateFields),
+      records: stateRecords,
+      filename: `${nodeType}States`
+    });
 
-const compartmentFields = [["id", fieldTypes.STRING]];
-const compartmentHeader = makeHeader(compartmentFields);
-csvWriter = createCsvWriter({
-  path: "./data/compartments.csv",
-  header: compartmentHeader
-});
-const compartmentRecords = compartmentStateRecords.map(r => ({
-  id: r.compartmentId
-}));
-csvWriter.writeRecords(compartmentRecords).then(() => {
-  console.log("Compartments generated.");
-});
+    records = stateRecords.map(r => ({
+      id: r[stateFields[0][0]]
+    }));
+  } else {
+    records = makeRecords(fields, 100);
+  }
 
-const metaboliteCompartmentRelsFields = [
-  ["metaboliteId", fieldTypes.STRING],
-  ["compartmentId", fieldTypes.STRING]
-];
+  createCsvFile({
+    header: makeHeader(fields),
+    records,
+    filename: `${nodeType}s`
+  });
 
-const metaboliteCompartementRelsHeader = makeHeader(
-  metaboliteCompartmentRelsFields
-);
-csvWriter = createCsvWriter({
-  path: "./data/metaboliteCompartments.csv",
-  header: metaboliteCompartementRelsHeader
-});
-const metaboliteCompartementRelsRecords = makeRels(
-  metaboliteCompartmentRelsFields,
-  metaboliteRecords,
-  compartmentRecords
-);
+  data[nodeType] = records;
+}
 
-csvWriter.writeRecords(metaboliteCompartementRelsRecords).then(() => {
-  console.log("Meatbolite compartment relationships generated.");
-});
+for (let rel of SCHEMA.relationships) {
+  const node1 = rel[0];
+  const node2 = rel[1];
+
+  const fields = [
+    [`${node1}Id`, fieldTypes.STRING],
+    [`${node2}Id`, fieldTypes.STRING]
+  ];
+
+  const header = makeHeader(fields);
+
+  const records = makeRels(fields, data[node1], data[node2]);
+
+  const filename = `${node1}${node2.charAt(0).toUpperCase()}${node2.slice(1)}s`;
+
+  createCsvFile({
+    header,
+    records,
+    filename
+  });
+}
+
+const buildCypherInstructions = () => {
+  let instructions = "";
+
+  for (let nodeType of nodeTypes) {
+    instructions += buildCypherNodesWithStatesInstructions({
+      nodeType,
+      fields: SCHEMA.nodeTypes[nodeType].fields
+    });
+  }
+
+  for (let rel of SCHEMA.relationships) {
+    const nodeType1 = rel[0];
+    const nodeType2 = rel[1];
+
+    instructions += buildCypherRelsInstructions({
+      nodeType1,
+      nodeType2
+    });
+  }
+
+  return instructions;
+};
 
 console.log(
   "\n*** CYPHER INSTRUCTIONS START ***\n",
-  buildCypherNodesWithStatesInstructions({
-    nodeType: "metabolite",
-    fields: metaboliteStateFields
-  }),
-  buildCypherNodesWithStatesInstructions({
-    nodeType: "compartment",
-    fields: compartmentStateFields
-  }),
-  buildCypherRelsInstructions({
-    nodeType1: "metabolite",
-    nodeType2: "compartment"
-  }),
+  buildCypherInstructions(),
   "\n*** CYPHER INSTRUCTIONS END ***\n"
 );
