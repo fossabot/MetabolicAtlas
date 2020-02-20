@@ -253,8 +253,7 @@ export default {
     },
     applySVGMotion() {
       document.getElementById('svg-wrapper')
-        .setAttribute('style', `transform: matrix(${this.svgZoom}, 0, 0, ${this.svgZoom}, ${(this.svgCoordsBase.x - this.svgCoordsDelta.x) * this.svgZoom}, ${this.svgCoordsBase.y - this.svgCoordsDelta.y});`);
-      // console.log(`translate(${this.svgCoordsBase.x - this.svgCoordsDelta.x}px, ${this.svgCoordsBase.y - this.svgCoordsDelta.y}px)`);
+        .setAttribute('style', `transform: scale(${this.svgZoom}) translate(${(this.svgCoordsBase.x - this.svgCoordsDelta.x)}px, ${(this.svgCoordsBase.y - this.svgCoordsDelta.y)}px);`);
     },
     zoomIn(directionBoolean) {
       let amount = this.zoomFactor * this.svgZoom;
@@ -280,8 +279,8 @@ export default {
     panSVG(evt) {
       const coords = this.getEventCoords(evt);
       this.svgCoordsDelta = {
-        x: (this.svgCoordsPanStart.x - coords.x),
-        y: (this.svgCoordsPanStart.y - coords.y),
+        x: (this.svgCoordsPanStart.x - coords.x) / this.svgZoom,
+        y: (this.svgCoordsPanStart.y - coords.y) / this.svgZoom,
       };
     },
     startPanSVG(evt) {
@@ -291,6 +290,8 @@ export default {
       const stopFn = () => {
         this.svgCoordsBase.x -= this.svgCoordsDelta.x;
         this.svgCoordsBase.y -= this.svgCoordsDelta.y;
+        this.svgCoordsDelta.x = 0;
+        this.svgCoordsDelta.y = 0;
         elem.removeEventListener('mousemove', this.panSVG);
         elem.removeEventListener('touchmove', this.panSVG);
         elem.removeEventListener('mouseup', stopFn);
@@ -306,13 +307,12 @@ export default {
     loadSvgPanZoom(callback) {
       setTimeout(() => {
         const svgElem = document.getElementById('svg-wrapper').children[0];
-        console.log($('#svgbox').width() / $('#svg-wrapper svg').width(),
-          this.svgboxHeight / $('#svg-wrapper svg').height());
-        this.svgZoom = Math.min($('#svgbox').width() / $('#svg-wrapper svg').width(),
-          this.svgboxHeight / $('#svg-wrapper svg').height()) - 0.005;
+        // this.svgZoom = Math.min($('#svgbox').width() / $('#svg-wrapper svg').width(),
+        //   this.svgboxHeight / $('#svg-wrapper svg').height()) - 0.005;
+        this.svgZoom = 0.5;
         this.svgCoordsBase = {
-          x: -svgElem.getAttribute('width') / 2,
-          y: -svgElem.getAttribute('height') / 2 + $('#svgbox').height() / 2,
+          x: -svgElem.getAttribute('width') / this.svgZoom / 2,
+          y: -svgElem.getAttribute('height') / this.svgZoom / 2,
         };
         this.unHighlight();
         if (callback) {
