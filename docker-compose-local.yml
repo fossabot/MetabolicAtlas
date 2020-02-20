@@ -44,6 +44,8 @@ services:
     image: neo4j:latest
     environment:
       - NEO4J_AUTH=none
+    volumes:
+      - ./utils/mockData/data:/var/lib/neo4j/import/
     ports:
       - "127.0.0.1:7474:7474"
       - "127.0.0.1:7687:7687"
