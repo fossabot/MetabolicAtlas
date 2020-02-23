@@ -211,7 +211,9 @@ export default {
           });
           this.models = models;
           // the selected model corresponds to the first key
-          const defaultModelKey = Object.keys(this.models)[0];
+          const defaultModelKey = Object.keys(this.models).sort(
+            (a, b) => (a.toLowerCase() < b.toLowerCase() ? -1 : 1))[0];
+          console.log(defaultModelKey);
           let defaultModel = this.models[defaultModelKey];
           if (this.$route.params.model && this.$route.params.model in this.models) {
             // if a model DB is provide in the URL, use it to select the model

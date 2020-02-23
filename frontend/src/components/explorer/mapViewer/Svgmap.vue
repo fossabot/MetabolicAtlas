@@ -519,14 +519,14 @@ export default {
 
       if (this.selectedItemHistory[id]) {
         selectionData.data = this.selectedItemHistory[id];
-        this.$emit('newSelection', selectionData);
+        this.$emit('updatePanelSelectionData', selectionData);
         return;
       }
 
       if (type === 'subsystem') {
         // the sidePanel shows only the id for subsystems
         selectionData.data = { id };
-        this.$emit('newSelection', selectionData);
+        this.$emit('updatePanelSelectionData', selectionData);
         return;
       }
 
@@ -540,13 +540,13 @@ export default {
           }
           selectionData.data = data;
           this.selectedItemHistory[id] = selectionData.data;
-          EventBus.$emit('updatePanelSelectionData', selectionData);
-          EventBus.$emit('endSelectedElement', true);
+          this.$emit('updatePanelSelectionData', selectionData);
+          this.$emit('endSelection', true);
         })
         .catch(() => {
-          EventBus.$emit('updatePanelSelectionData', selectionData);
+          this.$emit('updatePanelSelectionData', selectionData);
           this.$set(selectionData, 'error', true);
-          EventBus.$emit('endSelectedElement', false);
+          this.$emit('endSelection', false);
         });
     },
     unSelectElement() {

@@ -13,17 +13,19 @@
         <!-- eslint-disable-next-line max-len -->
         <template v-if="mapAvailableLimited[mapKey]['compartment'].length !== 0 || mapAvailableLimited[mapKey]['subsystem'].length !== 0">{{ mapKey.toUpperCase() }} maps
           <ul style="margin: 0 1rem">
-            <template v-for="map in mapsAvailable[mapKey]['compartment'].concat(mapsAvailable[mapKey]['subsystem'])">
-              <li :key="map[0]">
-                <!-- eslint-disable-next-line max-len -->
-                <router-link v-if="viewerSelectedID" :to="{ name: 'viewer', params: { model: model.database_name, type: mapType, map_id: map[0] }, query: { dim: mapKey, search: viewerSelectedID, sel: viewerSelectedID } }">
-                {{ map[1] }}
-                </router-link>
-                <!-- eslint-disable-next-line max-len -->
-                <router-link v-else :to="{ name: 'viewer', params: { model: model.database_name, type: mapType, map_id: map[0]}, query: { dim: mapKey } }">
-                {{ map[1] }}
-                </router-link>
-              </li>
+            <template v-for="mapType in Object.keys(mapAvailableLimited[mapKey])">
+              <template v-for="map in mapAvailableLimited[mapKey][mapType]">
+                <li :key="map[0]">
+                  <!-- eslint-disable-next-line max-len -->
+                  <router-link v-if="viewerSelectedID" :to="{ name: 'viewer', params: { model: model.database_name, type: mapType, map_id: map[0] }, query: { dim: mapKey, search: viewerSelectedID, sel: viewerSelectedID } }">
+                    {{ map[1] }}
+                  </router-link>
+                  <!-- eslint-disable-next-line max-len -->
+                  <router-link v-else :to="{ name: 'viewer', params: { model: model.database_name, type: mapType, map_id: map[0]}, query: { dim: mapKey } }">
+                    {{ map[1] }}
+                  </router-link>
+                </li>
+              </template>
             </template>
             <!-- eslint-disable-next-line max-len -->
             <li v-if="limitedMapsDim[mapKey]" class="clickable" title="View all maps" @click="mapLimitPerDim = 1000">...</li>

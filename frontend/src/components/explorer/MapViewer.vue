@@ -97,11 +97,12 @@
         <div v-show="!showOverviewScreen" id="graphframe" class="column is-unselectable">
           <svgmap v-show="show2D" :model="model" :maps-data="mapsData2D" @loadComplete="handleLoadComplete"
                   @loading="showLoader=true" @startSelection="showSelectionLoader=true" @endSelection="endSelection"
-                  @unSelect="unSelect" @newSelection="newSelection">
+                  @unSelect="unSelect" @updatePanelSelectionData="updatePanelSelectionData">
           </svgmap>
           <d3dforce v-show="show3D" :model="model" @loadComplete="handleLoadComplete"
                     @loading="showLoader=true" @startSelection="showSelectionLoader=true"
-                    @endSelection="endSelection" @unSelect="unSelect" @newSelection="newSelection">
+                    @endSelection="endSelection" @unSelect="unSelect"
+                    @updatePanelSelectionData="updatePanelSelectionData">
           </d3dforce>
           <div v-show="showLoader" id="iLoader" class="loading">
             <a class="button is-loading"></a>
@@ -485,7 +486,7 @@ export default {
       this.selectionData.error = false;
       this.selectionData.data = null;
     },
-    newSelection(data) {
+    updatePanelSelectionData(data) {
       this.selectionData = data;
     },
   },

@@ -82,12 +82,13 @@ export default {
     EventBus.$off('recompute3DCanvasBounds');
 
     EventBus.$on('show3Dnetwork', (type, name, searchTerm, selectIDs, coords) => {
-      if (selectIDs && selectIDs.length === 1) {
-        this.focusOnID = selectIDs[0]; // eslint-disable-line prefer-destructuring
+      if (this.selectIDs && this.selectIDs.length === 1) {
+        this.focusOnID = this.selectIDs[0]; // eslint-disable-line prefer-destructuring
       } else {
         // do not handle multiple ids for now;
         this.focusOnID = null;
       }
+      this.selectIDs = selectIDs || [];
       this.searchTerm = searchTerm;
       this.coords = coords !== '0,0,0,0,0,0' ? coords : null; // FIXME duplicated '0,0,0,0,0,0'
       if (this.loadedComponentType !== type || this.loadedComponentName !== name) {
@@ -313,7 +314,7 @@ export default {
       if (this.selectedItemHistory[id]) {
         selectionData.data = this.selectedItemHistory[id];
         this.updateGeometries();
-        this.$emit('newSelection', selectionData);
+        this.$emit('updatePanelSelectionData', selectionData);
         return;
       }
 
@@ -331,7 +332,7 @@ export default {
             }
           }
           selectionData.data = data;
-          this.$emit('newSelection', selectionData);
+          this.$emit('updatePanelSelectionData', selectionData);
           this.selectedItemHistory[id] = selectionData.data;
           this.$emit('endSelection', true);
           this.updateGeometries();
