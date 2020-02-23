@@ -105,7 +105,7 @@
           We use cookies to enhance the usability of our website.
           By continuing you are agreeing to our
           <router-link class="has-text-white has-text-weight-bold"
-                       :to="{ name: 'about', hash: 'privacy' }">
+                       :to="{ name: 'about', hash: '#privacy' }">
             Privacy Notice and Terms of Use
           </router-link>&emsp;
           <p class="button is-small is-rounded has-background-danger has-text-white has-text-weight-bold"
