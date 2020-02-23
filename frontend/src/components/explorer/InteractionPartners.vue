@@ -30,7 +30,7 @@
     </div>
     <template v-if="componentNotFound">
       <div class="columns is-centered">
-        <notFound component="Interaction Partners" :component-id="mainNodeID"></notFound>
+        <notFound type="Interaction Partners" :component-id="mainNodeID"></notFound>
       </div>
     </template>
     <template v-if="loading">
