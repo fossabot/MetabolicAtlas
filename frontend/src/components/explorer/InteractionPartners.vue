@@ -598,6 +598,7 @@ export default {
           this.nodeCount = Object.keys(this.rawElms).length;
           if (this.nodeCount > this.warnNodeCount) {
             this.showNetworkGraph = false;
+            this.largeNetworkGraph = true;
             this.errorMessage = '';
             return;
           }
