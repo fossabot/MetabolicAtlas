@@ -69,37 +69,45 @@ const createCsvFile = ({ header, records, filename }) => {
 };
 
 const buildCypherNodesWithStatesInstructions = ({ nodeType, fields }) => {
+  const hasStateFields = !!SCHEMA.nodeTypes[nodeType].stateFields;
+
   const nodeLabel = nodeType.charAt(0).toUpperCase() + nodeType.slice(1);
-  const stateNodeLabel = `${nodeLabel}State`;
   const nodeFilename = `${nodeType}s`;
-  const stateNodeFilename = `${nodeType}States`;
   const relId = `${nodeType}Id`;
 
-  const stateNodeFields = fields.slice(1).reduce((res, field) => {
-    const fieldName = field[0];
-    const fieldType = field[1];
-
-    let val = `csvLine.${fieldName}`;
-    if (fieldType === fieldTypes.INT) {
-      val = `toInteger(${val})`;
-    } else if (fieldType === fieldTypes.BOOL) {
-      val = `toBoolean(${val})`;
-    }
-
-    return { ...res, [fieldName]: val };
-  }, {});
-
-  return `
+  let instructions = `
 LOAD CSV WITH HEADERS FROM "file:///${nodeFilename}.csv" AS csvLine
-CREATE (n:${nodeLabel} {id: csvLine.id});
+CREATE (n:${nodeLabel} {id: csvLine.id});`;
+
+  if (hasStateFields) {
+    const stateNodeLabel = `${nodeLabel}State`;
+    const stateNodeFilename = `${nodeType}States`;
+    const stateNodeFields = fields.slice(1).reduce((res, field) => {
+      const fieldName = field[0];
+      const fieldType = field[1];
+
+      let val = `csvLine.${fieldName}`;
+      if (fieldType === fieldTypes.INT) {
+        val = `toInteger(${val})`;
+      } else if (fieldType === fieldTypes.BOOL) {
+        val = `toBoolean(${val})`;
+      }
+
+      return { ...res, [fieldName]: val };
+    }, {});
+    instructions += `
 LOAD CSV WITH HEADERS FROM "file:///${stateNodeFilename}.csv" AS csvLine
 MATCH (n:${nodeLabel} {id: csvLine.${relId}})
 CREATE (ns:${stateNodeLabel} ${JSON.stringify(stateNodeFields).replace(
-    /['"]+/g,
-    ""
-  )})
-CREATE (n)-[:V1]->(ns);
-`;
+      /['"]+/g,
+      ""
+    )})
+CREATE (n)-[:V1]->(ns);`;
+  }
+
+  instructions += "\n";
+
+  return instructions;
 };
 
 const buildCypherRelsInstructions = ({ nodeType1, nodeType2 }) => {
@@ -134,6 +142,7 @@ const SCHEMA = {
       ]
     },
     compartment: {
+      quantity: 10,
       fields: [["id", fieldTypes.STRING]],
       stateFields: [
         ["compartmentId", fieldTypes.STRING],
@@ -152,9 +161,59 @@ const SCHEMA = {
         ["geneRule", fieldTypes.STRING],
         ["ec", fieldTypes.STRING]
       ]
+    },
+    gene: {
+      fields: [["id", fieldTypes.STRING]],
+      stateFields: [
+        ["geneId", fieldTypes.STRING],
+        ["name", fieldTypes.STRING],
+        ["alternateName", fieldTypes.STRING],
+        ["synonyms", fieldTypes.STRING_LIST],
+        ["function", fieldTypes.STRING]
+      ]
+    },
+    pubmedReference: {
+      fields: [["id", fieldTypes.STRING], ["pubmedId", fieldTypes.STRING]]
+    },
+    subsystem: {
+      quantity: 50,
+      fields: [["id", fieldTypes.STRING]],
+      stateFields: [
+        ["subsystemId", fieldTypes.STRING],
+        ["name", fieldTypes.STRING]
+      ]
+    },
+    svgMap: {
+      quantity: 60,
+      fields: [
+        ["id", fieldTypes.STRING],
+        ["filename", fieldTypes.STRING],
+        ["customName", fieldTypes.STRING]
+      ]
+    },
+    externalDb: {
+      fields: [
+        ["id", fieldTypes.STRING],
+        ["dbName", fieldTypes.STRING],
+        ["externalId", fieldTypes.STRING],
+        ["url", fieldTypes.STRING]
+      ]
     }
   },
-  relationships: [["metabolite", "compartment"], ["metabolite", "reaction"]]
+  relationships: [
+    ["metabolite", "compartment"],
+    ["metabolite", "reaction"],
+    ["reaction", "metabolite"],
+    ["reaction", "gene"],
+    ["reaction", "pubmedReference"],
+    ["reaction", "subsystem"],
+    ["compartment", "svgMap"],
+    ["subsystem", "svgMap"],
+    ["metabolite", "externalDb"],
+    ["subsystem", "externalDb"],
+    ["reaction", "externalDb"],
+    ["gene", "externalDb"]
+  ]
 };
 
 // DATA GENERATION
@@ -164,10 +223,11 @@ const nodeTypes = Object.keys(SCHEMA.nodeTypes);
 for (let nodeType of nodeTypes) {
   const fields = SCHEMA.nodeTypes[nodeType].fields;
   const stateFields = SCHEMA.nodeTypes[nodeType].stateFields;
+  const quantity = SCHEMA.nodeTypes[nodeType].quantity || 100;
   let records;
 
   if (stateFields) {
-    const stateRecords = makeRecords(stateFields, 100);
+    const stateRecords = makeRecords(stateFields, quantity);
     createCsvFile({
       header: makeHeader(stateFields),
       records: stateRecords,
@@ -178,7 +238,7 @@ for (let nodeType of nodeTypes) {
       id: r[stateFields[0][0]]
     }));
   } else {
-    records = makeRecords(fields, 100);
+    records = makeRecords(fields, quantity);
   }
 
   createCsvFile({
