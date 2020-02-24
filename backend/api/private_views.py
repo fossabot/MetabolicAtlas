@@ -48,7 +48,7 @@ def get_gemodel(request, gem_id):
         is_int = False
 
     if is_int:
-         model = APImodels.GEModel.objects.filter(id=gem_id). \
+         model = APImodels.GEModel.objects.filter(model_id=gem_id). \
          prefetch_related('files', 'ref')
     else:
          model = APImodels.GEModel.objects.filter(tag__iexact=gem_id). \
