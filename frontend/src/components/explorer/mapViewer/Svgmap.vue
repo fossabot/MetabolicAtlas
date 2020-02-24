@@ -253,7 +253,7 @@ export default {
     },
     applySVGMotion() {
       document.getElementById('svg-wrapper')
-        .setAttribute('style', `transform: scale(${this.svgZoom}) translate(${(this.svgCoordsBase.x - this.svgCoordsDelta.x)}px, ${(this.svgCoordsBase.y - this.svgCoordsDelta.y)}px);`);
+        .setAttribute('style', `transform: scale(${this.svgZoom}) translate(${(this.svgCoordsBase.x / 2 - this.svgCoordsDelta.x)}px, ${(this.svgCoordsBase.y / 2 - this.svgCoordsDelta.y) / this.svgZoom}px);`);
     },
     zoomIn(directionBoolean) {
       let amount = this.zoomFactor * this.svgZoom;
@@ -280,7 +280,7 @@ export default {
       const coords = this.getEventCoords(evt);
       this.svgCoordsDelta = {
         x: (this.svgCoordsPanStart.x - coords.x) / this.svgZoom,
-        y: (this.svgCoordsPanStart.y - coords.y) / this.svgZoom,
+        y: (this.svgCoordsPanStart.y - coords.y),
       };
     },
     startPanSVG(evt) {
@@ -307,12 +307,11 @@ export default {
     loadSvgPanZoom(callback) {
       setTimeout(() => {
         const svgElem = document.getElementById('svg-wrapper').children[0];
-        // this.svgZoom = Math.min($('#svgbox').width() / $('#svg-wrapper svg').width(),
-        //   this.svgboxHeight / $('#svg-wrapper svg').height()) - 0.005;
-        this.svgZoom = 0.5;
+        this.svgZoom = Math.min($('#svg-wrapper').width() / svgElem.getAttribute('width'),
+          this.svgboxHeight / svgElem.getAttribute('height'));
         this.svgCoordsBase = {
-          x: -svgElem.getAttribute('width') / this.svgZoom / 2,
-          y: -svgElem.getAttribute('height') / this.svgZoom / 2,
+          x: -svgElem.getAttribute('width'),
+          y: -svgElem.getAttribute('height'),
         };
         this.unHighlight();
         if (callback) {

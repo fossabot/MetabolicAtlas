@@ -526,6 +526,9 @@ export default {
 
   #iSideBar {
     padding: 0.75rem 0 0 0.75rem;
+    @media (max-width: $tablet) {
+      padding: 0.75rem 0.75rem 0 0.75rem;
+    }
     overflow-y: visible;
 
     &.scroll {
