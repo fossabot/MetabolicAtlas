@@ -28,14 +28,14 @@
                 <template v-for="(v, i) in reaction[el.name]">
                   <template v-if="i !== 0">; </template>
                   <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key max-len -->
-                  <router-link :to="{ path: `/explore/gem-browser/${model.database_name}/subsystem/${v.id}` }"> {{ v.name }}</router-link>
+                  <router-link :to="{ name: 'browser', params: { model: model.database_name, type: 'subsystem', id: v.id } }"> {{ v.name }}</router-link>
                 </template>
               </template>
               <template v-else-if="el.name === 'compartment'">
                 <template v-for="(v, i) in reaction[el.name]">
                   <template v-if="i !== 0">; </template>
                   <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key max-len -->
-                  <router-link :to="{ path: `/explore/gem-browser/${model.database_name}/compartment/${v.id}` }"> {{ v.name }}</router-link>
+                  <router-link :to="{ name: 'browser', params: { model: model.database_name, type: 'compartment', id: v.id } }"> {{ v.name }}</router-link>
                 </template>
                 <template v-if="reaction.is_transport">
                   (transport reaction)

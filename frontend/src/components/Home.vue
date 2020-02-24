@@ -108,7 +108,7 @@
               <div class="card-content has-text-justified">
                 <p v-for="el in card.text" :key="el.date">
                   <template v-if="el.date">
-                    <router-link :to="{ name: 'about', hash: el.hash }" v-html="el.date"></router-link> -
+                    <router-link :to="{ name: 'about', hash: `#${el.date}` }" v-html="el.date"></router-link> -
                   </template>
                   <span v-html="el.text"></span>
                 </p>
@@ -187,28 +187,28 @@ export default {
         { title: 'Latest news',
           text: [
             { date: '2020.02.07',
-              hash: '#7-February-2020',
+              hash: '7-February-2020',
               text: 'Metabolic Atlas v1.5' },
             { date: '2019.09.11',
-              hash: '#11-September-2019',
+              hash: '11-September-2019',
               text: 'Metabolic Atlas was presented in a course' },
             { date: '2019.09.05',
-              hash: '#5-September-2019',
+              hash: '5-September-2019',
               text: 'Metabolic Atlas v1.4 enables gene expression comparison' },
             { date: '2019.08.01',
-              hash: '#1-August-2019',
+              hash: '1-August-2019',
               text: 'Metabolic Atlas v1.3' },
             { date: '2019.06.25',
-              hash: '#25-June-2019',
+              hash: '25-June-2019',
               text: 'Metabolic Atlas is upgraded to v1.2 with Human1 updated to v1.1' },
             { date: '2019.05.29',
-              hash: '#29-May-2019',
+              hash: '29-May-2019',
               text: 'Metabolic Atlas is upgraded to v1.1' },
             { date: '2019.05.17',
-              hash: '#17-May-2019',
+              hash: '17-May-2019',
               text: 'Metabolic Atlas is publicly available as v1.0' },
             { date: '2019.05.02',
-              hash: '#2-May-2018',
+              hash: '2-May-2018',
               text: '<i>Human1</i> is integrated, with complete maps' },
           ],
         },

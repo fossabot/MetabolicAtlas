@@ -20,7 +20,7 @@
       <div class="columns is-centered">
         <div class="column is-three-fifths-desktop is-three-quarters-tablet is-fullwidth-mobile">
           <!-- eslint-disable max-len -->
-          <p class="is-size-5">For a given metabolite or gene, this page shows the other metabolites and genes with which it is connected via reactions. For more, see the <router-link :to="{ path: '/documentation', hash: '#Interaction-Partners' }">documentation on {{ messages.interPartName }}</router-link>.
+          <p class="is-size-5">For a given metabolite or gene, this page shows the other metabolites and genes with which it is connected via reactions. For more, see the <router-link :to="{ name: 'documentation', hash: '#Interaction-Partners' }">documentation on {{ messages.interPartName }}</router-link>.
           </p><br>
           <video poster="@/assets/interPart-cover.jpg" playsinline controls muted loop>
             <source src="@/assets/interPart.mp4" type="video/mp4">
