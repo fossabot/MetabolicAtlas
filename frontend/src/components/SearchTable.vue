@@ -460,12 +460,14 @@ export default {
       if (to.query.term) {
         vm.searchedTerm = to.query.term; // eslint-disable-line no-param-reassign
         vm.validateSearch(to.query.term);
+      } else if (vm.searchTerm) {
+        vm.$router.replace({ query: { term: vm.searchTerm } });
       }
       next();
     });
   },
   beforeRouteUpdate(to, from, next) { // eslint-disable-line no-unused-vars
-    if (to.query.term) {
+    if (to.query.term && to.query.term !== this.searchedTerm) {
       this.searchedTerm = to.query.term;
       this.validateSearch(to.query.term);
     }
