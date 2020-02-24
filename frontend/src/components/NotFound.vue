@@ -19,7 +19,9 @@
         <h1 class="is-size-1 has-text-weight-bold">¯\_(ツ)_/¯<br>404</h1><br>
         <p class="is-size-5">
           The page requested does not exist on this
-          <router-link :to="{ path: '/about#5-September-2019' }"><b>new version of Metabolic Atlas</b></router-link><br>
+          <router-link :to="{ name: 'about', hash: '#7-February-2020' }">
+            <b>new version of Metabolic Atlas</b>
+          </router-link><br>
           If you are looking to download a GEM, look in the menu for
           <router-link :to="{ name: 'gems' }"><b>GEM > Repository</b></router-link>
         </p>
