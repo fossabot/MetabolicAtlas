@@ -140,10 +140,6 @@ export default {
     this.setup();
     this.getModelList();
 
-    EventBus.$on('requestViewer', (type, name, ids, forceReload) => {
-      this.displayViewer();
-      EventBus.$emit('showAction', type, name, ids, forceReload);
-    });
     EventBus.$on('showMapViewer', () => {
       this.displayViewer();
     });

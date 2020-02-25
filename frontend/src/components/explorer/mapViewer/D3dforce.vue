@@ -17,8 +17,8 @@ import forceGraph3D from '3d-force-graph';
 import { default as FileSaver } from 'file-saver';
 import { debounce } from 'vue-debounce';
 import MapSearch from '@/components/explorer/mapViewer/MapSearch';
-import { default as EventBus } from '../../../event-bus';
-import { reformatChemicalReactionHTML } from '../../../helpers/utils';
+import { setRouteForCoord } from '@/helpers/url';
+import { default as EventBus } from '@/event-bus';
 
 export default {
   name: 'D3dforce',
@@ -78,16 +78,10 @@ export default {
     EventBus.$off('show3Dnetwork');
     EventBus.$off('destroy3Dnetwork');
     EventBus.$off('update3DLoadedComponent');
-    EventBus.$off('apply3DHPARNAlevels');
     EventBus.$off('recompute3DCanvasBounds');
+    EventBus.$off('apply3DHPARNAlevels');
 
     EventBus.$on('show3Dnetwork', (type, name, searchTerm, selectIDs, coords) => {
-      if (this.selectIDs && this.selectIDs.length === 1) {
-        this.focusOnID = this.selectIDs[0]; // eslint-disable-line prefer-destructuring
-      } else {
-        // do not handle multiple ids for now;
-        this.focusOnID = null;
-      }
       this.selectIDs = selectIDs || [];
       this.searchTerm = searchTerm;
       this.coords = coords !== '0,0,0,0,0,0' ? coords : null; // FIXME duplicated '0,0,0,0,0,0'
@@ -96,6 +90,7 @@ export default {
         this.selectElementIDfull = null;
         this.$refs.mapsearch.reset();
         if (this.graph) {
+          // a graph was already loaded, but it is a new map requested => reset coords
           this.coords = null;
         }
         this.loadedComponentType = type;
@@ -116,7 +111,6 @@ export default {
         this.$emit('loadComplete', true, '');
       }
     });
-
     EventBus.$on('destroy3Dnetwork', () => {
       if (this.graph) {
         this.graph.graphData({ nodes: [], links: [] });
@@ -124,18 +118,15 @@ export default {
         this.loadedComponentType = '';
       }
     });
-
     EventBus.$on('update3DLoadedComponent', (type, name) => {
       this.loadedComponentType = type;
       this.loadedComponentName = name;
     });
-
     EventBus.$on('recompute3DCanvasBounds', () => {
       if (!this._inactive && this.graph) { // eslint-disable-line no-underscore-dangle
         this.updateGeometries();
       }
     });
-
     EventBus.$on('apply3DHPARNAlevels', (RNAlevels) => {
       this.applyHPARNAlevelsOnMap(RNAlevels);
     });
@@ -332,12 +323,14 @@ export default {
             }
           }
           selectionData.data = data;
-          this.$emit('updatePanelSelectionData', selectionData);
           this.selectedItemHistory[id] = selectionData.data;
+          this.$emit('updatePanelSelectionData', selectionData);
           this.$emit('endSelection', true);
           this.updateGeometries();
         })
         .catch(() => {
+          this.$emit('updatePanelSelectionData', selectionData);
+          this.$set(selectionData, 'error', true);
           this.$emit('endSelection', false);
         });
     },

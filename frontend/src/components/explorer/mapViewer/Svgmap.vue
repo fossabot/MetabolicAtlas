@@ -40,7 +40,6 @@ import { debounce } from 'vue-debounce';
 import MapSearch from '@/components/explorer/mapViewer/MapSearch';
 import { default as EventBus } from '@/event-bus';
 import { default as messages } from '@/helpers/messages';
-// import { default as queue } from '@/helpers/Queue.src.js';
 import { reformatChemicalReactionHTML } from '@/helpers/utils';
 
 // hack: the only way for jquery plugins to play nice with the plugins inside Vue
@@ -118,15 +117,10 @@ export default {
   created() {
     EventBus.$off('showSVGmap');
     EventBus.$off('apply2DHPARNAlevels');
-    EventBus.$off('destroy2Dnetwork');
 
-    EventBus.$on('showSVGmap', (type, name, searchTerm, selectIDs, coords, forceReload) => {
-      // console.log('showSVGmap', type, name, searchTerm, selectIDs, coords, forceReload);
-      if (forceReload) {
-        this.svgName = '';
-      }
-      // set the type, even if might fail to load the map?
-      this.loadedMapType = type;
+    EventBus.$on('showSVGmap', (type, name, searchTerm, selectIDs, coords) => {
+      // console.log('showSVGmap', type, name, searchTerm, selectIDs, coords);
+      this.loadedMapType = type; // set the type, even if fail to load the map!?
       if (name && (type === 'compartment' || type === 'subsystem')) {
         this.searchTerm = searchTerm;
         this.selectIDs = selectIDs || [];
@@ -134,7 +128,6 @@ export default {
         this.loadSVG(name);
       }
     });
-
     EventBus.$on('apply2DHPARNAlevels', (levels) => {
       this.applyHPARNAlevelsOnMap(levels);
     });

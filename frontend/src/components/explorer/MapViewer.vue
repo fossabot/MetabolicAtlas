@@ -174,8 +174,9 @@ import URLhandler from '@/components/explorer/mapViewer/URLhandler';
 import DataOverlay from '@/components/explorer/mapViewer/DataOverlay.vue';
 import Svgmap from '@/components/explorer/mapViewer/Svgmap';
 import D3dforce from '@/components/explorer/mapViewer/D3dforce';
-import { default as EventBus } from '../../event-bus';
-import { default as messages } from '../../helpers/messages';
+import { setRouteForMap, setRouteForSel, setRouteForOverlay } from '@/helpers/url';
+import { default as EventBus } from '@/event-bus';
+import { default as messages } from '@/helpers/messages';
 
 export default {
   name: 'MapViewer',
@@ -259,8 +260,8 @@ export default {
     EventBus.$off('togglePanel');
     EventBus.$off('loadRNAComplete');
 
-    EventBus.$on('showAction', (type, name, searchTerm, selectIDS, coords, forceReload) => {
-      // console.log('on showAction', type, name, searchTerm, selectIDS, coords, forceReload);
+    EventBus.$on('showAction', (type, name, searchTerm, selectIDS, coords) => {
+      // console.log('on showAction', type, name, searchTerm, selectIDS, coords);
       if (this.showLoader) {
         return;
       }
@@ -270,7 +271,7 @@ export default {
       }
       this.showOverviewScreen = false; // to get the loader visible
       this.selectionData.data = null;
-      EventBus.$emit(this.show2D ? 'showSVGmap' : 'show3Dnetwork', this.requestedType, this.requestedName, searchTerm, selectIDS, coords, forceReload);
+      EventBus.$emit(this.show2D ? 'showSVGmap' : 'show3Dnetwork', this.requestedType, this.requestedName, searchTerm, selectIDS, coords);
     });
 
     EventBus.$on('changeDimension', () => {
@@ -301,7 +302,6 @@ export default {
     });
   },
   beforeMount() {
-    // this.setup();
     this.getSubComptData(this.model);
   },
   mounted() {
@@ -410,7 +410,6 @@ export default {
           this.mapsData2D.compartments = {};
           response.data.compartmentsvg.forEach((c) => {
             this.mapsData2D.compartments[c.id] = c;
-            // this.mapsData2D.compartments[c.id].id = c.compartment;
             this.mapsData2D.compartments[c.id].alternateDim = c.compartment;
             this.compartmentMapping.dim2D[c.id] = c.compartment;
           });
@@ -426,7 +425,6 @@ export default {
           this.mapsData2D.subsystems = {};
           response.data.subsystemsvg.forEach((s) => {
             this.mapsData2D.subsystems[s.id] = s;
-            // this.mapsData2D.subsystems[s.id].id = s.subsystem;
             this.mapsData2D.subsystems[s.id].alternateDim = s.subsystem;
           });
 
@@ -470,12 +468,12 @@ export default {
       this.selectionData.data = null;
       this.hideDropleftMenus();
       if (compartmentOrSubsystemID) {
-        EventBus.$emit('showAction', type, compartmentOrSubsystemID, '', [], null, false);
+        EventBus.$emit('showAction', type, compartmentOrSubsystemID, '', [], null);
       } else {
         this.currentDisplayedType = '';
         this.currentDisplayedName = '';
         this.showOverviewScreen = true;
-        this.$router.push({ name: 'viewerRoot', params: { model: this.model.database_name } });
+        this.$router.push({ name: 'viewerRoot', params: { model: this.model.database_name } }).catch(() => {});
       }
     },
     endSelection(isSuccess) {

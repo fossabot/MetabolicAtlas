@@ -140,8 +140,8 @@ export default {
     this.setup();
   },
   created() {
-    // init the global events
     EventBus.$off('GBnavigateTo');
+
     EventBus.$on('GBnavigateTo', (type, id) => {
       let ID = id;
       if (type === 'subsystem' || type === 'compartment') {
