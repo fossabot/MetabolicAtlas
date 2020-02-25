@@ -120,6 +120,7 @@ import NotFound from '@/components/NotFound';
 import MapsAvailable from '@/components/explorer/gemBrowser/MapsAvailable';
 import GemContact from '@/components/shared/GemContact';
 import ExtIdTable from '@/components/explorer/gemBrowser/ExtIdTable';
+import { getReaction } from '@/neo4j';
 import { default as EventBus } from '../../../event-bus';
 import { reformatTableKey, addMassUnit, reformatCompEqString, reformatChemicalReactionHTML, reformatEqSign } from '../../../helpers/utils';
 
@@ -177,13 +178,19 @@ export default {
       EventBus.$emit('GBnavigateTo', 'subsystem', $(this).attr('name'));
     });
   },
-  beforeMount() {
+  async beforeMount() {
     this.setup();
+    await this.loadUsingNeo4j();
   },
   methods: {
     setup() {
       this.rId = this.$route.params.id;
       this.load();
+    },
+    // TODO: the following is a sample neo4j query that's not yet integrated into the UI
+    async loadUsingNeo4j() {
+      const r = await getReaction(this.rId);
+      console.log(r);
     },
     load() {
       axios.get(`${this.model.database_name}/get_reaction/${this.rId}/`)
