@@ -108,6 +108,7 @@
 
 import $ from 'jquery';
 import RNAexpression from '@/components/explorer/mapViewer/RNAexpression.vue';
+import { setRouteForGeneExp1, setRouteForGeneExp2 } from '@/helpers/url';
 import { default as EventBus } from '../../../event-bus';
 
 const NOFILELOADED = 'No file loaded';
@@ -194,7 +195,7 @@ export default {
         if (this.$route.query.g1 !== '_' && this.$route.query.g1 !== this.selectedTissue1) {
           if (!this.HPATissues.includes(this.$route.query.g1)) {
             this.HPATissue1 = 'None';
-            EventBus.$emit('update_url_g1', null);
+            this.setRouteParam('', null);
           } else {
             this.HPATissue1 = this.$route.query.g1;
             this.tissue1Source = 'HPA';
@@ -203,7 +204,7 @@ export default {
         if (this.$route.query.g2 !== '_' && this.$route.query.g2 !== this.selectedTissue2) {
           if (!this.HPATissues.includes(this.$route.query.g2)) {
             this.HPATissue2 = 'None';
-            EventBus.$emit('update_url_g2', null);
+            this.setRouteParam(null, '');
           } else {
             this.HPATissue2 = this.$route.query.g2;
             this.tissue2Source = 'HPA';
@@ -252,7 +253,6 @@ export default {
         this.clearCustomTissue1Selection();
       } else if (source === 'custom' && this.isSelectedHPAtissue1) {
         this.HPATissue1 = 'None';
-        EventBus.$emit('update_url_g1', null);
       }
       this.loadRNAlevelsTissue1(this.selectedTissue1, source);
       this.tissue1Source = source;
@@ -262,7 +262,6 @@ export default {
         this.clearCustomTissue2Selection();
       } else if (source === 'custom' && this.isSelectedHPAtissue2) {
         this.HPATissue2 = 'None';
-        EventBus.$emit('update_url_g2', null);
       }
       this.loadRNAlevelsTissue2(this.selectedTissue2, source);
       this.tissue2Source = source;
@@ -284,7 +283,7 @@ export default {
     loadRNAlevelsTissue1(tissue, source) {
       if (!tissue) {
         EventBus.$emit('unselectFirstTissue');
-        EventBus.$emit('update_url_g1', null);
+        this.setRouteParam('', null);
       } else {
         EventBus.$emit('selectFirstTissue', tissue, source, this.dim);
       }
@@ -292,7 +291,7 @@ export default {
     loadRNAlevelsTissue2(tissue, source) {
       if (!tissue) {
         EventBus.$emit('unselectSecondTissue');
-        EventBus.$emit('update_url_g2', null);
+        this.setRouteParam(null, '');
       } else {
         EventBus.$emit('selectSecondTissue', tissue, source, this.dim);
       }
@@ -310,6 +309,13 @@ export default {
       this.errorCustomFile = true;
       this.errorCustomFileMsg = errorMsg;
       this.showFileLoader = false;
+    },
+    setRouteParam(value1, value2) {
+      if (value1 !== null) {
+        this.$router.replace(setRouteForGeneExp1({ route: this.$route, tissue: value1 })).catch(() => {});
+      } else if (value2 !== null) {
+        this.$router.replace(setRouteForGeneExp2({ route: this.$route, tissue: value2 })).catch(() => {});
+      }
     },
   },
 };

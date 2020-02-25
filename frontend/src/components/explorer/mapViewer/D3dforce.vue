@@ -19,6 +19,7 @@ import { debounce } from 'vue-debounce';
 import MapSearch from '@/components/explorer/mapViewer/MapSearch';
 import { setRouteForCoord } from '@/helpers/url';
 import { default as EventBus } from '@/event-bus';
+import { reformatChemicalReactionHTML } from '@/helpers/utils';
 
 export default {
   name: 'D3dforce',
@@ -82,9 +83,9 @@ export default {
     EventBus.$off('apply3DHPARNAlevels');
 
     EventBus.$on('show3Dnetwork', (type, name, searchTerm, selectIDs, coords) => {
-      this.selectIDs = selectIDs || [];
+      this.selectIDs = selectIDs !== null ? selectIDs : [];
       this.searchTerm = searchTerm;
-      this.coords = coords !== '0,0,0,0,0,0' ? coords : null; // FIXME duplicated '0,0,0,0,0,0'
+      this.coords = coords;
       if (this.loadedComponentType !== type || this.loadedComponentName !== name) {
         this.selectElementID = null;
         this.selectElementIDfull = null;
@@ -212,14 +213,16 @@ export default {
             this.selectIDs = [];
           }
 
-          if (this.coords) {
+          if (this.coords && this.coords !== '0,0,0,0,0,0') {
             this.moveCameraPosition.apply(
               null, this.coords.split(',').map(v => parseFloat(v)));
             // clear var coords, auto move should be only performed once
             this.coords = null;
             this.staticSearch = true;
           } else if (this.graph.emitLoadComplete) {
-            EventBus.$emit('update_url_coord', 0, 0, 0, 0, 0, 0);
+            this.$router.replace(setRouteForCoord({
+              route: this.$route, x: 0, y: 0, z: 0, u: 0, v: 0, w: 0,
+            })).catch(() => {});
           }
 
           if (this.searchTerm) {
@@ -260,7 +263,9 @@ export default {
       const pos = ev.target.object.position; // eslint-disable-line no-unused-vars
       const { lookAt } = this.graph.cameraPosition(); // eslint-disable-line no-unused-vars
       // FIXME invalid coor, lookAt seems correct but the camera rotation point is not
-      EventBus.$emit('update_url_coord', pos.x, pos.y, pos.z, lookAt.x, lookAt.y, lookAt.z);
+      this.$router.replace(setRouteForCoord({
+        route: this.$route, x: pos.x, y: pos.y, z: pos.z, u: lookAt.x, v: lookAt.y, w: lookAt.z,
+      })).catch(() => {});
     },
     downloadPNG() {
       window.requestAnimationFrame(() => {

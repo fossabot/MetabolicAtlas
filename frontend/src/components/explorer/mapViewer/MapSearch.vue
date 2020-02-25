@@ -30,8 +30,8 @@
 
 import axios from 'axios';
 import { debounce } from 'vue-debounce';
-import { default as EventBus } from '../../../event-bus';
 import { default as messages } from '../../../helpers/messages';
+import { setRouteForSearch } from '@/helpers/url';
 
 export default {
   name: 'MapSearch',
@@ -65,7 +65,7 @@ export default {
         this.currentSearchMatch = 0;
         this.searchInputClass = 'is-info';
         this.prevSearchTerm = null;
-        EventBus.$emit('update_url_search');
+        this.$router.replace(setRouteForSearch({ route: this.$route, searchTerm: '' })).catch(() => {});
       }
       this.haveSearched = false;
     },
@@ -122,7 +122,8 @@ export default {
           this.haveSearched = true;
           this.prevSearchTerm = this.searchTerm;
           this.$emit('searchOnMap', this.idsFound); // let the view call its own search function
-          EventBus.$emit('update_url_search', this.searchTerm);
+          this.$router.replace(setRouteForSearch(
+            { route: this.$route, searchTerm: this.searchTerm })).catch(() => {});
         });
     },
     centerViewOn(position) {

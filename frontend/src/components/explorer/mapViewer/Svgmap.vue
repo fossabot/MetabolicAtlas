@@ -41,6 +41,8 @@ import MapSearch from '@/components/explorer/mapViewer/MapSearch';
 import { default as EventBus } from '@/event-bus';
 import { default as messages } from '@/helpers/messages';
 import { reformatChemicalReactionHTML } from '@/helpers/utils';
+import { setRouteForCoord } from '@/helpers/url';
+
 
 // hack: the only way for jquery plugins to play nice with the plugins inside Vue
 $.Panzoom = JQPanZoom;
@@ -245,18 +247,18 @@ export default {
       this.zoomToValue(1.0);
       this.panToCoords(x, y);
       this.zoomToValue(zoom);
+      this.$router.replace(setRouteForCoord({
+        route: this.$route, x, y, z: zoom, u: 0, v: 0, w: 0,
+      })).catch(() => {});
     },
     updateURLCoord(e, v, o) { // eslint-disable-line no-unused-vars
-      const zoom = parseFloat(o[0]);
-      const panX = -parseFloat(o[4]);
-      const panY = -parseFloat(o[5]);
+      const z = parseFloat(o[0]);
+      const x = -parseFloat(o[4]);
+      const y = -parseFloat(o[5]);
       // FIXME invalid coord
-      if (panX !== 0 || panY !== 0 || zoom !== 1) {
-        EventBus.$emit('update_url_coord', panX, panY, zoom, 0, 0, 0);
-      } else {
-        // weird case, happening when a the map is freshly loaded
-        EventBus.$emit('update_url_coord', null);
-      }
+      this.$router.replace(setRouteForCoord({
+        route: this.$route, x, y, z, u: 0, v: 0, w: 0,
+      })).catch(() => {});
     },
     processSelSearchParam() {
       // unselect

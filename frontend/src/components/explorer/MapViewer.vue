@@ -159,8 +159,6 @@
                      :map-type="currentDisplayedType"
                      :dim="dim" :map-name="currentDisplayedName">
         </DataOverlay>
-        <URLhandler :model="model" :map-type="currentDisplayedType" :map-name="currentDisplayedName"
-          :dim="dim" :sel="selectionData.data" :panel="dataOverlayPanelVisible"></URLhandler>
       </template>
     </div>
   </div>
@@ -170,7 +168,6 @@
 import $ from 'jquery';
 import axios from 'axios';
 import SidebarDataPanels from '@/components/explorer/mapViewer/SidebarDataPanels';
-import URLhandler from '@/components/explorer/mapViewer/URLhandler';
 import DataOverlay from '@/components/explorer/mapViewer/DataOverlay.vue';
 import Svgmap from '@/components/explorer/mapViewer/Svgmap';
 import D3dforce from '@/components/explorer/mapViewer/D3dforce';
@@ -185,7 +182,6 @@ export default {
     DataOverlay,
     Svgmap,
     D3dforce,
-    URLhandler,
   },
   props: {
     model: Object,
@@ -256,7 +252,6 @@ export default {
   },
   created() {
     EventBus.$off('showAction');
-    EventBus.$off('changeDimension');
     EventBus.$off('togglePanel');
     EventBus.$off('loadRNAComplete');
 
@@ -273,16 +268,9 @@ export default {
       this.selectionData.data = null;
       EventBus.$emit(this.show2D ? 'showSVGmap' : 'show3Dnetwork', this.requestedType, this.requestedName, searchTerm, selectIDS, coords);
     });
-
-    EventBus.$on('changeDimension', () => {
-      this.show2D = !this.show2D;
-      this.show3D = !this.show2D;
-    });
-
     EventBus.$on('togglePanel', () => {
       this.toggleDataOverlayPanel();
     });
-
     EventBus.$on('loadRNAComplete', (isSuccess, errorMessage) => {
       if (!isSuccess) {
         // show error
@@ -300,6 +288,7 @@ export default {
       }
       this.showLoader = false;
     });
+    this.dataOverlayPanelVisible = this.$route.query && this.$route.query.panel === '1';
   },
   beforeMount() {
     this.getSubComptData(this.model);
@@ -345,6 +334,8 @@ export default {
         // fix the 3D canvas size when open/close dataOverlay
         EventBus.$emit('recompute3DCanvasBounds');
       }
+      this.$router.replace(setRouteForOverlay(
+        { route: this.$route, isOpen: this.dataOverlayPanelVisible })).catch(() => {});
     },
     switchDimension() {
       if (!this.activeSwitch || !this.currentDisplayedType || !this.currentDisplayedName) {
@@ -359,15 +350,15 @@ export default {
       this.show3D = !this.show3D;
       this.show2D = !this.show2D;
 
-      // FIXME '_' duplicate with URLhandle
-      const searchTerm = this.$route.query.search === '_' ? null : this.$route.query.search;
-      const selectIDs = this.$route.query.sel === '_' ? null : [this.$route.query.sel];
-      // coord is not maintained and set to null
+      // preserve selection and search on dim change
+      console.log(this.$route.query.sel, this.$route.query.sel === '');
+      const searchTerm = this.$route.query.search === '' ? null : this.$route.query.search;
+      const selectIDs = this.$route.query.sel === '' ? null : [this.$route.query.sel];
 
       if (this.show3D) {
-        EventBus.$emit('show3Dnetwork', this.requestedType, this.requestedName, searchTerm, selectIDs, null, true);
+        EventBus.$emit('show3Dnetwork', this.requestedType, this.requestedName, searchTerm, selectIDs, null);
       } else {
-        EventBus.$emit('showSVGmap', this.requestedType, this.requestedName, searchTerm, selectIDs, null, true);
+        EventBus.$emit('showSVGmap', this.requestedType, this.requestedName, searchTerm, selectIDs, null);
       }
     },
     handleLoadComplete(isSuccess, errorMessage, messageType) {
@@ -381,6 +372,11 @@ export default {
       this.showOverviewScreen = false;
       this.currentDisplayedType = this.requestedType;
       this.currentDisplayedName = this.requestedName;
+
+      this.$router.push(setRouteForMap({
+        route: this.$route, mapType: this.currentDisplayedType, mapId: this.currentDisplayedName, dim: this.dim,
+      })).catch(() => {});
+
       this.showLoader = false;
       this.$nextTick(() => {
         EventBus.$emit('reloadGeneExpressionData');
@@ -434,7 +430,6 @@ export default {
             this.show3D = true;
             this.show2D = false;
           }
-          EventBus.$emit('checkRoute', 'from mapviewer');
         })
         .catch((error) => {
           switch (error.response.status) {
@@ -483,9 +478,14 @@ export default {
     unSelect() {
       this.selectionData.error = false;
       this.selectionData.data = null;
+      this.$router.replace(setRouteForSel({ route: this.$route, id: '' })).catch(() => {});
     },
     updatePanelSelectionData(data) {
       this.selectionData = data;
+      this.$router.replace(setRouteForSel({
+        route: this.$route,
+        id: data.error ? '' : this.selectionData.data.id,
+      })).catch(() => {});
     },
   },
 };
