@@ -85,7 +85,7 @@ const createCsvFile = ({ header, records, filename }) => {
 };
 
 const buildCypherNodesWithStatesInstructions = ({ nodeType, fields }) => {
-  const hasStateFields = !!SCHEMA.nodeTypes[nodeType].stateFields;
+  const stateFields = SCHEMA.nodeTypes[nodeType].stateFields;
 
   const nodeLabel = nodeType.charAt(0).toUpperCase() + nodeType.slice(1);
   const nodeFilename = `${nodeType}s`;
@@ -95,10 +95,10 @@ const buildCypherNodesWithStatesInstructions = ({ nodeType, fields }) => {
 LOAD CSV WITH HEADERS FROM "file:///${nodeFilename}.csv" AS csvLine
 CREATE (n:${nodeLabel} {id: csvLine.id});`;
 
-  if (hasStateFields) {
+  if (!!stateFields) {
     const stateNodeLabel = `${nodeLabel}State`;
     const stateNodeFilename = `${nodeType}States`;
-    const stateNodeFields = fields.slice(1).reduce((res, field) => {
+    const stateNodeFields = stateFields.slice(1).reduce((res, field) => {
       const fieldName = field[0];
       const fieldType = field[1];
 
@@ -111,6 +111,7 @@ CREATE (n:${nodeLabel} {id: csvLine.id});`;
 
       return { ...res, [fieldName]: val };
     }, {});
+
     instructions += `
 LOAD CSV WITH HEADERS FROM "file:///${stateNodeFilename}.csv" AS csvLine
 MATCH (n:${nodeLabel} {id: csvLine.${relId}})
@@ -222,6 +223,7 @@ const SCHEMA = {
     ["reaction", "metabolite"],
     ["reaction", "gene"],
     ["reaction", "pubmedReference"],
+    ["reaction", "compartment"],
     ["reaction", "subsystem"],
     ["compartment", "svgMap", "isUnique"],
     ["subsystem", "svgMap", "isUnique"],
