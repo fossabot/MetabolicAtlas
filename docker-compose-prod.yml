@@ -23,7 +23,7 @@ services:
     image: neo4j:latest
     environment:
       - NEO4J_AUTH=none
-      - NEO$J_dbms_read__only=true
+      - NEO4J_dbms_read__only=true
     ports:
       - "7474:7474"
 
