@@ -18,6 +18,14 @@ const getRandString = () =>
 
 const getRandBool = () => Math.random() >= 0.5;
 
+const shuffle = a => {
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+};
+
 const makeHeader = fields =>
   fields.map(field => ({ id: field[0], title: field[0] }));
 
@@ -49,11 +57,19 @@ const makeRecords = (fields, total) =>
     return record;
   });
 
-const makeRels = (fields, recordsA, recordsB) =>
-  recordsA.map(rA => ({
+const getRecordIdForRel = (records, isUnique) =>
+  isUnique ? records.shift() : records[getRandInt(records.length)];
+
+const makeRels = (fields, recordsA, recordsB, isUnique) => {
+  if (isUnique) {
+    shuffle(recordsB);
+  }
+
+  return recordsA.map(rA => ({
     [fields[0][0]]: rA.id,
-    [fields[1][0]]: recordsB[getRandInt(recordsB.length)].id
+    [fields[1][0]]: getRecordIdForRel(recordsB, isUnique).id
   }));
+};
 
 let csvWriter;
 
@@ -207,8 +223,8 @@ const SCHEMA = {
     ["reaction", "gene"],
     ["reaction", "pubmedReference"],
     ["reaction", "subsystem"],
-    ["compartment", "svgMap"],
-    ["subsystem", "svgMap"],
+    ["compartment", "svgMap", "isUnique"],
+    ["subsystem", "svgMap", "isUnique"],
     ["metabolite", "externalDb"],
     ["subsystem", "externalDb"],
     ["reaction", "externalDb"],
@@ -253,6 +269,7 @@ for (let nodeType of nodeTypes) {
 for (let rel of SCHEMA.relationships) {
   const node1 = rel[0];
   const node2 = rel[1];
+  const isUnique = !!rel[2];
 
   const fields = [
     [`${node1}Id`, fieldTypes.STRING],
@@ -261,7 +278,7 @@ for (let rel of SCHEMA.relationships) {
 
   const header = makeHeader(fields);
 
-  const records = makeRels(fields, data[node1], data[node2]);
+  const records = makeRels(fields, data[node1], data[node2], isUnique);
 
   const filename = `${node1}${node2.charAt(0).toUpperCase()}${node2.slice(1)}s`;
 
