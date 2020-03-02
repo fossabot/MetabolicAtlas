@@ -253,7 +253,7 @@ export default {
     },
     applySVGMotion() {
       document.getElementById('svg-wrapper')
-        .setAttribute('style', `transform: scale(${this.svgZoom}) translate(${(this.svgCoordsBase.x / 2 - this.svgCoordsDelta.x)}px, ${(this.svgCoordsBase.y / 2 - this.svgCoordsDelta.y) / this.svgZoom}px);`);
+        .setAttribute('style', `transform: scale(${this.svgZoom}) translate(${(this.svgCoordsBase.x - this.svgCoordsDelta.x)}px, ${(this.svgCoordsBase.y - this.svgCoordsDelta.y) / this.svgZoom}px);`);
     },
     zoomIn(directionBoolean) {
       let amount = this.zoomFactor * this.svgZoom;
@@ -310,8 +310,8 @@ export default {
         this.svgZoom = Math.min($('#svg-wrapper').width() / svgElem.getAttribute('width'),
           this.svgboxHeight / svgElem.getAttribute('height'));
         this.svgCoordsBase = {
-          x: -svgElem.getAttribute('width'),
-          y: -svgElem.getAttribute('height'),
+          x: (-svgElem.getAttribute('width') + $('#svg-wrapper').width()) / 2,
+          y: (-svgElem.getAttribute('height') + this.svgboxHeight) / 2,
         };
         this.unHighlight();
         if (callback) {
