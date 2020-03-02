@@ -5,6 +5,8 @@ const getReaction = async (id) => {
   const statement = `
 MATCH (r:Reaction)-[:V1]-(rs:ReactionState)
 MATCH (r)-[:V1]-(:Metabolite)-[:V1]-(c:Compartment)-[:V1]-(cs:CompartmentState)
+MATCH (r)<-[:V1]-(re:Metabolite)-[:V1]-(res:MetaboliteState)
+MATCH (r)-[:V1]->(pr:Metabolite)-[:V1]-(prs:MetaboliteState)
 MATCH (r)-[:V1]-(s:Subsystem)-[:V1]-(ss:SubsystemState)
 MATCH (r)-[:V1]-(g:Gene)-[:V1]-(gs:GeneState)
 MATCH (r)-[:V1]-(e:ExternalDb)
@@ -23,7 +25,9 @@ RETURN
   e.dbName as externalDbName,
   e.url as externalDbUrl,
   e.externalId as externalDbId,
-  p.pubmedId as pubmedId
+  p.pubmedId as pubmedId,
+  COLLECT(DISTINCT({id: re.id, name: res.name})) as reactants,
+  COLLECT(DISTINCT({id: pr.id, name: prs.name})) as products
 `;
 
   const response = await postStatement(statement);
