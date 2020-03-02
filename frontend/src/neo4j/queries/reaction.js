@@ -1,6 +1,15 @@
 import postStatement from '../http';
 import handleSingleResponse from '../responseHandlers/single';
 
+const reformat = reaction => ({
+  ...reaction,
+  externalDbs: reaction.externalDbs.reduce((dbs, db) => {
+    let dbRefs = dbs[db.name] || [];
+    dbRefs = [...dbRefs, { id: db.externalId, url: db.url }];
+    return { ...dbs, [db.name]: dbRefs };
+  }, {}),
+});
+
 const getReaction = async (id) => {
   const statement = `
 MATCH (r:Reaction)-[:V1]-(rs:ReactionState)
@@ -22,16 +31,16 @@ RETURN
   COLLECT(DISTINCT({id: c.id, name: cs.name})) as compartments,
   COLLECT(DISTINCT({id: s.id, name: ss.name})) as subsystems,
   COLLECT(DISTINCT({id: g.id, name: gs.name})) as genes,
-  e.dbName as externalDbName,
-  e.url as externalDbUrl,
-  e.externalId as externalDbId,
+  COLLECT(DISTINCT({name: e.dbName, url: e.url, externalId: e.externalId})) as externalDbs,
   p.pubmedId as pubmedId,
   COLLECT(DISTINCT({id: re.id, name: res.name})) as reactants,
   COLLECT(DISTINCT({id: pr.id, name: prs.name})) as products
 `;
 
   const response = await postStatement(statement);
-  return handleSingleResponse(response);
+  const reaction = handleSingleResponse(response);
+  return reformat(reaction);
 };
+
 
 export default getReaction;
