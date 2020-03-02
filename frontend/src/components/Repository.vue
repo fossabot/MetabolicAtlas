@@ -129,11 +129,16 @@
                     <td class="td-key has-background-primary has-text-white-bis">Reference(s)</td>
                     <td>
                       <template v-for="oneRef in selectedModel.ref">
-                        <p v-if="!oneRef.link" :key="oneRef.title">{{ oneRef.title }}</p>
-                        <a v-else :href="oneRef.link" :key="oneRef.title" target="_blank">
-                          {{ oneRef.title }} (PMID: {{ oneRef.pmid }})
-                        </a>
-                        <br :key="oneRef.title">
+                        <span :key="`${oneRef.title}${oneRef.link}`">
+                          <p v-if="!oneRef.link">{{ oneRef.title }}</p>
+                          <a v-else-if="oneRef.pmid" :href="oneRef.link"  target="_blank">
+                            {{ oneRef.title }} (PMID: {{ oneRef.pmid }})
+                          </a>
+                          <a v-else :href="oneRef.link" target="_blank">
+                            {{ oneRef.title || oneRef.link }}
+                          </a>
+                          <br>
+                        </span>
                       </template>
                     </td>
                   </tr>

@@ -9,7 +9,7 @@ from django.db import models
 from api.models import *
 from django.db.models import Q
 
-import api.management.commands.repo_parser as github_model_parser
+import api.management.commands.getGithubModels as github_model_parser
 
 import re
 import collections
@@ -38,9 +38,11 @@ def insert_model_metadata(database, metadata, metadata_only=False, overwrite=Fal
     #     cell_type    : ""
     #     cell_line    : ""
     #     condition    : "Generic metabolism"
-    #     pmid         : (optional)
-    #       - "PMID1"
-    #       - "PMID2"
+    #     reference         : (optional)
+    #       - title: ""
+    #         url: ""
+    #         pmid: ""
+    #         year: ""
     #     link     : "https://github.com/SysBioChalmers/human-GEM"
     #     gitter: https://gitter.im/SysBioChalmers/Human-GEM
 
@@ -120,7 +122,7 @@ def insert_model_metadata(database, metadata, metadata_only=False, overwrite=Fal
         if not overwrite:
             print("Error: model '%s' already in the database" % metadata_dict["short_name"])
             exit(1)
-        gem.delete()
+        # gem.delete()
     except GEM.DoesNotExist:
         if not metadata_only:
             print("Error: model '%s' is not in the database" % metadata_dict["short_name"])
@@ -134,6 +136,9 @@ def insert_model_metadata(database, metadata, metadata_only=False, overwrite=Fal
                                                       cell_line=metadata_dict["cell_line"],
                                                       cell_type=metadata_dict["cell_type"])
     except GEModelSample.DoesNotExist:
+        if overwrite:
+            print("Error: --overwrite do not support upding model with different sample reference")
+            exit(1)
         # create a new sample
         sample = GEModelSample(organism=metadata_dict["organism"],
                       organ_system=metadata_dict["organ_system"],
@@ -145,32 +150,52 @@ def insert_model_metadata(database, metadata, metadata_only=False, overwrite=Fal
 
     # get the reference from the db or create new reference
     ref_list = []
-    for pmid in metadata_dict["pmid"]:
+    for ref_data in metadata_dict["reference"]:
         try:
-            gr = GEModelReference.objects.get(pmid=pmid)
+            if ref_data['pmid']:
+                gr = GEModelReference.objects.get(pmid=ref_data['pmid'])
+            else:
+                gr = GEModelReference.objects.get(link=ref_data['url'])
         except GEModelReference.DoesNotExist:
-            res = github_model_parser.check_PMID(pmid)
-            if res:
-                DOI, PMID = res
-                title, year = github_model_parser.get_info_from_pmid(PMID)
-                gr = GEModelReference(title=title, link='https://www.ncbi.nlm.nih.gov/pubmed/%s' % PMID, pmid=PMID, year=year)
+            if ref_data['pmid']:
+                res = github_model_parser.check_PMID(ref_data['pmid'])
+                if res:
+                    DOI, PMID = res
+                    title, year = github_model_parser.get_info_from_pmid(PMID)
+                    gr = GEModelReference(title=title, link='https://www.ncbi.nlm.nih.gov/pubmed/%s' % PMID, pmid=PMID, year=year)
+                    gr.save(using="gems")
+                    print("New reference created, %s" % PMID)
+                else:
+                    print("Error: PMID '%s' is invalid" % ref_data['pmid'])
+                    exit(1)
+            else:
+                gr = GEModelReference(title=ref_data['title'], link=ref_data['url'], year=ref_data['year'])
                 gr.save(using="gems")
-                print("New reference created, %s" % pmid)
+                print("New reference created, %s | %s | %s " % (ref_data['title'], ref_data['url'], ref_data['year']))
         ref_list.append(gr)
 
     # insert the model
-    gem = GEM(short_name=metadata_dict["short_name"],
-                full_name=metadata_dict["full_name"],
-                description=metadata_dict["description"],
-                version=metadata_dict["version"],
-                database_name=database,
-                condition=metadata_dict["condition"],
-                date=metadata_dict["date"],
-                link=metadata_dict["link"],
-                chat_link=metadata_dict["chat_link"],
-                sample=sample)
-    gem.save(using="gems")
-    gem.ref.add(*ref_list)
+    if overwrite:
+        gem.save(update_fields=['short_name', 'full_name', 'description', 'version', 'condition', 'date', 'link', 'chat_link'], using="gems")
+    else:
+        gem = GEM(short_name=metadata_dict["short_name"],
+                    full_name=metadata_dict["full_name"],
+                    description=metadata_dict["description"],
+                    version=metadata_dict["version"],
+                    database_name=database,
+                    condition=metadata_dict["condition"],
+                    date=metadata_dict["date"],
+                    link=metadata_dict["link"],
+                    chat_link=metadata_dict["chat_link"],
+                    sample=sample)
+        gem.save(using="gems")
+
+    for ref in ref_list:
+        try:
+            gr = GEMreference.objects.get(model=gem, ref=ref)
+        except GEMreference.DoesNotExist:
+            gr = GEMreference(model=gem, ref=ref)
+            gr.save(using="gems")
 
     #insert authors
     authors_list = []
