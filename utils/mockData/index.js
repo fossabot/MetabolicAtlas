@@ -84,6 +84,21 @@ const createCsvFile = ({ header, records, filename }) => {
   });
 };
 
+const buildNodeFields = fields =>
+  fields.reduce((res, field) => {
+    const fieldName = field[0];
+    const fieldType = field[1];
+
+    let val = `csvLine.${fieldName}`;
+    if (fieldType === fieldTypes.INT) {
+      val = `toInteger(${val})`;
+    } else if (fieldType === fieldTypes.BOOL) {
+      val = `toBoolean(${val})`;
+    }
+
+    return { ...res, [fieldName]: val };
+  }, {});
+
 const buildCypherNodesWithStatesInstructions = ({ nodeType, fields }) => {
   const stateFields = SCHEMA.nodeTypes[nodeType].stateFields;
 
@@ -91,26 +106,16 @@ const buildCypherNodesWithStatesInstructions = ({ nodeType, fields }) => {
   const nodeFilename = `${nodeType}s`;
   const relId = `${nodeType}Id`;
 
+  const nodeFields = buildNodeFields(fields);
+
   let instructions = `
 LOAD CSV WITH HEADERS FROM "file:///${nodeFilename}.csv" AS csvLine
-CREATE (n:${nodeLabel} {id: csvLine.id});`;
+CREATE (n:${nodeLabel} ${JSON.stringify(nodeFields).replace(/['"]+/g, "")});`;
 
   if (!!stateFields) {
     const stateNodeLabel = `${nodeLabel}State`;
     const stateNodeFilename = `${nodeType}States`;
-    const stateNodeFields = stateFields.slice(1).reduce((res, field) => {
-      const fieldName = field[0];
-      const fieldType = field[1];
-
-      let val = `csvLine.${fieldName}`;
-      if (fieldType === fieldTypes.INT) {
-        val = `toInteger(${val})`;
-      } else if (fieldType === fieldTypes.BOOL) {
-        val = `toBoolean(${val})`;
-      }
-
-      return { ...res, [fieldName]: val };
-    }, {});
+    const stateNodeFields = buildNodeFields(stateFields.slice(1));
 
     instructions += `
 LOAD CSV WITH HEADERS FROM "file:///${stateNodeFilename}.csv" AS csvLine
