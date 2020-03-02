@@ -64,6 +64,7 @@ class GEModelFile(models.Model):
 
 
 class GEModel(models.Model):
+    model_id = models.IntegerField(unique=True) # static ID, see MA-705
     gemodelset = models.ForeignKey(GEModelSet, on_delete=models.CASCADE)
     sample = models.ForeignKey(GEModelSample, on_delete=models.CASCADE)
     description = models.TextField(null=True)
