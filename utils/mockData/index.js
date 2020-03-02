@@ -100,6 +100,7 @@ const buildNodeFields = fields =>
   }, {});
 
 const buildCypherNodesWithStatesInstructions = ({ nodeType, fields }) => {
+  const hasModelLabel = SCHEMA.nodeTypes[nodeType].hasModelLabel;
   const stateFields = SCHEMA.nodeTypes[nodeType].stateFields;
 
   const nodeLabel = nodeType.charAt(0).toUpperCase() + nodeType.slice(1);
@@ -110,7 +111,9 @@ const buildCypherNodesWithStatesInstructions = ({ nodeType, fields }) => {
 
   let instructions = `
 LOAD CSV WITH HEADERS FROM "file:///${nodeFilename}.csv" AS csvLine
-CREATE (n:${nodeLabel} ${JSON.stringify(nodeFields).replace(/['"]+/g, "")});`;
+CREATE (n:${nodeLabel}${hasModelLabel ? ":" + MODEL : ""} ${JSON.stringify(
+    nodeFields
+  ).replace(/['"]+/g, "")});`;
 
   if (!!stateFields) {
     const stateNodeLabel = `${nodeLabel}State`;
@@ -151,6 +154,7 @@ CREATE (n1)-[:V1]->(n2);
 const SCHEMA = {
   nodeTypes: {
     metabolite: {
+      hasModelLabel: true,
       fields: [["id", fieldTypes.STRING]],
       stateFields: [
         ["metaboliteId", fieldTypes.STRING],
@@ -164,6 +168,7 @@ const SCHEMA = {
       ]
     },
     compartment: {
+      hasModelLabel: true,
       quantity: 10,
       fields: [["id", fieldTypes.STRING]],
       stateFields: [
@@ -173,6 +178,7 @@ const SCHEMA = {
       ]
     },
     reaction: {
+      hasModelLabel: true,
       fields: [["id", fieldTypes.STRING]],
       stateFields: [
         ["reactionId", fieldTypes.STRING],
@@ -185,6 +191,7 @@ const SCHEMA = {
       ]
     },
     gene: {
+      hasModelLabel: true,
       fields: [["id", fieldTypes.STRING]],
       stateFields: [
         ["geneId", fieldTypes.STRING],
@@ -198,6 +205,7 @@ const SCHEMA = {
       fields: [["id", fieldTypes.STRING], ["pubmedId", fieldTypes.STRING]]
     },
     subsystem: {
+      hasModelLabel: true,
       quantity: 50,
       fields: [["id", fieldTypes.STRING]],
       stateFields: [
@@ -228,7 +236,6 @@ const SCHEMA = {
     ["reaction", "metabolite"],
     ["reaction", "gene"],
     ["reaction", "pubmedReference"],
-    ["reaction", "compartment"],
     ["reaction", "subsystem"],
     ["compartment", "svgMap", "isUnique"],
     ["subsystem", "svgMap", "isUnique"],
@@ -241,86 +248,106 @@ const SCHEMA = {
 
 // DATA GENERATION
 
-const data = {};
-const nodeTypes = Object.keys(SCHEMA.nodeTypes);
-for (let nodeType of nodeTypes) {
-  const fields = SCHEMA.nodeTypes[nodeType].fields;
-  const stateFields = SCHEMA.nodeTypes[nodeType].stateFields;
-  const quantity = SCHEMA.nodeTypes[nodeType].quantity || 100;
-  let records;
-
-  if (stateFields) {
-    const stateRecords = makeRecords(stateFields, quantity);
-    createCsvFile({
-      header: makeHeader(stateFields),
-      records: stateRecords,
-      filename: `${nodeType}States`
-    });
-
-    records = stateRecords.map(r => ({
-      id: r[stateFields[0][0]]
-    }));
-  } else {
-    records = makeRecords(fields, quantity);
-  }
-
-  createCsvFile({
-    header: makeHeader(fields),
-    records,
-    filename: `${nodeType}s`
-  });
-
-  data[nodeType] = records;
-}
-
-for (let rel of SCHEMA.relationships) {
-  const node1 = rel[0];
-  const node2 = rel[1];
-  const isUnique = !!rel[2];
-
-  const fields = [
-    [`${node1}Id`, fieldTypes.STRING],
-    [`${node2}Id`, fieldTypes.STRING]
-  ];
-
-  const header = makeHeader(fields);
-
-  const records = makeRels(fields, data[node1], data[node2], isUnique);
-
-  const filename = `${node1}${node2.charAt(0).toUpperCase()}${node2.slice(1)}s`;
-
-  createCsvFile({
-    header,
-    records,
-    filename
-  });
-}
-
-const buildCypherInstructions = () => {
-  let instructions = "";
-
+const generateData = () => {
+  const data = {};
+  const nodeTypes = Object.keys(SCHEMA.nodeTypes);
   for (let nodeType of nodeTypes) {
-    instructions += buildCypherNodesWithStatesInstructions({
-      nodeType,
-      fields: SCHEMA.nodeTypes[nodeType].fields
+    const fields = SCHEMA.nodeTypes[nodeType].fields;
+    const stateFields = SCHEMA.nodeTypes[nodeType].stateFields;
+    const quantity = SCHEMA.nodeTypes[nodeType].quantity || 100;
+    let records;
+
+    if (stateFields) {
+      const stateRecords = makeRecords(stateFields, quantity);
+      createCsvFile({
+        header: makeHeader(stateFields),
+        records: stateRecords,
+        filename: `${nodeType}States`
+      });
+
+      records = stateRecords.map(r => ({
+        id: r[stateFields[0][0]]
+      }));
+    } else {
+      records = makeRecords(fields, quantity);
+    }
+
+    createCsvFile({
+      header: makeHeader(fields),
+      records,
+      filename: `${nodeType}s`
     });
+
+    data[nodeType] = records;
   }
 
   for (let rel of SCHEMA.relationships) {
-    const nodeType1 = rel[0];
-    const nodeType2 = rel[1];
+    const node1 = rel[0];
+    const node2 = rel[1];
+    const isUnique = !!rel[2];
 
-    instructions += buildCypherRelsInstructions({
-      nodeType1,
-      nodeType2
+    const fields = [
+      [`${node1}Id`, fieldTypes.STRING],
+      [`${node2}Id`, fieldTypes.STRING]
+    ];
+
+    const header = makeHeader(fields);
+
+    const records = makeRels(fields, data[node1], data[node2], isUnique);
+
+    const filename = `${node1}${node2.charAt(0).toUpperCase()}${node2.slice(
+      1
+    )}s`;
+
+    createCsvFile({
+      header,
+      records,
+      filename
     });
   }
 
-  return instructions;
+  const buildCypherInstructions = () => {
+    let instructions = "";
+
+    for (let nodeType of nodeTypes) {
+      instructions += buildCypherNodesWithStatesInstructions({
+        nodeType,
+        fields: SCHEMA.nodeTypes[nodeType].fields
+      });
+    }
+
+    for (let rel of SCHEMA.relationships) {
+      const nodeType1 = rel[0];
+      const nodeType2 = rel[1];
+
+      instructions += buildCypherRelsInstructions({
+        nodeType1,
+        nodeType2
+      });
+    }
+
+    return instructions;
+  };
+
+  console.log(
+    "\n*** CYPHER INSTRUCTIONS START ***\n",
+    buildCypherInstructions(),
+    "\n*** CYPHER INSTRUCTIONS END ***\n"
+  );
 };
 
-console.log(
-  "\n*** CYPHER INSTRUCTIONS START ***\n",
-  buildCypherInstructions(),
-  "\n*** CYPHER INSTRUCTIONS END ***\n"
-);
+let match;
+const regex = /model=(.+)/;
+
+try {
+  match = process.argv.slice(2)[0].match(regex);
+  if (!match) {
+    throw new Error();
+  }
+} catch {
+  console.log("❗️  Please provide a model, e.g. 'yarn start model=Human'");
+  return;
+}
+
+const MODEL = match[1];
+generateData();

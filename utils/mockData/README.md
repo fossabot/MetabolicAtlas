@@ -3,4 +3,4 @@
 ## Instructions
 
 `$ yarn`
-`$ yarn start`
+`$ yarn start model=Human`
