@@ -110,6 +110,7 @@ const buildCypherNodesWithStatesInstructions = ({ nodeType, fields }) => {
   const nodeFields = buildNodeFields(fields);
 
   let instructions = `
+CREATE INDEX FOR (n:${nodeLabel}) ON (n.id);
 LOAD CSV WITH HEADERS FROM "file:///${nodeFilename}.csv" AS csvLine
 CREATE (n:${nodeLabel}${hasModelLabel ? ":" + MODEL : ""} ${JSON.stringify(
     nodeFields
@@ -155,6 +156,7 @@ const SCHEMA = {
   nodeTypes: {
     metabolite: {
       hasModelLabel: true,
+      quantity: 6000,
       fields: [["id", fieldTypes.STRING]],
       stateFields: [
         ["metaboliteId", fieldTypes.STRING],
@@ -178,6 +180,7 @@ const SCHEMA = {
       ]
     },
     reaction: {
+      quantity: 15000,
       hasModelLabel: true,
       fields: [["id", fieldTypes.STRING]],
       stateFields: [
@@ -191,6 +194,7 @@ const SCHEMA = {
       ]
     },
     gene: {
+      quantity: 4000,
       hasModelLabel: true,
       fields: [["id", fieldTypes.STRING]],
       stateFields: [
@@ -202,9 +206,11 @@ const SCHEMA = {
       ]
     },
     pubmedReference: {
+      quantity: 15000,
       fields: [["id", fieldTypes.STRING], ["pubmedId", fieldTypes.STRING]]
     },
     subsystem: {
+      quantity: 150,
       hasModelLabel: true,
       quantity: 50,
       fields: [["id", fieldTypes.STRING]],
@@ -222,6 +228,7 @@ const SCHEMA = {
       ]
     },
     externalDb: {
+      quantity: 50000,
       fields: [
         ["id", fieldTypes.STRING],
         ["dbName", fieldTypes.STRING],
