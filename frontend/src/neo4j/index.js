@@ -1,8 +1,7 @@
 import getReaction from './queries/reaction';
-
-const getMetabolite = () => {};
+import getGene from './queries/gene';
 
 export {
   getReaction,
-  getMetabolite,
+  getGene,
 };

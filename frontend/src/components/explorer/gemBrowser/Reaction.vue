@@ -188,7 +188,7 @@ export default {
     },
     async load() {
       try {
-        const r = await getReaction(this.rId);
+        const r = await getReaction(this.rId, 1);
         this.componentNotFound = false;
         this.showLoader = false;
         this.reaction = r;
