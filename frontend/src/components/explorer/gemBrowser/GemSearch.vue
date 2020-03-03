@@ -7,15 +7,18 @@
           <input id="search" ref="searchInput"
                  v-model="searchTermString" v-debounce:700="searchDebounce" data-hj-whitelist
                  type="text" class="input is-medium"
-                 placeholder="uracil, SULT1A3, ATP => cAMP + PPi, subsystem or compartment"
+                 :placeholder="placeholder"
                  @keyup.esc="showResults = false"
                  @focus="showResults = true"
                  @blur="blur()">
-          <span v-show="showSearchCharAlert" class="has-text-info icon is-right" style="width: 220px">
+          <span v-show="showSearchCharAlert" class="has-text-info icon is-right" style="width: 270px">
             Type at least 2 characters
           </span>
           <span class="icon is-medium is-left">
             <i class="fa fa-search"></i>
+          </span>
+          <span class="icon is-small is-right">
+            <i class="fa" :class="metabolitesAndGenesOnly ? 'fa-share-alt' : 'fa-table'"></i>
           </span>
         </p>
         <router-link class="is-pulled-right is-size-5" :to="{ name: 'search', query: { term: searchTermString } }">
@@ -86,6 +89,14 @@ export default {
         compartment: ['name'],
       },
     };
+  },
+  computed: {
+    placeholder() {
+      if (this.metabolitesAndGenesOnly) {
+        return 'uracil, malate, SULT1A3, CNDP1';
+      }
+      return 'uracil, SULT1A3, ATP => cAMP + PPi, subsystem or compartment';
+    },
   },
   mounted() {
     $('#search').focus();
