@@ -13,14 +13,14 @@ const reformat = reaction => ({
 const getReaction = async (id) => {
   const statement = `
 MATCH (r:Reaction)-[:V1]-(rs:ReactionState)
-MATCH (r)-[:V1]-(:Metabolite)-[:V1]-(c:Compartment)-[:V1]-(cs:CompartmentState)
-MATCH (r)<-[:V1]-(re:Metabolite)-[:V1]-(res:MetaboliteState)
-MATCH (r)-[:V1]->(pr:Metabolite)-[:V1]-(prs:MetaboliteState)
-MATCH (r)-[:V1]-(s:Subsystem)-[:V1]-(ss:SubsystemState)
-MATCH (r)-[:V1]-(g:Gene)-[:V1]-(gs:GeneState)
-MATCH (r)-[:V1]-(e:ExternalDb)
-MATCH (r)-[:V1]-(p:PubmedReference)
 WHERE r.id="${id}"
+MATCH (r)-[:V1]-(:Metabolite)-[:V1]-(c:Compartment)-[:V1]-(cs:CompartmentState)
+OPTIONAL MATCH (r)<-[:V1]-(re:Metabolite)-[:V1]-(res:MetaboliteState)
+OPTIONAL MATCH (r)-[:V1]->(pr:Metabolite)-[:V1]-(prs:MetaboliteState)
+OPTIONAL MATCH (r)-[:V1]-(s:Subsystem)-[:V1]-(ss:SubsystemState)
+OPTIONAL MATCH (r)-[:V1]-(g:Gene)-[:V1]-(gs:GeneState)
+OPTIONAL MATCH (r)-[:V1]-(e:ExternalDb)
+OPTIONAL MATCH (r)-[:V1]-(p:PubmedReference)
 RETURN
   r.id as id,
   rs.reversible as reversible,
@@ -32,7 +32,7 @@ RETURN
   COLLECT(DISTINCT({id: s.id, name: ss.name})) as subsystems,
   COLLECT(DISTINCT({id: g.id, name: gs.name})) as genes,
   COLLECT(DISTINCT({name: e.dbName, url: e.url, externalId: e.externalId})) as externalDbs,
-  p.pubmedId as pubmedId,
+  COLLECT(DISTINCT({pmid: p.pubmedId})) as pubmedIds,
   COLLECT(DISTINCT({id: re.id, name: res.name})) as reactants,
   COLLECT(DISTINCT({id: pr.id, name: prs.name})) as products
 `;

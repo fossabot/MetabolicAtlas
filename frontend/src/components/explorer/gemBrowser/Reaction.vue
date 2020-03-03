@@ -24,14 +24,14 @@
             <td v-else class="td-key has-background-primary has-text-white-bis">{{ reformatTableKey(el.name) }}</td>
             <td v-if="reaction[el.name]">
               <template v-if="'modifier' in el"><span v-html="el.modifier()"></span></template>
-              <template v-else-if="el.name === 'subsystem'">
+              <template v-else-if="el.name === 'subsystems'">
                 <template v-for="(v, i) in reaction[el.name]">
                   <template v-if="i !== 0">; </template>
                   <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key max-len -->
                   <router-link :to="{ path: `/explore/gem-browser/${model.database_name}/subsystem/${v.id}` }"> {{ v.name }}</router-link>
                 </template>
               </template>
-              <template v-else-if="el.name === 'compartment'">
+              <template v-else-if="el.name === 'compartments'">
                 <template v-for="(v, i) in reaction[el.name]">
                   <template v-if="i !== 0">; </template>
                   <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key max-len -->
@@ -68,7 +68,7 @@
             </td>
           </tr>
         </table>
-        <ExtIdTable :type="type" :external-dbs="reaction.external_databases"></ExtIdTable>
+        <ExtIdTable :type="type" :external-dbs="reaction.externalDbs"></ExtIdTable>
         <h4 class="title is-size-4">References via PubMed ID</h4>
         <table class="main-table table is-fullwidth">
           <template v-if="unformattedRefs.length === 0">
@@ -143,12 +143,12 @@ export default {
       mainTableKey: [
         { name: 'id' },
         { name: 'equation', modifier: this.reformatEquation },
-        { name: 'is_reversible', display: 'Reversible', modifier: this.reformatReversible },
+        { name: 'reversible', display: 'Reversible', modifier: this.reformatReversible },
         { name: 'quantitative', modifier: this.reformatQuant },
-        { name: 'gene_rule', display: 'Gene rule', modifier: this.reformatGenes },
+        { name: 'geneRule', display: 'Gene rule', modifier: this.reformatGenes },
         { name: 'ec', display: 'EC' },
-        { name: 'compartment', display: 'Compartment(s)' },
-        { name: 'subsystem', display: 'Subsystem(s)' },
+        { name: 'compartments', display: 'Compartment(s)' },
+        { name: 'subsystems', display: 'Subsystem(s)' },
       ],
       reaction: {},
       relatedReactions: [],
@@ -162,10 +162,10 @@ export default {
   },
   watch: {
     /* eslint-disable quote-props */
-    '$route': function watchSetup() {
+    '$route': async function watchSetup() {
       if (this.$route.path.includes('/reaction/')) {
         if (this.rId !== this.$route.params.id) {
-          this.setup();
+          await this.setup();
         }
       }
     },
@@ -179,35 +179,44 @@ export default {
     });
   },
   async beforeMount() {
-    this.setup();
-    await this.loadUsingNeo4j();
+    await this.setup();
   },
   methods: {
-    setup() {
+    async setup() {
       this.rId = this.$route.params.id;
-      this.load();
+      await this.load();
     },
-    // TODO: the following is a sample neo4j query that's not yet integrated into the UI
-    async loadUsingNeo4j() {
-      const r = await getReaction(this.rId);
-      console.log(r);
-    },
-    load() {
-      axios.get(`${this.model.database_name}/get_reaction/${this.rId}/`)
-        .then((response) => {
-          this.componentNotFound = false;
-          this.showLoader = false;
-          this.reaction = response.data.reaction;
-          if (response.data.pmids.length !== 0) {
-            this.unformattedRefs = response.data.pmids;
-            this.reformatRefs();
-          }
-          this.getRelatedReactions();
-        })
-        .catch(() => {
-          this.componentNotFound = true;
-          document.getElementById('search').focus();
-        });
+    async load() {
+      try {
+        const r = await getReaction(this.rId);
+        this.componentNotFound = false;
+        this.showLoader = false;
+        this.reaction = r;
+        this.reaction.compartment_str = this.reaction.compartments.map(c => c.name).join(', ');
+        this.reaction.reactionreactant_set = this.reaction.reactants;
+        this.reaction.reactionproduct_set = this.reaction.products;
+        this.unformattedRefs = this.reaction.pubmedIds;
+      } catch (e) {
+        this.componentNotFound = true;
+        document.getElementById('search').focus();
+      }
+
+      // axios.get(`${this.model.database_name}/get_reaction/${this.rId}/`)
+      //   .then((response) => {
+      //     this.componentNotFound = false;
+      //     this.showLoader = false;
+      //     this.reaction = response.data.reaction;
+      //     console.log(JSON.stringify(this.reaction));
+      //     if (response.data.pmids.length !== 0) {
+      //       this.unformattedRefs = response.data.pmids;
+      //       this.reformatRefs();
+      //     }
+      //     this.getRelatedReactions();
+      //   })
+      //   .catch(() => {
+      //     this.componentNotFound = true;
+      //     document.getElementById('search').focus();
+      //   });
     },
     getRelatedReactions() {
       axios.get(`${this.model.database_name}/get_reaction/${this.rId}/related`)
@@ -221,7 +230,7 @@ export default {
     },
     reformatEquation() { return reformatChemicalReactionHTML(this.reaction); },
     reformatGenes() {
-      if (!this.reaction.gene_rule) {
+      if (!this.reaction.geneRule) {
         return '-';
       }
       let newGRnameArr = null;
@@ -230,7 +239,7 @@ export default {
           e => e.replace(/^\(+|\)+$/g, '')
         );
       }
-      let newGR = this.reaction.gene_rule;
+      let newGR = this.reaction.geneRule;
       if (newGR) {
         let i = -1;
         const newGRArr = newGR.split(/ +/).map(
@@ -252,7 +261,7 @@ export default {
     formatQuantFieldName(name) { return `${name}:&nbsp;`; },
     reformatQuant() {
       const data = [];
-      ['lower_bound', 'upper_bound', 'objective_coefficient'].forEach((key) => {
+      ['lowerBound', 'upperBound', 'objective_coefficient'].forEach((key) => {
         if (this.reaction[key] != null) {
           data.push(this.formatQuantFieldName(this.reformatTableKey(key)));
           if (key === 'objective_coefficient') {
