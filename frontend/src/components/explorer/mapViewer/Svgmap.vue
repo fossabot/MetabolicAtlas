@@ -1,9 +1,10 @@
 <template>
-  <div id="svgbox"
-       @mousedown.prevent="startPanSVG"
-       @touchstart.prevent="startPanSVG"
-       @wheel.prevent="e => zoomIn(Math.sign(e.deltaY) > 0)">
-    <div id="svg-wrapper" v-html="svgContent">
+  <div id="svg-container">
+    <div id="svgbox"
+         @mousedown.prevent="startPanSVG"
+         @touchstart.prevent="startPanSVG"
+         @wheel.prevent="e => zoomIn(Math.sign(e.deltaY) > 0)">
+      <div id="svg-wrapper" v-html="svgContent"></div>
     </div>
     <div class="canvasOption overlay">
       <span class="button" title="Zoom in" @click="zoomIn(true)"><i class="fa fa-search-plus"></i></span>
@@ -80,7 +81,7 @@ export default {
       svgCoordsPanStart: { x: 0, y: 0 },
       svgCoordsDelta: { x: 0, y: 0 },
       svgZoom: 0.2,
-      zoomFactor: 0.05,
+      zoomFactor: 0.07,
 
       idsFound: [],
       elmFound: [],
@@ -113,9 +114,6 @@ export default {
         return false;
       }
       return true;
-    },
-    svgboxHeight() {
-      return isMobilePage() ? 450 : $('#svgbox').height();
     },
   },
   watch: {
@@ -287,7 +285,8 @@ export default {
       const elem = document.getElementById('svgbox');
       if (evt.type === 'mousedown' && evt.button !== 0) return;
       this.svgCoordsPanStart = this.getEventCoords(evt);
-      const stopFn = () => {
+      const stopFn = ((stopEvent) => {
+        this.panSVG(stopEvent);
         this.svgCoordsBase.x -= this.svgCoordsDelta.x;
         this.svgCoordsBase.y -= this.svgCoordsDelta.y;
         this.svgCoordsDelta.x = 0;
@@ -297,21 +296,29 @@ export default {
         elem.removeEventListener('mouseup', stopFn);
         elem.removeEventListener('touchend', stopFn);
         elem.removeEventListener('mouseleave', stopFn);
-      };
+      });
       elem.addEventListener('mousemove', this.panSVG);
       elem.addEventListener('touchmove', this.panSVG);
       elem.addEventListener('mouseup', stopFn);
       elem.addEventListener('touchend', stopFn);
       elem.addEventListener('mouseleave', stopFn);
     },
+    getSVGParams() {
+      const wrapper = document.getElementById('svg-wrapper');
+      const wrapperWidth = wrapper.offsetWidth;
+      const wrapperHeight = isMobilePage() ? 450 : wrapper.offsetParent.offsetHeight;
+      const svgElem = wrapper.children[0];
+      const svgWidth = parseInt(svgElem.getAttribute('width'), 10);
+      const svgHeight = parseInt(svgElem.getAttribute('height'), 10);
+      return { wrapperWidth, wrapperHeight, svgWidth, svgHeight };
+    },
     loadSvgPanZoom(callback) {
       setTimeout(() => {
-        const svgElem = document.getElementById('svg-wrapper').children[0];
-        this.svgZoom = Math.min($('#svg-wrapper').width() / svgElem.getAttribute('width'),
-          this.svgboxHeight / svgElem.getAttribute('height'));
+        const params = this.getSVGParams();
+        this.svgZoom = Math.min(params.wrapperWidth / params.svgWidth, params.wrapperHeight / params.svgHeight);
         this.svgCoordsBase = {
-          x: (-svgElem.getAttribute('width') + $('#svg-wrapper').width()) / 2,
-          y: (-svgElem.getAttribute('height') + this.svgboxHeight) / 2,
+          x: (params.wrapperWidth - params.svgWidth) / 2,
+          y: (params.wrapperHeight - params.svgHeight) / 2,
         };
         this.unHighlight();
         if (callback) {
@@ -487,16 +494,15 @@ export default {
       this.unSelectElement();
       this.selectElement(currentElem);
 
-      this.svgZoom = 3;
-      const coords = this.getSvgElemCoordinates(currentElem);
-      const xFromCenter = coords.x - $('svg').attr('width') / 2;
-      const yFromCenter = coords.y - $('svg').attr('height') / 2;
-      const xFromCenterPx = xFromCenter * $('#svgbox').width() / $('svg').attr('width');
-      const yFromCenterPx = yFromCenter * $('#svgbox').height() / $('svg').attr('height');
-      this.svgCoordsBase = { x: -xFromCenterPx, y: -yFromCenterPx };
+      this.svgZoom = 1;
+      const elemCoords = this.getSvgElemCoordinates(currentElem);
+      const params = this.getSVGParams();
+      const xFromCenter = elemCoords.x - params.svgWidth / 2;
+      const yFromCenter = elemCoords.y - params.svgHeight / 2;
+      const xFromCenterPx = (params.wrapperWidth - params.svgWidth) / 2 - xFromCenter;
+      const yFromCenterPx = (params.wrapperHeight - params.svgHeight) / 2 - yFromCenter;
+      this.svgCoordsBase = { x: xFromCenterPx, y: yFromCenterPx };
       this.svgCoordsDelta = { x: 0, y: 0 };
-      // console.log(xFromCenter, yFromCenter);
-      // console.log(xFromCenterPx, yFromCenterPx);
     },
     getSvgElemCoordinates(el) {
       let transform = $(el).attr('transform');
@@ -677,9 +683,4 @@ export default {
     position: absolute;
     display: none;
   }
-
-  // .lbl {
-    // display: none;
-  // }
-
 </style>
