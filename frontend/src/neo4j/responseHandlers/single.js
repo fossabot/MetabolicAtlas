@@ -6,13 +6,7 @@ const handleSingleResponse = (response) => {
   }
   // TODO: add more error handling
 
-  const fieldNames = data.results[0].columns;
-  const fields = data.results[0].data[0].row;
-
-  return fieldNames.reduce((node, fieldName, index) => ({
-    ...node,
-    [fieldName]: fields[index],
-  }), {});
+  return data.results[0].data[0].row[0];
 };
 
 export default handleSingleResponse;

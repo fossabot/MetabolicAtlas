@@ -193,8 +193,8 @@ export default {
         this.showLoader = false;
         this.reaction = r;
         this.reaction.compartment_str = this.reaction.compartments.map(c => c.name).join(', ');
-        this.reaction.reactionreactant_set = this.reaction.reactants;
-        this.reaction.reactionproduct_set = this.reaction.products;
+        this.reaction.reactionreactant_set = this.reaction.metabolites.filter(m => m.outgoing);
+        this.reaction.reactionproduct_set = this.reaction.metabolites.filter(m => !m.outgoing);
         this.unformattedRefs = this.reaction.pubmedIds;
       } catch (e) {
         this.componentNotFound = true;
