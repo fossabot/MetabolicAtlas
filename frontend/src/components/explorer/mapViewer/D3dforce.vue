@@ -49,7 +49,7 @@ export default {
       searchIDsSet: new Set(),
       searchedNodesOnGraph: [],
 
-      coords: null,
+      urlCoords: null,
       staticSearch: false,
 
       HPARNAlevels: {},
@@ -83,16 +83,17 @@ export default {
     EventBus.$off('apply3DHPARNAlevels');
 
     EventBus.$on('show3Dnetwork', (type, name, searchTerm, selectIDs, coords) => {
-      this.selectIDs = selectIDs !== null ? selectIDs : [];
+      // console.log('show3Dnetwork', type, name, searchTerm, selectIDs, coords);
+      this.$refs.mapsearch.reset();
+      this.selectIDs = selectIDs === null ? [] : selectIDs;
       this.searchTerm = searchTerm;
-      this.coords = coords;
+      this.urlCoords = coords;
       if (this.loadedComponentType !== type || this.loadedComponentName !== name) {
         this.selectElementID = null;
         this.selectElementIDfull = null;
-        this.$refs.mapsearch.reset();
         if (this.graph) {
           // a graph was already loaded, but it is a new map requested => reset coords
-          this.coords = null;
+          this.urlCoords = null;
         }
         this.loadedComponentType = type;
         this.loadedComponentName = name;
@@ -107,7 +108,7 @@ export default {
         } else {
           this.getJson();
         }
-      } else if (selectIDs.length !== 0 || this.searchTerm) {
+      } else if ((selectIDs && selectIDs.length !== 0) || this.searchTerm) {
         this.updateGeometries();
         this.$emit('loadComplete', true, '');
       }
@@ -213,13 +214,14 @@ export default {
             this.selectIDs = [];
           }
 
-          if (this.coords && this.coords !== '0,0,0,0,0,0') {
+          if (this.urlCoords && this.urlCoords !== '0,0,0,0,0,0') {
             this.moveCameraPosition.apply(
-              null, this.coords.split(',').map(v => parseFloat(v)));
+              null, this.urlCoords.split(',').map(v => parseFloat(v)));
             // clear var coords, auto move should be only performed once
-            this.coords = null;
+            this.urlCoords = null;
             this.staticSearch = true;
           } else if (this.graph.emitLoadComplete) {
+            // set coord to origine, for newly loaded graph
             this.$router.replace(setRouteForCoord({
               route: this.$route, x: 0, y: 0, z: 0, u: 0, v: 0, w: 0,
             })).catch(() => {});

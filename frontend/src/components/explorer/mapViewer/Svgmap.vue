@@ -22,7 +22,7 @@
       </span>
       <span class="button" title="Download as SVG" @click="downloadMap()"><i class="fa fa-download"></i></span>
     </div>
-    <MapSearch ref="mapsearch" :model="model" :matches="searchedNodesOnMap" :ready="loadedMap !== null"
+    <MapSearch ref="mapsearch" :model="model" :matches="searchedNodesOnMap" :ready="mapMetadata !== null"
                :fullscreen="isFullscreen" @searchOnMap="searchIDsOnMap" @centerViewOn="centerElementOnSVG"
                @unHighlightAll="unHighlight"></MapSearch>
     <div id="tooltip" ref="tooltip"></div>
@@ -68,14 +68,15 @@ export default {
   data() {
     return {
       errorMessage: '',
-      loadedMap: null,
-      loadedMapType: null,
-      loadedMapHistory: {},
+      mapType: '',
+      mapName: '',
+      mapMetadata: null,
+      mapMetadataHistory: {},
+
       svgContent: null,
       svgContentHistory: {},
-      svgName: '',
-      isFullscreen: false,
 
+      isFullscreen: false,
       $panzoom: null,
       panzoomOptions: {
         maxScale: 1,
@@ -93,7 +94,8 @@ export default {
       searchedNodesOnMap: [],
       searchedElemsHL: [],
 
-      coords: null,
+      currentCoords: { x: null, y: null, zoom: null },
+      urlCoords: null,
 
       selectedItemHistory: {},
       selectedElementID: null,
@@ -122,12 +124,12 @@ export default {
 
     EventBus.$on('showSVGmap', (type, name, searchTerm, selectIDs, coords) => {
       // console.log('showSVGmap', type, name, searchTerm, selectIDs, coords);
-      this.loadedMapType = type; // set the type, even if fail to load the map!?
+      this.$refs.mapsearch.reset(); // always reset the search
+      this.searchTerm = searchTerm;
+      this.selectIDs = selectIDs === null ? [] : selectIDs;
+      this.urlCoords = coords !== '0,0,0,0,0,0' ? coords : null;
       if (name && (type === 'compartment' || type === 'subsystem')) {
-        this.searchTerm = searchTerm;
-        this.selectIDs = selectIDs || [];
-        this.coords = coords;
-        this.loadSVG(name);
+        this.loadMap(type, name);
       }
     });
     EventBus.$on('apply2DHPARNAlevels', (levels) => {
@@ -267,10 +269,10 @@ export default {
       this.unHighlight(this.selectedElemsHL, 'selhl');
       if (this.searchTerm) {
         this.$refs.mapsearch.search(this.searchTerm);
-      } else if (this.coords) {
-        const coords = this.coords.split(',');
+      } else if (this.urlCoords) {
+        const coords = this.urlCoords.split(',').map(v => parseFloat(v));
         this.restoreMapPosition(coords[0], coords[1], coords[2]);
-        this.coords = null;
+        this.urlCoords = null;
       }
       // selection (sidebar), get the first node with this id
       const elms = this.findElementsOnSVG(this.selectIDs);
@@ -314,12 +316,13 @@ export default {
         this.$emit('loadComplete', true, '');
       }, 0);
     },
-    loadSVG(id) {
+    loadMap(type, name) {
       // load the svg file from the server
       this.$emit('loading');
-      const mapInfo = this.mapsData.compartments[id] || this.mapsData.subsystems[id];
+      const mapInfo = this.mapsData.compartments[name] || this.mapsData.subsystems[name];
       if (!mapInfo) {
-        this.loadedMapType = null;
+        this.mapType = null;
+        this.mapName = null;
         this.$emit('loadComplete', false, 'Invalid map ID', 'danger');
         return;
       }
@@ -330,12 +333,13 @@ export default {
         return;
       }
 
-      if (newSvgName !== this.svgName) {
-        this.$refs.mapsearch.reset();
-        if (newSvgName in this.loadedMapHistory) {
+      if (type !== this.mapType || newSvgName !== this.mapName) {
+        // this.$refs.mapsearch.reset();
+        if (newSvgName in this.mapMetadataHistory) {
           this.svgContent = this.svgContentHistory[newSvgName];
-          this.loadedMap = this.loadedMapHistory[newSvgName];
-          this.svgName = newSvgName;
+          this.mapMetadata = this.mapMetadataHistory[newSvgName];
+          this.mapType = type;
+          this.mapName = newSvgName;
           setTimeout(() => {
             this.loadSvgPanZoom();
           }, 0);
@@ -343,10 +347,11 @@ export default {
           axios.get(`${this.svgMapURL}/${this.model.database_name}/${newSvgName}`)
             .then((response) => {
               this.svgContent = response.data;
-              this.svgName = newSvgName;
-              this.loadedMap = mapInfo;
-              this.svgContentHistory[this.svgName] = response.data;
-              this.loadedMapHistory[this.svgName] = mapInfo;
+              this.mapType = type;
+              this.mapName = newSvgName;
+              this.mapMetadata = mapInfo;
+              // this.svgContentHistory[this.mapName] = response.data;
+              // this.mapMetadataHistory[this.mapName] = mapInfo;
               setTimeout(() => {
                 this.loadSvgPanZoom();
               }, 0);
@@ -356,16 +361,16 @@ export default {
             });
         }
       } else {
-        this.loadedMap = mapInfo;
-        this.processSelSearchParam();
-        this.$emit('loadComplete', true, '');
+        setTimeout(() => {
+          this.loadSvgPanZoom();
+        }, 0);
       }
     },
     downloadMap() {
       const blob = new Blob([document.getElementById('svg-wrapper').innerHTML], {
         type: 'data:text/tsv;charset=utf-8',
       });
-      FileSaver.saveAs(blob, `${this.loadedMap.id}.svg`);
+      FileSaver.saveAs(blob, `${this.mapMetadata.id}.svg`);
     },
     applyHPARNAlevelsOnMap(RNAlevels) {
       this.HPARNAlevels = RNAlevels;
@@ -406,10 +411,10 @@ export default {
         this.searchedNodesOnMap = this.findElementsOnSVG(this.searchIDs);
         if (this.searchedNodesOnMap.length !== 0) {
           this.searchedElemsHL = this.highlight(this.searchedNodesOnMap, 'schhl');
-          if (this.coords) {
-            const coords = this.coords.split(',');
+          if (this.urlCoords) {
+            const coords = this.urlCoords.split(',').map(v => parseFloat(v));
             this.restoreMapPosition(coords[0], coords[1], coords[2]);
-            this.coords = null;
+            this.urlCoords = null;
           } else {
             this.centerElementOnSVG(this.searchedNodesOnMap[0]);
           }
@@ -493,7 +498,7 @@ export default {
         return;
       }
       const [id, type] = this.getElementIdAndType(element);
-      if (type === 'subsystem' && this.loadedMapType === 'subsystem') {
+      if (type === 'subsystem' && this.mapType === 'subsystem') {
         // cannot select subsystem on subsystem map
         return;
       }

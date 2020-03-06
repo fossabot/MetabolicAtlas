@@ -220,7 +220,7 @@ export default {
     goToMapViewer() {
       if (this.viewerLastPath) {
         if (this.$route.path !== this.viewerLastPath) {
-          this.$router.push({ path: this.viewerLastPath, query: { prevent: true } }); // prevent any reload on MV
+          this.$router.push({ path: this.viewerLastPath });
         }
       } else {
         this.$router.push({ name: 'viewerRoot', params: { model: this.$route.params.model } });
