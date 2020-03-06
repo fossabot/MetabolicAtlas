@@ -17,7 +17,7 @@
               <template v-for="map in mapAvailableLimited[mapKey][mapType]">
                 <li :key="map[0]">
                   <!-- eslint-disable-next-line max-len -->
-                  <router-link v-if="viewerSelectedID" :to="{ name: 'viewer', params: { model: model.database_name, type: mapType, map_id: map[0] }, query: { dim: mapKey, search: viewerSelectedID, sel: viewerSelectedID } }">
+                  <router-link v-if="viewerSelectedID" :to="{ name: 'viewer', params: { model: model.database_name, type: mapType, map_id: map[0], reload: true }, query: { dim: mapKey, search: viewerSelectedID, sel: viewerSelectedID } }">
                     {{ map[1] }}
                   </router-link>
                   <!-- eslint-disable-next-line max-len -->

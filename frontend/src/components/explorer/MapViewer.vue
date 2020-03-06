@@ -23,7 +23,7 @@
                     <li v-for="cKey in Object.keys(mapsData3D.compartments).sort()" :key="cKey"
                         class="clickable"
                         :class="{'has-text-warning': cKey === currentDisplayedName }"
-                        @click="showMap(mapsData3D.compartments[cKey].id)">
+                        @click="showMap(mapsData3D.compartments[cKey].id, 'compartment', '3d')">
                       {{ mapsData3D.compartments[cKey].name }}
                       {{ mapsData3D.compartments[cKey].reaction_count != 0 ?
                         `(${mapsData3D.compartments[cKey].reaction_count})` : '' }}
@@ -34,7 +34,7 @@
                         class="clickable"
                         :class="{ 'disable' : !mapsData2D.compartments[cKey].sha,
                                   'has-text-warning': cKey === currentDisplayedName }"
-                        @click="showMap(mapsData2D.compartments[cKey].id)">
+                        @click="showMap(mapsData2D.compartments[cKey].id, 'compartment', '2d')">
                       {{ mapsData2D.compartments[cKey].name }}
                       {{ mapsData2D.compartments[cKey].reaction_count != 0 ?
                         `(${mapsData2D.compartments[cKey].reaction_count})` : '' }}
@@ -50,7 +50,7 @@
                     <li v-for="sKey in Object.keys(mapsData3D.subsystems).sort()" :key="sKey"
                         class="clickable"
                         :class="{'has-text-warning': sKey === currentDisplayedName }"
-                        @click="showMap(mapsData3D.subsystems[sKey].id, 'subsystem')">
+                        @click="showMap(mapsData3D.subsystems[sKey].id, 'subsystem', '3d')">
                       {{ mapsData3D.subsystems[sKey].name }}
                       {{ mapsData3D.subsystems[sKey].reaction_count != 0 ?
                         `(${mapsData3D.subsystems[sKey].reaction_count})` : '' }}
@@ -61,7 +61,7 @@
                       <template v-if="mapsData2D.subsystems[sKey].id && mapsData2D.subsystems[sKey].sha">
                         <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
                         <li class="clickable" :class="{'has-text-warning': sKey === currentDisplayedName }"
-                            @click="showMap(mapsData2D.subsystems[sKey].id, 'subsystem')">
+                            @click="showMap(mapsData2D.subsystems[sKey].id, 'subsystem', '2d')">
                           {{ mapsData2D.subsystems[sKey].name }}
                           {{ mapsData2D.subsystems[sKey].reaction_count != 0 ?
                             `(${mapsData2D.subsystems[sKey].reaction_count})` : '' }}
@@ -171,7 +171,7 @@ import SidebarDataPanels from '@/components/explorer/mapViewer/SidebarDataPanels
 import DataOverlay from '@/components/explorer/mapViewer/DataOverlay.vue';
 import Svgmap from '@/components/explorer/mapViewer/Svgmap';
 import D3dforce from '@/components/explorer/mapViewer/D3dforce';
-import { setRouteForMap, setRouteForSel, setRouteForOverlay } from '@/helpers/url';
+import { setRouteForMap, setRouteForSel, setRouteForOverlay, setDefaultQuery, areRoutesIdentical } from '@/helpers/url';
 import { default as EventBus } from '@/event-bus';
 import { default as messages } from '@/helpers/messages';
 
@@ -225,6 +225,7 @@ export default {
       showSelectionLoader: false,
       isHoverMenuItem: false,
       dataOverlayPanelVisible: false,
+      lastRoute: {},
       messages,
     };
   },
@@ -250,27 +251,18 @@ export default {
       return this.show2D ? '2d' : '3d';
     },
   },
+  watch: {
+    /* eslint-disable-next-line quote-props */
+    '$route': function watchSetup(to, from) { // eslint-disable-line no-unused-vars
+      if (to.name.includes('viewer') && to.params.reload) {
+        // some actions, like selecting a MapAvailable map already loaded in the MV to no trigger the update
+        this.$forceUpdate();
+      }
+    },
+  },
   created() {
-    EventBus.$off('showAction');
-    EventBus.$off('togglePanel');
     EventBus.$off('loadRNAComplete');
 
-    EventBus.$on('showAction', (type, name, searchTerm, selectIDS, coords) => {
-      // console.log('on showAction', type, name, searchTerm, selectIDS, coords);
-      if (this.showLoader) {
-        return;
-      }
-      if (!this.checkValidRequest(type, name)) {
-        this.handleLoadComplete(false, messages.mapNotFound, 'danger');
-        return;
-      }
-      this.showOverviewScreen = false; // to get the loader visible
-      this.selectionData.data = null;
-      EventBus.$emit(this.show2D ? 'showSVGmap' : 'show3Dnetwork', this.requestedType, this.requestedName, searchTerm, selectIDS, coords);
-    });
-    EventBus.$on('togglePanel', () => {
-      this.toggleDataOverlayPanel();
-    });
     EventBus.$on('loadRNAComplete', (isSuccess, errorMessage) => {
       if (!isSuccess) {
         // show error
@@ -292,6 +284,54 @@ export default {
   },
   beforeMount() {
     this.getSubComptData(this.model);
+  },
+  beforeUpdate() {
+    console.log('before update');
+    console.log('route', JSON.stringify(this.$route.params), JSON.stringify(this.$route.query));
+    if (this.$route.name === 'viewerRoot' || areRoutesIdentical({ route: this.$route, oldRoute: this.lastRoute })) {
+      this.lastRoute = Object.assign({}, this.$route);
+      console.log('route is root, routes identical');
+      return;
+    }
+
+    console.log(this.$route.params.reload);
+    if (this.$route.params.reload || this.$route.params.reload === undefined) {
+      let defaultValues = {};
+      if (Object.keys(this.$route.query) !== 3 // do not reset when from map available link
+        && Object.keys(this.lastRoute).length !== 0
+        && (this.$route.params.type !== this.lastRoute.params.type
+        || this.$route.params.map_id !== this.lastRoute.params.map_id)) { // always reset on map change
+        console.log('set defaultVal empty for sel and search');
+        defaultValues = { sel: '', search: '' };
+      }
+
+      // reload is set to false
+      this.$router.replace(setDefaultQuery(
+        { route: this.$route, defaultValues })).catch(() => {});
+
+      if (this.$route.query.dim !== this.dim) {
+        this.show3D = !this.show3D;
+        this.show2D = !this.show2D;
+      }
+
+      if (this.showLoader) {
+        return;
+      }
+      if (!this.checkValidRequest(this.$route.params.type, this.$route.params.map_id)) {
+        this.handleLoadComplete(false, messages.mapNotFound, 'danger');
+        return;
+      }
+      this.showOverviewScreen = false; // to get the loader visible
+      this.selectionData.data = null;
+
+      EventBus.$emit(this.show2D ? 'showSVGmap' : 'show3Dnetwork',
+        this.requestedType,
+        this.requestedName,
+        this.$route.query.search,
+        this.$route.query.sel !== '' ? [this.$route.query.sel] : null,
+        this.$route.query.coord);
+    }
+    this.lastRoute = Object.assign({}, this.$route);
   },
   mounted() {
     // menu
@@ -350,16 +390,23 @@ export default {
       this.show3D = !this.show3D;
       this.show2D = !this.show2D;
 
-      // preserve selection and search on dim change
-      console.log(this.$route.query.sel, this.$route.query.sel === '');
-      const searchTerm = this.$route.query.search === '' ? null : this.$route.query.search;
-      const selectIDs = this.$route.query.sel === '' ? null : [this.$route.query.sel];
-
-      if (this.show3D) {
-        EventBus.$emit('show3Dnetwork', this.requestedType, this.requestedName, searchTerm, selectIDs, null);
-      } else {
-        EventBus.$emit('showSVGmap', this.requestedType, this.requestedName, searchTerm, selectIDs, null);
-      }
+      // preserve panel, selection and search on dim change
+      this.$router.push({
+        name: 'viewer',
+        params: {
+          model: this.model.database_name,
+          type: this.currentDisplayedType,
+          map_id: this.currentDisplayedName,
+          reload: true,
+        },
+        query: {
+          dim: this.dim,
+          panel: this.dataOverlayPanelVisible ? '1' : '0',
+          sel: this.$route.query.sel,
+          search: this.$route.query.search,
+          coords: '',
+        },
+      }).catch(() => {});
     },
     handleLoadComplete(isSuccess, errorMessage, messageType) {
       if (!isSuccess) {
@@ -459,11 +506,15 @@ export default {
       }
       return this.requestedName in this.mapsData3D.subsystems;
     },
-    showMap(compartmentOrSubsystemID, type = 'compartment') {
+    showMap(compartmentOrSubsystemID, type, dim) {
       this.selectionData.data = null;
       this.hideDropleftMenus();
       if (compartmentOrSubsystemID) {
-        EventBus.$emit('showAction', type, compartmentOrSubsystemID, '', [], null);
+        this.$router.push({
+          name: 'viewer',
+          params: { model: this.model.database_name, type, map_id: compartmentOrSubsystemID, reload: true },
+          query: { dim, panel: this.dataOverlayPanelVisible ? '1' : '0' },
+        }).catch(() => {});
       } else {
         this.currentDisplayedType = '';
         this.currentDisplayedName = '';
