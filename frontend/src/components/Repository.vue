@@ -128,18 +128,30 @@
                   <tr v-if="selectedModel.ref && selectedModel.ref.length !== 0">
                     <td class="td-key has-background-primary has-text-white-bis">Reference(s)</td>
                     <td>
-                      <template v-for="oneRef in selectedModel.ref">
-                        <span :key="`${oneRef.title}${oneRef.link}`">
-                          <p v-if="!oneRef.link">{{ oneRef.title }}</p>
-                          <a v-else-if="oneRef.pmid" :href="oneRef.link"  target="_blank">
-                            {{ oneRef.title }} (PMID: {{ oneRef.pmid }})
-                          </a>
-                          <a v-else :href="oneRef.link" target="_blank">
-                            {{ oneRef.title || oneRef.link }}
-                          </a>
-                          <br>
-                        </span>
-                      </template>
+                      <span v-for="oneRef in selectedModel.ref" :key="`${oneRef.title}${oneRef.link}${oneRef.pmid}`">
+                        <template v-if="oneRef.pmid && Object.keys(formattedRefs).length === 0">
+                          {{ oneRef.pmid }}
+                        </template>
+                        <template v-else>
+                          <template v-if="oneRef.pmid && formattedRefs[oneRef.pmid]">
+                            <template v-if="formattedRefs[oneRef.pmid].link">
+                              <a target="_blank" :href="formattedRefs[oneRef.pmid].link">
+                                <span v-html="formattedRefs[oneRef.pmid].formattedString"></span>
+                              </a>
+                            </template>
+                            <template v-else>
+                              <span v-html="oneRef.formattedString"></span>
+                            </template>
+                          </template>
+                          <template v-else>
+                            <p v-if="!oneRef.link">{{ oneRef.title }}</p>
+                            <a v-else :href="oneRef.link" target="_blank">
+                              {{ oneRef.title || oneRef.link }}
+                            </a>
+                          </template>
+                        </template>
+                        <br>
+                      </span>
                     </td>
                   </tr>
                 </tbody>
@@ -168,6 +180,7 @@ import 'vue-good-table/dist/vue-good-table.css';
 import Loader from '@/components/Loader';
 import { default as EventBus } from '../event-bus';
 import { default as messages } from '../helpers/messages';
+import { parseEuropePMC } from '../helpers/utils';
 
 export default {
   name: 'Repository',
@@ -266,6 +279,7 @@ export default {
         { name: 'maintained', display: 'Maintained' },
       ],
       selectedModel: {},
+      formattedRefs: {},
       errorMessage: '',
       GEMS: [],
       showModelTable: false,
@@ -340,11 +354,22 @@ export default {
             model.description = setDescription;
           }
 
+          this.reformatRefs(model.ref);
           this.selectedModel = model;
           this.showModelTable = true;
         })
         .catch(() => {
           this.showModelTable = false;
+        });
+    },
+    reformatRefs(modelRefs) {
+      this.formattedRefs = {};
+      const queryIDs = `(EXT_ID:"${modelRefs.map(e => e.pmid).join('"+OR+EXT_ID:"')}")`;
+      axios.get(`https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=${queryIDs}&resultType=core&format=json`)
+        .then((response) => {
+          this.formattedRefs = parseEuropePMC(response.data.resultList.result);
+        })
+        .catch(() => {
         });
     },
     showIntegratedModelData(model) {

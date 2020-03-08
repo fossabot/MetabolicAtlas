@@ -80,25 +80,15 @@
               <template v-if="formattedRefs[oneRef.pmid]">
                 <td v-for="refData in [formattedRefs[oneRef.pmid]]" :key="refData.id">
                   <template v-if="refData.link">
-                    <a :href="refData.link" target="_blank">
-                      <template v-for="author in refData.authors">
-                        {{ author }},
-                      </template>
-                      {{ refData.year }}. <i>{{ refData.title }}</i>
-                      {{ refData.journal }}
-                    </a>
+                    <a target="_blank" :href="refData.link"><span v-html="refData.formattedString"></span></a>
                   </template>
                   <template v-else>
-                    <template v-for="author in refData.authors">
-                      {{ author }},
-                    </template>
-                    {{ refData.year }}. <i>{{ refData.title }}</i>
-                    {{ refData.journal }}
+                    <span v-html="refData.formattedString"></span>
                   </template>
                 </td>
               </template>
               <template v-else>
-                <td></td>
+                <td><span v-show="Object.keys(formattedRefs).length !== 0">No found in Europe PMC</span></td>
               </template>
             </tr>
           </template>
@@ -121,7 +111,7 @@ import MapsAvailable from '@/components/explorer/gemBrowser/MapsAvailable';
 import GemContact from '@/components/shared/GemContact';
 import ExtIdTable from '@/components/explorer/gemBrowser/ExtIdTable';
 import { default as EventBus } from '../../../event-bus';
-import { reformatTableKey, addMassUnit, reformatCompEqString, reformatChemicalReactionHTML, reformatEqSign } from '../../../helpers/utils';
+import { reformatTableKey, addMassUnit, reformatCompEqString, reformatChemicalReactionHTML, reformatEqSign, parseEuropePMC } from '../../../helpers/utils';
 
 export default {
   name: 'Reaction',
@@ -268,34 +258,7 @@ export default {
       const queryIDs = `(EXT_ID:"${this.unformattedRefs.map(e => e.pmid).join('"+OR+EXT_ID:"')}")`;
       axios.get(`https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=${queryIDs}&resultType=core&format=json`)
         .then((response) => {
-          const newFormattedRefs = {};
-          response.data.resultList.result.forEach((details) => {
-            try {
-              const refDetails = {};
-              if (!details.fullTextUrlList) {
-                refDetails.link = null;
-              } else {
-                refDetails.link = details.fullTextUrlList.fullTextUrl
-                  .filter(e => e.documentStyle === 'html' && e.site === 'Europe_PMC');
-                if (refDetails.link.length === 0) {
-                  refDetails.link = details.fullTextUrlList.fullTextUrl.filter(
-                    e => e.documentStyle === 'doi' || e.documentStyle === 'abs')[0].url;
-                } else {
-                  refDetails.link = refDetails.link[0].url;
-                }
-              }
-              if (details.pubYear) {
-                refDetails.year = details.pubYear;
-              }
-              refDetails.authors = details.authorList.author.map(e => e.fullName);
-              refDetails.journal = details.journalInfo.journal.title;
-              refDetails.title = details.title;
-              newFormattedRefs[details.id] = refDetails;
-            } catch (e) {
-            // pass
-            }
-          });
-          this.formattedRefs = newFormattedRefs;
+          this.formattedRefs = parseEuropePMC(response.data.resultList.result);
         })
         .catch(() => {
         });
