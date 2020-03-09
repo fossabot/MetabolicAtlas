@@ -35,8 +35,8 @@ const getReaction = async (id, v) => {
   const statement = `
 MATCH (r:Reaction)-[:V${v}]-(rs:ReactionState)
 WHERE r.id="${id}"
-MATCH (r)-[:V${v}]-(m:Metabolite)-[:V${v}]-(c:Compartment)-[:V${v}]-(cs:CompartmentState)
-OPTIONAL MATCH (r)-[metaboliteEdge:V${v}]-(m)-[:V${v}]-(ms:MetaboliteState)
+MATCH (r)-[metaboliteEdge:V${v}]-(m:Metabolite)-[:V${v}]-(c:Compartment)-[:V${v}]-(cs:CompartmentState)
+MATCH (m)-[:V${v}]-(ms:MetaboliteState)
 OPTIONAL MATCH (r)-[:V${v}]-(s:Subsystem)-[:V${v}]-(ss:SubsystemState)
 OPTIONAL MATCH (r)-[:V${v}]-(g:Gene)-[:V${v}]-(gs:GeneState)
 OPTIONAL MATCH (r)-[:V${v}]-(e:ExternalDb)
