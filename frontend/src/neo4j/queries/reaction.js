@@ -1,5 +1,6 @@
 import postStatement from '../http';
 import handleSingleResponse from '../responseHandlers/single';
+import reformatExternalDbs from '../shared/formatter';
 
 const reformat = (reaction) => {
   const relatedReactionsMetaboliteIds = {};
@@ -17,11 +18,7 @@ const reformat = (reaction) => {
 
   return {
     ...reaction,
-    externalDbs: reaction.externalDbs.reduce((dbs, db) => {
-      let dbRefs = dbs[db.name] || [];
-      dbRefs = [...dbRefs, { id: db.externalId, url: db.url }];
-      return { ...dbs, [db.name]: dbRefs };
-    }, {}),
+    externalDbs: reformatExternalDbs(reaction.externalDbs),
     related: reaction.related.reactions.map(r => ({
       ...r,
       metaboliteIds: relatedReactionsMetaboliteIds[r.id],

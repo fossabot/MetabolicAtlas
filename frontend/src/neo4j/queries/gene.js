@@ -1,14 +1,12 @@
 import postStatement from '../http';
 import handleSingleResponse from '../responseHandlers/single';
+import reformatExternalDbs from '../shared/formatter';
 
-// TODO: in progress
 const getGene = async (id, v) => {
   const statement = `
 MATCH (g:Gene)-[:V${v}]-(gs:GeneState)
 WHERE g.id="${id}"
-
-
-MATCH (g)-[:V${v}]-(:Reaction)-[:V1]-(:Metabolite)-[:V1]-(c:Compartment)-[:V1]-(cs:CompartmentState)
+MATCH (g)-[:V${v}]-(:Reaction)-[:V${v}]-(:Metabolite)-[:V${v}]-(c:Compartment)-[:V${v}]-(cs:CompartmentState)
 OPTIONAL MATCH (g)-[:V${v}]-(:Reaction)-[:V${v}]-(s:Subsystem)-[:V${v}]-(ss:SubsystemState)
 OPTIONAL MATCH (g)-[:V${v}]-(e:ExternalDb)
 RETURN gs {
@@ -16,13 +14,13 @@ RETURN gs {
   .*,
   compartments: COLLECT(DISTINCT(cs {id: c.id, .*})),
   subsystems: COLLECT(DISTINCT(ss {id: s.id, .*})),
-  genes: COLLECT(DISTINCT(gs {id: g.id, .*})),
   externalDbs: COLLECT(DISTINCT(e)),
 } AS gene
 `;
 
   const response = await postStatement(statement);
-  return handleSingleResponse(response);
+  const gene = handleSingleResponse(response);
+  return { ...gene, externalDbs: reformatExternalDbs(gene.externalDbs) };
 };
 
 
