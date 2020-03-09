@@ -260,9 +260,10 @@ export default {
           return;
         }
         amount *= -1;
-      } else if (this.svgZoom > 2) {
+      } else if (this.svgZoom > 1.5) {
         return;
       }
+      this.svgCoordsBase.y /= ((this.svgZoom + amount) / this.svgZoom);
       this.svgZoom += amount;
     },
     getEventCoords(evt) {
@@ -315,7 +316,7 @@ export default {
     loadSvgPanZoom(callback) {
       setTimeout(() => {
         const params = this.getSVGParams();
-        this.svgZoom = Math.min(params.wrapperWidth / params.svgWidth, params.wrapperHeight / params.svgHeight);
+        this.svgZoom = Math.min(params.wrapperWidth / params.svgWidth, params.wrapperHeight / params.svgHeight) * 0.95;
         this.svgCoordsBase = {
           x: (params.wrapperWidth - params.svgWidth) / 2,
           y: (params.wrapperHeight - params.svgHeight) / 2,
