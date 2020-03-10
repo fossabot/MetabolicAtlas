@@ -12,7 +12,10 @@
             </p>
             <ul class="menu-list">
               <li>
-                <a href="#GEM-Browser"><b>GEM Browser</b></a>
+                <a href="#GEM-Browser">
+                  <span class="icon has-text-info"><i class="fa fa-table"></i></span>
+                  <b>GEM Browser</b>
+                </a>
                 <ul class="menu-list">
                   <li><a href="#reaction-page">Reaction page</a></li>
                   <li><a href="#metabolite-page">Metabolite page</a></li>
@@ -21,19 +24,26 @@
                   <li><a href="#compartment-page">Compartment page</a></li>
                   <li><a href="#GEM-Browser-Search">Search</a></li>
                 </ul>
-                <a href="#Interaction-Partners"><b>Interaction Partners</b></a>
+                <a href="#Interaction-Partners">
+                  <span class="icon has-text-info"><i class="fa fa-connectdevelop"></i></span>
+                  <b>Interaction Partners</b>
+                </a>
                 <ul class="menu-list">
                   <li><a href="#IP-Search">Search</a></li>
                 </ul>
-                <a href="#Map-Viewer"><b>Map Viewer</b></a>
+                <a href="#Map-Viewer">
+                  <span class="icon has-text-info"><i class="fa fa-map-o"></i></span>
+                  <b>Map Viewer</b>
+                </a>
                 <ul class="menu-list">
                   <li><a href="#2D-Viewer">2D Viewer</a></li>
                   <li><a href="#3D-Viewer">3D Viewer</a></li>
                   <li><a href="#Data-overlay">Data Overlay</a></li>
                 </ul>
-              </li>
-              <a href="#Global-search"><b>Global search</b></a>
-              <li>
+                <a href="#Global-search">
+                  <span class="icon has-text-info"><i class="fa fa-search"></i></span>
+                  <b>Global search</b>
+                </a>
                 <a href="#GEMs"><b>GEMs</b></a>
                 <ul class="menu-list">
                   <li><a href="#Integrated-models">Integrated models</a></li>
@@ -57,7 +67,10 @@
           The <i>GEM Browser</i> and the <i>Map Viewer</i> are closely connected, and users can navigate between the two tools using the buttons in the top navigation bar.
 
           <hr>
-          <h3 id="GEM-Browser">GEM Browser<span class="icon is-large"><i class="fa fa-table"></i></span></h3>
+          <h3 id="GEM-Browser" class="is-info">
+            <span class="icon is-large has-text-info"><i class="fa fa-table"></i></span>
+            GEM Browser
+          </h3>
           The <i>GEM Browser</i> is a set of dedicated pages for different components of the model; reactions, metabolites, genes, subsystems, and compartments. Each of these pages contains a button on right, to report a problem or ask questions to the modellers.
 
           <h5 id="reaction-page">Reaction page</h5>
@@ -91,12 +104,15 @@
           <h5 id="compartment-page">Compartment page</h5>
           Shows information on the current selected compartment. The full list of metabolites, genes and reactions is available through the <a href="#API">API</a>.<br>Similarly to the subsystem page the list of maps/networks where this compartment can be vizualize is displayed on the right.
 
-          <h5 id="GEM-Browser-Search">Gem Browser Search</h5>
+          <h5 id="GEM-Browser-Search">GEM Browser Search</h5>
           Search for any term in metabolites, genes, reactions, subsystems, or compartments information. The results links redirect to the corresponding <i>GEM Browser</i> page of the component clicked.<br>
           The <i>GEM Browser</i> search is restricted to the selected GEM and limited to 50 results per component type. Alternatively, users can click on the banner under the search input field to run a <i>Global Search</i>, where the term is searched among all the integrated models' components and is unrestricted. To learn more about the search term possiblities, go to the <a href="#Global-Search">Global Search</a> section of this page.
 
           <hr>
-          <h3 id="Interaction-Partners">Interaction Partners<span class="icon is-large"><i class="fa fa-share-alt"></i></span></h3>
+          <h3 id="Interaction-Partners">
+            <span class="icon is-large has-text-info"><i class="fa fa-connectdevelop"></i></span>
+            Interaction Partners
+          </h3>
           For a given metabolite or gene, this tool renders a connected graph of the other metabolites and genes with which it interacts via shared reaction(s). The metabolite or gene of interest is centered on the graph. Connectivity is determined based on the reactions with which this metabolite or gene is associated, i.e. a edge between two nodes maybe represente a connections that occurs in multiple reactions. For medium-sized networks of interaction partners, the user is prompted before generating the graph. For very large networks (e.g. for H<sub>2</sub>O) the graph will not be generated. Users can left-click a node to display a context menu with 3 options:<br>
           <ul>
             <li>Load interaction partners: reload the interaction partners graph with the clicked node as the new central node.</li>
@@ -121,12 +137,15 @@
           The <i>Interaction Partners</i> search is also restricted to the selected GEM and limited to 50 results per component type.
 
           <hr>
-          <h3 id="Map-Viewer">Map Viewer<span class="icon is-large"><i class="fa fa-map-o"></i></span></h3>
-          The <i>Map Viewer</i> is - similar to the <i>Interaction Partners</i> and the <i>GEM Browser</i> - a separate and independent tool, accessible after an integrated model has been selected. It includes a 2D viewer to vizualize metabolic maps in SVG format, and a 3D viewer to explore the metabolic network in 3 dimensions. Users can easly toggle between the <i>GEM Browser</i> and <i>Map Viewer</i> using the buttons in the top navigation bar.<br>
+          <h3 id="Map-Viewer">
+            <span class="icon is-large has-text-info"><i class="fa fa-map-o"></i></span>
+            Map Viewer
+          </h3>
+          The <i>Map Viewer</i> is - similar to the <i>Interaction Partners</i> and the <i>GEM Browser</i> - a separate tool, accessible after an integrated model has been selected. It includes a 2D viewer to vizualize metabolic maps in SVG format, and a 3D viewer to explore the metabolic network in 3 dimensions. Users can easly toggle between the <i>GEM Browser</i> and <i>Map Viewer</i> using the buttons in the top navigation bar.<br>
           To switch between 2D maps and 3D network, use the "Switch to 2D" or "Switch to 3D" button in the top left of the map, respectively. This button is disabled for a model without 2D maps, or when the corresponding 2D version of a 3D network is not available. The two left sidebar buttons are used to select which compartment or subsystem will be shown in the viewer.
 
           <h5 id="2D-Viewer">2D Viewer</h5>
-          2D SVG maps are provided for integrated GEMs. They represent either a cell compartment or a subsystem/pathway. While a very high percentage of the reactions in the model are represented on the 2D maps, some may be unavailable. SVG maps were produced with <a target="_blank" href="https://www.omix-visualization.com/">Omix</a>, a user-friendly and highly customizable tool for editing biochemical networks, with the help of a custom plug-in.<br><br>
+          2D SVG maps are provided for integrated GEMs. They represent either a cell compartment or a subsystem/pathway. While a very high percentage of the reactions in the model are represented on the 2D maps, some may be unavailable. SVG maps were produced with <a target="_blank" href="https://www.omix-visualization.com/">Omix</a>, a customizable tool for editing biochemical networks. A custom plug-in was developed to enable the creation of compact maps with consistent layout.<br><br>
           Three buttons on the top left of the UI allow users to zoom in, zoom out and show/hide the genes on the current map.<br>
           Users can interact with the maps by clicking and dragging the mouse to pan the view or using the mouse wheel to zoom in/out.<br>
           A search function is available for 2D maps using the search bar. The window will zoom and center on each component found. Click the 'highlight' button to color all found components on the maps in red. To remove the highlight, simply clear the search bar.<br>
@@ -158,7 +177,10 @@
           </div>
 
           <hr>
-          <h3 id="Global-search">Global search</h3>
+          <h3 id="Global-search">
+            <span class="icon has-text-info"><i class="fa fa-search"></i></span>
+            Global search
+          </h3>
           The <i>Global search</i> page queries all the integrated metabolic models. Each metabolic component has its own results table accessible via the dedicated tab. Tabs are inactivated when no results are found. The search text is not restricted to the visible columns; for example, searching an MetaNetX ID will return results for the metabolites and/or reactions matching the ID even though the MetaNetX column is not in the table. The search algorithm matches partial names of components: searching for 'cholesterol' will output all metabolites containing the substring 'cholesterol'. When the name of a metabolite is provided, all metabolites matching or partially matching this name be returned, in addition to a the list of all reactions that involve these matching metabolites. The global search is also able to query reactions in a more advanced way using special patterns:
           <ul>
             <li>Use the compartment letter at the end of a metabolite name, e.g cholesterol[c] to match metabolites associated with that compartment.</li>
@@ -220,4 +242,11 @@ export default {
 };
 </script>
 
-<style lang="scss"></style>
+<style lang="scss" scoped>
+  .menu-list > a {
+    padding-left: 0;
+  }
+  .icon {
+    padding-right: 1.2rem;
+  }
+</style>

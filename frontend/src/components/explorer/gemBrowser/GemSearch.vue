@@ -18,7 +18,7 @@
             <i class="fa fa-search"></i>
           </span>
           <span class="icon is-small is-right">
-            <i class="fa" :class="metabolitesAndGenesOnly ? 'fa-share-alt' : 'fa-table'"></i>
+            <i class="fa" :class="metabolitesAndGenesOnly ? 'fa-connectdevelop' : 'fa-table'"></i>
           </span>
         </p>
         <router-link class="is-pulled-right is-size-5" :to="{ name: 'search', query: { term: searchTermString } }">
