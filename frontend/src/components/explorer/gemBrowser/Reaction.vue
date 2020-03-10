@@ -8,10 +8,10 @@
         <h3 class="title is-size-3"><span class="is-capitalized">{{ type }}</span> {{ reaction.id }}</h3>
       </div>
     </div>
-    <div v-show="showLoader" class="columns">
+    <div v-if="showLoader" class="columns">
       <loader></loader>
     </div>
-    <div v-show="!showLoader" class="columns is-multiline is-variable is-8">
+    <div v-else class="columns is-multiline is-variable is-8">
       <div class="reaction-table column is-10-widescreen is-9-desktop is-full-tablet">
         <table v-if="reaction && Object.keys(reaction).length !== 0" class="table main-table is-fullwidth">
           <tr v-for="el in mainTableKey" :key="el.name">
@@ -69,44 +69,11 @@
           </tr>
         </table>
         <ExtIdTable :type="type" :external-dbs="reaction.external_databases"></ExtIdTable>
-        <h4 class="title is-size-4">References via PubMed ID</h4>
-        <table class="main-table table is-fullwidth">
-          <template v-if="unformattedRefs.length === 0">
-            <p>This reaction has no associated references.</p>
-          </template>
-          <template v-else>
-            <tr v-for="oneRef in unformattedRefs" :key="oneRef.pmid">
-              <td class="td-key has-background-primary has-text-white-bis">{{ oneRef.pmid }}</td>
-              <template v-if="formattedRefs[oneRef.pmid]">
-                <td v-for="refData in [formattedRefs[oneRef.pmid]]" :key="refData.id">
-                  <template v-if="refData.link">
-                    <a :href="refData.link" target="_blank">
-                      <template v-for="author in refData.authors">
-                        {{ author }},
-                      </template>
-                      {{ refData.year }}. <i>{{ refData.title }}</i>
-                      {{ refData.journal }}
-                    </a>
-                  </template>
-                  <template v-else>
-                    <template v-for="author in refData.authors">
-                      {{ author }},
-                    </template>
-                    {{ refData.year }}. <i>{{ refData.title }}</i>
-                    {{ refData.journal }}
-                  </template>
-                </td>
-              </template>
-              <template v-else>
-                <td></td>
-              </template>
-            </tr>
-          </template>
-        </table>
+        <references :reference-list="referenceList" />
       </div>
       <div class="column is-2-widescreen is-3-desktop is-half-tablet has-text-centered">
         <maps-available :id="rId" :model="model" :type="type" :element-i-d="rId"></maps-available>
-        <gem-contact :model="model" :type="type" :id="rId"/>
+        <gem-contact :id="rId" :model="model" :type="type" />
       </div>
     </div>
   </div>
@@ -118,10 +85,11 @@ import $ from 'jquery';
 import Loader from '@/components/Loader';
 import NotFound from '@/components/NotFound';
 import MapsAvailable from '@/components/explorer/gemBrowser/MapsAvailable';
-import GemContact from '@/components/shared/GemContact';
 import ExtIdTable from '@/components/explorer/gemBrowser/ExtIdTable';
-import { default as EventBus } from '../../../event-bus';
-import { reformatTableKey, addMassUnit, reformatCompEqString, reformatChemicalReactionHTML, reformatEqSign } from '../../../helpers/utils';
+import GemContact from '@/components/shared/GemContact';
+import References from '@/components/shared/References';
+import { default as EventBus } from '@/event-bus';
+import { reformatTableKey, addMassUnit, reformatCompEqString, reformatChemicalReactionHTML, reformatEqSign } from '@/helpers/utils';
 
 export default {
   name: 'Reaction',
@@ -131,6 +99,7 @@ export default {
     MapsAvailable,
     GemContact,
     ExtIdTable,
+    References,
   },
   props: {
     model: Object,
@@ -154,8 +123,7 @@ export default {
       errorMessage: '',
       showLoader: true,
       mapsAvailable: {},
-      unformattedRefs: [],
-      formattedRefs: {},
+      referenceList: [],
       componentNotFound: false,
     };
   },
@@ -192,8 +160,7 @@ export default {
           this.showLoader = false;
           this.reaction = response.data.reaction;
           if (response.data.pmids.length !== 0) {
-            this.unformattedRefs = response.data.pmids;
-            this.reformatRefs();
+            this.referenceList = response.data.pmids;
           }
           this.getRelatedReactions();
         })
@@ -263,43 +230,6 @@ export default {
       return s;
     },
     reformatReversible() { return this.reaction.is_reversible ? 'Yes' : 'No'; },
-    reformatRefs() {
-      this.formattedRefs = {};
-      const queryIDs = `(EXT_ID:"${this.unformattedRefs.map(e => e.pmid).join('"+OR+EXT_ID:"')}")`;
-      axios.get(`https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=${queryIDs}&resultType=core&format=json`)
-        .then((response) => {
-          const newFormattedRefs = {};
-          response.data.resultList.result.forEach((details) => {
-            try {
-              const refDetails = {};
-              if (!details.fullTextUrlList) {
-                refDetails.link = null;
-              } else {
-                refDetails.link = details.fullTextUrlList.fullTextUrl
-                  .filter(e => e.documentStyle === 'html' && e.site === 'Europe_PMC');
-                if (refDetails.link.length === 0) {
-                  refDetails.link = details.fullTextUrlList.fullTextUrl.filter(
-                    e => e.documentStyle === 'doi' || e.documentStyle === 'abs')[0].url;
-                } else {
-                  refDetails.link = refDetails.link[0].url;
-                }
-              }
-              if (details.pubYear) {
-                refDetails.year = details.pubYear;
-              }
-              refDetails.authors = details.authorList.author.map(e => e.fullName);
-              refDetails.journal = details.journalInfo.journal.title;
-              refDetails.title = details.title;
-              newFormattedRefs[details.id] = refDetails;
-            } catch (e) {
-            // pass
-            }
-          });
-          this.formattedRefs = newFormattedRefs;
-        })
-        .catch(() => {
-        });
-    },
     reformatTableKey,
     reformatCompEqString,
     reformatChemicalReactionHTML,

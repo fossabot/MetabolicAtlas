@@ -122,7 +122,7 @@ class GEM(models.Model):
     date = models.DateField()
     link = models.CharField(max_length=255, null=True)
     chat_link = models.CharField(max_length=255, null=True)
-    ref = models.ManyToManyField(GEModelReference, related_name='gem', blank=True)
+    ref = models.ManyToManyField(GEModelReference, related_name='gem', through='GEMreference', blank=True)
     authors = models.ManyToManyField(Author, related_name='gem', through='GEMAuthor', blank=True)
     sample = models.ForeignKey(GEModelSample, on_delete=models.CASCADE)
 
@@ -139,6 +139,13 @@ class GEMAuthor(models.Model):
 
     class Meta:
         db_table = "gem_author"
+
+class GEMreference(models.Model):
+    model = models.ForeignKey(GEM, on_delete=models.CASCADE)
+    ref = models.ForeignKey(GEModelReference, on_delete=models.CASCADE)
+
+    class Meta:
+        db_table = "gem_reference"
 
 ##########################################################################################################################
 ##########################################################################################################################
