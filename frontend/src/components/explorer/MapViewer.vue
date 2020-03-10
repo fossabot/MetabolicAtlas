@@ -308,13 +308,19 @@ export default {
         && Object.keys(this.lastRoute).length !== 0
         && (this.$route.params.type !== this.lastRoute.params.type
         || this.$route.params.map_id !== this.lastRoute.params.map_id)) { // always reset on map change
-        console.log('set defaultVal empty for sel and search');
         defaultValues = { sel: '', search: '' };
       }
 
-      // reload is set to false
+
       this.$router.replace(setDefaultQuery(
-        { route: this.$route, defaultValues })).catch(() => {});
+        { route: this.$route, defaultValues })).catch(() => {}); // reload is always set to false
+
+      if (this.$route.params.reload === undefined && (this.$route.query.g1 || this.$route.query.g2)) {
+        // first load of the map viewer, set the panel visible if g1 or g2 are set
+        this.$router.replace(setRouteForOverlay(
+          { route: this.$route, isOpen: true })).catch(() => {});
+        this.dataOverlayPanelVisible = true;
+      }
 
       if (this.$route.query.dim !== this.dim) {
         this.show3D = !this.show3D;
@@ -324,6 +330,7 @@ export default {
       if (this.showLoader) {
         return;
       }
+
       if (!this.checkValidRequest(this.$route.params.type, this.$route.params.map_id)) {
         this.handleLoadComplete(false, messages.mapNotFound, 'danger');
         return;
