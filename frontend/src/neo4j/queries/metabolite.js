@@ -5,13 +5,13 @@ import reformatExternalDbs from '../shared/formatter';
 const getMetabolite = async ({ id, version }) => {
   const v = version;
   const statement = `
-MATCH (m:Metabolite)-[:V1]-(ms:MetaboliteState)
+MATCH (m:Metabolite)-[:V${v}]-(ms:MetaboliteState)
 WHERE m.id="${id}"
-MATCH (m)-[:V1]-(c:Compartment)-[:V1]-(cs:CompartmentState)
-OPTIONAL MATCH (m)-[:V1]-(s:Subsystem)-[:V1]-(ss:SubsystemState)
-OPTIONAL MATCH (m)-[:V1]-(e:ExternalDb)
-OPTIONAL MATCH (c)-[:V1]-(csvg:SvgMap)
-OPTIONAL MATCH (s)-[:V1]-(ssvg:SvgMap)
+MATCH (m)-[:V${v}]-(c:Compartment)-[:V${v}]-(cs:CompartmentState)
+OPTIONAL MATCH (m)-[:V${v}]-(s:Subsystem)-[:V${v}]-(ss:SubsystemState)
+OPTIONAL MATCH (m)-[:V${v}]-(e:ExternalDb)
+OPTIONAL MATCH (c)-[:V${v}]-(csvg:SvgMap)
+OPTIONAL MATCH (s)-[:V${v}]-(ssvg:SvgMap)
 RETURN ms {
   id: m.id,
   .*,
@@ -28,4 +28,4 @@ RETURN ms {
 };
 
 
-export default metabolite;
+export default getMetabolite;
