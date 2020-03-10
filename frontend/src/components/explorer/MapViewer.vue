@@ -254,9 +254,15 @@ export default {
   watch: {
     /* eslint-disable-next-line quote-props */
     '$route': function watchSetup(to, from) { // eslint-disable-line no-unused-vars
-      if (to.name.includes('viewer') && to.params.reload) {
-        // some actions, like selecting a MapAvailable map already loaded in the MV to no trigger the update
-        this.$forceUpdate();
+      if (to.name.includes('viewer')) {
+        if (to.name === 'viewerRoot' && from.name === 'viewer') {
+          this.showOverviewScreen = true;
+          this.currentDisplayedType = '';
+          this.currentDisplayedName = '';
+        } else {
+          // some action no not trigger the update, like using the 'previous page' button
+          this.$forceUpdate();
+        }
       }
     },
   },
