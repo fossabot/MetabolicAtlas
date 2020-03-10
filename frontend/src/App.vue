@@ -171,8 +171,8 @@ export default {
       acceptCookiePolicy,
       activeDropMenu: '',
       model: null,
-      browserLastPath: '',
-      viewerLastPath: '',
+      browserLastRoute: {},
+      viewerLastRoute: {},
       isMobileMenu: false,
     };
   },
@@ -198,43 +198,43 @@ export default {
       if (['browserRoot', 'browser'].includes(this.$route.name)) {
         this.activeBrowserBut = true;
         this.activeViewerBut = false;
-        this.savePath();
+        this.saveRoute();
       } else if (['viewerRoot', 'viewer'].includes(this.$route.name)) {
         this.activeBrowserBut = false;
         this.activeViewerBut = true;
-        this.savePath();
+        this.saveRoute();
       } else {
         this.activeBrowserBut = false;
         this.activeViewerBut = false;
       }
     },
     goToGemBrowser() {
-      if (this.browserLastPath) {
-        if (this.$route.path !== this.browserLastPath) {
-          this.$router.push(this.browserLastPath);
+      if (Object.keys(this.browserLastRoute).length !== 0) {
+        if (this.$route.path !== this.browserLastRoute.path) {
+          this.$router.push(this.browserLastRoute);
         }
       } else {
         this.$router.push({ name: 'browserRoot', params: { model: this.$route.params.model } });
       }
     },
     goToMapViewer() {
-      if (this.viewerLastPath) {
-        if (this.$route.path !== this.viewerLastPath) {
-          this.$router.push({ path: this.viewerLastPath });
+      if (Object.keys(this.viewerLastRoute).length !== 0) {
+        if (this.$route.path !== this.viewerLastRoute.path) {
+          this.$router.push(this.viewerLastRoute);
         }
       } else {
         this.$router.push({ name: 'viewerRoot', params: { model: this.$route.params.model } });
       }
     },
-    savePath() {
+    saveRoute() {
       if (this.$route.name === 'browser') {
-        this.browserLastPath = this.$route.path;
+        this.browserLastRoute = Object.assign(this.$route);
       } else if (this.$route.name === 'browserRoot') {
-        this.browserLastPath = '';
+        this.browserLastRoute = {};
       } else if (this.$route.name === 'viewer') {
-        this.viewerLastPath = this.$route.fullPath;
+        this.viewerLastRoute = Object.assign(this.$route);
       } else if (this.$route.name === 'viewerRoot') {
-        this.viewerLastPath = '';
+        this.viewerLastRoute = {};
       }
     },
   },
