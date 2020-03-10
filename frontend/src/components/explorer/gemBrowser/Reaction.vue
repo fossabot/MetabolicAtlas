@@ -120,7 +120,7 @@ import NotFound from '@/components/NotFound';
 import MapsAvailable from '@/components/explorer/gemBrowser/MapsAvailable';
 import GemContact from '@/components/shared/GemContact';
 import ExtIdTable from '@/components/explorer/gemBrowser/ExtIdTable';
-import { getReaction } from '@/neo4j';
+import { getReaction, getRelatedReactionsForReaction } from '@/neo4j';
 import { default as EventBus } from '../../../event-bus';
 import { reformatTableKey, addMassUnit, reformatCompEqString, reformatChemicalReactionHTML, reformatEqSign } from '../../../helpers/utils';
 
@@ -185,10 +185,11 @@ export default {
     async setup() {
       this.rId = this.$route.params.id;
       await this.load();
+      await this.getRelatedReactions();
     },
     async load() {
       try {
-        const r = await getReaction(this.rId, 1);
+        const r = await getReaction({ id: this.rId, version: 1 });
         this.componentNotFound = false;
         this.showLoader = false;
         this.reaction = r;
@@ -218,16 +219,23 @@ export default {
       //     document.getElementById('search').focus();
       //   });
     },
-    getRelatedReactions() {
-      axios.get(`${this.model.database_name}/get_reaction/${this.rId}/related`)
-        .then((response) => {
-          this.relatedReactions = response.data;
-          this.relatedReactions.sort((a, b) => (a.compartment_str < b.compartment_str ? -1 : 1));
-        })
-        .catch(() => {
-          this.relatedReactions = [];
-        });
+    async getRelatedReactions() {
+      try {
+        this.relatedReactions = await getRelatedReactionsForReaction({ id: this.rId, version: 1 });
+      } catch (e) {
+        this.relatedReactions = [];
+      }
     },
+    // getRelatedReactions() {
+    //   axios.get(`${this.model.database_name}/get_reaction/${this.rId}/related`)
+    //     .then((response) => {
+    //       this.relatedReactions = response.data;
+    //       this.relatedReactions.sort((a, b) => (a.compartment_str < b.compartment_str ? -1 : 1));
+    //     })
+    //     .catch(() => {
+    //       this.relatedReactions = [];
+    //     });
+    // },
     reformatEquation() { return reformatChemicalReactionHTML(this.reaction); },
     reformatGenes() {
       if (!this.reaction.geneRule) {

@@ -2,36 +2,8 @@ import postStatement from '../http';
 import handleSingleResponse from '../responseHandlers/single';
 import reformatExternalDbs from '../shared/formatter';
 
-const reformat = (reaction) => {
-  const relatedReactionsMetaboliteIds = {};
-
-  reaction.related.mappingWithMetabolites.forEach((mapping) => {
-    if (relatedReactionsMetaboliteIds[mapping.reactionId]) {
-      relatedReactionsMetaboliteIds[mapping.reactionId] = [
-        ...relatedReactionsMetaboliteIds[mapping.reactionId],
-        mapping.metaboliteId,
-      ];
-    } else {
-      relatedReactionsMetaboliteIds[mapping.reactionId] = [mapping.metaboliteId];
-    }
-  });
-
-  return {
-    ...reaction,
-    externalDbs: reformatExternalDbs(reaction.externalDbs),
-    related: reaction.related.reactions.map(r => ({
-      ...r,
-      metaboliteIds: relatedReactionsMetaboliteIds[r.id],
-    })).sort((r1, r2) => { // order by related metabolites count, highest to lowest
-      if (r1.metaboliteIds.length === r2.metaboliteIds.length) {
-        return 0;
-      }
-      return r1.metaboliteIds.length > r2.metaboliteIds.length ? -1 : 1;
-    }),
-  };
-};
-
-const getReaction = async (id, v) => {
+const getReaction = async ({ id, version }) => {
+  const v = version;
   const statement = `
 MATCH (r:Reaction)-[:V${v}]-(rs:ReactionState)
 WHERE r.id="${id}"
@@ -43,7 +15,6 @@ OPTIONAL MATCH (r)-[:V${v}]-(e:ExternalDb)
 OPTIONAL MATCH (r)-[:V${v}]-(p:PubmedReference)
 OPTIONAL MATCH (c)-[:V${v}]-(csvg:SvgMap)
 OPTIONAL MATCH (s)-[:V${v}]-(ssvg:SvgMap)
-OPTIONAL MATCH (r)-[:V${v}]-(m)-[relatedEdge:V${v}]-(related:Reaction)-[:V${v}]-(relatedS:ReactionState)
 RETURN rs {
   id: r.id,
   .*,
@@ -54,16 +25,12 @@ RETURN rs {
   pubmedIds: COLLECT(DISTINCT(p)),
   metabolites: COLLECT(DISTINCT(ms {id: m.id, outgoing: startnode(metaboliteEdge)=m, .*})),
   compartmentSVGs: COLLECT(DISTINCT(csvg {compartnmentName: cs.name, .*})),
-  subsystemSVGs: COLLECT(DISTINCT(ssvg {subsystemName: ss.name, .*})),
-  related: {
-    reactions: COLLECT(DISTINCT(relatedS {id: related.id, outgoing: startnode(relatedEdge)=related, .*})),
-    mappingWithMetabolites: COLLECT(DISTINCT({reactionId: related.id, metaboliteId: m.id}))
-  }
+  subsystemSVGs: COLLECT(DISTINCT(ssvg {subsystemName: ss.name, .*}))
 } AS reaction
 `;
   const response = await postStatement(statement);
   const reaction = handleSingleResponse(response);
-  return reformat(reaction);
+  return { ...reaction, externalDbs: reformatExternalDbs(reaction.externalDbs) };
 };
 
 

@@ -1,43 +1,16 @@
 import postStatement from '../http';
-import handleSingleResponse from '../responseHandlers/single';
-
-const reformat = (reaction) => {
-  const relatedReactionsMetaboliteIds = {};
-
-  reaction.related.mappingWithMetabolites.forEach((mapping) => {
-    if (relatedReactionsMetaboliteIds[mapping.reactionId]) {
-      relatedReactionsMetaboliteIds[mapping.reactionId] = [
-        ...relatedReactionsMetaboliteIds[mapping.reactionId],
-        mapping.metaboliteId,
-      ];
-    } else {
-      relatedReactionsMetaboliteIds[mapping.reactionId] = [mapping.metaboliteId];
-    }
-  });
-
-  return {
-    ...reaction,
-    related: reaction.related.reactions.map(r => ({
-      ...r,
-      metaboliteIds: relatedReactionsMetaboliteIds[r.id],
-    })).sort((r1, r2) => { // order by related metabolites count, highest to lowest
-      if (r1.metaboliteIds.length === r2.metaboliteIds.length) {
-        return 0;
-      }
-      return r1.metaboliteIds.length > r2.metaboliteIds.length ? -1 : 1;
-    }),
-  };
-};
+import handleListResponse from '../responseHandlers/list';
 
 const NODE_TYPES = {
   reaction: 'Reaction',
   gene: 'Gene',
   metabolite: 'Metabolite',
   subsystem: 'Subsystem',
-  compartment: 'Compartment'
+  compartment: 'Compartment',
 };
 
-const getRelatedReaction = async ({ nodeType, id, version }) => {
+// TODO: add pagination and search
+const getRelatedReactions = async ({ nodeType, id, version }) => {
   const v = version;
   let statement;
 
@@ -95,133 +68,34 @@ RETURN relatedS {
 `;
 
   const response = await postStatement(statement);
-  const reaction = handleSingleResponse(response);
-  return reformat(reaction);
+  const reactions = handleListResponse(response);
+  return reactions;
 };
 
-/*
+const getRelatedReactionsForReaction = ({ id, version }) => getRelatedReactions({
+  id, version, nodeType: NODE_TYPES.reaction,
+});
 
-// Reaction
-TODO: remove relatedEdge and add metaboliteEdge as above
-  `
-MATCH (x:Reaction)-[:V1]-(m:Metabolite)
-WHERE x.id=""
-MATCH (x)-[:V1]-(m)-[relatedEdge:V1]-(related:Reaction)-[:V1]-(relatedS:ReactionState)
-MATCH (m)-[:V1]-(ms:MetaboliteState)
-OPTIONAL MATCH (related)-[:V1]-(c:Compartment)-[:V1]-(cs:CompartmentState)
-OPTIONAL MATCH (related)-[:V1]-(s:Subsystem)-[:V1]-(ss:SubsystemState)
-OPTIONAL MATCH (related)-[:V1]-(g:Gene)-[:V1]-(gs:GeneState)
-RETURN relatedS {
-  id: related.id,
-  outgoing: startnode(relatedEdge)=related,
-  compartments: COLLECT(DISTINCT(cs {id: c.id, .*})),
-  subsystems: COLLECT(DISTINCT(ss {id: s.id, .*})),
-  metabolites: COLLECT(DISTINCT(ms {id: m.id, .*})),
-  genes: COLLECT(DISTINCT(gs {id: g.id, .*}))
-} as reactions
-`;
+const getRelatedReactionsForGene = ({ id, version }) => getRelatedReactions({
+  id, version, nodeType: NODE_TYPES.gene,
+});
 
+const getRelatedReactionsForMetabolite = ({ id, version }) => getRelatedReactions({
+  id, version, nodeType: NODE_TYPES.metabolite,
+});
 
+const getRelatedReactionsForSubsystem = ({ id, version }) => getRelatedReactions({
+  id, version, nodeType: NODE_TYPES.subsystem,
+});
 
-// Gene
-  `
-MATCH (x:Gene)-[relatedEdge:V1]-(related:Reaction)-[:V1]-(m:Metabolite)
-WHERE x.id=""
-MATCH (related)-[:V1]-(relatedS:ReactionState)
-MATCH (m)-[:V1]-(ms:MetaboliteState)
-OPTIONAL MATCH (related)-[:V1]-(c:Compartment)-[:V1]-(cs:CompartmentState)
-OPTIONAL MATCH (related)-[:V1]-(s:Subsystem)-[:V1]-(ss:SubsystemState)
-OPTIONAL MATCH (related)-[:V1]-(g:Gene)-[:V1]-(gs:GeneState)
-RETURN relatedS {
-  id: related.id,
-  outgoing: startnode(relatedEdge)=related,
-  compartments: COLLECT(DISTINCT(cs {id: c.id, .*})),
-  subsystems: COLLECT(DISTINCT(ss {id: s.id, .*})),
-  metabolites: COLLECT(DISTINCT(ms {id: m.id, .*})),
-  genes: COLLECT(DISTINCT(gs {id: g.id, .*}))
-} as reactions
-`;
+const getRelatedReactionsForCompartment = ({ id, version }) => getRelatedReactions({
+  id, version, nodeType: NODE_TYPES.compartment,
+});
 
-
-
-// Metabolite
-  `
-MATCH (x:Metabolite)-[relatedEdge:V1]-(related:Reaction)
-WHERE x.id=""
-MATCH (related)-[:V1]-(relatedS:ReactionState)
-MATCH (related)-[:V1]-(m:Metabolite)-[:V1]-(ms:MetaboliteState)
-OPTIONAL MATCH (related)-[:V1]-(c:Compartment)-[:V1]-(cs:CompartmentState)
-OPTIONAL MATCH (related)-[:V1]-(s:Subsystem)-[:V1]-(ss:SubsystemState)
-OPTIONAL MATCH (related)-[:V1]-(g:Gene)-[:V1]-(gs:GeneState)
-RETURN relatedS {
-  id: related.id,
-  outgoing: startnode(relatedEdge)=related,
-  compartments: COLLECT(DISTINCT(cs {id: c.id, .*})),
-  subsystems: COLLECT(DISTINCT(ss {id: s.id, .*})),
-  metabolites: COLLECT(DISTINCT(ms {id: m.id, .*})),
-  genes: COLLECT(DISTINCT(gs {id: g.id, .*}))
-} as reactions
-`;
-
-
-
-
-
-// Subsystem
-  `
-MATCH (x:Subsystem)-[relatedEdge:V1]-(related:Reaction)-[:V1]-(m:Metabolite)
-WHERE x.id=""
-MATCH (related)-[:V1]-(relatedS:ReactionState)
-MATCH (m)-[:V1]-(ms:MetaboliteState)
-OPTIONAL MATCH (related)-[:V1]-(c:Compartment)-[:V1]-(cs:CompartmentState)
-OPTIONAL MATCH (related)-[:V1]-(s:Subsystem)-[:V1]-(ss:SubsystemState)
-OPTIONAL MATCH (related)-[:V1]-(g:Gene)-[:V1]-(gs:GeneState)
-RETURN relatedS {
-  id: related.id,
-  outgoing: startnode(relatedEdge)=related,
-  compartments: COLLECT(DISTINCT(cs {id: c.id, .*})),
-  subsystems: COLLECT(DISTINCT(ss {id: s.id, .*})),
-  metabolites: COLLECT(DISTINCT(ms {id: m.id, .*})),
-  genes: COLLECT(DISTINCT(gs {id: g.id, .*}))
-} as reactions
-`;
-
-
-
-// Compartment
-  `
-MATCH (x:Compartment)-[:V1]-(m:Metabolite)-[relatedEdge:V1]-(related:Reaction)
-WHERE x.id=""
-MATCH (related)-[:V1]-(relatedS:ReactionState)
-MATCH (m)-[:V1]-(ms:MetaboliteState)
-OPTIONAL MATCH (related)-[:V1]-(c:Compartment)-[:V1]-(cs:CompartmentState)
-OPTIONAL MATCH (related)-[:V1]-(s:Subsystem)-[:V1]-(ss:SubsystemState)
-OPTIONAL MATCH (related)-[:V1]-(g:Gene)-[:V1]-(gs:GeneState)
-RETURN relatedS {
-  id: related.id,
-  outgoing: startnode(relatedEdge)=related,
-  compartments: COLLECT(DISTINCT(cs {id: c.id, .*})),
-  subsystems: COLLECT(DISTINCT(ss {id: s.id, .*})),
-  metabolites: COLLECT(DISTINCT(ms {id: m.id, .*})),
-  genes: COLLECT(DISTINCT(gs {id: g.id, .*}))
-} as reactions
-`;
-
-
-
-
-
-RETURN {
-  reactions: relatedS {
-    id: related.id,
-    outgoing: startnode(relatedEdge)=related,
-    compartments: COLLECT(DISTINCT(cs {id: c.id, .*})),
-    subsystems: COLLECT(DISTINCT(ss {id: s.id, .*})),
-    metabolites: COLLECT(DISTINCT(ms {id: m.id, .*})),
-    genes: COLLECT(DISTINCT(gs {id: g.id, .*}))
-  },
-  mappingWithMetabolites: COLLECT(DISTINCT({reactionId: related.id, metaboliteId: m.id}))
-} as relatedReactions
-*/
-
-export default getReaction;
+export {
+  getRelatedReactionsForReaction,
+  getRelatedReactionsForGene,
+  getRelatedReactionsForMetabolite,
+  getRelatedReactionsForSubsystem,
+  getRelatedReactionsForCompartment,
+};
