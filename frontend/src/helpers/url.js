@@ -15,9 +15,13 @@ const roundValue = value => Math.round((value + 0.00001) * 1000) / 1000;
 
 const setRouteForMap = ({ route, mapType, mapId, dim }) => ({
   name: 'viewer',
-  params: { ...route.params, type: mapType, map_id: mapId },
+  params: { ...route.params, type: mapType, map_id: mapId, reload: false },
   query: { ...route.query, dim },
-  meta: { reload: false },
+});
+
+const setRouteForDim = ({ route, dim }) => ({
+  query: { ...route.query, dim },
+  params: { ...route.params, reload: false },
 });
 
 const setRouteForSel = ({ route, id }) => ({
@@ -94,6 +98,7 @@ const areRoutesIdentical = ({ route, oldRoute }) => {
 
 export {
   setRouteForMap,
+  setRouteForDim,
   setRouteForSel,
   setRouteForSearch,
   setRouteForGeneExp1,

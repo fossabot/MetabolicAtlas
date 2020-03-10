@@ -171,7 +171,7 @@ import SidebarDataPanels from '@/components/explorer/mapViewer/SidebarDataPanels
 import DataOverlay from '@/components/explorer/mapViewer/DataOverlay.vue';
 import Svgmap from '@/components/explorer/mapViewer/Svgmap';
 import D3dforce from '@/components/explorer/mapViewer/D3dforce';
-import { setRouteForMap, setRouteForSel, setRouteForOverlay, setDefaultQuery, areRoutesIdentical } from '@/helpers/url';
+import { setRouteForMap, setRouteForSel, setRouteForOverlay, setRouteForDim, setDefaultQuery, areRoutesIdentical } from '@/helpers/url';
 import { default as EventBus } from '@/event-bus';
 import { default as messages } from '@/helpers/messages';
 
@@ -286,15 +286,16 @@ export default {
     this.getSubComptData(this.model);
   },
   beforeUpdate() {
-    console.log('before update');
-    console.log('route', JSON.stringify(this.$route.params), JSON.stringify(this.$route.query));
+    // console.log('before update, route', JSON.stringify(this.$route.params), JSON.stringify(this.$route.query));
     if (this.$route.name === 'viewerRoot' || areRoutesIdentical({ route: this.$route, oldRoute: this.lastRoute })) {
+      if (this.$route.name === 'viewerRoot') {
+        this.$router.replace(setRouteForDim(
+          { route: this.$route, dim: this.dim })).catch(() => {});
+      }
       this.lastRoute = Object.assign({}, this.$route);
-      console.log('route is root, routes identical');
       return;
     }
 
-    console.log(this.$route.params.reload);
     if (this.$route.params.reload || this.$route.params.reload === undefined) {
       let defaultValues = {};
       if (Object.keys(this.$route.query) !== 3 // do not reset when from map available link
@@ -519,7 +520,7 @@ export default {
         this.currentDisplayedType = '';
         this.currentDisplayedName = '';
         this.showOverviewScreen = true;
-        this.$router.push({ name: 'viewerRoot', params: { model: this.model.database_name } }).catch(() => {});
+        this.$router.push({ name: 'viewerRoot', params: { model: this.model.database_name }, query: { dim: this.dim } }).catch(() => {});
       }
     },
     endSelection(isSuccess) {
