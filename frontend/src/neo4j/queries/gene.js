@@ -2,7 +2,9 @@ import postStatement from '../http';
 import handleSingleResponse from '../responseHandlers/single';
 import reformatExternalDbs from '../shared/formatter';
 
-const getGene = async (id, v) => {
+const getGene = async ({ id, version }) => {
+  const v = version;
+
   const statement = `
 MATCH (g:Gene)-[:V${v}]-(gs:GeneState)
 WHERE g.id="${id}"

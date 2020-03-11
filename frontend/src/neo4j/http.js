@@ -1,6 +1,7 @@
 import axios from 'axios';
 
 const postStatement = async (statement) => {
+  // TODO: put url in an environment variable
   const url = 'http://localhost:7474/db/neo4j/tx ';
   const payload = {
     statements: [{ statement }],
