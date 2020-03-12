@@ -593,11 +593,13 @@ export default {
             }
           }
           selectionData.data = data;
-          EventBus.$emit('updatePanelSelectionData', selectionData);
           this.selectedItemHistory[id] = selectionData.data;
+          EventBus.$emit('updatePanelSelectionData', selectionData);
           EventBus.$emit('endSelectedElement', true);
         })
         .catch(() => {
+          EventBus.$emit('updatePanelSelectionData', selectionData);
+          this.$set(selectionData, 'error', true);
           EventBus.$emit('endSelectedElement', false);
         });
     },

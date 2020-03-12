@@ -3,7 +3,7 @@
     <div :class="{ 'container': !extendWindow }">
       <template v-if="modelNotFound">
         <div class="columns is-centered">
-          <notFound component="model" :component-id="modelNotFound"></notFound>
+          <notFound type="model" :component-id="modelNotFound"></notFound>
         </div>
       </template>
       <template v-else-if="currentShowComponent">
@@ -190,8 +190,6 @@ export default {
           this.modelNotFound = this.$route.params.model;
           return;
         }
-      } else {
-        this.model = this.models.human1;
       }
       this.modelNotFound = null;
       if (['viewer', 'viewerCompartment', 'viewerCompartmentRea', 'viewerSubsystem', 'viewerSubsystemRea'].includes(this.$route.name)) {

@@ -98,6 +98,7 @@
             </div>
           </div>
         </div>
+        <br>
         <div id="newsandcommunity" class="columns is-variable is-6">
           <div v-for="card in cards" :key="card.title" class="column is-half">
             <div class="card card-fullheight is-size-5">
@@ -107,7 +108,7 @@
               <div class="card-content has-text-justified">
                 <p v-for="el in card.text" :key="el.date">
                   <template v-if="el.date">
-                    <router-link :to="{ path: '/about', hash: el.hash }" v-html="el.date"></router-link> -
+                    <router-link :to="{ name: 'about', hash: `#${el.date}` }" v-html="el.date"></router-link> -
                   </template>
                   <span v-html="el.text"></span>
                 </p>
@@ -185,6 +186,9 @@ export default {
       cards: [
         { title: 'Latest news',
           text: [
+            { date: '2020.02.07',
+              hash: '7-February-2020',
+              text: 'Metabolic Atlas v1.5' },
             { date: '2019.09.11',
               hash: '11-September-2019',
               text: 'Metabolic Atlas was presented in a course' },
@@ -206,23 +210,11 @@ export default {
             { date: '2019.05.02',
               hash: '2-May-2018',
               text: '<i>Human1</i> is integrated, with complete maps' },
-            { date: '2018.12.17',
-              hash: 'December-2018',
-              text: 'MapViewer is faster when browsing manually curated maps' },
-            { date: '2018.12.08',
-              hash: 'December-2018',
-              text: 'New maps for <i>Human1</i> are being created' },
-            { date: '2018.11.28',
-              hash: 'November-2018',
-              text: 'A draft version of the <i>Human1</i> model is now integrated' },
-            { date: '2018.11.23',
-              hash: 'November-2018',
-              text: 'A draft version of the <i>Yeast8</i> model is now integrated' },
           ],
         },
         { title: 'Community',
           text: [
-            { text: '<p>We are grateful for the efforts of scientists all over the world into in creating the knowledge required to assemble high quality genome scale metabolic models and are passionate about continuing on this journey of open curation of models.<br><br>We invite you to explore the world of GEMs through Metabolic Atlas, and hope it will enhance your interest in this field. We wish to continuously improve Metabolic Atlas for the community. Contact us with any feedback, suggestions, or requests.</p>' },
+            { text: '<p>We are grateful for the efforts of scientists all over the world in creating the knowledge required to assemble high quality genome scale metabolic models and are passionate about continuing on this journey of open curation of models.<br><br>We invite you to explore the world of GEMs through Metabolic Atlas, and hope it will enhance your interest in this field. We wish to continuously improve Metabolic Atlas for the community. Contact us with any feedback, suggestions, or requests.</p>' },
           ],
         },
       ],

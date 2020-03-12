@@ -22,7 +22,7 @@
         <a class="button is-large is-loading"></a>
       </div>
     </template>
-    <template v-else>
+    <template v-else-if="!selectionData.error">
       <div v-if="selectionData.data && mapType !== 'subsystem' && selectionData.type === 'subsystem'"
            class="card card-margin">
         <header class="card-header">
@@ -30,7 +30,7 @@
             {{ selectionData.type }}: <i>{{ selectionData.data.id }}</i>
           </p>
         </header>
-        <footer v-if="!selectionData.error" class="card-footer">
+        <footer class="card-footer">
           <router-link class="is-paddingless is-info is-outlined card-footer-item has-text-centered"
                        :to="{ path: `/explore/gem-browser/${model.database_name}/${selectionData.type}/${idfy(selectionData.data.id)}`}">  <!-- eslint-disable-line max-len -->
             <span class="icon is-large"><i class="fa fa-table fa-lg"></i></span>
@@ -55,8 +55,7 @@
       </div>
       <div v-else-if="selectionData.data && ['metabolite', 'gene', 'reaction'].includes(selectionData.type)"
            class="card card-margin">
-        <header v-if="!selectionData.error"
-                class="card-header clickable"
+        <header class="card-header clickable"
                 @click.prevent="showSelectionCardContent = !showSelectionCardContent">
           <p class="card-header-title is-inline is-capitalized is-unselectable">
             {{ selectionData.type }}: <i>{{ selectionData.data.id }}</i>
@@ -68,7 +67,7 @@
           </a>
         </header>
         <div v-show="showSelectionCardContent" class="card-content card-content-compact">
-          <div v-if="!selectionData.error" class="content">
+          <div class="content">
             <template v-for="item in selectedElementDataKeys[selectionData.type]
               .filter(i => selectionData.data[i.name] !== null)">
               <template v-if="item.name === 'synonyms'">
@@ -124,13 +123,23 @@
             </template>
           </div>
         </div>
-        <footer v-if="!selectionData.error" class="card-footer">
+        <footer class="card-footer">
           <router-link class="is-paddingless is-info is-outlined card-footer-item has-text-centered"
                        :to="{ path: `/explore/gem-browser/${model.database_name}/${selectionData.type}/${idfy(selectionData.data.id)}`}"> <!-- eslint-disable-line max-len -->
             <span class="icon is-large"><i class="fa fa-table fa-lg"></i></span>
             <span>{{ messages.gemBrowserName }}</span>
           </router-link>
         </footer>
+      </div>
+    </template>
+    <template v-else>
+      <div class="card card-margin">
+        <header class="card-header clickable">
+          <p class="card-header-title is-inline is-unselectable has-text-weight-normal">
+            This {{ selectionData.type }} does not exist in {{ model.short_name }}.
+            Email us at contact@metabolicatlas.org
+          </p>
+        </header>
       </div>
     </template>
   </div>
