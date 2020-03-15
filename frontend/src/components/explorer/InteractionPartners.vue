@@ -20,7 +20,7 @@
       <div class="columns is-centered">
         <div class="column is-three-fifths-desktop is-three-quarters-tablet is-fullwidth-mobile">
           <!-- eslint-disable max-len -->
-          <p class="is-size-5">For a given metabolite or gene, this page shows the other metabolites and genes with which it is connected via reactions. For more, see the <router-link :to="{ path: '/documentation', hash: 'Interaction-Partners' }">documentation on {{ messages.interPartName }}</router-link>.
+          <p class="is-size-5">For a given metabolite or gene, this page shows the other metabolites and genes with which it is connected via reactions. For more, see the <router-link :to="{ name: 'documentation', hash: '#Interaction-Partners' }">documentation on {{ messages.interPartName }}</router-link>.
           </p><br>
           <video poster="@/assets/interPart-cover.jpg" playsinline controls muted loop>
             <source src="@/assets/interPart.mp4" type="video/mp4">
@@ -30,7 +30,7 @@
     </div>
     <template v-if="componentNotFound">
       <div class="columns is-centered">
-        <notFound component="Interaction Partners" :component-id="mainNodeID"></notFound>
+        <notFound type="Interaction Partners" :component-id="mainNodeID"></notFound>
       </div>
     </template>
     <template v-if="loading">
@@ -598,6 +598,7 @@ export default {
           this.nodeCount = Object.keys(this.rawElms).length;
           if (this.nodeCount > this.warnNodeCount) {
             this.showNetworkGraph = false;
+            this.largeNetworkGraph = true;
             this.errorMessage = '';
             return;
           }
@@ -842,56 +843,31 @@ export default {
       this.showGraphContextMenu = false;
       this.showNetworkGraph = true;
 
-      const updatePosition = (node) => {
+      const updateContextMenuPosition = (node) => {
         contextMenuGraph.style.left = `${node.renderedPosition().x + 15}px`;
-        contextMenuGraph.style.top = `${node.renderedPosition().y + 130}px`;
+        contextMenuGraph.style.top = `${node.renderedPosition().y + 160}px`;
       };
 
-      const nodeInViewport = (node) => {
-        if (node.renderedPosition().x < 0 || node.renderedPosition().x > this.cy.width()
-          || node.renderedPosition().y < 0 || node.renderedPosition().y > this.cy.height()) {
-          return false;
+      this.cy.on('tap tapstart cxttap', (evt) => {
+        if (evt.target === this.cy) {
+          this.cy.nodes().deselect();
+          this.showGraphContextMenu = false;
+          this.clickedElmId = '';
+          this.clickedElm = null;
         }
-        return true;
-      };
-
-      this.cy.on('tap', () => {
-        this.showGraphContextMenu = false;
-        this.clickedElmId = '';
-        this.clickedElm = null;
       });
 
-      this.cy.on('tap', 'node', (evt) => {
+      this.cy.on('tap cxttap', 'node', (evt) => {
         const node = evt.target;
+        this.cy.nodes().deselect();
+        node.json({ selected: true });
         const elmId = node.data().id;
-
         this.clickedElmId = elmId;
         this.clickedElm = this.rawElms[elmId];
-        this.showGraphContextMenu = true;
-        updatePosition(node);
+        updateContextMenuPosition(node);
+        this.showGraphContextMenu = evt.type === 'cxttap';
       });
 
-      this.cy.on('drag', 'node', (evt) => {
-        const node = evt.target;
-        if (this.clickedElmId === node.data().id && nodeInViewport(node)) {
-          updatePosition(node);
-        }
-      });
-
-      this.cy.on('tapstart', () => {
-        this.showGraphContextMenu = false;
-      });
-
-      this.cy.on('tapdragout, tapend', () => {
-        if (this.clickedElmId !== '') {
-          const node = this.cy.getElementById(this.clickedElmId);
-          if (!nodeInViewport(node)) {
-            return;
-          }
-          // this.showGraphContextMenu = true;
-          updatePosition(node);
-        }
-      });
       if (callback) {
         callback();
       }
