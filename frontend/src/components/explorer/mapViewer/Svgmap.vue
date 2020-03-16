@@ -41,7 +41,7 @@ import MapSearch from '@/components/explorer/mapViewer/MapSearch';
 import { default as EventBus } from '@/event-bus';
 import { default as messages } from '@/helpers/messages';
 import { reformatChemicalReactionHTML } from '@/helpers/utils';
-import { setRouteForCoord } from '@/helpers/url';
+import { parseRoute, setRouteForCoord } from '@/helpers/url';
 
 
 // hack: the only way for jquery plugins to play nice with the plugins inside Vue
@@ -64,6 +64,8 @@ export default {
   props: {
     model: Object,
     mapsData: Object,
+    requestedMapType: String,
+    requestedMapName: String,
   },
   data() {
     return {
@@ -119,24 +121,18 @@ export default {
     },
   },
   created() {
-    EventBus.$off('showSVGmap');
     EventBus.$off('apply2DHPARNAlevels');
 
-    EventBus.$on('showSVGmap', (type, name, searchTerm, selectIDs, coords) => {
-      // console.log('showSVGmap', type, name, searchTerm, selectIDs, coords);
-      this.$refs.mapsearch.reset(); // always reset the search
-      this.searchTerm = searchTerm;
-      this.selectIDs = selectIDs === null ? [] : selectIDs;
-      this.urlCoords = coords !== '0,0,0,0,0,0' ? coords : null;
-      if (name && (type === 'compartment' || type === 'subsystem')) {
-        this.loadMap(type, name);
-      }
-    });
     EventBus.$on('apply2DHPARNAlevels', (levels) => {
       this.applyHPARNAlevelsOnMap(levels);
     });
 
     this.updateURLCoord = debounce(this.updateURLCoord, 150);
+  },
+  watch: {
+    requestedMapName() {
+      this.init();
+    },
   },
   mounted() {
     const self = this;
@@ -177,8 +173,22 @@ export default {
       $('.svgbox').first().toggleClass('fullscreen');
       self.isFullscreen = $('.svgbox').first().hasClass('fullscreen');
     });
+
+    this.init();
   },
   methods: {
+    init() {
+      this.$refs.mapsearch.reset(); // always reset the search
+      const { searchTerm, selectIDs, coords } = parseRoute(this.$route);
+      this.searchTerm = searchTerm;
+      this.selectIDs = selectIDs;
+      this.urlCoords = coords;
+      const type = this.requestedMapType;
+      const name = this.requestedMapName;
+      if (name && (type === 'compartment' || type === 'subsystem')) {
+        this.loadMap(type, name);
+      }
+    },
     toggleGenes() {
       if ($('.enz, .ee').first().attr('visibility') === 'hidden') {
         $('.enz, .ee').attr('visibility', 'visible');

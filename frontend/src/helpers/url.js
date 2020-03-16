@@ -96,6 +96,12 @@ const areRoutesIdentical = ({ route, oldRoute }) => {
   return true;
 };
 
+const parseRoute = route => ({
+  searchTerm: route.query.search,
+  selectIDs: [route.query.sel].filter(x => x),
+  coords: route.query.coord !== '0,0,0,0,0,0' ? route.query.coord : null,
+});
+
 export {
   setRouteForMap,
   setRouteForDim,
@@ -107,4 +113,5 @@ export {
   setRouteForOverlay,
   setDefaultQuery,
   areRoutesIdentical,
+  parseRoute,
 };

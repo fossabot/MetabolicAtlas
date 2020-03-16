@@ -17,7 +17,7 @@ import forceGraph3D from '3d-force-graph';
 import { default as FileSaver } from 'file-saver';
 import { debounce } from 'vue-debounce';
 import MapSearch from '@/components/explorer/mapViewer/MapSearch';
-import { setRouteForCoord } from '@/helpers/url';
+import { parseRoute, setRouteForCoord } from '@/helpers/url';
 import { default as EventBus } from '@/event-bus';
 import { reformatChemicalReactionHTML } from '@/helpers/utils';
 
@@ -28,6 +28,8 @@ export default {
   },
   props: {
     model: Object,
+    requestedMapType: String,
+    requestedMapName: String,
   },
   data() {
     return {
@@ -71,48 +73,19 @@ export default {
           .addEventListener('change', this.updateURLCoord, false);
       }
     },
+    requestedMapName() {
+      this.init();
+    },
     '$route': function watchSetup() { // eslint-disable-line quote-props
       this.disableControlsListener = this.$route.name !== 'viewer';
     },
   },
   created() {
-    EventBus.$off('show3Dnetwork');
     EventBus.$off('destroy3Dnetwork');
     EventBus.$off('update3DLoadedComponent');
     EventBus.$off('recompute3DCanvasBounds');
     EventBus.$off('apply3DHPARNAlevels');
 
-    EventBus.$on('show3Dnetwork', (type, name, searchTerm, selectIDs, coords) => {
-      // console.log('show3Dnetwork', type, name, searchTerm, selectIDs, coords);
-      this.$refs.mapsearch.reset();
-      this.selectIDs = selectIDs === null ? [] : selectIDs;
-      this.searchTerm = searchTerm;
-      this.urlCoords = coords;
-      if (this.loadedComponentType !== type || this.loadedComponentName !== name) {
-        this.selectElementID = null;
-        this.selectElementIDfull = null;
-        if (this.graph) {
-          // a graph was already loaded, but it is a new map requested => reset coords
-          this.urlCoords = null;
-        }
-        this.loadedComponentType = type;
-        this.loadedComponentName = name;
-        if (name in this.networkHistory) {
-          this.$emit('loading');
-          this.graph.resetCamera = true;
-          this.graph.reloadHistory = true;
-          this.network = this.networkHistory[name];
-          this.graph.graphData(this.network);
-          this.graph.emitLoadComplete = true;
-          this.graph.skipLoadComplete = false;
-        } else {
-          this.getJson();
-        }
-      } else if ((selectIDs && selectIDs.length !== 0) || this.searchTerm) {
-        this.updateGeometries();
-        this.$emit('loadComplete', true, '');
-      }
-    });
     EventBus.$on('destroy3Dnetwork', () => {
       if (this.graph) {
         this.graph.graphData({ nodes: [], links: [] });
@@ -135,7 +108,43 @@ export default {
 
     this.updateURLCoord = debounce(this.updateURLCoord, 150);
   },
+  mounted() {
+    this.init();
+  },
   methods: {
+    init() {
+      this.$refs.mapsearch.reset();
+      const { searchTerm, selectIDs, coords } = parseRoute(this.$route);
+      this.searchTerm = searchTerm;
+      this.selectIDs = selectIDs;
+      this.urlCoords = coords;
+      const type = this.requestedMapType;
+      const name = this.requestedMapName;
+      if (this.loadedComponentType !== type || this.loadedComponentName !== name) {
+        this.selectElementID = null;
+        this.selectElementIDfull = null;
+        if (this.graph) {
+          // a graph was already loaded, but it is a new map requested => reset coords
+          this.urlCoords = null;
+        }
+        this.loadedComponentType = type;
+        this.loadedComponentName = name;
+        if (name in this.networkHistory) {
+          this.$emit('loading');
+          this.graph.resetCamera = true;
+          this.graph.reloadHistory = true;
+          this.network = this.networkHistory[name];
+          this.graph.graphData(this.network);
+          this.graph.emitLoadComplete = true;
+          this.graph.skipLoadComplete = false;
+        } else {
+          this.getJson();
+        }
+      } else if ((this.selectIDs && this.selectIDs.length !== 0) || this.searchTerm) {
+        this.updateGeometries();
+        this.$emit('loadComplete', true, '');
+      }
+    },
     getJson() {
       this.$emit('loading');
       this.HPARNAlevels = {};

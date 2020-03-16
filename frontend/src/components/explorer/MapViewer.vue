@@ -95,15 +95,19 @@
           </p>
         </div>
         <div v-show="!showOverviewScreen" id="graphframe" class="column is-unselectable">
-          <svgmap v-show="show2D" :model="model" :maps-data="mapsData2D" @loadComplete="handleLoadComplete"
-                  @loading="showLoader=true" @startSelection="showSelectionLoader=true" @endSelection="endSelection"
-                  @unSelect="unSelect" @updatePanelSelectionData="updatePanelSelectionData">
-          </svgmap>
-          <d3dforce v-show="show3D" :model="model" @loadComplete="handleLoadComplete"
-                    @loading="showLoader=true" @startSelection="showSelectionLoader=true"
-                    @endSelection="endSelection" @unSelect="unSelect"
-                    @updatePanelSelectionData="updatePanelSelectionData">
-          </d3dforce>
+          <template v-if="readyToShowMap">
+            <svgmap v-if="show2D" :model="model" :maps-data="mapsData2D" @loadComplete="handleLoadComplete"
+                    :requestedMapType="requestedType" :requestedMapName="requestedName"
+                    @loading="showLoader=true" @startSelection="showSelectionLoader=true" @endSelection="endSelection"
+                    @unSelect="unSelect" @updatePanelSelectionData="updatePanelSelectionData">
+            </svgmap>
+            <d3dforce v-if="show3D" :model="model" @loadComplete="handleLoadComplete"
+                      :requestedMapType="requestedType" :requestedMapName="requestedName"
+                      @loading="showLoader=true" @startSelection="showSelectionLoader=true"
+                      @endSelection="endSelection" @unSelect="unSelect"
+                      @updatePanelSelectionData="updatePanelSelectionData">
+            </d3dforce>
+          </template>
           <div v-show="showLoader" id="iLoader" class="loading">
             <a class="button is-loading"></a>
           </div>
@@ -194,6 +198,7 @@ export default {
       showOverviewScreen: true,
       show2D: true,
       show3D: false,
+      readyToShowMap: false,
       requestedType: '',
       requestedName: '',
       currentDisplayedType: '',
@@ -338,12 +343,7 @@ export default {
       this.showOverviewScreen = false; // to get the loader visible
       this.selectionData.data = null;
 
-      EventBus.$emit(this.show2D ? 'showSVGmap' : 'show3Dnetwork',
-        this.requestedType,
-        this.requestedName,
-        this.$route.query.search,
-        this.$route.query.sel !== '' ? [this.$route.query.sel] : null,
-        this.$route.query.coord);
+      this.readyToShowMap = true;
     }
     this.lastRoute = Object.assign({}, this.$route);
   },
