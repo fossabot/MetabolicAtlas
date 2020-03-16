@@ -30,8 +30,8 @@
 
 import axios from 'axios';
 import { debounce } from 'vue-debounce';
-import { default as messages } from '../../../helpers/messages';
 import { setRouteForSearch } from '@/helpers/url';
+import { default as messages } from '../../../helpers/messages';
 
 export default {
   name: 'MapSearch',

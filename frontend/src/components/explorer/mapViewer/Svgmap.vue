@@ -247,7 +247,7 @@ export default {
     },
     restoreMapPosition(x, y, zoom) {
       this.zoomToValue(1.0);
-      this.panToCoords(x, y);
+      this.panToCoords(x, y, zoom);
       this.zoomToValue(zoom);
       this.$router.replace(setRouteForCoord({
         route: this.$route, x, y, z: zoom, u: 0, v: 0, w: 0,
@@ -447,7 +447,7 @@ export default {
       if (!coords) {
         return;
       }
-      this.panToCoords(coords[4], coords[5]);
+      this.panToCoords(coords[4], coords[5]); // TODO: add zoom
     },
     getSvgElemCoordinates(el) {
       // read and parse the transform attribut
@@ -561,12 +561,9 @@ export default {
     clientFocusY() {
       return ($('.svgbox').height() / 2) + $('#navbar').height();
     },
-    panToCoords(panX, panY) {
-      this.$panzoom.panzoom('zoom', 1.0, {
-        increment: 1 - this.currentZoomScale,
-        transition: false,
-      });
-      this.$panzoom.panzoom('pan', -panX + ($('.svgbox').width() / 2), -panY + ($('.svgbox').height() / 2));
+    panToCoords(panX, panY, zoom) {
+      this.$panzoom.panzoom('zoom', zoom);
+      this.$panzoom.panzoom('pan', -panX, -panY);
       this.$emit('loadComplete', true, '');
     },
     reformatChemicalReactionHTML,
