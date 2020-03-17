@@ -309,7 +309,7 @@ export default {
 
     if (this.$route.params.reload || this.$route.params.reload === undefined) {
       let defaultValues = {};
-      if (Object.keys(this.$route.query) !== 3 // do not reset when from map available link
+      if (Object.keys(this.$route.query).length !== 3 // do not reset when from map available link
         && Object.keys(this.lastRoute).length !== 0
         && (this.$route.params.type !== this.lastRoute.params.type
         || this.$route.params.map_id !== this.lastRoute.params.map_id)) { // always reset on map change
