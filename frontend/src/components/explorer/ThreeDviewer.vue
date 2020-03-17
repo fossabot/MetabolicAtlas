@@ -50,9 +50,9 @@ export default {
     // );
 
     this.data = this.makeData(1000);
-    this.controller.setData(this.data, [{ group: 'e', sprite: 'sprite_round.png' },
-      { group: 'r', sprite: 'sprite_square.png' },
-      { group: 'm', sprite: 'sprite_triangle.png' }], 15);
+    this.controller.setData(this.data, [{ group: 'e', sprite: '/sprite_round.png' },
+      { group: 'r', sprite: '/sprite_square.png' },
+      { group: 'm', sprite: '/sprite_triangle.png' }], 15);
 
     // filter selection examples: (available after the graph has
     // initialized)
@@ -120,6 +120,7 @@ export default {
 
 <style lang='scss'>
   .title {
+    display: none;
     position: fixed;
     top: 0;
     left: 85px;
