@@ -12,6 +12,8 @@ import api.serializers_cs as APIcsSerializer
 from api.views import is_model_valid
 from functools import reduce
 from random import randint
+from operator import itemgetter
+from collections import OrderedDict
 import re
 import logging
 import json
@@ -939,37 +941,45 @@ def search(request, model, term):
         # limit to 10 suggestions in total
         for modelData in models:
             model = modelData.database_name
-            compartment_name = APImodels.Compartment.objects.using(model).raw('SELECT id, name from compartment where levenshtein_less_equal(\'%s\', LOWER(name), %d) <= %d limit 10' % (term, mismatch_for_name, mismatch_for_name))
+            compartment_name = APImodels.Compartment.objects.using(model).raw(
+                'SELECT * from (SELECT id, name, levenshtein_less_equal(\'%s\', LOWER(name), %d) as dist from compartment) q where dist <= %d order by dist limit 10' % (term, mismatch_for_name, mismatch_for_name))
 
-            subsystem_name = APImodels.Subsystem.objects.using(model).raw('SELECT id, name from subsystem where levenshtein_less_equal(\'%s\', LOWER(name), %d) <= %d limit 10' % (term, mismatch_for_name, mismatch_for_name))
-            subsystem_eid = APImodels.SubsystemEID.objects.using(model).raw('SELECT id, external_id from subsystem_eid where levenshtein_less_equal(\'%s\', LOWER(external_id), 2) <= 2 limit 10' % term)
+            subsystem_name = APImodels.Subsystem.objects.using(model).raw(
+                'SELECT * from (SELECT id, name, levenshtein_less_equal(\'%s\', LOWER(name), %d) as dist from subsystem) q where dist <= %d order by dist limit 10' % (term, mismatch_for_name, mismatch_for_name))
+            subsystem_eid = APImodels.SubsystemEID.objects.using(model).raw(
+                'SELECT * from (SELECT id, external_id, levenshtein_less_equal(\'%s\', LOWER(external_id), 2) as dist from subsystem_eid) q where dist <= 2 order by dist limit 10' % term)
 
             reaction_component_id = APImodels.ReactionComponent.objects.using(model).raw(
-                'SELECT id, id from reaction_component where levenshtein_less_equal(\'%s\', LOWER(id), 1) <= 1' % term)
+                'SELECT * from (SELECT id, levenshtein_less_equal(\'%s\', LOWER(id), 1) as dist from reaction_component) q where dist <= 1 order by dist limit 10' % term)
             reaction_component_name = APImodels.ReactionComponent.objects.using(model).raw(
-                'SELECT id, name from reaction_component where levenshtein_less_equal(\'%s\', LOWER(name), %d) <= %d' % (term, mismatch_for_name, mismatch_for_name))
+                'SELECT * from (SELECT id, name, levenshtein_less_equal(\'%s\', LOWER(name), %d) as dist from reaction_component) q where dist <= %d order by dist limit 10' % (term, mismatch_for_name, mismatch_for_name))
             reaction_component_formula = APImodels.ReactionComponent.objects.using(model).raw(
-                'SELECT id, formula from reaction_component where levenshtein_less_equal(\'%s\', LOWER(formula), %d) <= %d' % (term, mismatch_for_name, mismatch_for_name))
+                'SELECT * from (SELECT id, formula, levenshtein_less_equal(\'%s\', LOWER(formula), %d) as dist from reaction_component) q where dist <= %d order by dist limit 10' % (term, mismatch_for_name, mismatch_for_name))
             reaction_component_eid = APImodels.ReactionComponentEID.objects.using(model).raw(
-                'SELECT id, external_id from rc_eid where levenshtein_less_equal(\'%s\', LOWER(external_id), 2) <= 2 limit 10' % term)
+                'SELECT * from (SELECT id, external_id, levenshtein_less_equal(\'%s\', LOWER(external_id), 2) as dist from rc_eid) q where dist <= 2 order by dist limit 10' % term)
 
-            reaction_id = APImodels.Reaction.objects.using(model).raw('SELECT id, id from reaction where levenshtein_less_equal(\'%s\', LOWER(id), 1) <= 1 limit 10' % term)
-            reaction_name = APImodels.Reaction.objects.using(model).raw('SELECT id, name from reaction where levenshtein_less_equal(\'%s\', LOWER(name), %d) <= %d limit 10' % (term, mismatch_for_name, mismatch_for_name))
-            reaction_eid = APImodels.ReactionEID.objects.using(model).raw('SELECT id, external_id from reaction_eid where levenshtein_less_equal(\'%s\', LOWER(external_id), 2) <= 2 limit 10' % term)
+            reaction_id = APImodels.Reaction.objects.using(model).raw(
+                'SELECT * from (SELECT id, levenshtein_less_equal(\'%s\', LOWER(id), 1) as dist from reaction) q where dist <= 1 order by dist limit 10' % term)
+            reaction_name = APImodels.Reaction.objects.using(model).raw(
+                'SELECT * from (SELECT id, name, levenshtein_less_equal(\'%s\', LOWER(name), %d) as dist from reaction) q where dist <= %d order by dist limit 10' % (term, mismatch_for_name, mismatch_for_name))
+            reaction_eid = APImodels.ReactionEID.objects.using(model).raw(
+                'SELECT * from (SELECT id, external_id, levenshtein_less_equal(\'%s\', LOWER(external_id), 2) as dist from reaction_eid) q where dist <= 2 order by dist limit 10' % term)
 
-            suggestions += [c.name for c in compartment_name] \
-                + [s.name for s in subsystem_name] \
-                + [rc.id for rc in reaction_component_id] \
-                + [rc.name for rc in reaction_component_name] \
-                + [rc.formula for rc in reaction_component_formula] \
-                + [rc.external_id for rc in reaction_component_eid] \
-                + [r.id for r in reaction_id] \
-                + [r.name for r in reaction_name] \
-                + [r.external_id for r in reaction_eid] \
-                + [s.external_id for s in subsystem_eid]
 
+            suggestions += [(c.name, c.dist) for c in compartment_name] \
+                + [(s.name, s.dist) for s in subsystem_name] \
+                + [(rc.id, rc.dist) for rc in reaction_component_id] \
+                + [(rc.name, rc.dist) for rc in reaction_component_name] \
+                + [(rc.formula, rc.dist) for rc in reaction_component_formula] \
+                + [(rc.external_id, rc.dist) for rc in reaction_component_eid] \
+                + [(r.id, r.dist) for r in reaction_id] \
+                + [(r.name, r.dist) for r in reaction_name] \
+                + [(r.external_id, r.dist) for r in reaction_eid] \
+                + [(s.external_id, s.dist) for s in subsystem_eid]
+
+        suggestions = sorted(suggestions, key=itemgetter(1)) # sort by distance
         response = HttpResponse(status=404)
-        response['suggestions'] = json.dumps(list(set([s for s in suggestions if s]))[:10])
+        response['suggestions'] = json.dumps(list(OrderedDict((s[0], True) for s in suggestions if s[0]).keys())[:10])
         return response
 
     return response
