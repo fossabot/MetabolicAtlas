@@ -89,6 +89,7 @@ import $ from 'jquery';
 import GemBrowser from '@/components/explorer/GemBrowser';
 import MapViewer from '@/components/explorer/MapViewer';
 import InteractionPartners from '@/components/explorer/InteractionPartners';
+import ThreeDviewer from '@/components/explorer/ThreeDviewer';
 import NotFound from '@/components/NotFound';
 import { idfy } from '../helpers/utils';
 import { default as EventBus } from '../event-bus';
@@ -100,6 +101,7 @@ export default {
     GemBrowser,
     MapViewer,
     InteractionPartners,
+    ThreeDviewer,
     NotFound,
   },
   data() {
@@ -118,6 +120,10 @@ export default {
           img: require('../assets/interaction.png'),
           url: '/explore/interaction',
           icon: 'share-alt' },
+        { name: '3D Viewer',
+          img: '',
+          url: '/explore/threeDviewer',
+          icon: '' },
       ],
       model: null,
       models: {},
@@ -155,6 +161,9 @@ export default {
     });
     EventBus.$on('showInteractionPartner', () => {
       this.displayInterPartner();
+    });
+    EventBus.$on('show3dViewer', () => {
+      this.display3dViewer();
     });
 
     $('body').on('click', 'td m', function f() {
@@ -198,6 +207,8 @@ export default {
         this.displayBrowser();
       } else if (['interPartnerRoot', 'interPartner'].includes(this.$route.name)) {
         this.displayInterPartner();
+      } else if (['threeDviewerRoot'].includes(this.$route.name)) {
+        this.displayThreeDViewer();
       } else {
         EventBus.$emit('destroy3Dnetwork');
         this.extendWindow = false;
@@ -241,6 +252,10 @@ export default {
     displayInterPartner() {
       this.extendWindow = false;
       this.currentShowComponent = 'InteractionPartners';
+    },
+    displayThreeDViewer() {
+      this.extendWindow = true;
+      this.currentShowComponent = 'threeDviewer';
     },
   },
 };
