@@ -191,6 +191,7 @@ export default {
     });
   },
   created() {
+    console.log(this.$metAtlasViewer);
     this.setupButons();
   },
   methods: {

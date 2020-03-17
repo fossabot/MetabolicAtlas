@@ -22,7 +22,7 @@
 // import $ from 'jquery';
 // import axios from 'axios';
 // import { default as EventBus } from '../../event-bus';
-import { MetAtlasViewer } from '@/components/explorer/threeDviewer/met-atlas-viewer';
+// import { MetAtlasViewer } from '@/components/explorer/threeDviewer/met-atlas-viewer';
 import { default as messages } from '../../helpers/messages';
 
 export default {
@@ -38,7 +38,7 @@ export default {
     };
   },
   created() {
-    this.controller = MetAtlasViewer.MetAtlasViewer('viewer');
+    // this.controller = MetAtlasViewer.MetAtlasViewer('viewer');
     this.makeData();
   },
   methods: {
