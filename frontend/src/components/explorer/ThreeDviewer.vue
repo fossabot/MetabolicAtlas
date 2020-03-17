@@ -34,15 +34,42 @@ export default {
     return {
       errorMessage: '',
       controller: null,
+      data: null,
       messages,
     };
   },
-  created() {
-    // this.controller = MetAtlasViewer.MetAtlasViewer('viewer');
-    this.makeData();
+  mounted() {
+    // console.log(this.$metAtlasViewer);
+    this.controller = this.$metAtlasViewer.MetAtlasViewer('viewer');
+
+    // Add stats
+    // const stats = new Stats();
+    // document.getElementById('viewer').appendChild(stats.domElement);
+    // requestAnimationFrame(
+    //     function loop() {stats.update(); requestAnimationFrame(loop)}
+    // );
+
+    this.data = this.makeData(1000);
+    this.controller.setData(this.data, [{ group: 'e', sprite: 'sprite_round.png' },
+      { group: 'r', sprite: 'sprite_square.png' },
+      { group: 'm', sprite: 'sprite_triangle.png' }], 15);
+
+    // filter selection examples: (available after the graph has
+    // initialized)
+    //
+    // controller.filterBy({group: 'm'});
+    // controller.filterBy({id: [1, 2, 3, 4]});
+    //
+    // write a reference of the controller to the log for testing:
+    console.log('controller:', this.controller);
+
+    // Subscribe to node selection events
+    document.getElementById('viewer').addEventListener('select',
+      ($event) => { console.debug('selected', $event.detail); });
   },
   methods: {
     makeData(numberOfNodes = 100, radius = 2000, nice = true) {
+      console.log('make data');
       function randomInSphere(r) {
         let z = 2 * Math.random() - 1;
         const theta = 2 * Math.PI * Math.random();
