@@ -95,7 +95,7 @@
           </p>
         </div>
         <div v-show="!showOverviewScreen" id="graphframe" class="column is-unselectable">
-          <template v-if="readyToShowMap">
+          <template v-if="showMapViewer">
             <svgmap v-if="show2D" :model="model" :maps-data="mapsData2D" @loadComplete="handleLoadComplete"
                     :requestedMapType="requestedType" :requestedMapName="requestedName"
                     @loading="showLoader=true" @startSelection="showSelectionLoader=true" @endSelection="endSelection"
@@ -255,6 +255,9 @@ export default {
     dim() {
       return this.show2D ? '2d' : '3d';
     },
+    showMapViewer() {
+      return this.readyToShowMap && this.$route.name === 'viewer';
+    },
   },
   watch: {
     /* eslint-disable-next-line quote-props */
@@ -336,7 +339,7 @@ export default {
         return;
       }
 
-      if (!this.checkValidRequest(this.$route.params.type, this.$route.params.map_id)) {
+      if (!this.checkValidRequest(this.$route.params.type, this.$route.params.map_id) && this.showMapViewer) {
         this.handleLoadComplete(false, messages.mapNotFound, 'danger');
         return;
       }
