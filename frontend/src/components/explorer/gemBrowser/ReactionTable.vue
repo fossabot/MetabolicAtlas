@@ -37,21 +37,21 @@
             <td>
               <a
                 :href="`/explore/gem-browser/${model.database_name}/reaction/${r.id}`"
-                @click="handleLinkClick">
+                @click="handleRouterClick">
                 {{ r.id }}
               </a>
             </td>
             <td v-html="reformatChemicalReactionHTML(r)"></td>
             <td>
               <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key max-len -->
-              <template v-for="(m, index) in r.genes">{{ index == 0 ? '' : ', ' }}<a :href="`/explore/gem-browser/${model.database_name}/gene/${m.id}`" @click="handleLinkClick">{{ m.name || m.id }}</a>
+              <template v-for="(m, index) in r.genes">{{ index == 0 ? '' : ', ' }}<a :href="`/explore/gem-browser/${model.database_name}/gene/${m.id}`" @click="handleRouterClick">{{ m.name || m.id }}</a>
               </template>
             </td>
             <td v-show="showCP">{{ r.cp }}</td>
             <td v-show="showSubsystem">
               <template v-if="r.subsystem_str">
                 <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key max-len -->
-                <template v-for="(s, index) in r.subsystem_str.split('; ')">{{ index == 0 ? '' : '; ' }}<a :href="`/explore/gem-browser/${model.database_name}/subsystem/${idfy(s)}`" @click="handleLinkClick">{{ s }}</a>
+                <template v-for="(s, index) in r.subsystem_str.split('; ')">{{ index == 0 ? '' : '; ' }}<a :href="`/explore/gem-browser/${model.database_name}/subsystem/${idfy(s)}`" @click="handleRouterClick">{{ s }}</a>
                 </template>
               </template>
             </td>
@@ -61,7 +61,7 @@
                 <template v-for="(compo, j) in RP.split(' + ')">
                   <template v-if="j != 0"> + </template>
                   <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key max-len -->
-                  <a :href="`/explore/gem-browser/${model.database_name}/compartment/${idfy(compo)}`" @click="handleLinkClick">{{ compo }}</a>
+                  <a :href="`/explore/gem-browser/${model.database_name}/compartment/${idfy(compo)}`" @click="handleRouterClick">{{ compo }}</a>
                 </template>
               </template>
             </td>
@@ -186,10 +186,6 @@ export default {
         return false;
       }
       return true;
-    },
-    handleLinkClick(e) {
-      e.preventDefault();
-      this.$router.push(e.target.pathname);
     },
     formatToTSV() {
       let tsvContent = `${this.fields.filter((e) => {

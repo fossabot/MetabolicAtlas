@@ -7,6 +7,7 @@ import App from './App';
 import router from './router';
 import { default as EventBus } from './event-bus';
 import store from './store';
+import handleRouterClick from './mixins/link-handler';
 
 axios.defaults.baseURL = '/api';
 axios.defaults.onDownloadProgress = function onDownloadProgress(progressEvent) {
@@ -23,6 +24,12 @@ if (navigator.doNotTrack !== '1') {
     router,
   });
 }
+
+Vue.mixin({
+  methods: {
+    handleRouterClick,
+  },
+});
 
 new Vue({ // eslint-disable-line no-new
   el: '#app',
