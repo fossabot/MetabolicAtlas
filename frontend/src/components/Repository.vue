@@ -81,7 +81,7 @@
           <span v-if="!showLoader">No models available</span>
         </div>
         <br>
-        <div id="gem-list-modal" class="modal" :class="{ 'is-active': showModelTable }">
+        <div id="gem-list-modal" v-if="showModelTable" class="modal is-active">
           <div class="modal-background" @click="showModelTable = false"></div>
           <div class="modal-content column is-6-fullhd is-8-desktop is-10-tablet is-full-mobile has-background-white"
                tabindex="0" @keyup.esc="showModelTable = false">
@@ -125,27 +125,11 @@
                     <td class="td-key has-background-primary has-text-white-bis">URL</td>
                     <td><a :href="selectedModel.link" target="_blank">{{ selectedModel.link }}</a></td>
                   </tr>
-                  <tr v-if="selectedModel.ref && selectedModel.ref.length !== 0">
-                    <td class="td-key has-background-primary has-text-white-bis">Reference(s)</td>
-                    <td>
-                      <template v-for="oneRef in selectedModel.ref">
-                        <span :key="`${oneRef.title}${oneRef.link}`">
-                          <p v-if="!oneRef.link">{{ oneRef.title }}</p>
-                          <a v-else-if="oneRef.pmid" :href="oneRef.link"  target="_blank">
-                            {{ oneRef.title }} (PMID: {{ oneRef.pmid }})
-                          </a>
-                          <a v-else :href="oneRef.link" target="_blank">
-                            {{ oneRef.title || oneRef.link }}
-                          </a>
-                          <br>
-                        </span>
-                      </template>
-                    </td>
-                  </tr>
                 </tbody>
               </table>
+              <references :reference-list="referenceList" />
               <template v-if="selectedModel.files">
-                <p class="subtitle has-text-weight-bold">Files</p>
+                <h4 class="title is-size-4">Files</h4>
                 <template v-for="file in selectedModel.files">
                   <a class="button" :href="`${filesURL}${file.path}`" :key="file.path">{{ file.format }}</a>&nbsp;
                 </template>
@@ -166,14 +150,16 @@ import $ from 'jquery';
 import { VueGoodTable } from 'vue-good-table';
 import 'vue-good-table/dist/vue-good-table.css';
 import Loader from '@/components/Loader';
-import { default as EventBus } from '../event-bus';
-import { default as messages } from '../helpers/messages';
+import References from '@/components/shared/References';
+import { default as EventBus } from '@/event-bus';
+import { default as messages } from '@/helpers/messages';
 
 export default {
   name: 'Repository',
   components: {
     Loader,
     VueGoodTable,
+    References,
   },
   data() {
     return {
@@ -266,6 +252,7 @@ export default {
         { name: 'maintained', display: 'Maintained' },
       ],
       selectedModel: {},
+      referenceList: [],
       errorMessage: '',
       GEMS: [],
       showModelTable: false,
@@ -356,7 +343,7 @@ export default {
           if (!model.description) {
             model.description = setDescription;
           }
-
+          this.referenceList = model.ref;
           this.selectedModel = model;
           this.showModelTable = true;
           this.$router.push({ name: 'gemsModal', params: { model_id: id } });
