@@ -3,4 +3,20 @@ function handleRouterClick(e) {
   this.$router.push(e.target.pathname);
 }
 
-export default handleRouterClick;
+const HAS_LISTENER = 'has-listener';
+
+function bindRouterLink(_this) {
+  const routerLinks = document.querySelectorAll('.custom-router-link');
+
+  routerLinks.forEach((link) => {
+    if (!link.getAttribute(HAS_LISTENER)) {
+      link.setAttribute(HAS_LISTENER, 'true');
+      link.addEventListener('click', _this.handleRouterClick);
+    }
+  });
+}
+
+export {
+  handleRouterClick,
+  bindRouterLink,
+};

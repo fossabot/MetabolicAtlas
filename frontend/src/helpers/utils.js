@@ -100,7 +100,7 @@ export function getChemicalReaction(reaction) {
   return `${reactants} => ${products}`;
 }
 
-export function reformatChemicalReactionHTML(reaction, noMtag = false) {
+export function reformatChemicalReactionHTML(reaction, noMtag = false, model = 'human1') {
   if (reaction === null) {
     return '';
   }
@@ -108,7 +108,7 @@ export function reformatChemicalReactionHTML(reaction, noMtag = false) {
   const reactants = reaction.reactionreactant_set.map(
     (x) => {
       if (!addComp) {
-        return `${x.stoichiometry !== 1 ? x.stoichiometry : ''} ${noMtag ? x.name : `<m class="${x.id}">${x.name}</m>`}`;
+        return `${x.stoichiometry !== 1 ? x.stoichiometry : ''} ${noMtag ? x.name : `<a href="/explore/gem-browser/${model}/gene/${x.id}" class="custom-router-link ${x.id}">${x.name}</a>`}`;
       }
       const regex = /.+\[([a-z]{1,3})\]$/;
       const match = regex.exec(x.full_name);
