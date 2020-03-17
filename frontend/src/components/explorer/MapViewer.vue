@@ -320,8 +320,10 @@ export default {
       }
 
 
-      this.$router.replace(setDefaultQuery(
-        { route: this.$route, defaultValues })).catch(() => {}); // reload is always set to false
+      if (this.$route.name !== 'browser') {
+        this.$router.replace(setDefaultQuery(
+          { route: this.$route, defaultValues })).catch(() => {}); // reload is always set to false
+      }
 
       if (this.$route.params.reload === undefined && (this.$route.query.g1 || this.$route.query.g2)) {
         // first load of the map viewer, set the panel visible if g1 or g2 are set
