@@ -106,7 +106,7 @@
         </table>
       </div>
       <div class="column is-2-widescreen is-3-desktop is-half-tablet has-text-centered">
-        <maps-available :id="rId" :model="model" :type="'reaction'" :viewer-selected-i-d="reaction.id"></maps-available>
+        <maps-available :id="rId" :model="model" :type="type" :viewer-selected-i-d="reaction.id"></maps-available>
         <gem-contact :model="model" :type="type" :id="rId"/>
       </div>
     </div>
