@@ -1,3 +1,11 @@
+export const buildCustomLink = ({ model, type, id, title, cssClass }) => {
+  let classes = 'custom-router-link';
+  if (cssClass) {
+    classes += ` ${cssClass}`;
+  }
+  return `<a href="/explore/gem-browser/${model}/${type}/${id}" class="${classes}">${title}</a>`;
+};
+
 export function capitalize(value) {
   return `${value[0].toUpperCase()}${value.slice(1)}`;
 }
@@ -100,30 +108,32 @@ export function getChemicalReaction(reaction) {
   return `${reactants} => ${products}`;
 }
 
-export function reformatChemicalReactionHTML(reaction, noMtag = false, model = 'human1') {
+export function reformatChemicalReactionHTML(reaction, noLink = false, model = 'human1') {
   if (reaction === null) {
     return '';
   }
   const addComp = reaction.is_transport || reaction.compartment_str.includes('=>');
+  const type = 'metabolite';
+
   const reactants = reaction.reactionreactant_set.map(
     (x) => {
       if (!addComp) {
-        return `${x.stoichiometry !== 1 ? x.stoichiometry : ''} ${noMtag ? x.name : `<a href="/explore/gem-browser/${model}/metabolite/${x.id}" class="custom-router-link ${x.id}">${x.name}</a>`}`;
+        return `${x.stoichiometry !== 1 ? x.stoichiometry : ''} ${noLink ? x.name : buildCustomLink({ model, type, id: x.id, title: x.name })}`;
       }
       const regex = /.+\[([a-z]{1,3})\]$/;
       const match = regex.exec(x.full_name);
-      return `${x.stoichiometry !== 1 ? x.stoichiometry : ''} ${noMtag ? x.name : `<m class="${x.id}">${x.name}</m>`}<span class="sc" title="${x.compartment}">${match[1]}</span>`;
+      return `${x.stoichiometry !== 1 ? x.stoichiometry : ''} ${noLink ? x.name : buildCustomLink({ model, type, id: x.id, title: x.name })}<span class="sc" title="${x.compartment}">${match[1]}</span>`;
     }
   ).join(' + ');
 
   const products = reaction.reactionproduct_set.map(
     (x) => {
       if (!addComp) {
-        return `${x.stoichiometry !== 1 ? x.stoichiometry : ''} ${noMtag ? x.name : `<m class="${x.id}">${x.name}</m>`}`;
+        return `${x.stoichiometry !== 1 ? x.stoichiometry : ''} ${noLink ? x.name : buildCustomLink({ model, type, id: x.id, title: x.name })}`;
       }
       const regex = /.+\[([a-z]{1,3})\]$/;
       const match = regex.exec(x.full_name);
-      return `${x.stoichiometry !== 1 ? x.stoichiometry : ''} ${noMtag ? x.name : `<m class="${x.id}">${x.name}</m>`}<span class="sc" title="${x.compartment}">${match[1]}</span>`;
+      return `${x.stoichiometry !== 1 ? x.stoichiometry : ''} ${noLink ? x.name : buildCustomLink({ model, type, id: x.id, title: x.name })}<span class="sc" title="${x.compartment}">${match[1]}</span>`;
     }
   ).join(' + ');
 

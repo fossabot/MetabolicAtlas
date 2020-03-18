@@ -60,7 +60,7 @@
                   {{ rr.id }}
                 </router-link>
                 <div style="margin-left: 30px">
-                  <span v-html="reformatChemicalReactionHTML(rr, true)"></span>
+                  <span v-html="reformatChemicalReactionHTML(rr, true, model.database_name)"></span>
                   (<span v-html="reformatEqSign(rr.compartment_str, rr.is_reversible)">
                   </span>)
                 </div>
@@ -81,15 +81,13 @@
 
 <script>
 import axios from 'axios';
-import $ from 'jquery';
 import Loader from '@/components/Loader';
 import NotFound from '@/components/NotFound';
 import MapsAvailable from '@/components/explorer/gemBrowser/MapsAvailable';
 import ExtIdTable from '@/components/explorer/gemBrowser/ExtIdTable';
 import GemContact from '@/components/shared/GemContact';
 import References from '@/components/shared/References';
-import { default as EventBus } from '@/event-bus';
-import { reformatTableKey, addMassUnit, reformatCompEqString, reformatChemicalReactionHTML, reformatEqSign } from '@/helpers/utils';
+import { buildCustomLink, reformatTableKey, addMassUnit, reformatCompEqString, reformatChemicalReactionHTML, reformatEqSign } from '@/helpers/utils';
 
 export default {
   name: 'Reaction',
@@ -137,14 +135,6 @@ export default {
       }
     },
   },
-  created() {
-    $('body').on('click', 'a.e', function f() {
-      EventBus.$emit('GBnavigateTo', 'gene', $(this).attr('name'));
-    });
-    $('body').on('click', 'a.s', function f() {
-      EventBus.$emit('GBnavigateTo', 'subsystem', $(this).attr('name'));
-    });
-  },
   beforeMount() {
     this.setup();
   },
@@ -179,7 +169,7 @@ export default {
           this.relatedReactions = [];
         });
     },
-    reformatEquation() { return reformatChemicalReactionHTML(this.reaction); },
+    reformatEquation() { return reformatChemicalReactionHTML(this.reaction, false, this.model.database_name); },
     reformatGenes() {
       if (!this.reaction.gene_rule) {
         return '-';
@@ -203,7 +193,8 @@ export default {
             const suffix = e.slice(-1) === ')' ? ')' : '';
             const newE = e.replace(/^\(+|\)+$/g, '');
             const tag = newGRnameArr ? newGRnameArr[i] : newE;
-            return `${prefix}<span class="tag"><a class="e is-size-6" name="${newE}">${tag}</a></span>${suffix}`;
+            const customLink = buildCustomLink({ model: this.model.database_name, type: 'gene', id: newE, title: tag, cssClass: 'is-size-6' });
+            return `${prefix}<span class="tag">${customLink}</span>${suffix}`;
           });
         newGR = newGRArr.join(' ');
       }
