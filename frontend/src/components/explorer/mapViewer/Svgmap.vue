@@ -53,8 +53,8 @@ import axios from 'axios';
 import $ from 'jquery';
 import Panzoom from '@panzoom/panzoom';
 import { default as FileSaver } from 'file-saver';
-import { default as EventBus } from '../../../event-bus';
-import { default as messages } from '../../../helpers/messages';
+import { default as EventBus } from '@/event-bus';
+import { default as messages } from '@/helpers/messages';
 import { reformatChemicalReactionHTML, isMobilePage } from '@/helpers/utils';
 
 export default {
@@ -249,7 +249,7 @@ export default {
     },
     zoomOut(bool) {
       if (this.$panzoom) {
-        this.$panzoom.panzoom('zoom', bool, {
+        this.$panzoom.zoom(bool, {
           focal: {
             clientX: this.clientFocusX(),
             clientY: this.clientFocusY(),
@@ -262,9 +262,11 @@ export default {
       if (!this.$panzoom) {
         const elem = document.getElementById('svg-wrapper');
         this.$panzoom = Panzoom(elem, this.panzoomOptions);
+        console.log('pz load');
       } else {
         this.$panzoom.panzoom('reset', this.panzoomOptions);
         this.$panzoom.off('panzoomzoom');
+        console.log('pz reset');
       }
       setTimeout(() => {
         const minZoomScale = Math.min($('.svgbox').width() / $('#svg-wrapper svg').width(),
@@ -272,13 +274,15 @@ export default {
         const focusX = ($('#svg-wrapper svg').width() / 2) - ($('.svgbox').width() / 2);
         const focusY = ($('#svg-wrapper svg').height() / 2) - (this.svgboxHeight / 2);
         this.$panzoom.pan(-focusX, -focusY);
-        this.$panzoom.zoom(minZoomScale, {
+        console.log(minZoomScale);
+        this.$panzoom.zoom(2, {
           // increment: 1 - minZoomScale,
           focal: {
             clientX: this.clientFocusX(),
             clientY: this.clientFocusY(),
           },
         });
+        console.log('pz center');
         // this.$panzoom.on('panzoomzoom', (e, panzoom, scale) => { // eslint-disable-line no-unused-vars
         //   this.currentZoomScale = scale;
         // });

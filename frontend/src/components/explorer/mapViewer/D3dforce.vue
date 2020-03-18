@@ -12,7 +12,7 @@
 import axios from 'axios';
 import forceGraph3D from '3d-force-graph';
 import { default as FileSaver } from 'file-saver';
-import { default as EventBus } from '../../../event-bus';
+import { default as EventBus } from '@/event-bus';
 import { reformatChemicalReactionHTML, isMobilePage } from '@/helpers/utils';
 
 export default {
