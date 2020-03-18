@@ -124,7 +124,7 @@ export default {
     search(searchTerm) {
       $('#search').focus();
       this.searchTermString = searchTerm;
-      const url = `${this.model.database_name}/search/${searchTerm}`;
+      const url = `${this.model.database_name}/search_${this.metabolitesAndGenesOnly ? 'ip' : 'gb'}/${searchTerm}`;
       axios.get(url)
         .then((response) => {
           const localResults = {
