@@ -108,6 +108,7 @@ export function getChemicalReaction(reaction) {
   return `${reactants} => ${products}`;
 }
 
+// TODO: consider using an object as param
 export function reformatChemicalReactionHTML(reaction, noLink = false, model = 'human1') {
   if (reaction === null) {
     return '';

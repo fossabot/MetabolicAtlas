@@ -41,7 +41,7 @@
                 {{ r.id }}
               </a>
             </td>
-            <td v-html="reformatChemicalReactionHTML(r)"></td>
+            <td v-html="reformatChemicalReactionHTML(r, false, model.database_name)"></td>
             <td>
               <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key max-len -->
               <template v-for="(m, index) in r.genes">{{ index == 0 ? '' : ', ' }}<a :href="`/explore/gem-browser/${model.database_name}/gene/${m.id}`" @click="handleRouterClick">{{ m.name || m.id }}</a>

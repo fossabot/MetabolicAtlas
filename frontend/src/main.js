@@ -26,8 +26,8 @@ if (navigator.doNotTrack !== '1') {
 }
 
 Vue.mixin({
-  created() {
-    bindRouterLink(this);
+  updated() {
+    bindRouterLink();
   },
   methods: {
     handleRouterClick,
