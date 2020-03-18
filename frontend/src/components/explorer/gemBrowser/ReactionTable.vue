@@ -162,9 +162,6 @@ export default {
   },
   updated() {
     if (this.selectedElmId) {
-      // when the table is from the selectedElmId page (metabolite)
-      // do not color the selectedElmId is the reaction equations
-      $('m').css('color', '');
       $(`.${this.selectedElmId}`).addClass('cms');
     }
   },
@@ -220,14 +217,10 @@ export default {
 <style lang="scss">
 
 .reaction-table {
-
-  m {
-    color: #00549E;
-    &.cms {
-      color: rgb(54, 54, 54);
-      cursor: default;
-      font-weight: 600;
-    }
+  a.cms {
+    color: rgb(54, 54, 54);
+    cursor: default;
+    font-weight: 600;
   }
 }
 
