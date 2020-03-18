@@ -53,7 +53,7 @@
           <div v-if="notFoundSuggestions.length !== 0">
             Do you mean:&nbsp;
             <template v-for="v in notFoundSuggestions">
-              <a :key="v" class="suggestions" @click.prevent="search(v)">{{ v }}</a>&nbsp;
+              <a :key="v" class="suggestions has-text-link" @click.prevent="search(v)">{{ v }}</a>&nbsp;
             </template>?
           </div>
         </div>
