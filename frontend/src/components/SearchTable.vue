@@ -87,6 +87,7 @@
                     for more information)</li>
                   <li>EC code</li>
                   <li>External identifiers</li>
+                  <li>PMID</li>
                 </ul>
                 <span>Subsystems and compartments</span>
                 <ul>
