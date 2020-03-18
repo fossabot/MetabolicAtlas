@@ -50,6 +50,12 @@
         </div>
         <div v-show="!showLoader && noResult" class="has-text-centered notification is-marginless">
           {{ messages.searchNoResult }}
+          <div v-if="notFoundSuggestions.length !== 0">
+            Do you mean:&nbsp;
+            <template v-for="v in notFoundSuggestions">
+              <a :key="v" class="suggestions" @click.prevent="search(v)">{{ v }}</a>&nbsp;
+            </template>?
+          </div>
         </div>
       </div>
     </div>
@@ -88,6 +94,7 @@ export default {
         subsystem: ['name', 'system'],
         compartment: ['name'],
       },
+      notFoundSuggestions: [],
     };
   },
   computed: {
@@ -103,7 +110,7 @@ export default {
   },
   methods: {
     blur() {
-      setTimeout(() => { this.showResults = false; }, 200);
+      setTimeout(() => { this.showResults = $('#search').is(':focus'); }, 200);
     },
     searchDebounce() {
       this.noResult = false;
@@ -115,6 +122,7 @@ export default {
       }
     },
     search(searchTerm) {
+      $('#search').focus();
       this.searchTermString = searchTerm;
       const url = `${this.model.database_name}/search/${searchTerm}`;
       axios.get(url)
@@ -164,9 +172,14 @@ export default {
           });
           this.$refs.searchResults.scrollTop = 0;
         })
-        .catch(() => {
+        .catch((error) => {
           this.searchResults = [];
           this.noResult = true;
+          if (error.response.headers.suggestions) {
+            this.notFoundSuggestions = JSON.parse(error.response.headers.suggestions);
+          } else {
+            this.notFoundSuggestions = [];
+          }
           this.showLoader = false;
         });
     },
