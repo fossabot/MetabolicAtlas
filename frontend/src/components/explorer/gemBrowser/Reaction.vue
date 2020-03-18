@@ -69,6 +69,7 @@
           </tr>
         </table>
         <ExtIdTable :type="type" :external-dbs="reaction.external_databases"></ExtIdTable>
+        <br>
         <references :reference-list="referenceList" />
       </div>
       <div class="column is-2-widescreen is-3-desktop is-half-tablet has-text-centered">

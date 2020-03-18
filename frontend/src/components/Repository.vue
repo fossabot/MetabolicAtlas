@@ -81,7 +81,7 @@
           <span v-if="!showLoader">No models available</span>
         </div>
         <br>
-        <div id="gem-list-modal" v-if="showModelTable" class="modal is-active">
+        <div v-if="showModelTable" id="gem-list-modal" class="modal is-active">
           <div class="modal-background" @click="showModelTable = false"></div>
           <div class="modal-content column is-6-fullhd is-8-desktop is-10-tablet is-full-mobile has-background-white"
                tabindex="0" @keyup.esc="showModelTable = false">
@@ -131,7 +131,8 @@
               <template v-if="selectedModel.files">
                 <h4 class="title is-size-4">Files</h4>
                 <template v-for="file in selectedModel.files">
-                  <a class="button" :href="`${filesURL}${file.path}`" :key="file.path">{{ file.format }}</a>&nbsp;
+                  <a class="button" :key="file.path" style="margin: 0 1em 1em 0"
+                     :href="`${filesURL}${file.path}`">{{ file.format }}</a>
                 </template>
               </template>
             </div>

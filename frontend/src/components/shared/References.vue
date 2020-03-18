@@ -1,6 +1,5 @@
 <template>
   <div>
-    <br>
     <h4 class="title is-size-4">References</h4>
     <p>Reference details are fetched dynamically from
       <a href="https://europepmc.org" target="_blank">Europe PMC</a>
