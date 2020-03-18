@@ -87,7 +87,7 @@ import MapsAvailable from '@/components/explorer/gemBrowser/MapsAvailable';
 import ExtIdTable from '@/components/explorer/gemBrowser/ExtIdTable';
 import GemContact from '@/components/shared/GemContact';
 import References from '@/components/shared/References';
-import { buildCustomLink, reformatTableKey, addMassUnit, reformatCompEqString, reformatChemicalReactionHTML, reformatEqSign } from '@/helpers/utils';
+import { buildCustomLink, reformatTableKey, addMassUnit, reformatChemicalReactionHTML, reformatEqSign } from '@/helpers/utils';
 
 export default {
   name: 'Reaction',
@@ -222,7 +222,6 @@ export default {
     },
     reformatReversible() { return this.reaction.is_reversible ? 'Yes' : 'No'; },
     reformatTableKey,
-    reformatCompEqString,
     reformatChemicalReactionHTML,
     reformatEqSign,
   },

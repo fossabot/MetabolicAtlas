@@ -34,30 +34,6 @@ export function reformatStringToLink(value, link) {
   return `<a href="${value}" target="_blank">${value}</a>`;
 }
 
-export function reformatCompEqString(value, reversible) {
-  if (value === null) {
-    return '';
-  }
-  const eqArr = value.split(' => ');
-  let reactants = '';
-  let products = '';
-  if (eqArr[0]) {
-    reactants = eqArr[0].split(' + ').map(
-      e => `<a class="cmp">${e}</a>`).join(' + ');
-  }
-  if (eqArr[1]) {
-    products = eqArr[1].split(' + ').map(
-      e => `<a class="cmp">${e}</a>`).join(' + ');
-  }
-  if (products) {
-    if (reversible) {
-      return `${reactants} &#8660; ${products}`;
-    }
-    return `${reactants} &#8658; ${products}`;
-  }
-  return reactants;
-}
-
 export function reformatEqSign(equation, reversible) {
   if (reversible) {
     return equation.replace(' => ', ' &#8660; ');

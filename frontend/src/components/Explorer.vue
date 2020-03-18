@@ -85,12 +85,10 @@
 
 <script>
 import axios from 'axios';
-import $ from 'jquery';
 import GemBrowser from '@/components/explorer/GemBrowser';
 import MapViewer from '@/components/explorer/MapViewer';
 import InteractionPartners from '@/components/explorer/InteractionPartners';
 import NotFound from '@/components/NotFound';
-import { idfy } from '../helpers/utils';
 import { default as EventBus } from '../event-bus';
 import { default as messages } from '../helpers/messages';
 
@@ -155,25 +153,6 @@ export default {
     });
     EventBus.$on('showInteractionPartner', () => {
       this.displayInterPartner();
-    });
-
-    $('body').on('click', 'td m', function f() {
-      if (!($(this).hasClass('cms'))) {
-        EventBus.$emit('GBnavigateTo', 'metabolite', $(this).attr('class'));
-      }
-    });
-    $('body').on('click', 'span.rcm', function f() {
-      EventBus.$emit('GBnavigateTo', 'metabolite', $(this).attr('id'));
-    });
-    $('body').on('click', 'span.rce', function f() {
-      EventBus.$emit('GBnavigateTo', 'gene', $(this).attr('id'));
-    });
-
-    $('body').on('click', 'span.sub', function f() {
-      EventBus.$emit('GBnavigateTo', 'subsystem', $(this).attr('id'));
-    });
-    $('body').on('click', 'a.cmp', function f() {
-      EventBus.$emit('GBnavigateTo', 'compartment', idfy($(this).html()));
     });
   },
   methods: {

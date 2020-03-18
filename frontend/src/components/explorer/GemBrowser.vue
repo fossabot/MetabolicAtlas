@@ -99,9 +99,6 @@ import Subsystem from '@/components/explorer/gemBrowser/Subsystem';
 import Compartment from '@/components/explorer/gemBrowser/Compartment';
 import Tile from '@/components/explorer/gemBrowser/Tile';
 import { default as messages } from '../../helpers/messages';
-import { default as EventBus } from '../../event-bus';
-import { idfy } from '../../helpers/utils';
-
 
 export default {
   name: 'GemBrowser',
@@ -137,17 +134,6 @@ export default {
   },
   beforeMount() {
     this.setup();
-  },
-  created() {
-    // init the global events
-    EventBus.$off('GBnavigateTo');
-    EventBus.$on('GBnavigateTo', (type, id) => {
-      let ID = id;
-      if (type === 'subsystem' || type === 'compartment') {
-        ID = idfy(id);
-      }
-      this.$router.push(`/explore/gem-browser/${this.$route.params.model}/${type}/${ID}`);
-    });
   },
   methods: {
     setup() {

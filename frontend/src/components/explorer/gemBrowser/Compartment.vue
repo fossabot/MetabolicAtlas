@@ -61,7 +61,7 @@ import Loader from '@/components/Loader';
 import NotFound from '@/components/NotFound';
 import MapsAvailable from '@/components/explorer/gemBrowser/MapsAvailable';
 import GemContact from '@/components/shared/GemContact';
-import { reformatTableKey } from '../../../helpers/utils';
+import { buildCustomLink, idfy, reformatTableKey } from '../../../helpers/utils';
 
 export default {
   name: 'Subsystem',
@@ -96,7 +96,8 @@ export default {
         if (!this.showFullSubsystem && i === this.limitSubsystem) {
           break;
         }
-        l.push(`<span id="${s.id}" class="tag sub"><a class="is-size-6">${s.name}</a></span>`);
+        const customLink = buildCustomLink({ model: this.model.database_name, type: 'subsystem', id: idfy(s.id), title: s.name, cssClass: 'is-size-6' });
+        l.push(`<span id="${s.id}" class="tag sub">${customLink}</span>`);
       }
       l.push('</span>');
       return l.join('');

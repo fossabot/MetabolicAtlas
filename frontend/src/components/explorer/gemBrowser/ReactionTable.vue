@@ -76,7 +76,7 @@
 import $ from 'jquery';
 import { default as compare } from '@/helpers/compare';
 import ExportTSV from '@/components/explorer/gemBrowser/ExportTSV';
-import { reformatCompEqString, idfy, reformatChemicalReactionHTML, getChemicalReaction } from '@/helpers/utils';
+import { idfy, reformatChemicalReactionHTML, getChemicalReaction } from '@/helpers/utils';
 
 export default {
   name: 'ReactionTable',
@@ -116,7 +116,6 @@ export default {
       sortOrder: 'asc',
       sortBy: 'id',
       sortPattern: '',
-      reformatCompEqString,
     };
   },
   computed: {
