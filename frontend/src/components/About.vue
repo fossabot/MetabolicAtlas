@@ -60,7 +60,7 @@
           </nav>
           <br>
           <h4 class="title is-4">Contact</h4>
-          <p>For any questions, comments or suggestions please email us <a href="mailto:">contact [at] metabolicatlas [dot] org</a> .</p>
+          <p>For any questions, comments or suggestions please email us <a href="mailto:">contact [at] metabolicatlas [dot] org</a>.</p>
         </div>
       </div>
       <br>
@@ -97,7 +97,7 @@
             Metabolic Atlas gathers information about users solely to improve the usability and usefulness of the website. There are two types of cookies that are set by Metabolic Atlas: functionality cookies and tracking cookies.<br>
             Functionality cookies are used to personalize the appearence of the Metabolic Atlas.<br>
             Tracking cookies are used by our private analytics to track the users on our website. We use these to observe the anonymized behaviour on our website in order to improve it. We store partial IP, operating system, browser and browser language. This information is stored permanently and is not shared with any third party. To opt out, please set your browser to use the "DoNotTrack" header; doing this will disable the tracking.<br>
-            Additionally, we use the services of HotJar.com. This is an additional independent tracking service, which can produce a screen capture of the interactions on our website. We use it for the purpose of figuring out how to improve our website. The data is stored for at most 3 months. To opt out, see the <a href="https://www.hotjar.com/legal/compliance/opt-out" target="_blank">instructions on their website</a>. HotJar adheres to GDPR, <a href="https://www.hotjar.com/legal/compliance/gdpr-commitment" target="_blank">see more on their website.</a>
+            Additionally, we use the services of HotJar.com. This is an additional independent tracking service, which can produce a screen capture of the interactions on our website. We use it for the purpose of figuring out how to improve our website. The data is stored for at most 3 months. To opt out, see the <a href="https://www.hotjar.com/legal/compliance/opt-out" target="_blank">instructions on their website</a>. HotJar adheres to GDPR, <a href="https://www.hotjar.com/legal/compliance/gdpr-commitment" target="_blank">see more on their website</a>. If you have any questions, please email us at <a href="mailto:">contact [at] metabolicatlas [dot] org</a>.
           </p>
 
           <h2 class="title is-2">Terms of Use</h2>
@@ -119,21 +119,25 @@ export default {
   data() {
     return {
       news: {
+        2020: [
+          { date: '7 February 2020',
+            text: '<b>Metabolic Atlas v1.5</b> is out. This release updates the layout of the <i>Home</i>, <i>Explore</i>, and <i>Interaction Partner</i> pages. A <i>News</i> section has also been added on the <i>About</i> page. Other features include suggestions on the <i>Search</i> page, a contact button in the <i>GEM Browser</i>, and a progress bar at the top indicating page loading status. The Human-GEM has also been updated to v1.3, and the Yeast-GEM to v.8.3.4. More details can be found <a href="https://github.com/SysBioChalmers/MetabolicAtlas/releases/tag/v1.5" target="_blank">on GitHub</a>.' },
+        ],
         2019: [
           { date: '11 September 2019',
             text: '<b>Metabolic Atlas</b> was presented in the <a href="https://www.scilifelab.se/events/omics-integration-and-systems-biology/" target="_blank">Omics Integration and Systems Biology</a> course given by <a href="https://nbis.se" target="_blank">NBIS</a>.' },
           { date: '5 September 2019',
-            text: '<b>Metabolic Atlas v1.4</b> is out. The major feature of this release is the <i>Data Overlay</i> panel on the <i>Map Viewer</i>, currently enabling data upload and comparison for gene expression. Other small tweaks on the <i>Map Viwewer</i> are: the fullscreen mode, hiding genes or subsystem highlights, some button layout changes. The RNA legend was refactored but maintains the same functionality. The <i>GEM Browser</i> tiles can be randomized by clicking a button. More details can be found in <a href="https://github.com/SysBioChalmers/MetabolicAtlas/releases/tag/v1.4" target="_blank">on GitHub</a>.' },
+            text: '<b>Metabolic Atlas v1.4</b> is out. The main feature of this release is the <i>Data Overlay</i> panel on the <i>Map Viewer</i>, currently enabling data upload and comparison for gene expression. Other small tweaks on the <i>Map Viwewer</i> are: the fullscreen mode, hiding genes or subsystem highlights, some button layout changes. The RNA legend was refactored but maintains the same functionality. The <i>GEM Browser</i> tiles can be randomized by clicking a button. More details can be found <a href="https://github.com/SysBioChalmers/MetabolicAtlas/releases/tag/v1.4" target="_blank">on GitHub</a>.' },
           { date: '1 August 2019',
-            text: '<b>Metabolic Atlas v1.3</b> loads much faster. Across the website <i>enzyme</i> has been renamed to <i>gene</i>, and the <i>Global search</i> gives results in order, downloadable in TSV format. Among the minor tweaks are: notice on 404 page,  <i>Interaction partners</i> layout and <i>API</i> layout. More details can be found in <a href="https://github.com/SysBioChalmers/MetabolicAtlas/releases/tag/v1.3" target="_blank">on GitHub</a>.' },
+            text: '<b>Metabolic Atlas v1.3</b> loads much faster. Across the website <i>enzyme</i> has been renamed to <i>gene</i>, and the <i>Global search</i> gives results in order, downloadable in TSV format. Among the minor tweaks are: notice on 404 page,  <i>Interaction partners</i> layout and <i>API</i> layout. More details can be found <a href="https://github.com/SysBioChalmers/MetabolicAtlas/releases/tag/v1.3" target="_blank">on GitHub</a>.' },
           { date: '25 June 2019',
             text: '<b>Metabolic Atlas v1.2</b> adds more interaction on the 3D <i>Map Viewer</i>, and improves the <i>GEM Comparison</i> tables. It also contains several bug fixes. More details can be found in <a href="https://github.com/SysBioChalmers/MetabolicAtlas/releases/tag/v1.2" target="_blank">on GitHub</a>. Moreover, <i>Human1</i> was updated to v1.1.' },
           { date: '29 May 2019',
-            text: '<b>Metabolic Atlas v1.1</b> has minor UI improvements, mainly around documentation, resources, <i>Interaction Partners</i> and <i>Map Viewe</i>, alongside deployment improvements with a focus on reducing downtime. More details can be found in <a href="https://github.com/SysBioChalmers/MetabolicAtlas/releases/tag/v1.1" target="_blank">on GitHub</a>.' },
+            text: '<b>Metabolic Atlas v1.1</b> has minor UI improvements, mainly around documentation, resources, <i>Interaction Partners</i> and <i>Map Viewe</i>, alongside deployment improvements with a focus on reducing downtime. More details can be found <a href="https://github.com/SysBioChalmers/MetabolicAtlas/releases/tag/v1.1" target="_blank">on GitHub</a>.' },
           { date: '17 May 2019',
             text: '<b>Metabolic Atlas v1.0</b> is publicly available. We have finalized two main tools, the <i>GEM Browser</i> (including <i>Interaction Partners</i>) and <i>Map Viewer</i>. Additionally, Metabolic Atlas is hosting GEMs in a repository. More details can be found in <a href="https://github.com/SysBioChalmers/MetabolicAtlas/releases/tag/v1.0" target="_blank">on GitHub</a>.',
             icon: 'flag' },
-          { date: '2 May 2018',
+          { date: '2 May 2019',
             text: '<i>Human1</i> is integrated, with complete compartment maps, and a significant number of the subsystem maps.' },
         ],
         2018: [

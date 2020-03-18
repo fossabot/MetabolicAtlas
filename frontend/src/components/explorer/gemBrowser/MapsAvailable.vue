@@ -13,8 +13,7 @@
         <template v-if="mapsAvailable[mapKey]['count'] !== 0">{{ mapKey.toUpperCase() }} maps
           <ul style="margin: 0 1rem">
             <template v-for="map in mapsAvailable[mapKey]['compartment'].concat(mapsAvailable[mapKey]['subsystem'])">
-              <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
-              <li>
+              <li :key="map[0]">
                 <!-- eslint-disable-next-line max-len -->
                 <router-link :to="{ path: `/explore/map-viewer/${model.database_name}/${map[2]}/${map[0]}/${elementID}?dim=${mapKey}` }">
                   {{ map[1] }}

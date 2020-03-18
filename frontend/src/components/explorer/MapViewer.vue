@@ -15,7 +15,6 @@
         is-one-quarter-tablet has-background-lightgray om-2"
              :class=" isMobilePage() ? '' : 'fixed-height scroll' ">
           <div id="menu">
-
             <span id="menuButtons">
               <button class="button is-whitesmoke is-rounded has-text-weight-bold"
                       :disabled="!activeSwitch"
@@ -398,34 +397,32 @@ export default {
         .then((response) => {
           this.mapsData3D.compartments = {};
           response.data.compartment.forEach((c) => {
-            this.mapsData3D.compartments[c.name_id] = c;
-            this.mapsData3D.compartments[c.name_id].id = c.name_id;
-            this.mapsData3D.compartments[c.name_id].alternateDim = c.compartment_svg;
-            this.compartmentMapping.dim2D[c.compartment_svg] = c.name_id;
+            this.mapsData3D.compartments[c.id] = c;
+            this.mapsData3D.compartments[c.id].alternateDim = c.compartment_svg;
+            this.compartmentMapping.dim3D[c.id] = c.compartment_svg;
           });
 
           this.mapsData2D.compartments = {};
           response.data.compartmentsvg.forEach((c) => {
-            this.mapsData2D.compartments[c.name_id] = c;
-            this.mapsData2D.compartments[c.name_id].id = c.compartment;
-            this.mapsData2D.compartments[c.name_id].alternateDim = c.compartment;
-            this.compartmentMapping.dim3D[c.compartment] = c.name_id;
+            this.mapsData2D.compartments[c.id] = c;
+            // this.mapsData2D.compartments[c.id].id = c.compartment;
+            this.mapsData2D.compartments[c.id].alternateDim = c.compartment;
+            this.compartmentMapping.dim2D[c.id] = c.compartment;
           });
 
           this.has2DCompartmentMaps = Object.keys(this.mapsData2D.compartments).length !== 0;
 
           this.mapsData3D.subsystems = {};
           response.data.subsystem.forEach((s) => {
-            this.mapsData3D.subsystems[s.name_id] = s;
-            this.mapsData3D.subsystems[s.name_id].id = s.name_id;
-            this.mapsData3D.subsystems[s.name_id].alternateDim = s.subsystem_svg;
+            this.mapsData3D.subsystems[s.id] = s;
+            this.mapsData3D.subsystems[s.id].alternateDim = s.subsystem_svg;
           });
 
           this.mapsData2D.subsystems = {};
           response.data.subsystemsvg.forEach((s) => {
-            this.mapsData2D.subsystems[s.name_id] = s;
-            this.mapsData2D.subsystems[s.name_id].id = s.subsystem;
-            this.mapsData2D.subsystems[s.name_id].alternateDim = s.subsystem;
+            this.mapsData2D.subsystems[s.id] = s;
+            // this.mapsData2D.subsystems[s.id].id = s.subsystem;
+            this.mapsData2D.subsystems[s.id].alternateDim = s.subsystem;
           });
 
           this.has2DSubsystemMaps = Object.keys(this.mapsData2D.subsystems).length !== 0;

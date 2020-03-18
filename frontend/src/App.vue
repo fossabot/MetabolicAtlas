@@ -4,7 +4,7 @@
     <nav id="navbar" class="navbar has-background-primary-lighter" role="navigation" aria-label="main navigation">
       <div class="container">
         <div class="navbar-brand">
-          <router-link active-class="" class="navbar-item" to="/" @click.native="isMobileMenu = false">
+          <router-link class="navbar-item" :to="{ path: '/' }" active-class="" @click.native="isMobileMenu = false">
             <img :src="require('./assets/logo.png')" />
           </router-link>
           <div class="navbar-burger" :class="{ 'is-active': isMobileMenu }" @click="isMobileMenu = !isMobileMenu">
@@ -31,30 +31,31 @@
             </a>
           </div>
           <div class="navbar-end has-background-primary-lighter">
-            <template v-for="(menuPath, menuName) in menuElems">
-              <template v-if="typeof menuPath === 'string'">
+            <template v-for="(menuElem) in menuElems">
+              <template v-if="menuElem.routeName">
                 <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
                 <router-link class="navbar-item is-unselectable is-active-underline"
-                             :to="{ path: menuPath }" @click.native="isMobileMenu = false" v-html="menuName">
+                             :to="{ name: menuElem.routeName }"
+                             @click.native="isMobileMenu = false" v-html="menuElem.displayName">
                 </router-link>
               </template>
               <template v-else>
-                <template v-for="(submenus, menuurl) in menuPath">
+                <template>
                   <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
                   <div class="navbar-item has-dropdown is-hoverable is-unselectable has-background-primary-lighter">
                     <a class="navbar-link is-active-underline"
-                       :class="{ 'router-link-active': $route.path.toLowerCase().includes(menuurl) }">
-                       {{ menuName }}
+                       :class="{
+                         'router-link-active': menuElem.subMenuElems.map(sme => sme.routeName).includes($route.name)
+                       }">
+                      {{ menuElem.displayName }}
                     </a>
                     <div class="navbar-dropdown has-background-primary-lighter is-paddingless">
-                      <template v-for="submenu in submenus">
-                        <template v-for="(submenuPath, submenuName) in submenu">
-                          <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
-                          <router-link class="navbar-item is-unselectable has-background-primary-lighter"
-                                       :to="{ path: submenuPath }"
-                                       @click.native="isMobileMenu = false">{{ submenuName }}
-                          </router-link>
-                        </template>
+                      <template v-for="(subMenuElem) in menuElem.subMenuElems">
+                        <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
+                        <router-link class="navbar-item is-unselectable has-background-primary-lighter"
+                                     :to="{ name: subMenuElem.routeName }"
+                                     @click.native="isMobileMenu = false">{{ subMenuElem.displayName }}
+                        </router-link>
                       </template>
                     </div>
                   </div>
@@ -129,22 +130,44 @@ export default {
   data() {
     return {
       /* eslint-disable quote-props */
-      menuElems: {
-        '<span class="icon is-large"><i id="search-icon" class="fa fa-search"></i></span>': '/search?term=',
-        'Explore': '/explore',
-        'GEM': {
-          '/gems/': [
-            { 'Repository': '/gems/repository' },
-            { 'Comparison': '/gems/comparison' },
+      menuElems: [
+        {
+          displayName: '<span class="icon is-large"><i id="search-icon" class="fa fa-search"></i></span>',
+          routeName: 'search',
+        },
+        {
+          displayName: 'Explore',
+          routeName: 'explorerRoot',
+        },
+        {
+          displayName: 'GEM',
+          subMenuElems: [
+            {
+              displayName: 'Repository',
+              routeName: 'gems',
+            },
+            {
+              displayName: 'Comparison',
+              routeName: 'comparemodels',
+            },
           ],
         },
-        'Resources': '/resources',
-        'Documentation': '/documentation',
-        'About': '/about',
-      },
+        {
+          displayName: 'Resources',
+          routeName: 'resources',
+        },
+        {
+          displayName: 'Documentation',
+          routeName: 'documentation',
+        },
+        {
+          displayName: 'About',
+          routeName: 'about',
+        },
+      ],
       activeBrowserBut: false,
       activeViewerBut: false,
-      showCookieMsg: !isCookiePolicyAccepted(),
+      showCookieMsg: navigator.doNotTrack !== '1' && !isCookiePolicyAccepted(),
       acceptCookiePolicy,
       activeDropMenu: '',
       model: null,
