@@ -108,7 +108,7 @@ export function reformatChemicalReactionHTML(reaction, noMtag = false, model = '
   const reactants = reaction.reactionreactant_set.map(
     (x) => {
       if (!addComp) {
-        return `${x.stoichiometry !== 1 ? x.stoichiometry : ''} ${noMtag ? x.name : `<a href="/explore/gem-browser/${model}/gene/${x.id}" class="custom-router-link ${x.id}">${x.name}</a>`}`;
+        return `${x.stoichiometry !== 1 ? x.stoichiometry : ''} ${noMtag ? x.name : `<a href="/explore/gem-browser/${model}/metabolite/${x.id}" class="custom-router-link ${x.id}">${x.name}</a>`}`;
       }
       const regex = /.+\[([a-z]{1,3})\]$/;
       const match = regex.exec(x.full_name);
