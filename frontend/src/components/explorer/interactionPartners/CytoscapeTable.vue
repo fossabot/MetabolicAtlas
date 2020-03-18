@@ -105,7 +105,6 @@
 
 import ExportTSV from '@/components/explorer/gemBrowser/ExportTSV';
 import { default as compare } from '../../../helpers/compare';
-import { default as EventBus } from '../../../event-bus';
 import { reformatEqSign } from '../../../helpers/utils';
 
 
@@ -177,7 +176,6 @@ export default {
   },
   methods: {
     applyModifier(s, elm) { return s.modifier(elm[s.field], elm.link); },
-    viewReactionComponent(type, id) { EventBus.$emit('GBnavigateTo', type, id); },
     isSelected(elmId) {
       return this.hlID === elmId || this.selectedReactionId === elmId;
     },

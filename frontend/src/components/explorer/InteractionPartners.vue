@@ -276,8 +276,6 @@ import Loader from '@/components/Loader';
 import RNALegend from '@/components/explorer/mapViewer/RNALegend.vue';
 import NotFound from '@/components/NotFound';
 
-import { default as EventBus } from '../../event-bus';
-
 import { default as transform } from '../../data-mappers/hmr-closest-interaction-partners';
 import { default as graph } from '../../graph-stylers/hmr-closest-interaction-partners';
 
@@ -969,13 +967,6 @@ export default {
       this.cy.zoom({
         level: lvl,
       });
-    },
-    viewReactionComponent(type) {
-      EventBus.$emit('GBnavigateTo', type,
-        this.mainNode.real_id ? this.mainNode.real_id : this.mainNode.id);
-    },
-    viewReaction(ID) {
-      EventBus.$emit('GBnavigateTo', 'reaction', ID);
     },
     scrollTo(id) {
       const container = jquery('body, html');
