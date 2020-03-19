@@ -216,6 +216,40 @@ export default {
       $('.svgbox').first().toggleClass('fullscreen');
       $('#svgSearch').toggleClass('fullscreen');
     });
+    $(document).on('keydown', (event) => {
+      if (!this.$route.name.includes('viewer') || this.$route.query.dim !== '2d' // TODO replace later by this.$route.name !== 'viewer'
+        || !this.svgName || this._inactive // eslint-disable-line no-underscore-dangle
+        || event.ctrlKey || event.altKey || event.shiftKey || event.isComposing || event.defaultPrevented) {
+        return; // Should do nothing if the default action has been cancelled
+      }
+
+      const key = event.key || event.keyCode;
+      switch (key) {
+        case 'ArrowLeft':
+        case 37: // left arrow key
+          // pan here
+          break;
+        case 'ArrowUp':
+        case 38: // up arrow key
+          // pan here
+          break;
+        case 'ArrowRight':
+        case 39: // right arrow key
+          // pan here
+          break;
+        case 'ArrowDown':
+        case 40: // up arrow key
+          // pan here
+          break;
+        case 'f':
+        case 70: // f
+          this.toggleFullScreen();
+          break;
+        default:
+          // do nothing
+      }
+      event.preventDefault(); // only when not in default?
+    });
   },
   methods: {
     toggleGenes() {
