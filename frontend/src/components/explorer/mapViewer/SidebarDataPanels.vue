@@ -88,7 +88,7 @@
               <template v-else-if="item.name === 'compartment'">
                 <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
                 <span class="has-text-weight-bold">{{ capitalize(item.display || item.name) }}:</span>
-                    {{ selectionData.data[item.name].name }}
+                {{ selectionData.data[item.name].name }}
               </template>
               <template v-else-if="['reactionreactant_set', 'reactionproduct_set'].includes(item.name)">
                 <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->

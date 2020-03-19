@@ -29,7 +29,7 @@
 
 <script>
 import axios from 'axios';
-import { default as messages } from '../../../helpers/messages';
+import { default as messages } from '@/helpers/messages';
 
 export default {
   name: 'MapsAvailable',
@@ -45,22 +45,12 @@ export default {
       messages,
     };
   },
-  watch: {
-    id() {
-      this.getAvailableMaps();
-    },
-  },
-  created() {
-    this.getAvailableMaps();
-  },
-  methods: {
-    getAvailableMaps() {
-      axios.get(`${this.model.database_name}/available_maps/${this.type}/${this.id}`)
-        .then((response) => {
-          this.mapsAvailable = response.data;
-        }).catch(() => {
-        });
-    },
+  beforeMount() {
+    axios.get(`${this.model.database_name}/available_maps/${this.type}/${this.id}`)
+      .then((response) => {
+        this.mapsAvailable = response.data;
+      }).catch(() => {
+      });
   },
 };
 </script>

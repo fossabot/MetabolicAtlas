@@ -72,7 +72,7 @@
         <references :reference-list="referenceList" />
       </div>
       <div class="column is-2-widescreen is-3-desktop is-half-tablet has-text-centered">
-        <maps-available :id="rId" :model="model" :type="type" :element-i-d="rId"></maps-available>
+        <maps-available :id="rId" :model="model" :type="type" :element-i-d="rId" />
         <gem-contact :id="rId" :model="model" :type="type" />
       </div>
     </div>

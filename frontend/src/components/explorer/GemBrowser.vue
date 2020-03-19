@@ -98,7 +98,7 @@ import Reaction from '@/components/explorer/gemBrowser/Reaction';
 import Subsystem from '@/components/explorer/gemBrowser/Subsystem';
 import Compartment from '@/components/explorer/gemBrowser/Compartment';
 import Tile from '@/components/explorer/gemBrowser/Tile';
-import { default as messages } from '../../helpers/messages';
+import { default as messages } from '@/helpers/messages';
 
 export default {
   name: 'GemBrowser',

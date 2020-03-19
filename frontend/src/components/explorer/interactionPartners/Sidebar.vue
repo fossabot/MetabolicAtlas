@@ -30,7 +30,7 @@
 
 <script>
 
-import { default as messages } from '../../../helpers/messages';
+import { default as messages } from '@/helpers/messages';
 
 export default {
   name: 'Sidebar',

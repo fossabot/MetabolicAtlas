@@ -12,8 +12,8 @@
 import axios from 'axios';
 import forceGraph3D from '3d-force-graph';
 import { default as FileSaver } from 'file-saver';
-import { default as EventBus } from '../../../event-bus';
-import { reformatChemicalReactionHTML } from '../../../helpers/utils';
+import { default as EventBus } from '@/event-bus';
+import { reformatChemicalReactionHTML } from '@/helpers/utils';
 
 export default {
   name: 'D3dforce',
@@ -233,7 +233,7 @@ export default {
           let { data } = response;
           if (type === 'reaction') {
             data = data.reaction;
-            data.equation = this.reformatChemicalReactionHTML(data, true);
+            data.equation = reformatChemicalReactionHTML(data, true);
           } else if (type === 'gene') {
             // add the RNA level if any
             if (id in this.HPARNAlevels) {
@@ -298,7 +298,6 @@ export default {
         EventBus.$emit('loadRNAComplete', true, '');
       }
     },
-    reformatChemicalReactionHTML,
   },
 };
 </script>

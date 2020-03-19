@@ -171,8 +171,8 @@ import SidebarDataPanels from '@/components/explorer/mapViewer/SidebarDataPanels
 import DataOverlay from '@/components/explorer/mapViewer/DataOverlay.vue';
 import Svgmap from '@/components/explorer/mapViewer/Svgmap';
 import D3dforce from '@/components/explorer/mapViewer/D3dforce';
-import { default as EventBus } from '../../event-bus';
-import { default as messages } from '../../helpers/messages';
+import { default as EventBus } from '@/event-bus';
+import { default as messages } from '@/helpers/messages';
 
 export default {
   name: 'MapViewer',

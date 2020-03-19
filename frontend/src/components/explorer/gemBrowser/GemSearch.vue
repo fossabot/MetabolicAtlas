@@ -59,9 +59,9 @@
 <script>
 import axios from 'axios';
 import $ from 'jquery';
-import { sortResults } from '../../../helpers/utils';
-import { chemicalFormula, chemicalReaction } from '../../../helpers/chemical-formatters';
-import { default as messages } from '../../../helpers/messages';
+import { sortResults } from '@/helpers/utils';
+import { chemicalReaction } from '@/helpers/chemical-formatters';
+import { default as messages } from '@/helpers/messages';
 
 export default {
   name: 'GemSearch',
@@ -159,7 +159,7 @@ export default {
           // sort result by exact matched first, then by alpha order
           Object.keys(localResults).forEach((k) => {
             if (localResults[k].length) {
-              localResults[k].sort((a, b) => this.sortResults(a, b, this.searchTermString));
+              localResults[k].sort((a, b) => sortResults(a, b, this.searchTermString));
             }
           });
           this.$refs.searchResults.scrollTop = 0;
@@ -195,8 +195,6 @@ export default {
       }
       return s;
     },
-    chemicalFormula,
-    sortResults,
   },
 };
 </script>

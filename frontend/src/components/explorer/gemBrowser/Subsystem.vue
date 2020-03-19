@@ -67,8 +67,8 @@
         <ExtIdTable :type="type" :external-dbs="info.external_databases"></ExtIdTable>
       </div>
       <div class="column is-2-widescreen is-3-desktop is-half-tablet has-text-centered">
-        <maps-available :id="sName" :model="model" :type="type" :element-i-d="''"></maps-available>
-        <gem-contact :model="model" :type="type" :id="info.name"/>
+        <maps-available :id="sName" :model="model" :type="type" :element-i-d="''" />
+        <gem-contact :id="info.name" :model="model" :type="type" />
       </div>
     </div>
     <template v-if="!showLoader">
