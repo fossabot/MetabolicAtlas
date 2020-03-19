@@ -7,7 +7,7 @@ import App from '@/App';
 import router from '@/router';
 import { default as EventBus } from '@/event-bus';
 import store from '@/store';
-import linkHandlerMixin from '@/mixins/linkHandler';
+import linkHandlerMixin from './mixins/linkHandler';
 
 axios.defaults.baseURL = '/api';
 axios.defaults.onDownloadProgress = function onDownloadProgress(progressEvent) {
