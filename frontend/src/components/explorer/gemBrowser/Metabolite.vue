@@ -9,7 +9,7 @@
           <h3 class="title is-3">
             <span class="is-capitalized">{{ type }}</span> {{ metabolite.name }}
             <span v-if="metabolite && metabolite.compartment" class="is-size-5 has-text-grey">
-            {{ metabolite.compartment.id }}</span>
+              {{ metabolite.compartment.id }}</span>
           </h3>
         </div>
       </div>
@@ -59,7 +59,7 @@
             <span class="icon"><i class="fa fa-connectdevelop fa-lg"></i></span>&nbsp;
             <span>{{ messages.interPartName }}</span>
           </router-link>
-          <gem-contact :model="model" :type="type" :id="mId"/>
+          <gem-contact :id="mId" :model="model" :type="type" />
         </div>
       </div>
       <div class="columns">
@@ -78,7 +78,7 @@ import GemContact from '@/components/shared/GemContact';
 import NotFound from '@/components/NotFound';
 import ExtIdTable from '@/components/explorer/gemBrowser/ExtIdTable';
 import { chemicalFormula } from '../../../helpers/chemical-formatters';
-import { reformatTableKey, reformatStringToLink, addMassUnit } from '../../../helpers/utils';
+import { reformatTableKey } from '../../../helpers/utils';
 import { default as messages } from '../../../helpers/messages';
 
 export default {
@@ -162,8 +162,6 @@ export default {
         });
     },
     reformatTableKey(k) { return reformatTableKey(k); },
-    reformatLink(s, link) { return reformatStringToLink(s, link); },
-    reformatMass(s) { return addMassUnit(s); },
     chemicalFormula,
   },
 };

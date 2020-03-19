@@ -276,16 +276,14 @@ import Loader from '@/components/Loader';
 import RNALegend from '@/components/explorer/mapViewer/RNALegend.vue';
 import NotFound from '@/components/NotFound';
 
-import { default as EventBus } from '../../event-bus';
+import { default as transform } from '@/data-mappers/hmr-closest-interaction-partners';
+import { default as graph } from '@/graph-stylers/hmr-closest-interaction-partners';
 
-import { default as transform } from '../../data-mappers/hmr-closest-interaction-partners';
-import { default as graph } from '../../graph-stylers/hmr-closest-interaction-partners';
+import { chemicalName } from '@/helpers/chemical-formatters';
+import { default as convertGraphML } from '@/helpers/graph-ml-converter';
 
-import { chemicalName } from '../../helpers/chemical-formatters';
-import { default as convertGraphML } from '../../helpers/graph-ml-converter';
-
-import { getSingleRNAExpressionColor } from '../../expression-sources/hpa';
-import { default as messages } from '../../helpers/messages';
+import { getSingleRNAExpressionColor } from '@/expression-sources/hpa';
+import { default as messages } from '@/helpers/messages';
 
 
 export default {
@@ -496,7 +494,7 @@ export default {
           this.showGraphContextMenu = false;
           const { component } = response.data;
           this.reactions = response.data.reactions;
-          this.title = component.type === 'metabolite' ? this.chemicalName(component.name) : component.name;
+          this.title = component.type === 'metabolite' ? chemicalName(component.name) : component.name;
           if (!this.reactions) {
             this.tooLargeNetworkGraph = true;
             this.showNetworkGraph = false;
@@ -970,13 +968,6 @@ export default {
         level: lvl,
       });
     },
-    viewReactionComponent(type) {
-      EventBus.$emit('GBnavigateTo', type,
-        this.mainNode.real_id ? this.mainNode.real_id : this.mainNode.id);
-    },
-    viewReaction(ID) {
-      EventBus.$emit('GBnavigateTo', 'reaction', ID);
-    },
     scrollTo(id) {
       const container = jquery('body, html');
       container.scrollTop(
@@ -1056,7 +1047,6 @@ export default {
       this.showColorPickerMeta = !this.showColorPickerMeta;
       return this.showColorPickerMeta;
     },
-    chemicalName,
   },
 };
 </script>

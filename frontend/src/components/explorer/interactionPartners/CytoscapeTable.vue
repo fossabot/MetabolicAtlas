@@ -104,9 +104,8 @@
 <script>
 
 import ExportTSV from '@/components/explorer/gemBrowser/ExportTSV';
-import { default as compare } from '../../../helpers/compare';
-import { default as EventBus } from '../../../event-bus';
-import { reformatEqSign } from '../../../helpers/utils';
+import { default as compare } from '@/helpers/compare';
+import { reformatEqSign } from '@/helpers/utils';
 
 
 export default {
@@ -128,7 +127,7 @@ export default {
         { field: 'reactants', display: 'Reactants' },
         { field: 'products', display: 'Products' },
         { field: 'genes', display: 'Genes' },
-        { field: 'compartment', display: 'Compartment', modifier: this.reformatEqSign },
+        { field: 'compartment', display: 'Compartment', modifier: reformatEqSign },
       ],
       matchingReactions: [],
       unMatchingReactions: [],
@@ -177,7 +176,6 @@ export default {
   },
   methods: {
     applyModifier(s, elm) { return s.modifier(elm[s.field], elm.link); },
-    viewReactionComponent(type, id) { EventBus.$emit('GBnavigateTo', type, id); },
     isSelected(elmId) {
       return this.hlID === elmId || this.selectedReactionId === elmId;
     },
@@ -255,7 +253,6 @@ export default {
       ).join('\n');
       return tsvContent;
     },
-    reformatEqSign,
   },
 };
 

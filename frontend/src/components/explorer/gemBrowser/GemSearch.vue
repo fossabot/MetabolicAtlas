@@ -32,17 +32,17 @@
           Limited to 50 results per type. Click to search all integrated GEMs
         </div>
         <div v-show="!showLoader" v-if="searchResults.length !== 0" class="resList">
-          <template v-for="k in resultsOrder">
-            <div v-for="(r, i2) in searchResults[k]" :key="`${r.id}-${i2}`" class="searchResultSection">
+          <template v-for="type in resultsOrder">
+            <div v-for="(r, i2) in searchResults[type]" :key="`${r.id}-${i2}`" class="searchResultSection">
               <hr v-if="i2 !== 0" class="is-marginless">
-              <router-link class="clickable" :to="getRouterUrl(k, r.id || r.name)"
+              <router-link class="clickable" :to="getRouterUrl(type, r.id)"
                            @click.native="showResults=false">
-                <b class="is-capitalized">{{ k }}: </b>
-                <label class="clickable" v-html="formatSearchResultLabel(k, r, searchTermString)"></label>
+                <b class="is-capitalized">{{ type }}: </b>
+                <label class="clickable" v-html="formatSearchResultLabel(type, r, searchTermString)"></label>
               </router-link>
             </div>
             <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
-            <hr v-if="searchResults[k].length !== 0" class="bhr">
+            <hr v-if="searchResults[type].length !== 0" class="bhr">
           </template>
         </div>
         <div v-show="showLoader" class="has-text-centered">
@@ -65,9 +65,9 @@
 <script>
 import axios from 'axios';
 import $ from 'jquery';
-import { sortResults, idfy } from '../../../helpers/utils';
-import { chemicalFormula, chemicalReaction } from '../../../helpers/chemical-formatters';
-import { default as messages } from '../../../helpers/messages';
+import { sortResults } from '@/helpers/utils';
+import { chemicalReaction } from '@/helpers/chemical-formatters';
+import { default as messages } from '@/helpers/messages';
 
 export default {
   name: 'GemSearch',
@@ -167,7 +167,7 @@ export default {
           // sort result by exact matched first, then by alpha order
           Object.keys(localResults).forEach((k) => {
             if (localResults[k].length) {
-              localResults[k].sort((a, b) => this.sortResults(a, b, this.searchTermString));
+              localResults[k].sort((a, b) => sortResults(a, b, this.searchTermString));
             }
           });
           this.$refs.searchResults.scrollTop = 0;
@@ -184,14 +184,10 @@ export default {
         });
     },
     getRouterUrl(type, id) {
-      let ID = id;
-      if (type === 'subsystem' || type === 'compartment') {
-        ID = idfy(id);
-      }
       if (this.metabolitesAndGenesOnly) {
-        return `/explore/interaction/${this.$route.params.model}/${ID}`;
+        return `/explore/interaction/${this.$route.params.model}/${id}`;
       }
-      return `/explore/gem-browser/${this.$route.params.model}/${type}/${ID}`;
+      return `/explore/gem-browser/${this.$route.params.model}/${type}/${id}`;
     },
     globalSearch() {
       this.$router.push({ name: 'search', query: { term: this.searchTermString } });
@@ -212,8 +208,6 @@ export default {
       }
       return s;
     },
-    chemicalFormula,
-    sortResults,
   },
 };
 </script>

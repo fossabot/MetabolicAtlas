@@ -108,7 +108,7 @@
 
 import $ from 'jquery';
 import RNAexpression from '@/components/explorer/mapViewer/RNAexpression.vue';
-import { default as EventBus } from '../../../event-bus';
+import { default as EventBus } from '@/event-bus';
 
 const NOFILELOADED = 'No file loaded';
 
