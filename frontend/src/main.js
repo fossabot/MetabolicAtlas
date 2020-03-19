@@ -3,11 +3,11 @@ import VueMatomo from 'vue-matomo';
 import axios from 'axios';
 import vueDebounce from 'vue-debounce';
 import NProgress from 'nprogress';
-import App from './App';
-import router from './router';
-import { default as EventBus } from './event-bus';
-import store from './store';
-import { handleRouterClick, bindRouterLink } from './mixins/link-handler';
+import App from '@/App';
+import router from '@/router';
+import { default as EventBus } from '@/event-bus';
+import store from '@/store';
+import linkHandlerMixin from '@/mixins/linkHandler';
 
 axios.defaults.baseURL = '/api';
 axios.defaults.onDownloadProgress = function onDownloadProgress(progressEvent) {
@@ -25,14 +25,7 @@ if (navigator.doNotTrack !== '1') {
   });
 }
 
-Vue.mixin({
-  updated() {
-    bindRouterLink();
-  },
-  methods: {
-    handleRouterClick,
-  },
-});
+Vue.mixin(linkHandlerMixin);
 
 new Vue({ // eslint-disable-line no-new
   el: '#app',
