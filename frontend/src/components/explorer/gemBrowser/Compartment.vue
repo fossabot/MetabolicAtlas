@@ -49,7 +49,7 @@
       </div>
       <div class="column is-2-widescreen is-3-desktop is-half-tablet has-text-centered">
         <maps-available :id="cName" :model="model" :type="type" :element-i-d="''" />
-        <gem-contact :id="compartment.name" :model="model" :type="type" />
+        <gem-contact :id="cName" :model="model" :type="type" />
       </div>
     </div>
   </div>
