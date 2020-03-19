@@ -1,10 +1,4 @@
-export const buildCustomLink = ({ model, type, id, title, cssClass }) => {
-  let classes = 'custom-router-link';
-  if (cssClass) {
-    classes += ` ${cssClass}`;
-  }
-  return `<a href="/explore/gem-browser/${model}/${type}/${id}" class="${classes}">${title}</a>`;
-};
+export const buildCustomLink = ({ model, type, id, title, cssClass }) => `<a href="/explore/gem-browser/${model}/${type}/${id}" class="custom-router-link ${cssClass || ''}">${title}</a>`;
 
 export function capitalize(value) {
   return `${value[0].toUpperCase()}${value.slice(1)}`;
@@ -125,7 +119,7 @@ export function sortResults(a, b, searchTermString) {
   let matchedStringA = '';
   Object.values(a).forEach((v) => {
     if (v && (typeof v === 'string' || v instanceof String)
-        && v.toLowerCase().includes(searchTermString.toLowerCase())) {
+      && v.toLowerCase().includes(searchTermString.toLowerCase())) {
       const diff = v.length - searchTermString.length;
       if (diff < matchSizeDiffA) {
         matchSizeDiffA = diff;
@@ -139,7 +133,7 @@ export function sortResults(a, b, searchTermString) {
 
   Object.values(b).forEach((v) => {
     if (v && (typeof v === 'string' || v instanceof String)
-        && v.toLowerCase().includes(searchTermString.toLowerCase())) {
+      && v.toLowerCase().includes(searchTermString.toLowerCase())) {
       const diff = v.length - searchTermString.length;
       if (diff < matchSizeDiffB) {
         matchSizeDiffB = diff;

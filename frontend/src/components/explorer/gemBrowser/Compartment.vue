@@ -61,7 +61,7 @@ import Loader from '@/components/Loader';
 import NotFound from '@/components/NotFound';
 import MapsAvailable from '@/components/explorer/gemBrowser/MapsAvailable';
 import GemContact from '@/components/shared/GemContact';
-import { buildCustomLink } from '../../../helpers/utils';
+import { buildCustomLink } from '@/helpers/utils';
 
 export default {
   name: 'Subsystem',
