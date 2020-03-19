@@ -41,10 +41,10 @@
                 {{ r.id }}
               </a>
             </td>
-            <td v-html="reformatChemicalReactionHTML(r, false, model.database_name)"></td>
+            <td v-html="reformatChemicalReactionHTML(r, false, model.database_name, selectedElmId)"></td>
             <td>
               <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key max-len -->
-              <template v-for="(m, index) in r.genes">{{ index == 0 ? '' : ', ' }}<a :href="`/explore/gem-browser/${model.database_name}/gene/${m.id}`" @click="handleRouterClick">{{ m.name || m.id }}</a>
+              <template v-for="(m, index) in r.genes">{{ index == 0 ? '' : ', ' }}<a :class="{'cms' : sourceName === m.name }" :href="`/explore/gem-browser/${model.database_name}/gene/${m.id}`" @click="handleRouterClick">{{ m.name || m.id }}</a>
               </template>
             </td>
             <td v-show="showCP">{{ r.cp }}</td>
@@ -73,7 +73,6 @@
 </template>
 
 <script>
-import $ from 'jquery';
 import { default as compare } from '@/helpers/compare';
 import ExportTSV from '@/components/explorer/gemBrowser/ExportTSV';
 import { idfy, reformatChemicalReactionHTML, getChemicalReaction } from '@/helpers/utils';
@@ -159,11 +158,6 @@ export default {
       return reactionsCopy.concat().sort(
         compare(this.sortBy, this.sortPattern, this.sortOrder));
     },
-  },
-  updated() {
-    if (this.selectedElmId) {
-      $(`.${this.selectedElmId}`).addClass('cms');
-    }
   },
   methods: {
     sortTable(field, pattern, order) {
