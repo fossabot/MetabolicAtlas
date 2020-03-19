@@ -86,27 +86,17 @@ export function reformatChemicalReactionHTML(reaction, noLink = false, model = '
   const addComp = reaction.is_transport || reaction.compartment_str.includes('=>');
   const type = 'metabolite';
 
-  const reactants = reaction.reactionreactant_set.map(
-    (x) => {
-      if (!addComp) {
-        return `${x.stoichiometry !== 1 ? x.stoichiometry : ''} ${noLink ? x.name : buildCustomLink({ model, type, id: x.id, cssClass: x.id, title: x.name })}`;
-      }
-      const regex = /.+\[([a-z]{1,3})\]$/;
-      const match = regex.exec(x.full_name);
-      return `${x.stoichiometry !== 1 ? x.stoichiometry : ''} ${noLink ? x.name : buildCustomLink({ model, type, id: x.id, cssClass: x.id, title: x.name })}<span class="sc" title="${x.compartment}">${match[1]}</span>`;
+  function formatReactionElement(x) {
+    if (!addComp) {
+      return `${x.stoichiometry !== 1 ? x.stoichiometry : ''} ${noLink ? x.name : buildCustomLink({ model, type, id: x.id, cssClass: x.id, title: x.name })}`;
     }
-  ).join(' + ');
+    const regex = /.+\[([a-z]{1,3})\]$/;
+    const match = regex.exec(x.full_name);
+    return `${x.stoichiometry !== 1 ? x.stoichiometry : ''} ${noLink ? x.name : buildCustomLink({ model, type, id: x.id, cssClass: x.id, title: x.name })}<span class="sc" title="${x.compartment}">${match[1]}</span>`;
+  }
 
-  const products = reaction.reactionproduct_set.map(
-    (x) => {
-      if (!addComp) {
-        return `${x.stoichiometry !== 1 ? x.stoichiometry : ''} ${noLink ? x.name : buildCustomLink({ model, type, id: x.id, cssClass: x.id, title: x.name })}`;
-      }
-      const regex = /.+\[([a-z]{1,3})\]$/;
-      const match = regex.exec(x.full_name);
-      return `${x.stoichiometry !== 1 ? x.stoichiometry : ''} ${noLink ? x.name : buildCustomLink({ model, type, id: x.id, cssClass: x.id, title: x.name })}<span class="sc" title="${x.compartment}">${match[1]}</span>`;
-    }
-  ).join(' + ');
+  const reactants = reaction.reactionreactant_set.map(formatReactionElement).join(' + ');
+  const products = reaction.reactionproduct_set.map(formatReactionElement).join(' + ');
 
   if (reaction.is_reversible) {
     return `${reactants} &#8660; ${products}`;
