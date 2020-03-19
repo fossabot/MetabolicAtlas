@@ -896,7 +896,8 @@ def search(request, model, term, type='global'):
                     Q(id__iexact=term) |
                     Q(name__icontains=term) |
                     Q(ec__icontains=term) |
-                    Q(id__in=APImodels.ReactionEID.objects.using(model).filter(external_id__iexact=term).values('reaction'))
+                    Q(id__in=APImodels.ReactionEID.objects.using(model).filter(external_id__iexact=term).values('reaction')) |
+                    Q(id__in=APImodels.ReactionReference.objects.using(model).filter(pmid__iexact=term).values('reaction'))
                 )[:limit]
 
                 if len(exact_metabolites) and len(reactions) < limit:

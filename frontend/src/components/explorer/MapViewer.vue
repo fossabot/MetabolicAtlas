@@ -485,10 +485,14 @@ export default {
         });
       }
     },
-    updateURL(type, mapID) {
+    updateURL(type, mapID, urlID) {
       // remove reaction id in url for now
       // this.$router.push(`/explore/map-viewer/${this.model.database_name}/${type}/${mapID}/${URLID}?dim=${this.dim}`);
-      this.$router.push(`/explore/map-viewer/${this.model.database_name}/${type}/${mapID}?dim=${this.dim}`);
+      if (urlID) {
+        this.$router.replace(`/explore/map-viewer/${this.model.database_name}/${type}/${mapID}?dim=${this.dim}`);
+      } else {
+        this.$router.push(`/explore/map-viewer/${this.model.database_name}/${type}/${mapID}?dim=${this.dim}`);
+      }
     },
     checkValidRequest(displayType, displayName) {
       this.requestedType = displayType;

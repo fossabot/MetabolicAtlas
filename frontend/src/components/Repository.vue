@@ -73,7 +73,7 @@
         <loader v-show="showLoader"></loader>
         <div v-if="GEMS.length != 0">
           <vue-good-table :columns="columns" :rows="GEMS" :search-options="{ enabled: true }"
-                          :sort-options="{ enabled: true }" style-class="vgt-table striped bordered"
+                          :sort-options="{ enabled: true }" style-class="vgt-table striped"
                           :pagination-options="tablePaginationOpts" @on-row-click="getModel">
           </vue-good-table>
         </div>
@@ -382,4 +382,10 @@ export default {
 
 </script>
 
-<style lang="scss"></style>
+<style lang="scss">
+// style copy-pasted from https://github.com/xaksis/vue-good-table/blob/master/src/styles/_table.scss
+// fixes the broken row highlight when table is striped https://github.com/xaksis/vue-good-table/pull/682
+table.vgt-table tr.clickable:hover{
+  background-color: #F1F5FD;
+}
+</style>
