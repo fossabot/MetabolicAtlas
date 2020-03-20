@@ -50,14 +50,14 @@
         </div>
         <br>
         <div class="columns">
-          <div class="column has-text-centered-tablet">
+          <div class="column has-text-centered">
             <p class="has-text-weight-bold is-size-5">2. Select a tool:</p>
           </div>
         </div>
-        <div v-if="model" class="columns is-multiline">
+        <div v-if="model" class="columns is-multiline is-centered">
           <template v-for="tool in explorerTools">
             <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
-            <div class="column is-one-third-widescreen is-half-desktop is-half-tablet is-fullwidth-mobile is-size-5">
+            <div class="column is-3-widescreen is-4-desktop is-6-tablet is-full-mobile is-size-5">
               <router-link :to="{ path: `${tool.url}/${model.database_name }` }"
                            :title="`Click to access the ${tool.name} for ${model.short_name} model`">
                 <div class="card card-fullheight hoverable">
