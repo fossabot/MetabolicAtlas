@@ -39,7 +39,7 @@
                     </ul>
                   </aside>
                 </div>
-                <div class="column more-padding">
+                <div class="column more-padding is-v-aligned">
                   <p class="is-size-5 has-text-justified" v-html="currentMenu.text"></p>
                 </div>
                 <div class="column more-padding is-v-aligned">
@@ -75,10 +75,10 @@
                   </div>
                 </div>
               </header>
-              <div class="card-content has-text-justified">
+              <div class="card-content">
                 <p class="title has-text-centered">{{ currentMenu.title }}</p>
-                <div class="columns">
-                  <div class="colum is-half-tablet is-full-mobile">
+                <div class="columns is-variable is-4-tablet">
+                  <div class="column is-half-tablet is-full-mobile">
                     <p class="has-text-justified" v-html="currentMenu.text"></p>
                   </div>
                   <div class="column is-half-tablet is-full-mobile more-padding is-v-aligned">
