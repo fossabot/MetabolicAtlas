@@ -257,6 +257,9 @@ export default {
       }
     }
   }
+  .is-hidden-touch .card .card {
+    max-width: 450px;
+  }
   #menu-mobile li {
     a {
       color: $white-bis;
