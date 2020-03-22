@@ -1,7 +1,7 @@
 <template>
   <div class="extended-section">
     <section class="hero video container" style="max-width:100%; width:100%;">
-      <div class="hero-video is-transparent">
+      <div class="hero-video is-transparent is-block-mobile">
         <video poster="@/assets/banner_video.jpg"
                playsinline autoplay
                muted loop>
@@ -229,6 +229,11 @@ export default {
 
 </script>
 <style lang="scss">
+.hero-video video {
+  @media only screen and (max-width: $desktop) {
+    max-width: inherit;
+  }
+}
 
 #home {
   #menu-desktop {
