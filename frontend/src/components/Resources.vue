@@ -11,7 +11,7 @@
                 <img :src="elem.img" />
               </template>
               <template v-else>
-                {{ elem.name }}
+                <h4 class="has-text-centered title is-4">{{ elem.name }}</h4>
               </template>
             </a>
           </div>
