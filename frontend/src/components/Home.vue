@@ -172,7 +172,7 @@ export default {
           url: { name: 'gems' },
           icon: 'files-o' },
         { title: 'Export',
-          text: '<b>Metabolic Atlas</b> provides open access to the models and associated annotations. Most of the data provided on <b>Metabolic Atlas</b> is convenient to export, look for export buttons.<br><br>For the ones interested in extracting data in JSON format, we have documented our API. When using images or files obtained from our website, use the following reference:<br><br><i>Article under consideration</i>',
+          text: '<b>Metabolic Atlas</b> provides open access to the models and associated annotations. Most of the data provided on the website is convenient to export, for example via <b>Export to TSV</b> buttons.<br><br>For the ones interested in extracting data in JSON format, we have documented our API. When using images or files obtained from our website, use the following reference:<br><br><i>Article under consideration</i>',
           img: require('../assets/export.jpg'),
           cardLink: 'Export TSV for glyoxolate metabolites',
           url: { name: 'search', query: { term: 'glyoxalate' } },
