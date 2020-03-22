@@ -2,48 +2,28 @@
 export PATH=$PATH:/usr/local/bin
 
 function build-stack {
-  if [ "$METATLASPROD" = true ] ; then
-    docker-compose -f docker-compose.yml -f docker-compose-prod.yml build $@
-  else
-    docker-compose -f docker-compose.yml -f docker-compose-local.yml build
-  fi
+  docker-compose -f docker-compose.yml -f docker-compose-$MET_ATLAS_VERSION.yml build $@
 }
 
 function start-stack {
-  if [ "$METATLASPROD" = true ] ; then
-    docker-compose -f docker-compose.yml -f docker-compose-prod.yml up -d
-  else
-    docker-compose -f docker-compose.yml -f docker-compose-local.yml up -d
-  fi
+  docker-compose -f docker-compose.yml -f docker-compose-$MET_ATLAS_VERSION.yml up -d
 }
 
 function stop-stack {
-  if [ "$METATLASPROD" = true ] ; then
-    docker-compose -f docker-compose.yml -f docker-compose-prod.yml kill
-  else
-    docker-compose -f docker-compose.yml -f docker-compose-local.yml kill
-  fi
+  docker-compose -f docker-compose.yml -f docker-compose-$MET_ATLAS_VERSION.yml kill
 }
 
 function clean-stack {
   docker stop $(docker ps -a -q) || true
   docker rm $(docker ps -a -q) || true
   docker volume prune --force || true
-  # The code below was not removing the db container properly
-  if [ "$METATLASPROD" = true ] ; then
-    docker-compose -f docker-compose.yml -f docker-compose-prod.yml down
-  else
-    docker-compose -f docker-compose.yml -f docker-compose-local.yml down
-  fi
+  # The line below was not removing the db container properly
+  docker-compose -f docker-compose.yml -f docker-compose-$MET_ATLAS_VERSION.yml down
   docker volume prune -f
 }
 
 function logs {
-  if [ "$METATLASPROD" = true ] ; then
-    docker-compose -f docker-compose.yml -f docker-compose-prod.yml logs -f $@
-  else
-    docker-compose -f docker-compose.yml -f docker-compose-local.yml logs -f $@
-  fi
+  docker-compose -f docker-compose.yml -f docker-compose-$MET_ATLAS_VERSION.yml logs -f $@
 }
 
 function db-import {
@@ -58,7 +38,6 @@ function db-migrate {
   docker exec backend python manage.py migrate --database=$@
 }
 
-
 echo -e "Available commands:
 \tbuild-stack [options for dev instance only]
 \tstart-stack
@@ -70,9 +49,9 @@ echo -e "Available commands:
 \tdb-migrate [database]"
 
 if [ "$1" != 'production' ] ; then
-  export METATLASPROD=false
+  export MET_ATLAS_VERSION=local
   echo 'Sourced for LOCALHOST'
 else
-  export METATLASPROD=true
+  export MET_ATLAS_VERSION=prod
   echo 'Sourced for PRODUCTION'
 fi
