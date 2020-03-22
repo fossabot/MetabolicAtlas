@@ -60,7 +60,7 @@
           </nav>
           <br>
           <h4 class="title is-4">Contact</h4>
-          <p>For any questions, comments or suggestions please email us <a href="mailto:">contact [at] metabolicatlas [dot] org</a>.</p>
+          <p>For any questions, comments or suggestions please email us at <a href="mailto:">contact [at] metabolicatlas [dot] org</a>.</p>
         </div>
       </div>
       <br>
