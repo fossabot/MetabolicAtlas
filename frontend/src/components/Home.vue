@@ -145,12 +145,12 @@ export default {
         { title: messages.mapViewerName,
           text: 'For easy visualization, <b>Metabolic Atlas</b> handles both 2D and 3D maps. For each of the integrated models, the website automatically generates 3D graphs at both compartment and subsystem level.<br><br>Both compartment and subsystem 2D maps of the Human-GEM have been created by the contributors to Human-GEM and are manually curated. On these maps, one can search for reactions, metabolites or genes. Moreover, RNA expression data from Human Protein Atlas can be overlaid.<br><br>By clicking on an element on the map, more information of that element will be shown on the left sidebar. From there, one can navigate back to the <b>GEM Browser</b> for detailed information.',
           img: require('../assets/mapViewer.jpg'),
-          cardLink: 'Explore Human-GEM nucleus on the Map Viewer',
-          url: { name: 'viewerCompartment', params: { model: 'human1', id: 'nucleus' }, query: { dim: '2d' } },
+          cardLink: 'Explore the Golgi apparatus with the Map Viewer',
+          url: { name: 'viewerCompartment', params: { model: 'human1', id: 'golgi_apparatus' }, query: { dim: '2d' } },
           icon: 'map-o' },
         { title: messages.interPartName,
           text: `The <b>Interaction Partners</b> graph shows connectivity between metabolites and genes based on their associated reactions.<br><br>The graph is dynamically generated and is customizable. One can interact with a restricted part of the metabolic network, or further expand the interaction partners of any element already on the graph. Moreover, RNA expression data from the Human Protein Atlas can be overlaid onto the graph. <br><br>This feature is available only for metabolites and genes, and is accessible via the <b>${messages.gemBrowserName}</b>.`,
-          img: require('../assets/interaction.png'),
+          img: require('../assets/interaction.jpg'),
           cardLink: 'View glyoxalate[p] in Interaction Partners',
           url: { path: '/explore/interaction/human1/m02007p' },
           icon: 'connectdevelop' },
@@ -258,7 +258,7 @@ export default {
     }
   }
   .is-hidden-touch .card .card {
-    max-width: 450px;
+    max-width: 480px;
   }
   #menu-mobile li {
     a {

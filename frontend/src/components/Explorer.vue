@@ -113,7 +113,7 @@ export default {
           url: '/explore/map-viewer',
           icon: 'map-o' },
         { name: messages.interPartName,
-          img: require('../assets/interaction.png'),
+          img: require('../assets/interaction.jpg'),
           url: '/explore/interaction',
           icon: 'share-alt' },
       ],
