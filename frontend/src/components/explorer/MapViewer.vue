@@ -171,8 +171,8 @@ import SidebarDataPanels from '@/components/explorer/mapViewer/SidebarDataPanels
 import DataOverlay from '@/components/explorer/mapViewer/DataOverlay.vue';
 import Svgmap from '@/components/explorer/mapViewer/Svgmap';
 import D3dforce from '@/components/explorer/mapViewer/D3dforce';
-import { default as EventBus } from '../../event-bus';
-import { default as messages } from '../../helpers/messages';
+import { default as EventBus } from '@/event-bus';
+import { default as messages } from '@/helpers/messages';
 
 export default {
   name: 'MapViewer',
@@ -485,10 +485,14 @@ export default {
         });
       }
     },
-    updateURL(type, mapID) {
+    updateURL(type, mapID, urlID) {
       // remove reaction id in url for now
       // this.$router.push(`/explore/map-viewer/${this.model.database_name}/${type}/${mapID}/${URLID}?dim=${this.dim}`);
-      this.$router.push(`/explore/map-viewer/${this.model.database_name}/${type}/${mapID}?dim=${this.dim}`);
+      if (urlID) {
+        this.$router.replace(`/explore/map-viewer/${this.model.database_name}/${type}/${mapID}?dim=${this.dim}`);
+      } else {
+        this.$router.push(`/explore/map-viewer/${this.model.database_name}/${type}/${mapID}?dim=${this.dim}`);
+      }
     },
     checkValidRequest(displayType, displayName) {
       this.requestedType = displayType;

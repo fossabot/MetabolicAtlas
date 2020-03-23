@@ -42,7 +42,7 @@
                 <span class="icon"><i class="fa fa-connectdevelop fa-lg"></i></span>&nbsp;
                 <span>{{ messages.interPartName }}</span>
               </router-link>
-              <gem-contact :model="model" :type="type" :id="eId"/>
+              <gem-contact :id="eId" :model="model" :type="type" />
             </div>
           </div>
           <template v-if="!showLoader">
@@ -73,8 +73,8 @@ import NotFound from '@/components/NotFound';
 import ExtIdTable from '@/components/explorer/gemBrowser/ExtIdTable';
 import ReactionTable from '@/components/explorer/gemBrowser/ReactionTable';
 import Loader from '@/components/Loader';
-import { reformatTableKey } from '../../../helpers/utils';
-import { default as messages } from '../../../helpers/messages';
+import { reformatTableKey } from '@/helpers/utils';
+import { default as messages } from '@/helpers/messages';
 
 export default {
   name: 'Gene',

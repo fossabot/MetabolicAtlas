@@ -73,7 +73,7 @@
         <loader v-show="showLoader"></loader>
         <div v-if="GEMS.length != 0">
           <vue-good-table :columns="columns" :rows="GEMS" :search-options="{ enabled: true }"
-                          :sort-options="{ enabled: true }" style-class="vgt-table striped bordered"
+                          :sort-options="{ enabled: true }" style-class="vgt-table striped"
                           :pagination-options="tablePaginationOpts" @on-row-click="getModel">
           </vue-good-table>
         </div>
@@ -81,7 +81,7 @@
           <span v-if="!showLoader">No models available</span>
         </div>
         <br>
-        <div id="gem-list-modal" class="modal" :class="{ 'is-active': showModelTable }">
+        <div v-if="showModelTable" id="gem-list-modal" class="modal is-active">
           <div class="modal-background" @click="showModelTable = false"></div>
           <div class="modal-content column is-6-fullhd is-8-desktop is-10-tablet is-full-mobile has-background-white"
                tabindex="0" @keyup.esc="showModelTable = false">
@@ -125,24 +125,13 @@
                     <td class="td-key has-background-primary has-text-white-bis">URL</td>
                     <td><a :href="selectedModel.link" target="_blank">{{ selectedModel.link }}</a></td>
                   </tr>
-                  <tr v-if="selectedModel.ref && selectedModel.ref.length !== 0">
-                    <td class="td-key has-background-primary has-text-white-bis">Reference(s)</td>
-                    <td>
-                      <template v-for="oneRef in selectedModel.ref">
-                        <p v-if="!oneRef.link" :key="oneRef.title">{{ oneRef.title }}</p>
-                        <a v-else :href="oneRef.link" :key="oneRef.title" target="_blank">
-                          {{ oneRef.title }} (PMID: {{ oneRef.pmid }})
-                        </a>
-                        <br :key="oneRef.title">
-                      </template>
-                    </td>
-                  </tr>
                 </tbody>
               </table>
+              <references :reference-list="referenceList" />
               <template v-if="selectedModel.files">
-                <p class="subtitle has-text-weight-bold">Files</p>
+                <h4 class="title is-size-4">Files</h4>
                 <template v-for="file in selectedModel.files">
-                  <a class="button" :href="`${filesURL}${file.path}`" :key="file.path">{{ file.format }}</a>&nbsp;
+                  <a :key="file.path" class="button" :href="`${filesURL}${file.path}`">{{ file.format }}</a>&nbsp;
                 </template>
               </template>
             </div>
@@ -161,14 +150,16 @@ import $ from 'jquery';
 import { VueGoodTable } from 'vue-good-table';
 import 'vue-good-table/dist/vue-good-table.css';
 import Loader from '@/components/Loader';
-import { default as EventBus } from '../event-bus';
-import { default as messages } from '../helpers/messages';
+import References from '@/components/shared/References';
+import { default as EventBus } from '@/event-bus';
+import { default as messages } from '@/helpers/messages';
 
 export default {
   name: 'Repository',
   components: {
     Loader,
     VueGoodTable,
+    References,
   },
   data() {
     return {
@@ -261,6 +252,7 @@ export default {
         { name: 'maintained', display: 'Maintained' },
       ],
       selectedModel: {},
+      referenceList: [],
       errorMessage: '',
       GEMS: [],
       showModelTable: false,
@@ -334,7 +326,7 @@ export default {
           if (!model.description) {
             model.description = setDescription;
           }
-
+          this.referenceList = model.ref;
           this.selectedModel = model;
           this.showModelTable = true;
         })
@@ -390,4 +382,10 @@ export default {
 
 </script>
 
-<style lang="scss"></style>
+<style lang="scss">
+// style copy-pasted from https://github.com/xaksis/vue-good-table/blob/master/src/styles/_table.scss
+// fixes the broken row highlight when table is striped https://github.com/xaksis/vue-good-table/pull/682
+table.vgt-table tr.clickable:hover{
+  background-color: #F1F5FD;
+}
+</style>

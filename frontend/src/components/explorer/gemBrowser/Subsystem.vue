@@ -67,8 +67,8 @@
         <ExtIdTable :type="type" :external-dbs="info.external_databases"></ExtIdTable>
       </div>
       <div class="column is-2-widescreen is-3-desktop is-half-tablet has-text-centered">
-        <maps-available :id="sName" :model="model" :type="type" :element-i-d="''"></maps-available>
-        <gem-contact :model="model" :type="type" :id="info.name"/>
+        <maps-available :id="sName" :model="model" :type="type" :element-i-d="''" />
+        <gem-contact :id="sName" :model="model" :type="type" />
       </div>
     </div>
     <template v-if="!showLoader">
@@ -99,7 +99,7 @@ import MapsAvailable from '@/components/explorer/gemBrowser/MapsAvailable';
 import ExtIdTable from '@/components/explorer/gemBrowser/ExtIdTable';
 import ReactionTable from '@/components/explorer/gemBrowser/ReactionTable';
 import GemContact from '@/components/shared/GemContact';
-import { reformatTableKey } from '../../../helpers/utils';
+import { buildCustomLink, reformatTableKey } from '../../../helpers/utils';
 
 export default {
   name: 'Subsystem',
@@ -150,8 +150,9 @@ export default {
           || i === this.limitMetabolite) {
           break;
         }
+        const customLink = buildCustomLink({ model: this.model.database_name, type: 'metabolite', id: m.id, title: m.full_name || m.id, cssClass: 'is-size-6' });
         l.push(
-          `<span id="${m.id}" class="tag rcm"><a class="is-size-6">${m.full_name ? m.full_name : m.id}</a></span>`
+          `<span id="${m.id}" class="tag">${customLink}</span>`
         );
       }
       l.push('</span>');
@@ -166,7 +167,8 @@ export default {
           || i === this.limitGene) {
           break;
         }
-        l.push(`<span id="${e.id}" class="tag rce"><a class="is-size-6">${e.name ? e.name : e.id}</a></span>`);
+        const customLink = buildCustomLink({ model: this.model.database_name, type: 'gene', id: e.id, title: e.name || e.id, cssClass: 'is-size-6' });
+        l.push(`<span id="${e.id}" class="tag">${customLink}</span>`);
       }
       l.push('</span>');
       return l.join('');

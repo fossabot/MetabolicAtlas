@@ -61,9 +61,9 @@ import $ from 'jquery';
 import JQPanZoom from 'jquery.panzoom';
 import JQMouseWheel from 'jquery-mousewheel';
 import { default as FileSaver } from 'file-saver';
-import { default as EventBus } from '../../../event-bus';
-import { default as messages } from '../../../helpers/messages';
-import { reformatChemicalReactionHTML } from '../../../helpers/utils';
+import { default as EventBus } from '@/event-bus';
+import { default as messages } from '@/helpers/messages';
+import { reformatChemicalReactionHTML } from '@/helpers/utils';
 
 // hack: the only way for jquery plugins to play nice with the plugins inside Vue
 $.Panzoom = JQPanZoom;
@@ -566,7 +566,7 @@ export default {
           let { data } = response;
           if (type === 'reaction') {
             data = data.reaction;
-            data.equation = this.reformatChemicalReactionHTML(data, true);
+            data.equation = reformatChemicalReactionHTML(data, true);
           } else if (type === 'gene') {
           // add the RNA level if any
             if (id in this.HPARNAlevels) {
@@ -607,7 +607,6 @@ export default {
       this.$panzoom.panzoom('pan', -panX + ($('.svgbox').width() / 2), -panY + ($('.svgbox').height() / 2));
       this.$emit('loadComplete', true, '');
     },
-    reformatChemicalReactionHTML,
   },
 };
 </script>

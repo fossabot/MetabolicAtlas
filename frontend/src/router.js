@@ -32,6 +32,7 @@ const routes = [
   { path: '/gems/comparison', name: 'comparemodels', component: CompareModels },
   { path: '/resources', name: 'resources', component: Resources },
   { path: '/documentation', name: 'documentation', component: Documentation },
+  { path: '/api', redirect: '/api/' },
   { path: '/*', name: 'fourOfour', component: FourOFour },
 ];
 

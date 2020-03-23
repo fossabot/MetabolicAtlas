@@ -3,7 +3,7 @@
     <div :class="{ 'container': !extendWindow }">
       <template v-if="modelNotFound">
         <div class="columns is-centered">
-          <notFound component="model" :component-id="modelNotFound"></notFound>
+          <notFound type="model" :component-id="modelNotFound"></notFound>
         </div>
       </template>
       <template v-else-if="currentShowComponent">
@@ -50,14 +50,14 @@
         </div>
         <br>
         <div class="columns">
-          <div class="column has-text-centered-tablet">
+          <div class="column has-text-centered">
             <p class="has-text-weight-bold is-size-5">2. Select a tool:</p>
           </div>
         </div>
-        <div v-if="model" class="columns is-multiline">
+        <div v-if="model" class="columns is-multiline is-centered">
           <template v-for="tool in explorerTools">
             <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
-            <div class="column is-one-third-widescreen is-half-desktop is-half-tablet is-fullwidth-mobile is-size-5">
+            <div class="column is-3-widescreen is-4-desktop is-6-tablet is-full-mobile is-size-5">
               <router-link :to="{ path: `${tool.url}/${model.database_name }` }"
                            :title="`Click to access the ${tool.name} for ${model.short_name} model`">
                 <div class="card card-fullheight hoverable">
@@ -85,12 +85,10 @@
 
 <script>
 import axios from 'axios';
-import $ from 'jquery';
 import GemBrowser from '@/components/explorer/GemBrowser';
 import MapViewer from '@/components/explorer/MapViewer';
 import InteractionPartners from '@/components/explorer/InteractionPartners';
 import NotFound from '@/components/NotFound';
-import { idfy } from '../helpers/utils';
 import { default as EventBus } from '../event-bus';
 import { default as messages } from '../helpers/messages';
 
@@ -115,7 +113,7 @@ export default {
           url: '/explore/map-viewer',
           icon: 'map-o' },
         { name: messages.interPartName,
-          img: require('../assets/interaction.png'),
+          img: require('../assets/interaction.jpg'),
           url: '/explore/interaction',
           icon: 'share-alt' },
       ],
@@ -155,25 +153,6 @@ export default {
     });
     EventBus.$on('showInteractionPartner', () => {
       this.displayInterPartner();
-    });
-
-    $('body').on('click', 'td m', function f() {
-      if (!($(this).hasClass('cms'))) {
-        EventBus.$emit('GBnavigateTo', 'metabolite', $(this).attr('class'));
-      }
-    });
-    $('body').on('click', 'span.rcm', function f() {
-      EventBus.$emit('GBnavigateTo', 'metabolite', $(this).attr('id'));
-    });
-    $('body').on('click', 'span.rce', function f() {
-      EventBus.$emit('GBnavigateTo', 'gene', $(this).attr('id'));
-    });
-
-    $('body').on('click', 'span.sub', function f() {
-      EventBus.$emit('GBnavigateTo', 'subsystem', $(this).attr('id'));
-    });
-    $('body').on('click', 'a.cmp', function f() {
-      EventBus.$emit('GBnavigateTo', 'compartment', idfy($(this).html()));
     });
   },
   methods: {

@@ -4,6 +4,9 @@
       <p class="card-header-title">
         <span class="is-capitalized">
           {{ selectedElm.type }}: {{ selectedElm.name || selectedElm.id }}
+          <span v-if="selectedElm.type === 'metabolite'" class="is-size-7 has-text-grey">
+            {{ selectedElm.compartment }}
+          </span>
         </span>
       </p>
     </header>
@@ -27,7 +30,7 @@
 
 <script>
 
-import { default as messages } from '../../../helpers/messages';
+import { default as messages } from '@/helpers/messages';
 
 export default {
   name: 'Sidebar',

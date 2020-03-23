@@ -1,3 +1,5 @@
+export const buildCustomLink = ({ model, type, id, title, cssClass }) => `<a href="/explore/gem-browser/${model}/${type}/${id}" class="custom-router-link ${cssClass || ''}">${title}</a>`;
+
 export function capitalize(value) {
   return `${value[0].toUpperCase()}${value.slice(1)}`;
 }
@@ -24,30 +26,6 @@ export function reformatStringToLink(value, link) {
     return `<a href="${link}" target="_blank">${value}</a>`;
   }
   return `<a href="${value}" target="_blank">${value}</a>`;
-}
-
-export function reformatCompEqString(value, reversible) {
-  if (value === null) {
-    return '';
-  }
-  const eqArr = value.split(' => ');
-  let reactants = '';
-  let products = '';
-  if (eqArr[0]) {
-    reactants = eqArr[0].split(' + ').map(
-      e => `<a class="cmp">${e}</a>`).join(' + ');
-  }
-  if (eqArr[1]) {
-    products = eqArr[1].split(' + ').map(
-      e => `<a class="cmp">${e}</a>`).join(' + ');
-  }
-  if (products) {
-    if (reversible) {
-      return `${reactants} &#8660; ${products}`;
-    }
-    return `${reactants} &#8658; ${products}`;
-  }
-  return reactants;
 }
 
 export function reformatEqSign(equation, reversible) {
@@ -100,32 +78,24 @@ export function getChemicalReaction(reaction) {
   return `${reactants} => ${products}`;
 }
 
-export function reformatChemicalReactionHTML(reaction, noMtag = false) {
+// TODO: consider using an object as param
+export function reformatChemicalReactionHTML(reaction, noLink = false, model = 'human1', sourceMet = '') {
   if (reaction === null) {
     return '';
   }
   const addComp = reaction.is_transport || reaction.compartment_str.includes('=>');
-  const reactants = reaction.reactionreactant_set.map(
-    (x) => {
-      if (!addComp) {
-        return `${x.stoichiometry !== 1 ? x.stoichiometry : ''} ${noMtag ? x.name : `<m class="${x.id}">${x.name}</m>`}`;
-      }
-      const regex = /.+\[([a-z]{1,3})\]$/;
-      const match = regex.exec(x.full_name);
-      return `${x.stoichiometry !== 1 ? x.stoichiometry : ''} ${noMtag ? x.name : `<m class="${x.id}">${x.name}</m>`}<span class="sc" title="${x.compartment}">${match[1]}</span>`;
+  const type = 'metabolite';
+  function formatReactionElement(x) {
+    if (!addComp) {
+      return `${x.stoichiometry !== 1 ? x.stoichiometry : ''} ${noLink ? x.name : buildCustomLink({ model, type, id: x.id, cssClass: x.id === sourceMet ? 'cms' : undefined, title: x.name })}`;
     }
-  ).join(' + ');
+    const regex = /.+\[([a-z]{1,3})\]$/;
+    const match = regex.exec(x.full_name);
+    return `${x.stoichiometry !== 1 ? x.stoichiometry : ''} ${noLink ? x.name : buildCustomLink({ model, type, id: x.id, cssClass: x.id === sourceMet ? 'cms' : undefined, title: x.name })}<span class="sc" title="${x.compartment}">${match[1]}</span>`;
+  }
 
-  const products = reaction.reactionproduct_set.map(
-    (x) => {
-      if (!addComp) {
-        return `${x.stoichiometry !== 1 ? x.stoichiometry : ''} ${noMtag ? x.name : `<m class="${x.id}">${x.name}</m>`}`;
-      }
-      const regex = /.+\[([a-z]{1,3})\]$/;
-      const match = regex.exec(x.full_name);
-      return `${x.stoichiometry !== 1 ? x.stoichiometry : ''} ${noMtag ? x.name : `<m class="${x.id}">${x.name}</m>`}<span class="sc" title="${x.compartment}">${match[1]}</span>`;
-    }
-  ).join(' + ');
+  const reactants = reaction.reactionreactant_set.map(formatReactionElement).join(' + ');
+  const products = reaction.reactionproduct_set.map(formatReactionElement).join(' + ');
 
   if (reaction.is_reversible) {
     return `${reactants} &#8660; ${products}`;
@@ -138,7 +108,7 @@ export function sortResults(a, b, searchTermString) {
   let matchedStringA = '';
   Object.values(a).forEach((v) => {
     if (v && (typeof v === 'string' || v instanceof String)
-        && v.toLowerCase().includes(searchTermString.toLowerCase())) {
+      && v.toLowerCase().includes(searchTermString.toLowerCase())) {
       const diff = v.length - searchTermString.length;
       if (diff < matchSizeDiffA) {
         matchSizeDiffA = diff;
@@ -152,7 +122,7 @@ export function sortResults(a, b, searchTermString) {
 
   Object.values(b).forEach((v) => {
     if (v && (typeof v === 'string' || v instanceof String)
-        && v.toLowerCase().includes(searchTermString.toLowerCase())) {
+      && v.toLowerCase().includes(searchTermString.toLowerCase())) {
       const diff = v.length - searchTermString.length;
       if (diff < matchSizeDiffB) {
         matchSizeDiffB = diff;

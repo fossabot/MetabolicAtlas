@@ -232,6 +232,7 @@ class GEModelSampleSerializer(serializers.ModelSerializer):
 
 
 class GEModelSerializer(serializers.ModelSerializer):
+    id = serializers.CharField(source='model_id')
     gemodelset = GEModelSetSerializer(read_only=True)
     sample = GEModelSampleSerializer(read_only=True)
     files = GEModelFileSerializer(many=True, read_only=True)
@@ -243,6 +244,7 @@ class GEModelSerializer(serializers.ModelSerializer):
 
 
 class GEModelListSerializer(serializers.ModelSerializer):
+    id = serializers.CharField(source='model_id')
     set_name = serializers.SerializerMethodField()
     sample = GEModelSampleSerializer(read_only=True)
     year = serializers.SerializerMethodField()

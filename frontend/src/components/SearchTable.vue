@@ -33,8 +33,7 @@
         <div class="column is-three-fifths-desktop is-three-quarters-tablet is-fullwidth-mobile control is-size-5">
           Do you mean:&nbsp;
           <template v-for="v in notFoundSuggestions">
-            <!-- eslint-disable-next-line vue/valid-v-for -->
-            <router-link :to="{ name: 'search', query: { term: v }}">
+            <router-link :key="v" :to="{ name: 'search', query: { term: v }}">
               <span class="suggestions">{{ v }}</span>
             </router-link>&nbsp;
           </template>?
@@ -87,6 +86,7 @@
                     for more information)</li>
                   <li>EC code</li>
                   <li>External identifiers</li>
+                  <li>PMID</li>
                 </ul>
                 <span>Subsystems and compartments</span>
                 <ul>
