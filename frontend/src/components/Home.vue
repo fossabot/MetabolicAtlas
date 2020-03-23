@@ -106,12 +106,23 @@
                 <p class="card-content has-text-weight-bold has-text-white">{{ card.title }}</p>
               </header>
               <div class="card-content has-text-justified">
-                <p v-for="el in card.text" :key="el.date">
-                  <template v-if="el.date">
-                    <router-link :to="{ name: 'about', hash: `#${el.date}` }" v-html="el.date"></router-link> -
+                <table>
+                  <template v-for="el in card.text">
+                    <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
+                    <tr v-if="el.date">
+                      <td>{{ el.date }}</td>
+                      <td>
+                        <router-link :to="{ name: 'about', hash: `#${el.hash}` }">
+                          {{ el.text }}
+                        </router-link>
+                      </td>
+                    </tr>
+                    <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
+                    <tr v-else>
+                      <span v-html="el.text"></span>
+                    </tr>
                   </template>
-                  <span v-html="el.text"></span>
-                </p>
+                </table>
               </div>
             </div>
           </div>
@@ -131,7 +142,7 @@ export default {
     return {
       menu: [
         { title: 'Welcome',
-          text: '<b>Metabolic Atlas</b> integrates open source genome-scale metabolic models (GEMs) of human and yeast for easy browsing and analysis. It also contains many more genome scale metabolic models constructed by our organization.<br><br>Detailed biochemical information is provided for individual model components, such as reactions, metabolites, and genes. These components are also associated with standard identifiers, facilitating integration with external databases, such as the Human Protein Atlas. <br><br><i>Article under consideration</i>',
+          text: '<b>Metabolic Atlas</b> integrates open source genome-scale metabolic models (GEMs) of human and yeast for easy browsing and analysis. It also contains many more GEMs constructed by our organization.<br><br>Detailed biochemical information is provided for individual model components, such as reactions, metabolites, and genes. These components are also associated with standard identifiers, facilitating integration with external databases, such as the Human Protein Atlas. <br><br><a href="https://doi.org/10.1126/scisignal.aaz1482" target="_blank">Robinson, J., et al, 2020. <i>An atlas of human metabolism</i>. Sci. Signal. 13, eaaz1482 </a>',
           img: require('../assets/explorer.jpg'),
           cardLink: 'Explore a GEM',
           url: { name: 'explorerRoot' },
@@ -172,7 +183,7 @@ export default {
           url: { name: 'gems' },
           icon: 'files-o' },
         { title: 'Export',
-          text: '<b>Metabolic Atlas</b> provides open access to the models and associated annotations. Most of the data provided on the website is convenient to export, for example via <b>Export to TSV</b> buttons.<br><br>For the ones interested in extracting data in JSON format, we have documented our API. When using images or files obtained from our website, use the following reference:<br><br><i>Article under consideration</i>',
+          text: '<b>Metabolic Atlas</b> provides open access to the models and associated annotations. Most of the data provided on the website is convenient to export, for example via <b>Export to TSV</b> buttons.<br><br>For the ones interested in extracting data in JSON format, we have documented our API. When using images or files obtained from our website, use the following reference:<br><br><a href="https://doi.org/10.1126/scisignal.aaz1482" target="_blank">Robinson, J., et al, 2020. <i>An atlas of human metabolism</i>. Sci. Signal. 13, eaaz1482 </a>',
           img: require('../assets/export.jpg'),
           cardLink: 'Export TSV for glyoxolate metabolites',
           url: { name: 'search', query: { term: 'glyoxalate' } },
@@ -188,12 +199,15 @@ export default {
       cards: [
         { title: 'Latest news',
           text: [
+            { date: '2020.03.23',
+              hash: '23-March-2020',
+              text: 'Metabolic Atlas v1.6' },
             { date: '2020.02.07',
               hash: '7-February-2020',
-              text: 'Metabolic Atlas v1.5' },
+              text: 'Metabolic Atlas v1.5 updates both integrated models' },
             { date: '2019.09.11',
               hash: '11-September-2019',
-              text: 'Metabolic Atlas was presented in a course' },
+              text: 'Metabolic Atlas was presented in a course given by NBIS' },
             { date: '2019.09.05',
               hash: '5-September-2019',
               text: 'Metabolic Atlas v1.4 enables gene expression comparison' },
@@ -209,9 +223,6 @@ export default {
             { date: '2019.05.17',
               hash: '17-May-2019',
               text: 'Metabolic Atlas is publicly available as v1.0' },
-            { date: '2019.05.02',
-              hash: '2-May-2018',
-              text: '<i>Human1</i> is integrated, with complete maps' },
           ],
         },
         { title: 'Community',
@@ -301,6 +312,9 @@ export default {
 #newsandcommunity {
   .card-header {
     outline: 1px solid $primary;
+  }
+  td:first-child {
+    padding-right: 10px;
   }
 }
 

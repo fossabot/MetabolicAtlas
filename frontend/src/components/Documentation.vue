@@ -152,7 +152,7 @@
           The SVGs are interactive; click on a node (metabolite, reaction, gene) or a subsystem to load some of its information in the sidebar. Additonal information on the corresponding selected element can be accessed by clicking the <i>GEM Browser</i> button.<br>
 
           <h5 id="3D-Viewer">3D Viewer</h5>
-          3D renderings of the metabolic network are automatically generated from the GEM data. This 3D graph contains all the reactions in the model, grouped by cellular compartment or subsystem.<br><br>
+          3D renderings of the metabolic network are automatically generated from the GEM data, with the help of <a href="https://github.com/vasturiano/3d-force-graph" target="_blank">a force-directed graph JavaScript library</a>. This 3D graph contains all the reactions in the model, grouped by cellular compartment or subsystem.<br><br>
           Interaction with the 3D graph is possible using the mouse by holding left-click and moving the mose to rotate the view, right-click to pan, and use the mouse wheel to zoom in/out.
           Users can also hover a node to view its name/id or left-clik on a node (once the graph has stopped moving) to display some of its information in the sidebar. Additonal information on the corresponding selected element can be accessed by clicking the <i>GEM Browser</i> button.<br>
 
