@@ -7,13 +7,7 @@
         <div class="column is-half has-text-justified">
           <div class="box is-hidden-tablet">
             <p class="subtitle has-text-weight-bold is-size-4 has-text-primary has-text-centered">Citing Metabolic Atlas</p>
-            <i>Article under consideration</i>
-            <!-- <p>
-                <a href="" target="_blank">APA style reference with DOI</a><br><br>
-                Abstract here
-                <br><br>
-                Genome scale metabolic model in the publication <a @click="viewGem()">Human1</a>
-              </p> -->
+            <a href="https://doi.org/10.1126/scisignal.aaz1482" target="_blank">Robinson, J., et al, 2020. <i>An atlas of human metabolism</i>. Sci. Signal. 13, eaaz1482 </a>
           </div>
           The Metabolic Atlas project is headed by <a href="https://www.sysbio.se/labs/nielsen" target="_new">Professor Jens Nielsen</a>, <a href="https://www.sysbio.se">Division of Systems and Synthetic Biology</a>, Department of Biology and Biological Engineering at the <a href="https://www.chalmers.se" target="_new">Chalmers University of Technology</a>. The platform is developed by members of <a href="https://www.chalmers.se/en/researchinfrastructure/csb/Pages/default.aspx">Computational Systems Biology Infrastructure</a> at Chalmers University of Technology and <a href="https://nbis.se" target="blank">National Bioinformatics Infrastructure Sweden</a>.<br><br>
 
@@ -31,13 +25,7 @@
         <div class="column is-half has-text-justified content">
           <div class="box is-hidden-mobile">
             <p class="subtitle has-text-weight-bold is-size-4 has-text-primary has-text-centered">Citing Metabolic Atlas</p>
-            <i>Article under consideration</i>
-            <!-- <p>
-              <a href="" target="_blank">APA style reference with DOI</a><br><br>
-              Abstract here
-              <br><br>
-              Genome scale metabolic model in the publication <a @click="viewGem()">Human1</a>
-            </p> -->
+            <a href="https://doi.org/10.1126/scisignal.aaz1482" target="_blank">Robinson, J., et al, 2020. <i>An atlas of human metabolism</i>. Sci. Signal. 13, eaaz1482 </a>
           </div>
           <img width="100%" alt="The SysBio group 2019" src="../assets/group_19.jpg">
           <center>The SysBio group 2019</center>
