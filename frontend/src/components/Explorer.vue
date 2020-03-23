@@ -84,7 +84,7 @@
 </template>
 
 <script>
-import axios from 'axios';
+import { mapState } from 'vuex';
 import GemBrowser from '@/components/explorer/GemBrowser';
 import MapViewer from '@/components/explorer/MapViewer';
 import InteractionPartners from '@/components/explorer/InteractionPartners';
@@ -117,8 +117,6 @@ export default {
           url: '/explore/interaction',
           icon: 'share-alt' },
       ],
-      model: null,
-      models: {},
       modelNotFound: null,
       extendWindow: false,
       currentShowComponent: '',
@@ -126,6 +124,12 @@ export default {
       compartments: {},
       errorMessage: '',
     };
+  },
+  computed: {
+    ...mapState({
+      model: state => state.models.model,
+      models: state => state.models.models,
+    }),
   },
   watch: {
     /* eslint-disable-next-line quote-props */
@@ -137,9 +141,9 @@ export default {
     this.setup();
     next();
   },
-  created() {
+  async created() {
     this.setup();
-    this.getModelList();
+    await this.getModelList();
 
     EventBus.$on('requestViewer', (type, name, ids, forceReload) => {
       this.displayViewer();
@@ -183,29 +187,24 @@ export default {
         this.currentShowComponent = '';
       }
     },
-    getModelList() {
+    async getModelList() {
       // get integrated models list
-      axios.get('models/')
-        .then((response) => {
-          this.models = {};
-          response.data.forEach((model) => {
-            model.email = model.authors[0].email; // eslint-disable-line no-param-reassign
-            this.models[model.database_name] = model;
-          });
-          let defaultModel = this.models.human1;
-          if (this.$route.params.model && this.$route.params.model in this.models) {
-            defaultModel = this.models[this.$route.params.model];
-          }
-          this.selectModel(defaultModel);
-          this.setup();
-        })
-        .catch(() => {
-          this.errorMessage = messages.unknownError;
-        });
+      try {
+        await this.$store.dispatch('models/getModels');
+        let defaultModel = this.models.human1;
+        if (this.$route.params.model && this.$route.params.model in this.models) {
+          defaultModel = this.models[this.$route.params.model];
+        }
+        this.$store.dispatch('models/selectModel', defaultModel);
+        this.setup();
+      } catch {
+        this.errorMessage = messages.unknownError;
+      }
     },
     selectModel(model) {
+      // TODO move this into the store, use model from state globally, and remove EventBus
       if (!this.model || model.database_name !== this.model.database_name) {
-        this.model = model;
+        this.$store.dispatch('models/selectModel', model);
         EventBus.$emit('modelSelected', this.model);
       }
     },
