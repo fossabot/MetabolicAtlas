@@ -39,8 +39,9 @@
               Genome scale metabolic model in the publication <a @click="viewGem()">Human1</a>
             </p> -->
           </div>
-          <img width="100%" src="../assets/group_18a.jpg">
-          <center>The SysBio group 2018</center>
+          <img width="100%" alt="The SysBio group 2019" src="../assets/group_19.jpg">
+          <center>The SysBio group 2019</center>
+          <br><br>
           <h4 class="title is-4">Scientific Advisors</h4>
           <nav id="advisors" class="level">
             <div class="level-left">
