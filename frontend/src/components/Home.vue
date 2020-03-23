@@ -106,12 +106,23 @@
                 <p class="card-content has-text-weight-bold has-text-white">{{ card.title }}</p>
               </header>
               <div class="card-content has-text-justified">
-                <p v-for="el in card.text" :key="el.date">
-                  <template v-if="el.date">
-                    <router-link :to="{ name: 'about', hash: `#${el.date}` }" v-html="el.date"></router-link> -
+                <table>
+                  <template v-for="el in card.text">
+                    <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
+                    <tr v-if="el.date">
+                      <td>{{ el.date }}</td>
+                      <td>
+                        <router-link :to="{ name: 'about', hash: `#${el.hash}` }">
+                          {{ el.text }}
+                        </router-link>
+                      </td>
+                    </tr>
+                    <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
+                    <tr v-else>
+                      <span v-html="el.text"></span>
+                    </tr>
                   </template>
-                  <span v-html="el.text"></span>
-                </p>
+                </table>
               </div>
             </div>
           </div>
@@ -188,12 +199,15 @@ export default {
       cards: [
         { title: 'Latest news',
           text: [
+            { date: '2020.03.23',
+              hash: '23-March-2020',
+              text: 'Metabolic Atlas v1.6' },
             { date: '2020.02.07',
               hash: '7-February-2020',
-              text: 'Metabolic Atlas v1.5' },
+              text: 'Metabolic Atlas v1.5 updates both integrated models' },
             { date: '2019.09.11',
               hash: '11-September-2019',
-              text: 'Metabolic Atlas was presented in a course' },
+              text: 'Metabolic Atlas was presented in a course given by NBIS' },
             { date: '2019.09.05',
               hash: '5-September-2019',
               text: 'Metabolic Atlas v1.4 enables gene expression comparison' },
@@ -209,9 +223,6 @@ export default {
             { date: '2019.05.17',
               hash: '17-May-2019',
               text: 'Metabolic Atlas is publicly available as v1.0' },
-            { date: '2019.05.02',
-              hash: '2-May-2018',
-              text: '<i>Human1</i> is integrated, with complete maps' },
           ],
         },
         { title: 'Community',
@@ -301,6 +312,9 @@ export default {
 #newsandcommunity {
   .card-header {
     outline: 1px solid $primary;
+  }
+  td:first-child {
+    padding-right: 10px;
   }
 }
 

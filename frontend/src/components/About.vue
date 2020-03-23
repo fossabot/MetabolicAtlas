@@ -107,6 +107,8 @@ export default {
     return {
       news: {
         2020: [
+          { date: '23 March 2020',
+            text: '<b>Metabolic Atlas v1.6</b> is out. This release contains many user interface improvements, documentation updates and correction of typos. More details can be found <a href="https://github.com/SysBioChalmers/MetabolicAtlas/releases/tag/v1.6" target="_blank">on GitHub</a>.' },
           { date: '7 February 2020',
             text: '<b>Metabolic Atlas v1.5</b> is out. This release updates the layout of the <i>Home</i>, <i>Explore</i>, and <i>Interaction Partner</i> pages. A <i>News</i> section has also been added on the <i>About</i> page. Other features include suggestions on the <i>Search</i> page, a contact button in the <i>GEM Browser</i>, and a progress bar at the top indicating page loading status. The Human-GEM has also been updated to v1.3, and the Yeast-GEM to v.8.3.4. More details can be found <a href="https://github.com/SysBioChalmers/MetabolicAtlas/releases/tag/v1.5" target="_blank">on GitHub</a>.' },
         ],
