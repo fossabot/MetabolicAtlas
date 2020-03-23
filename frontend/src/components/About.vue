@@ -32,19 +32,15 @@
           <br><br>
           <h4 class="title is-4">Scientific Advisors</h4>
           <nav id="advisors" class="level">
-            <div class="level-left">
-              <span class="level-item">
-                <figure class="image is-64x64">
-                  <img class="is-rounded" src="../assets/pic-jens.jpg" />
-                </figure>
-                Jens Nielsen
-              </span>
-              <span class="level-item">
-                <figure class="image is-64x64">
-                  <img class="is-rounded" src="../assets/pic-jon.jpg" />
-                </figure>
-                Jon Robinson
-              </span>
+            <div v-for="advisor in advisors" :key="advisor.name" class="level-left">
+              <a :href="advisor.url" target="_blank">
+                <span class="level-item">
+                  <figure class="image is-64x64">
+                    <img class="is-rounded" :alt="advisor.name" :src="advisor.img" />
+                  </figure>
+                  {{ advisor.name }}
+                </span>
+              </a>
             </div>
           </nav>
           <br>
@@ -160,6 +156,18 @@ export default {
 
         ],
       },
+      /* eslint-disable global-require */
+      advisors: [
+        {
+          name: 'Prof. Jens Nielsen',
+          img: require('../assets/pic-jens.jpg'),
+          url: 'https://www.sysbio.se/labs/nielsen/',
+        }, {
+          name: 'Dr. Jonathan Robinson',
+          img: require('../assets/pic-jon.jpg'),
+          url: 'https://nbis.se/about/staff/jonathan-robinson/',
+        },
+      ],
     };
   },
   methods: {
