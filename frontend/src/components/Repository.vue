@@ -71,8 +71,8 @@
         </p>
         <br>
         <loader v-show="showLoader"></loader>
-        <div v-if="GEMS.length != 0">
-          <vue-good-table :columns="columns" :rows="GEMS" :search-options="{ enabled: true }"
+        <div v-if="gems.length != 0">
+          <vue-good-table :columns="columns" :rows="gems" :search-options="{ enabled: true }"
                           :sort-options="{ enabled: true }" style-class="vgt-table striped"
                           :pagination-options="tablePaginationOpts" @on-row-click="getModel">
           </vue-good-table>
@@ -145,9 +145,7 @@
 
 
 <script>
-import axios from 'axios';
-import { mapGetters } from 'vuex';
-import $ from 'jquery';
+import { mapGetters, mapState } from 'vuex';
 import { VueGoodTable } from 'vue-good-table';
 import 'vue-good-table/dist/vue-good-table.css';
 import Loader from '@/components/Loader';
@@ -255,7 +253,6 @@ export default {
       selectedModel: {},
       referenceList: [],
       errorMessage: '',
-      GEMS: [],
       showModelTable: false,
       showLoader: false,
       tablePaginationOpts: {
@@ -275,102 +272,65 @@ export default {
     };
   },
   computed: {
+    ...mapState({
+      gems: state => state.gems.gemList,
+      gem: state => state.gems.gem,
+    }),
     ...mapGetters({
       integratedModels: 'models/integratedModels',
+      setFilterOptions: 'gems/setFilterOptions',
+      systemFilterOptions: 'gems/systemFilterOptions',
+      conditionFilterOptions: 'gems/conditionFilterOptions',
     }),
   },
-  created() {
-    EventBus.$on('viewGem', (modelID) => {
-      this.getModelData(modelID);
+  async created() {
+    EventBus.$on('viewGem', async (modelID) => {
+      await this.getModelData(modelID);
     });
   },
   async beforeMount() {
     await this.getIntegratedModels();
-    this.getModels();
+    await this.getModels();
   },
   methods: {
     async getIntegratedModels() {
-      // get models list
       try {
         await this.$store.dispatch('models/getModels');
       } catch {
         this.errorMessage = messages.unknownError;
       }
     },
-    getModel(params) {
-      this.getModelData(params.row.id);
+    async getModel(params) {
+      await this.getModelData(params.row.id);
     },
-    getModelData(id) {
-      axios.get(`gems/${id}`)
-        .then((response) => {
-          const model = response.data;
-          // reformat the dictionnary
-          delete model.id;
-          $.extend(model, model.sample);
-          delete model.sample;
-          const setDescription = model.gemodelset.description;
-          delete model.gemodelset.description;
-          model.gemodelset.set_name = model.gemodelset.name;
-          delete model.gemodelset.name;
-          if (model.ref.length === 0) {
-            model.ref = model.gemodelset.reference;
-          }
-          delete model.gemodelset.reference;
-          $.extend(model, model.gemodelset);
-          delete model.gemodelset;
-          if (!model.description) {
-            model.description = setDescription;
-          }
-          this.referenceList = model.ref;
-          this.selectedModel = model;
-          this.showModelTable = true;
-        })
-        .catch(() => {
-          this.showModelTable = false;
-        });
+    async getModelData(id) {
+      try {
+        await this.$store.dispatch('gems/getGemData', id);
+        this.selectedModel = this.gem;
+        this.referenceList = this.selectedModel.ref;
+        this.showModelTable = true;
+      } catch {
+        this.showModelTable = false;
+      }
     },
     showIntegratedModelData(model) {
       this.selectedModel = model;
       this.showModelTable = true;
     },
-    getModels() {
+    async getModels() {
       this.showLoader = true;
-      axios.get('gems/')
-        .then((response) => {
-          this.GEMS = [];
-          const setDropDownFilter = new Set();
-          const systemDropDownFilter = new Set();
-          const conditionDropDownFilter = new Set();
-          for (let i = 0; i < response.data.length; i += 1) {
-            const gem = response.data[i];
-            const { sample } = gem;
-            delete gem.sample;
-            const gemex = $.extend(gem, sample);
-            gemex.tissue = [gemex.tissue, gemex.cell_type, gemex.cell_line].filter(e => e).join(' ‒ ') || '-';
-            delete gemex.cell_type;
-            gemex.stats = `reactions:&nbsp;${gem.reaction_count === null ? '-' : gem.reaction_count}<br>metabolites:&nbsp;${gemex.metabolite_count === null ? '-' : gemex.metabolite_count}<br>genes:&nbsp;${gemex.gene_count === null ? '-' : gemex.gene_count}`;
-            delete gemex.reaction_count; delete gemex.gene_count; delete gemex.metabolite_count;
-            gemex.maintained = gem.maintained ? 'Yes' : 'No';
-            gemex.organ_system = gemex.organ_system || '-';
-            gemex.condition = gemex.condition || '-';
-            this.GEMS.push(gemex);
 
-            // setup filters
-            setDropDownFilter.add(gemex.set_name);
-            systemDropDownFilter.add(gemex.organ_system);
-            conditionDropDownFilter.add(gemex.condition);
-          }
-          this.columns[0].filterOptions.filterDropdownItems = Array.from(setDropDownFilter).sort();
-          this.columns[3].filterOptions.filterDropdownItems = Array.from(systemDropDownFilter).sort();
-          this.columns[4].filterOptions.filterDropdownItems = Array.from(conditionDropDownFilter).sort();
-
-          this.errorMessage = '';
-          this.showLoader = false;
-        })
-        .catch(() => {
-          this.errorMessage = messages.notFoundError;
-          this.showLoader = false;
-        });
+      try {
+        await this.$store.dispatch('gems/getGems');
+        this.columns[0].filterOptions.filterDropdownItems = this.setFilterOptions;
+        this.columns[3].filterOptions.filterDropdownItems = this.systemFilterOptions;
+        this.columns[4].filterOptions.filterDropdownItems = this.conditionFilterOptions;
+        this.errorMessage = '';
+        this.showLoader = false;
+      } catch {
+        this.errorMessage = messages.notFoundError;
+        this.showLoader = false;
+      }
     },
   },
 };
