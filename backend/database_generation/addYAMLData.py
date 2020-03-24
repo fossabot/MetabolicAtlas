@@ -13,55 +13,11 @@ import re
 import collections
 
 def insert_model_metadata(database, metadata, metadata_only=False, overwrite=False, content_only=False):
-    # YAML metadata expected structure:
-    # - metadata:
-    #     id         : "Human-GEM"
-    #     short_name : "human"
-    #     full_name  : "Human metabolic model v1"
-    #     description: "1-3 lines description"
-    #     version    : "1.0.0"
-    #     author:
-    #       - first_name  : "fn"
-    #         last_name   : "ln"
-    #         email       : "email"
-    #         organization: "org"
-    #       - first_name  : "fn2"
-    #         last_name   : "ln2"
-    #         email       : "email2"
-    #         organization: "org2"
-    #     date         : "YYYY-MM-DD"
-    #     organism     : ""
-    #     organ_system : ""
-    #     tissue       : ""
-    #     cell_type    : ""
-    #     cell_line    : ""
-    #     condition    : "Generic metabolism"
-    #     reference         : (optional)
-    #       - title: ""
-    #         url: ""
-    #         pmid: ""
-    #         year: ""
-    #     link     : "https://github.com/SysBioChalmers/human-GEM"
-    #     gitter: https://gitter.im/SysBioChalmers/Human-GEM
-
-    # currently in the yaml
-    # - metaData:
-        # short_name  : "humanGEM"
-        # full_name   : "Generic genome-scale metabolic model of Homo sapiens"
-        # version     : "1.0.2"
-        # date        : "2019-04-19"
-        # authors     : "Jonathan Robinson, Hao Wang, Pierre-Etienne Cholley, Pınar Kocabaş"
-        # email       : "nielsenj@chalmers.se"
-        # organization: "Chalmers University of Technology"
-        # taxonomy    : "9606"
-        # github      : "https://github.com/SysBioChalmers/Human-GEM"
-        # description : "Human genome-scale metabolic models are important tools for the study of human health and diseases, by providing a scaffold upon which different types of data can be analyzed. This is the latest version of human-GEM, which is a genome-scale model of the generic human cell. The objective of human-GEM is to serve as a community model for enabling integrative and mechanistic studies of human metabolism."
-
     if content_only:
         return None
 
     metadata_dict = metadata[1]
-    # fix missing keys
+    # add missing keys if needed
     if "condition" not in metadata_dict:
         metadata_dict["condition"] = "Generic metabolism"
     if "organ_system" not in metadata_dict:
@@ -74,35 +30,6 @@ def insert_model_metadata(database, metadata, metadata_only=False, overwrite=Fal
         metadata_dict["cell_line"] = ""
     if "reference" not in metadata_dict:
         metadata_dict["reference"] = []
-
-    #fix metadata dict
-    if database == "human1":
-        metadata_dict["organism"] = "Homo sapiens"
-        metadata_dict["organ_system"] = None
-        metadata_dict["tissue"] = None
-        metadata_dict["cell_type"] = "Generic cell"
-        metadata_dict["cell_line"] = None
-        metadata_dict["link"] = "https://github.com/SysBioChalmers/Human-GEM"
-        metadata_dict["pmid"] = []
-        metadata_dict["chat_link"]: "https://gitter.im/SysBioChalmers/Human-GEM"
-        metadata_dict["author"] = [
-            {
-                "first_name": "Jonathan",
-                "last_name": "Robinson",
-                "email": "jonrob@chalmers.se",
-                "organization": "",
-            },{
-                "first_name": "Hao",
-                "last_name": "Wang",
-                "email": "hao.wang@chalmers.se ",
-                "organization": "",
-            },{
-                "first_name": "Pınar",
-                "last_name": " Kocabaş",
-                "email": "kocabas@@chalmers.se ",
-                "organization": "",
-            },
-        ]
 
     if "version" not in metadata_dict or not metadata_dict["version"]:
         print("Error: missing version of the model")
