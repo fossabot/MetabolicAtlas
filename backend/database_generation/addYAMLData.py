@@ -9,8 +9,6 @@ from django.db import models
 from api.models import *
 from django.db.models import Q
 
-import api.management.commands.getGithubModels as github_model_parser
-
 import re
 import collections
 
@@ -74,8 +72,8 @@ def insert_model_metadata(database, metadata, metadata_only=False, overwrite=Fal
         metadata_dict["cell_type"] = ""
     if "cell_line" not in metadata_dict:
         metadata_dict["cell_line"] = ""
-    if "pmid" not in metadata_dict:
-        metadata_dict["pmid"] = []
+    if "reference" not in metadata_dict:
+        metadata_dict["reference"] = []
 
     #fix metadata dict
     if database == "human1":
@@ -157,21 +155,9 @@ def insert_model_metadata(database, metadata, metadata_only=False, overwrite=Fal
             else:
                 gr = GEModelReference.objects.get(link=ref_data['url'])
         except GEModelReference.DoesNotExist:
-            if ref_data['pmid']:
-                res = github_model_parser.check_PMID(ref_data['pmid'])
-                if res:
-                    DOI, PMID = res
-                    title, year = github_model_parser.get_info_from_pmid(PMID)
-                    gr = GEModelReference(title=title, link='https://www.ncbi.nlm.nih.gov/pubmed/%s' % PMID, pmid=PMID, year=year)
-                    gr.save(using="gems")
-                    print("New reference created, %s" % PMID)
-                else:
-                    print("Error: PMID '%s' is invalid" % ref_data['pmid'])
-                    exit(1)
-            else:
-                gr = GEModelReference(title=ref_data['title'], link=ref_data['url'], year=ref_data['year'])
-                gr.save(using="gems")
-                print("New reference created, %s | %s | %s " % (ref_data['title'], ref_data['url'], ref_data['year']))
+            gr = GEModelReference(title=ref_data['title'], link=ref_data['url'], pmid=ref_data['pmid'], year=ref_data['year'])
+            gr.save(using="gems")
+            print("New reference created, %s | %s | %s | %s " % (ref_data['title'], ref_data['url'], ref_data['pmid'], ref_data['year']))
         ref_list.append(gr)
 
     # insert the model
