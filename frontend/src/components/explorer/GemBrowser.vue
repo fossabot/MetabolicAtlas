@@ -22,7 +22,7 @@
           <div class="column is-10 is-size-5 has-text-centered">
             <br><br>
             <a id="randomButton" class="button is-rounded is-outlined is-size-5 is-success"
-               title="Fetch another random set of components" @click="get_tiles_data()">
+               title="Fetch another random set of components" @click="getTilesData()">
               <span class="icon">
                 <i class="fa fa-random"></i>
               </span>
@@ -90,7 +90,6 @@
 </template>
 
 <script>
-import axios from 'axios';
 import { mapState } from 'vuex';
 import GemSearch from '@/components/explorer/gemBrowser/GemSearch';
 import Gene from '@/components/explorer/gemBrowser/Gene';
@@ -121,12 +120,12 @@ export default {
       errorMessage: '',
       componentID: '',
       mapsAvailable: null,
-      starredComponents: null,
     };
   },
   computed: {
     ...mapState({
       model: state => state.models.model,
+      starredComponents: state => state.browserTiles.starredComponents,
     }),
   },
   watch: {
@@ -135,32 +134,30 @@ export default {
       this.setup();
     },
   },
-  beforeMount() {
-    this.setup();
+  async beforeMount() {
+    await this.setup();
   },
   methods: {
-    setup() {
+    async setup() {
       if (this.$route.name === 'browser' || this.$route.name === 'browserRoot') {
         this.selectedType = this.$route.params.type || '';
         this.componentID = this.$route.params.id || '';
         if (!this.componentID || !this.selectedType) {
           this.$router.push(`/explore/gem-browser/${this.model.database_name}`);
           if (!this.starredComponents) {
-            this.get_tiles_data();
+            await this.getTilesData();
           }
         } else if (this.selectedType === 'interaction') {
           this.$router.replace(`/explore/interaction/${this.model.database_name}/${this.componentID}`);
         }
       }
     },
-    get_tiles_data() {
-      axios.get(`${this.model.database_name}/gem_browser_tiles/`)
-        .then((response) => {
-          this.starredComponents = response.data;
-        })
-        .catch(() => {
-          this.errorMessage = messages.unknownError;
-        });
+    async getTilesData() {
+      try {
+        await this.$store.dispatch('browserTiles/getBrowserTiles');
+      } catch {
+        this.errorMessage = messages.unknownError;
+      }
     },
   },
 };
