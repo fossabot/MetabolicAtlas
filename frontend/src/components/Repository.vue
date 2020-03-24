@@ -284,6 +284,8 @@ export default {
     }),
   },
   async created() {
+    // TODO: this should be removed, call dispatch else where if needed like following
+    // await this.$store.dispatch('gems/getGemData', id);
     EventBus.$on('viewGem', async (modelID) => {
       await this.getModelData(modelID);
     });
