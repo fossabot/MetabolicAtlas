@@ -67,8 +67,8 @@
         <ExtIdTable :type="type" :external-dbs="info.external_databases"></ExtIdTable>
       </div>
       <div class="column is-2-widescreen is-3-desktop is-half-tablet has-text-centered">
-        <maps-available :id="sName" :model="model" :type="type" :element-i-d="''" />
-        <gem-contact :id="sName" :model="model" :type="type" />
+        <maps-available :id="sName" :type="type" :element-i-d="''" />
+        <gem-contact :id="sName" :type="type" />
       </div>
     </div>
     <template v-if="!showLoader">
@@ -81,7 +81,7 @@
         </template>
         <template v-else-if="!showReactionLoader">
           <reaction-table :source-name="sName" :reactions="reactions" :show-subsystem="false"
-                          :model="model" :limit="1000">
+                          :limit="1000">
           </reaction-table>
         </template>
       </div>
@@ -93,6 +93,7 @@
 <script>
 
 import axios from 'axios';
+import { mapState } from 'vuex';
 import Loader from '@/components/Loader';
 import NotFound from '@/components/NotFound';
 import MapsAvailable from '@/components/explorer/gemBrowser/MapsAvailable';
@@ -110,11 +111,6 @@ export default {
     ExtIdTable,
     Loader,
     GemContact,
-  },
-  props: {
-    model: {
-      type: Object,
-    },
   },
   data() {
     return {
@@ -141,6 +137,9 @@ export default {
     };
   },
   computed: {
+    ...mapState({
+      model: state => state.models.model,
+    }),
     metabolitesListHtml() {
       const l = ['<span class="tags">'];
       const metsSorted = this.metabolites.concat().sort((a, b) => (a.name < b.name ? -1 : 1));

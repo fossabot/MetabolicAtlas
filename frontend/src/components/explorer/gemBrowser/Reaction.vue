@@ -72,8 +72,8 @@
         <references :reference-list="referenceList" />
       </div>
       <div class="column is-2-widescreen is-3-desktop is-half-tablet has-text-centered">
-        <maps-available :id="rId" :model="model" :type="type" :element-i-d="rId" />
-        <gem-contact :id="rId" :model="model" :type="type" />
+        <maps-available :id="rId" :type="type" :element-i-d="rId" />
+        <gem-contact :id="rId" :type="type" />
       </div>
     </div>
   </div>
@@ -81,6 +81,7 @@
 
 <script>
 import axios from 'axios';
+import { mapState } from 'vuex';
 import Loader from '@/components/Loader';
 import NotFound from '@/components/NotFound';
 import MapsAvailable from '@/components/explorer/gemBrowser/MapsAvailable';
@@ -98,9 +99,6 @@ export default {
     GemContact,
     ExtIdTable,
     References,
-  },
-  props: {
-    model: Object,
   },
   data() {
     return {
@@ -124,6 +122,11 @@ export default {
       referenceList: [],
       componentNotFound: false,
     };
+  },
+  computed: {
+    ...mapState({
+      model: state => state.models.model,
+    }),
   },
   watch: {
     /* eslint-disable quote-props */

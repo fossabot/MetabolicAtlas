@@ -9,7 +9,7 @@
       </div>
     </div>
     <div class="columns is-centered">
-      <gem-search ref="gemSearch" :model="model" :metabolites-and-genes-only="true"></gem-search>
+      <gem-search ref="gemSearch" :metabolites-and-genes-only="true"></gem-search>
     </div>
     <br>
     <div v-if="!mainNodeID">
@@ -247,7 +247,7 @@
             </div>
             <br>
           </template>
-          <sidebar id="sidebar" :selected-elm="clickedElm" :view="'interaction'" :model="model">
+          <sidebar id="sidebar" :selected-elm="clickedElm" :view="'interaction'">
           </sidebar>
         </div>
       </div>
@@ -263,6 +263,7 @@
 <script>
 import Vue from 'vue';
 import axios from 'axios';
+import { mapState } from 'vuex';
 import cytoscape from 'cytoscape';
 import jquery from 'jquery';
 import cola from 'cytoscape-cola';
@@ -296,9 +297,6 @@ export default {
     Loader,
     'compact-picker': Compact,
     RNALegend,
-  },
-  props: {
-    model: Object,
   },
   data() {
     return {
@@ -423,6 +421,9 @@ export default {
     };
   },
   computed: {
+    ...mapState({
+      model: state => state.models.model,
+    }),
     filename() {
       return `MetAtlas Interaction Partners for ${this.componentName} ${this.mainNodeID}`;
     },

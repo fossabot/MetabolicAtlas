@@ -57,6 +57,7 @@
 <script>
 
 import axios from 'axios';
+import { mapState } from 'vuex';
 import $ from 'jquery';
 import JQPanZoom from 'jquery.panzoom';
 import JQMouseWheel from 'jquery-mousewheel';
@@ -80,7 +81,6 @@ $.fn.extend({
 export default {
   name: 'Svgmap',
   props: {
-    model: Object,
     mapsData: Object,
   },
   data() {
@@ -127,6 +127,9 @@ export default {
     };
   },
   computed: {
+    ...mapState({
+      model: state => state.models.model,
+    }),
     isFullScreenDisabled() {
       if ((document.fullScreenElement !== undefined && document.fullScreenElement === null)
         || (document.msFullscreenElement !== undefined && document.msFullscreenElement === null)

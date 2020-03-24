@@ -9,6 +9,7 @@
 
 <script>
 
+import { mapState } from 'vuex';
 import axios from 'axios';
 import forceGraph3D from '3d-force-graph';
 import { default as FileSaver } from 'file-saver';
@@ -17,9 +18,6 @@ import { reformatChemicalReactionHTML } from '@/helpers/utils';
 
 export default {
   name: 'D3dforce',
-  props: {
-    model: Object,
-  },
   data() {
     return {
       errorMessage: '',
@@ -41,6 +39,11 @@ export default {
       tissue: 'None',
       focusOnID: null,
     };
+  },
+  computed: {
+    ...mapState({
+      model: state => state.models.model,
+    }),
   },
   created() {
     EventBus.$off('show3Dnetwork');

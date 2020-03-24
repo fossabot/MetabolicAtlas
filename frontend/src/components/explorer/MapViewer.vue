@@ -80,7 +80,6 @@
             </ul>
           </div>
           <sidebar-data-panels
-            :model="model"
             :dim="dim"
             :map-type="currentDisplayedType"
             :map-name="currentDisplayedName"
@@ -95,12 +94,12 @@
           </p>
         </div>
         <div v-show="!showOverviewScreen" id="graphframe" class="column is-unselectable">
-          <svgmap v-show="show2D" :model="model"
+          <svgmap v-show="show2D"
                   :maps-data="mapsData2D"
                   @loadComplete="handleLoadComplete"
                   @loading="showLoader=true">
           </svgmap>
-          <d3dforce v-show="show3D" :model="model"
+          <d3dforce v-show="show3D"
                     @loadComplete="handleLoadComplete"
                     @loading="showLoader=true">
           </d3dforce>
@@ -155,7 +154,7 @@
             </span>
           </p>
         </div>
-        <DataOverlay v-show="toggleDataOverlayPanel" :model="model"
+        <DataOverlay v-show="toggleDataOverlayPanel"
                      :map-type="currentDisplayedType"
                      :dim="dim" :map-name="currentDisplayedName">
         </DataOverlay>
@@ -165,6 +164,7 @@
 </template>
 
 <script>
+import { mapState } from 'vuex';
 import $ from 'jquery';
 import axios from 'axios';
 import SidebarDataPanels from '@/components/explorer/mapViewer/SidebarDataPanels';
@@ -181,9 +181,6 @@ export default {
     DataOverlay,
     Svgmap,
     D3dforce,
-  },
-  props: {
-    model: Object,
   },
   data() {
     return {
@@ -229,6 +226,9 @@ export default {
     };
   },
   computed: {
+    ...mapState({
+      model: state => state.models.model,
+    }),
     activeSwitch() {
       return !this.showLoader && !this.disabled2D;
     },

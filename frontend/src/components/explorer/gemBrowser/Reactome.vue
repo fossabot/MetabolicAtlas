@@ -7,7 +7,7 @@
           {{ !expandAllCompartment ? "Expand to all compartments" : "Restrict to current compartment" }}
         </button>
       </p>
-      <reaction-table v-show="!showLoader" :show-subsystem="true" :model="model" :limit="200"
+      <reaction-table v-show="!showLoader" :show-subsystem="true" :limit="200"
                       :reactions="!expandAllCompartment ? reactions : reactionsAllcompartment"
                       :selected-elm-id="ID" :source-name="metaboliteID">
       </reaction-table>
@@ -26,6 +26,7 @@
 <script>
 
 import axios from 'axios';
+import { mapState } from 'vuex';
 import Loader from '@/components/Loader';
 import ReactionTable from '@/components/explorer/gemBrowser/ReactionTable';
 
@@ -36,7 +37,6 @@ export default {
     Loader,
   },
   props: {
-    model: Object,
     metaboliteID: String,
     disableBut: Boolean,
   },
@@ -51,6 +51,11 @@ export default {
       ID: '',
       reactomeID: '',
     };
+  },
+  computed: {
+    ...mapState({
+      model: state => state.models.model,
+    }),
   },
   watch: {
     metaboliteID() {

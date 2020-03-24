@@ -59,11 +59,11 @@
             <span class="icon"><i class="fa fa-connectdevelop fa-lg"></i></span>&nbsp;
             <span>{{ messages.interPartName }}</span>
           </router-link>
-          <gem-contact :id="mId" :model="model" :type="type" />
+          <gem-contact :id="mId" :type="type" />
         </div>
       </div>
       <div class="columns">
-        <reactome v-show="showReactome" id="metabolite-reactome" :model="model" :metabolite-i-d="metaboliteID"
+        <reactome v-show="showReactome" id="metabolite-reactome" :metabolite-i-d="metaboliteID"
                   :disable-but="relatedMetabolites.length === 0">
         </reactome>
       </div>
@@ -73,6 +73,7 @@
 
 <script>
 import axios from 'axios';
+import { mapState } from 'vuex';
 import Reactome from '@/components/explorer/gemBrowser/Reactome';
 import GemContact from '@/components/shared/GemContact';
 import NotFound from '@/components/NotFound';
@@ -88,9 +89,6 @@ export default {
     ExtIdTable,
     Reactome,
     GemContact,
-  },
-  props: {
-    model: Object,
   },
   data() {
     return {
@@ -115,6 +113,11 @@ export default {
       activePanel: 'table',
       showReactome: false,
     };
+  },
+  computed: {
+    ...mapState({
+      model: state => state.models.model,
+    }),
   },
   watch: {
     /* eslint-disable quote-props */

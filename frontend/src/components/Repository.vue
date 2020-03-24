@@ -146,6 +146,7 @@
 
 <script>
 import axios from 'axios';
+import { mapGetters } from 'vuex';
 import $ from 'jquery';
 import { VueGoodTable } from 'vue-good-table';
 import 'vue-good-table/dist/vue-good-table.css';
@@ -270,37 +271,31 @@ export default {
         ofLabel: 'of',
       },
       messages,
-      integratedModels: [],
       filesURL: 'https://ftp.metabolicatlas.org/',
     };
+  },
+  computed: {
+    ...mapGetters({
+      integratedModels: 'models/integratedModels',
+    }),
   },
   created() {
     EventBus.$on('viewGem', (modelID) => {
       this.getModelData(modelID);
     });
   },
-  beforeMount() {
-    this.getIntegratedModels();
+  async beforeMount() {
+    await this.getIntegratedModels();
     this.getModels();
   },
   methods: {
-    getIntegratedModels() {
+    async getIntegratedModels() {
       // get models list
-      axios.get('models/')
-        .then((response) => {
-          const models = [];
-          response.data.forEach((model) => {
-            $.extend(model, model.sample);
-            model.sample = [model.sample.tissue, model.sample.cell_type, model.sample.cell_line] // eslint-disable-line no-param-reassign
-              .filter(e => e).join(' ‒ ') || '-';
-            models.push(model);
-          });
-          models.sort((a, b) => (a.short_name.toLowerCase() < b.short_name.toLowerCase() ? -1 : 1));
-          this.integratedModels = models;
-        })
-        .catch(() => {
-          this.errorMessage = messages.unknownError;
-        });
+      try {
+        await this.$store.dispatch('models/getModels');
+      } catch {
+        this.errorMessage = messages.unknownError;
+      }
     },
     getModel(params) {
       this.getModelData(params.row.id);

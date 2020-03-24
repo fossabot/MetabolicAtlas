@@ -29,12 +29,12 @@
 
 <script>
 import axios from 'axios';
+import { mapState } from 'vuex';
 import { default as messages } from '@/helpers/messages';
 
 export default {
   name: 'MapsAvailable',
   props: {
-    model: Object,
     type: String,
     id: String,
     elementID: String,
@@ -44,6 +44,11 @@ export default {
       mapsAvailable: '',
       messages,
     };
+  },
+  computed: {
+    ...mapState({
+      model: state => state.models.model,
+    }),
   },
   beforeMount() {
     axios.get(`${this.model.database_name}/available_maps/${this.type}/${this.id}`)

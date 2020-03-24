@@ -8,7 +8,7 @@
       </template>
       <template v-else-if="currentShowComponent">
         <keep-alive>
-          <component :is="currentShowComponent" :model="model"></component>
+          <component :is="currentShowComponent"></component>
         </keep-alive>
       </template>
       <template v-else>
@@ -22,7 +22,7 @@
             <p class="has-text-weight-bold is-size-5">1. Select a model:</p>
           </div>
         </div>
-        <div class="columns is-centered">
+        <div v-if="model" class="columns is-centered">
           <div class="column is-8-widescreen is-10-desktop is-fullwidth-tablet is-size-5">
             <div v-for="cmodel in Object.values(models).sort((a, b) =>
                    (a.short_name.toLowerCase() < b.short_name.toLowerCase() ? -1 : 1))"
@@ -84,7 +84,7 @@
 </template>
 
 <script>
-import { mapState } from 'vuex';
+import { mapGetters, mapState } from 'vuex';
 import GemBrowser from '@/components/explorer/GemBrowser';
 import MapViewer from '@/components/explorer/MapViewer';
 import InteractionPartners from '@/components/explorer/InteractionPartners';
@@ -126,9 +126,11 @@ export default {
     };
   },
   computed: {
+    ...mapGetters({
+      models: 'models/models',
+    }),
     ...mapState({
       model: state => state.models.model,
-      models: state => state.models.models,
     }),
   },
   watch: {
@@ -202,10 +204,8 @@ export default {
       }
     },
     selectModel(model) {
-      // TODO move this into the store, use model from state globally, and remove EventBus
       if (!this.model || model.database_name !== this.model.database_name) {
         this.$store.dispatch('models/selectModel', model);
-        EventBus.$emit('modelSelected', this.model);
       }
     },
     displayBrowser() {

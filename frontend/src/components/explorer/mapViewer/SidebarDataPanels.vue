@@ -146,6 +146,7 @@
 </template>
 
 <script>
+import { mapState } from 'vuex';
 import { capitalize, reformatStringToLink, idfy } from '../../../helpers/utils';
 import { chemicalFormula, chemicalReaction } from '../../../helpers/chemical-formatters';
 import { default as messages } from '../../../helpers/messages';
@@ -153,7 +154,6 @@ import { default as messages } from '../../../helpers/messages';
 export default {
   name: 'SidebarDataPanels',
   props: {
-    model: Object,
     dim: String,
     mapType: String,
     mapName: String,
@@ -188,6 +188,11 @@ export default {
       showSelectionCardContent: true,
       messages,
     };
+  },
+  computed: {
+    ...mapState({
+      model: state => state.models.model,
+    }),
   },
   methods: {
     selectionHasNoData() {

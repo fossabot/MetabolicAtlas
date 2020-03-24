@@ -94,7 +94,6 @@
       </div>
     </div>
     <RNAexpression class="card-margin"
-                   :model="model"
                    :map-type="mapType"
                    :map-name="mapName"
                    @loadedHPARNAtissue="setHPATissues($event)"
@@ -106,6 +105,7 @@
 
 <script>
 
+import { mapState } from 'vuex';
 import $ from 'jquery';
 import RNAexpression from '@/components/explorer/mapViewer/RNAexpression.vue';
 import { default as EventBus } from '@/event-bus';
@@ -118,7 +118,6 @@ export default {
     RNAexpression,
   },
   props: {
-    model: Object,
     mapType: String,
     mapName: String,
     dim: String,
@@ -147,6 +146,9 @@ export default {
     };
   },
   computed: {
+    ...mapState({
+      model: state => state.models.model,
+    }),
     disabledRNAlvl() {
       return !this.mapName || this.HPATissue.length === 0;
     },

@@ -60,13 +60,19 @@
 </template>
 
 <script>
+import { mapState } from 'vuex';
+
 export default {
   name: 'Tile',
   props: {
     type: String,
     data: Object,
     size: String,
-    model: Object,
+  },
+  computed: {
+    ...mapState({
+      model: state => state.models.model,
+    }),
   },
 };
 </script>

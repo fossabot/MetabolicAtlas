@@ -13,6 +13,7 @@
 
 <script>
 import axios from 'axios';
+import { mapState } from 'vuex';
 import { default as EventBus } from '@/event-bus';
 import RNALegend from '@/components/explorer/mapViewer/RNALegend.vue';
 import { getSingleRNAExpressionColor, getComparisonRNAExpressionColor, multipleColors } from '@/expression-sources/hpa';
@@ -24,7 +25,6 @@ export default {
     RNALegend,
   },
   props: {
-    model: Object,
     mapType: String,
     mapName: String,
   },
@@ -51,6 +51,9 @@ export default {
     };
   },
   computed: {
+    ...mapState({
+      model: state => state.models.model,
+    }),
     mode() {
       if (this.tissue1 !== 'None' && this.tissue2 !== 'None') {
         return 'comparison';

@@ -122,7 +122,7 @@
 
 <script>
 
-import { default as EventBus } from './event-bus';
+import { mapState } from 'vuex';
 import { isCookiePolicyAccepted, acceptCookiePolicy } from './helpers/store';
 
 export default {
@@ -170,25 +170,20 @@ export default {
       showCookieMsg: navigator.doNotTrack !== '1' && !isCookiePolicyAccepted(),
       acceptCookiePolicy,
       activeDropMenu: '',
-      model: null,
       browserLastPath: '',
       viewerLastPath: '',
       isMobileMenu: false,
     };
   },
+  computed: {
+    ...mapState({
+      model: state => state.models.model,
+    }),
+  },
   watch: {
     $route: function watchSetup() {
       this.setupButons();
     },
-  },
-  beforeMount() {
-    EventBus.$on('modelSelected', (model) => {
-      if (this.model) {
-        this.viewerLastPath = '';
-        this.browserLastPath = '';
-      }
-      this.model = model;
-    });
   },
   created() {
     this.setupButons();

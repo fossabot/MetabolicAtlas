@@ -15,7 +15,7 @@
         </div>
       </div>
       <div class="columns is-centered">
-        <gem-search ref="gemSearch" :model="model"></gem-search>
+        <gem-search ref="gemSearch"></gem-search>
       </div>
       <div v-if="selectedType === ''">
         <div class="columns is-centered">
@@ -35,17 +35,17 @@
           <div class="tile">
             <div class="tile is-vertical is-9">
               <div class="tile">
-                <tile type="reaction" :model="model" :data="starredComponents.reactions[0]">
+                <tile type="reaction" :data="starredComponents.reactions[0]">
                 </tile>
                 <div class="tile is-vertical is-8">
-                  <tile type="subsystem" :model="model" :data="starredComponents.subsystems[0]">
+                  <tile type="subsystem" :data="starredComponents.subsystems[0]">
                   </tile>
                   <div class="tile">
                     <tile type="gene" size="is-6"
-                          :model="model" :data="starredComponents.genes[0]">
+                          :data="starredComponents.genes[0]">
                     </tile>
                     <tile type="metabolite" size="is-6"
-                          :model="model" :data="starredComponents.metabolites[0]">
+                          :data="starredComponents.metabolites[0]">
                     </tile>
                   </div>
                 </div>
@@ -53,37 +53,37 @@
               <div class="tile">
                 <div class="tile is-vertical is-8">
                   <div class="tile">
-                    <tile type="subsystem" :model="model" :data="starredComponents.subsystems[1]">
+                    <tile type="subsystem" :data="starredComponents.subsystems[1]">
                     </tile>
                   </div>
                   <div class="tile">
                     <tile type="metabolite" size="is-6"
-                          :model="model" :data="starredComponents.metabolites[1]">
+                          :data="starredComponents.metabolites[1]">
                     </tile>
                     <tile type="gene" size="is-6"
-                          :model="model" :data="starredComponents.genes[1]">
+                          :data="starredComponents.genes[1]">
                     </tile>
                   </div>
                 </div>
                 <div class="tile is-4">
-                  <tile type="reaction" :model="model" :data="starredComponents.reactions[1]">
+                  <tile type="reaction" :data="starredComponents.reactions[1]">
                   </tile>
                 </div>
               </div>
             </div>
             <div class="tile is-vertical">
-              <tile type="compartment" :model="model" :data="starredComponents.compartment">
+              <tile type="compartment" :data="starredComponents.compartment">
               </tile>
             </div>
           </div>
         </div>
       </div>
       <div v-else>
-        <gene v-if="selectedType==='gene'" :model="model"></gene>
-        <metabolite v-if="selectedType==='metabolite'" :model="model"></metabolite>
-        <reaction v-if="selectedType==='reaction'" :model="model"></reaction>
-        <subsystem v-if="selectedType==='subsystem'" :model="model"></subsystem>
-        <compartment v-if="selectedType==='compartment'" :model="model"></compartment>
+        <gene v-if="selectedType==='gene'"></gene>
+        <metabolite v-if="selectedType==='metabolite'"></metabolite>
+        <reaction v-if="selectedType==='reaction'"></reaction>
+        <subsystem v-if="selectedType==='subsystem'"></subsystem>
+        <compartment v-if="selectedType==='compartment'"></compartment>
       </div>
     </template>
   </div>
@@ -91,6 +91,7 @@
 
 <script>
 import axios from 'axios';
+import { mapState } from 'vuex';
 import GemSearch from '@/components/explorer/gemBrowser/GemSearch';
 import Gene from '@/components/explorer/gemBrowser/Gene';
 import Metabolite from '@/components/explorer/gemBrowser/Metabolite';
@@ -111,9 +112,6 @@ export default {
     GemSearch,
     Tile,
   },
-  props: {
-    model: Object,
-  },
   data() {
     return {
       messages,
@@ -125,6 +123,11 @@ export default {
       mapsAvailable: null,
       starredComponents: null,
     };
+  },
+  computed: {
+    ...mapState({
+      model: state => state.models.model,
+    }),
   },
   watch: {
     /* eslint-disable quote-props */

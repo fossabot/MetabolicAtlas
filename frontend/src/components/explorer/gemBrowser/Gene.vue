@@ -42,7 +42,7 @@
                 <span class="icon"><i class="fa fa-connectdevelop fa-lg"></i></span>&nbsp;
                 <span>{{ messages.interPartName }}</span>
               </router-link>
-              <gem-contact :id="eId" :model="model" :type="type" />
+              <gem-contact :id="eId" :type="type" />
             </div>
           </div>
           <template v-if="!showLoader">
@@ -55,7 +55,7 @@
               </template>
               <template v-else-if="!showReactionLoader">
                 <reaction-table :source-name="geneName" :reactions="reactions" :show-subsystem="true"
-                                :model="model" :limit="limitReaction">
+                                :limit="limitReaction">
                 </reaction-table>
               </template>
             </div>
@@ -68,6 +68,7 @@
 
 <script>
 import axios from 'axios';
+import { mapState } from 'vuex';
 import GemContact from '@/components/shared/GemContact';
 import NotFound from '@/components/NotFound';
 import ExtIdTable from '@/components/explorer/gemBrowser/ExtIdTable';
@@ -84,9 +85,6 @@ export default {
     Loader,
     GemContact,
     ExtIdTable,
-  },
-  props: {
-    model: Object,
   },
   data() {
     return {
@@ -108,6 +106,11 @@ export default {
       limitReaction: 200,
       componentNotFound: false,
     };
+  },
+  computed: {
+    ...mapState({
+      model: state => state.models.model,
+    }),
   },
   watch: {
     /* eslint-disable quote-props */

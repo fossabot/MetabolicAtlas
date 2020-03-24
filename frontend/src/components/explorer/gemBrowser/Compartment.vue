@@ -48,8 +48,8 @@
           <a href="/api/" target="_blank">API</a></span>
       </div>
       <div class="column is-2-widescreen is-3-desktop is-half-tablet has-text-centered">
-        <maps-available :id="cName" :model="model" :type="type" :element-i-d="''" />
-        <gem-contact :id="cName" :model="model" :type="type" />
+        <maps-available :id="cName" :type="type" :element-i-d="''" />
+        <gem-contact :id="cName" :type="type" />
       </div>
     </div>
   </div>
@@ -57,6 +57,7 @@
 
 <script>
 import axios from 'axios';
+import { mapState } from 'vuex';
 import Loader from '@/components/Loader';
 import NotFound from '@/components/NotFound';
 import MapsAvailable from '@/components/explorer/gemBrowser/MapsAvailable';
@@ -70,9 +71,6 @@ export default {
     Loader,
     MapsAvailable,
     GemContact,
-  },
-  props: {
-    model: Object,
   },
   data() {
     return {
@@ -88,6 +86,9 @@ export default {
     };
   },
   computed: {
+    ...mapState({
+      model: state => state.models.model,
+    }),
     subsystemListHtml() {
       const l = ['<span class="tags">'];
       const sortedSubsystemList = this.subsystems.concat().sort((a, b) => (a.name < b.name ? -1 : 1));

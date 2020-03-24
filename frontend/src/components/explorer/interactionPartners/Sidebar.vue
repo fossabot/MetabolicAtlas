@@ -30,18 +30,23 @@
 
 <script>
 
+import { mapState } from 'vuex';
 import { default as messages } from '@/helpers/messages';
 
 export default {
   name: 'Sidebar',
   props: {
-    model: Object,
     selectedElm: Object,
   },
   data() {
     return {
       messages,
     };
+  },
+  computed: {
+    ...mapState({
+      model: state => state.models.model,
+    }),
   },
 };
 </script>

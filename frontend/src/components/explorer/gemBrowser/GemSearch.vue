@@ -64,6 +64,7 @@
 
 <script>
 import axios from 'axios';
+import { mapState } from 'vuex';
 import $ from 'jquery';
 import { sortResults } from '@/helpers/utils';
 import { chemicalReaction } from '@/helpers/chemical-formatters';
@@ -73,7 +74,6 @@ export default {
   name: 'GemSearch',
   props: {
     searchTerm: String,
-    model: Object,
     metabolitesAndGenesOnly: Boolean,
   },
   data() {
@@ -98,6 +98,9 @@ export default {
     };
   },
   computed: {
+    ...mapState({
+      model: state => state.models.model,
+    }),
     placeholder() {
       if (this.metabolitesAndGenesOnly) {
         return 'uracil, malate, SULT1A3, CNDP1';
