@@ -5,4 +5,10 @@ const globalSearch = async (searchTerm) => {
   return data;
 };
 
-export default { globalSearch };
+const search = async (model, metabolitesAndGenesOnly, searchTerm) => {
+  const url = `${model}/search_${metabolitesAndGenesOnly ? 'ip' : 'gb'}/${searchTerm}`;
+  const { data } = await axios.get(url);
+  return data;
+};
+
+export default { globalSearch, search };

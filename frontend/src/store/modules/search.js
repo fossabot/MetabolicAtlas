@@ -1,4 +1,5 @@
 import searchApi from '@/api/search';
+import { sortResults } from '@/helpers/utils';
 
 const data = {
   categories: [
@@ -9,35 +10,50 @@ const data = {
     'compartment',
   ],
   globalResults: {},
+  results: {},
+  searchTermString: '',
+};
+
+const categorizeResults = (results) => {
+  const categorizedResults = data.categories.reduce((obj, category) => ({ ...obj, [category]: [] }), {});
+
+  Object.keys(results).forEach((model) => {
+    const resultsModel = results[model];
+    data.categories.filter(resultType => resultsModel[resultType])
+      .forEach((resultType) => {
+        categorizedResults[resultType] = categorizedResults[resultType].concat(
+          resultsModel[resultType].map(
+            (e) => {
+              const d = e; d.model = { id: model, name: resultsModel.name }; return d;
+            })
+        );
+      });
+  });
+
+  return categorizedResults;
 };
 
 const getters = {
-  categorizedResults: (state) => {
-    const results = {
-      metabolite: [],
-      gene: [],
-      reaction: [],
-      subsystem: [],
-      compartment: [],
-    };
+  categorizedGlobalResults: state => categorizeResults(state.globalResults),
 
-    Object.keys(state.globalResults).forEach((model) => {
-      const resultsModel = state.globalResults[model];
-      state.categories.filter(resultType => resultsModel[resultType])
-        .forEach((resultType) => {
-          results[resultType] = results[resultType].concat(
-            resultsModel[resultType].map(
-              (e) => {
-                const d = e; d.model = { id: model, name: resultsModel.name }; return d;
-              })
-          );
-        });
-    });
+  categorizedGlobalResultsCount: (state, _getters) => Object.fromEntries( // eslint-disable-line no-unused-vars
+    Object.entries(_getters.categorizedGlobalResults).map(([k, v]) => [k, v.length])),
 
-    return results;
+  categorizedAndSortedResults: (state) => {
+    if (Object.keys(state.results).length === 0) {
+      return {};
+    }
+
+    const results = categorizeResults(state.results);
+
+    // TODO: consider rewriting this return so it's more readable
+    return Object.fromEntries(Object.entries(results).map(([k, v]) => [k, (() => {
+      if (v === 0) {
+        return v;
+      }
+      return v.sort((a, b) => sortResults(a, b, state.searchTermString));
+    })()]));
   },
-  categorizedResultsCount: (state, _getters) => Object.fromEntries( // eslint-disable-line no-unused-vars
-    Object.entries(_getters.categorizedResults).map(([k, v]) => [k, v.length])),
 };
 
 const actions = {
@@ -45,14 +61,37 @@ const actions = {
     const results = await searchApi.globalSearch(searchTerm);
     commit('setGlobalResults', results);
   },
+
+
+  async search({ state, commit }, { model, metabolitesAndGenesOnly }) {
+    const results = await searchApi.search(model, metabolitesAndGenesOnly, state.searchTermString);
+    commit('setResults', results);
+  },
+
+  setSearchTermString({ commit }, searchTermString) {
+    commit('setSearchTermString', searchTermString);
+  },
+
   clearGlobalSearchResults({ commit }) {
     commit('setGlobalResults', {});
+  },
+
+  clearSearchResults({ commit }) {
+    commit('setResults', {});
   },
 };
 
 const mutations = {
   setGlobalResults: (state, globalResults) => {
     state.globalResults = globalResults;
+  },
+
+  setResults: (state, results) => {
+    state.results = results;
+  },
+
+  setSearchTermString: (state, searchTermString) => {
+    state.searchTermString = searchTermString;
   },
 };
 

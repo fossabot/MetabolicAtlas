@@ -451,8 +451,8 @@ export default {
       tabs: state => state.search.categories,
     }),
     ...mapGetters({
-      searchResults: 'search/categorizedResults',
-      resultsCount: 'search/categorizedResultsCount',
+      searchResults: 'search/categorizedGlobalResults',
+      resultsCount: 'search/categorizedGlobalResultsCount',
     }),
   },
   async beforeRouteEnter(to, from, next) { // eslint-disable-line no-unused-vars
