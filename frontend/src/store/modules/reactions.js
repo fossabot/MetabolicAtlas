@@ -9,6 +9,10 @@ const actions = {
     const reactions = await reactionsApi.fetchRelatedReactionsForGene(model, id);
     commit('setRelatedReactions', reactions);
   },
+  async getRelatedReactionsForMetabolite({ commit }, { model, id, allCompartments }) {
+    const reactions = await reactionsApi.fetchRelatedReactionsForMetabolite(model, id, allCompartments);
+    commit('setRelatedReactions', reactions);
+  },
   clearRelatedReactions({ commit }) {
     commit('setRelatedReactions', []);
   },
