@@ -92,8 +92,7 @@
 
 <script>
 
-import axios from 'axios';
-import { mapState } from 'vuex';
+import { mapGetters, mapState } from 'vuex';
 import Loader from '@/components/Loader';
 import NotFound from '@/components/NotFound';
 import MapsAvailable from '@/components/explorer/gemBrowser/MapsAvailable';
@@ -118,9 +117,6 @@ export default {
       type: 'subsystem',
       showLoader: true,
       showReactionLoader: true,
-      info: {},
-      metabolites: [],
-      genes: [],
       errorMessage: '',
       mainTableKey: [
         { name: 'name', display: 'Name' },
@@ -129,8 +125,6 @@ export default {
       showFullGene: false,
       displayedMetabolite: 40,
       displayedGene: 40,
-      limitMetabolite: 0,
-      limitGene: 0,
       componentNotFound: false,
     };
   },
@@ -139,6 +133,13 @@ export default {
       model: state => state.models.model,
       reactions: state => state.reactions.relatedReactions,
       limitReaction: state => state.reactions.relatedReactionsLimit,
+    }),
+    ...mapGetters({
+      info: 'subsystems/info',
+      metabolites: 'subsystems/metabolites',
+      genes: 'subsystems/genes',
+      limitMetabolite: 'subsystems/limitMetabolite',
+      limitGene: 'subsystems/limitGene',
     }),
     metabolitesListHtml() {
       const l = ['<span class="tags">'];
@@ -189,25 +190,21 @@ export default {
   methods: {
     async setup() {
       this.sName = this.$route.params.id;
-      this.load();
+      await this.load();
       await this.getReactions();
     },
-    load() {
+    async load() {
       this.showLoader = true;
-      axios.get(`${this.model.database_name}/subsystem/${this.sName}/summary/`)
-        .then((response) => {
-          this.componentNotFound = false;
-          this.info = response.data.info;
-          this.metabolites = response.data.metabolites;
-          this.genes = response.data.genes;
-          this.limitMetabolite = response.data.limit;
-          this.limitGene = response.data.limit;
-          this.showLoader = false;
-        })
-        .catch(() => {
-          this.componentNotFound = true;
-          document.getElementById('search').focus();
-        });
+
+      try {
+        const payload = { model: this.model.database_name, id: this.sName };
+        this.$store.dispatch('subsystems/getSubsystemSummary', payload);
+        this.componentNotFound = false;
+        this.showLoader = false;
+      } catch {
+        this.componentNotFound = true;
+        document.getElementById('search').focus();
+      }
     },
     async getReactions() {
       this.showReactionLoader = true;
