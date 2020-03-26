@@ -56,8 +56,7 @@
 </template>
 
 <script>
-import axios from 'axios';
-import { mapState } from 'vuex';
+import { mapGetters, mapState } from 'vuex';
 import Loader from '@/components/Loader';
 import NotFound from '@/components/NotFound';
 import MapsAvailable from '@/components/explorer/gemBrowser/MapsAvailable';
@@ -77,8 +76,6 @@ export default {
       cName: this.$route.params.id,
       type: 'compartment',
       showLoader: false,
-      compartment: {},
-      subsystems: [],
       errorMessage: '',
       showFullSubsystem: false,
       limitSubsystem: 30,
@@ -88,6 +85,10 @@ export default {
   computed: {
     ...mapState({
       model: state => state.models.model,
+    }),
+    ...mapGetters({
+      compartment: 'compartments/info',
+      subsystems: 'compartments/subsystems',
     }),
     subsystemListHtml() {
       const l = ['<span class="tags">'];
@@ -106,35 +107,33 @@ export default {
   },
   watch: {
     /* eslint-disable quote-props */
-    '$route': function watchSetup() {
+    '$route': async function watchSetup() {
       if (this.$route.path.includes('/gem-browser/') && this.$route.path.includes('/compartment/')) {
         if (this.cName !== this.$route.params.id) {
-          this.setup();
+          await this.setup();
         }
       }
     },
   },
-  beforeMount() {
-    this.setup();
+  async beforeMount() {
+    await this.setup();
   },
   methods: {
-    setup() {
+    async setup() {
       this.cName = this.$route.params.id;
-      this.load();
+      await this.load();
     },
-    load() {
+    async load() {
       this.showLoader = true;
-      axios.get(`${this.model.database_name}/compartment/${this.cName}/summary/`)
-        .then((response) => {
-          this.componentNotFound = false;
-          this.compartment = response.data.info;
-          this.subsystems = response.data.subsystems;
-          this.showLoader = false;
-        })
-        .catch(() => {
-          this.componentNotFound = true;
-          document.getElementById('search').focus();
-        });
+      try {
+        const payload = { model: this.model.database_name, id: this.cName };
+        await this.$store.dispatch('compartments/getCompartmentSummary', payload);
+        this.componentNotFound = false;
+        this.showLoader = false;
+      } catch {
+        this.componentNotFound = true;
+        document.getElementById('search').focus();
+      }
     },
   },
 };

@@ -5,7 +5,7 @@ const data = {
 };
 
 const getters = {
-  info: state => state.subsystemSummary.info || '',
+  info: state => state.subsystemSummary.info || {},
   metabolites: state => state.subsystemSummary.metabolites || [],
   genes: state => state.subsystemSummary.genes || [],
   limitMetabolite: state => state.subsystemSummary.limit || 0,

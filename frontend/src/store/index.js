@@ -7,6 +7,7 @@ import genes from './modules/genes';
 import reactions from './modules/reactions';
 import subsystems from './modules/subsystems';
 import metabolites from './modules/metabolites';
+import compartments from './modules/compartments';
 import search from './modules/search';
 
 Vue.use(Vuex);
@@ -20,6 +21,7 @@ export default new Vuex.Store({
     reactions,
     subsystems,
     metabolites,
+    compartments,
     search,
   },
 });
