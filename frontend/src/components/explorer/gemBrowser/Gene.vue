@@ -67,7 +67,6 @@
 </template>
 
 <script>
-import axios from 'axios';
 import { mapGetters, mapState } from 'vuex';
 import GemContact from '@/components/shared/GemContact';
 import NotFound from '@/components/NotFound';
@@ -100,7 +99,6 @@ export default {
         { name: 'synonyms' },
         { name: 'function' },
       ],
-      reactions: [],
       limitReaction: 200,
       componentNotFound: false,
     };
@@ -109,9 +107,10 @@ export default {
     ...mapState({
       model: state => state.models.model,
       gene: state => state.genes.gene,
+      reactions: state => state.reactions.relatedReactions,
     }),
     ...mapGetters({
-      geneNAme: 'genes/geneName',
+      geneName: 'genes/geneName',
     }),
   },
   watch: {
@@ -132,12 +131,13 @@ export default {
       this.eId = this.$route.params.id;
       if (this.eId) {
         await this.load();
-        this.loadReactions();
+        await this.loadReactions();
       }
     },
     reformatTableKey(k) { return reformatTableKey(k); },
     async load() {
       this.showLoader = true;
+
       try {
         const payload = { model: this.model.database_name, id: this.eId };
         await this.$store.dispatch('genes/getGeneData', payload);
@@ -151,17 +151,16 @@ export default {
         document.getElementById('search').focus();
       }
     },
-    loadReactions() {
-      // this.reactions = [];
+    async loadReactions() {
       this.showReactionLoader = true;
-      axios.get(`${this.model.database_name}/gene/${this.eId}/get_reactions`)
-        .then((response) => {
-          this.reactions = response.data;
-          this.showReactionLoader = false;
-        })
-        .catch(() => {
-          this.reactions = [];
-        });
+
+      try {
+        const payload = { model: this.model.database_name, id: this.eId };
+        await this.$store.dispatch('reactions/getRelatedReactionsForGene', payload);
+        this.showReactionLoader = false;
+      } catch {
+        this.$store.dispatch('reactions/clearRelatedReactions');
+      }
     },
   },
 };

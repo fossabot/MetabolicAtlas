@@ -4,6 +4,7 @@ import models from './modules/models';
 import browserTiles from './modules/browserTiles';
 import gems from './modules/gems';
 import genes from './modules/genes';
+import reactions from './modules/reactions';
 import search from './modules/search';
 
 Vue.use(Vuex);
@@ -14,6 +15,7 @@ export default new Vuex.Store({
     browserTiles,
     gems,
     genes,
+    reactions,
     search,
   },
 });
