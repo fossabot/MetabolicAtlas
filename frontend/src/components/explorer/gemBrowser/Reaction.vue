@@ -80,7 +80,6 @@
 </template>
 
 <script>
-import axios from 'axios';
 import { mapState } from 'vuex';
 import Loader from '@/components/Loader';
 import NotFound from '@/components/NotFound';
@@ -114,63 +113,57 @@ export default {
         { name: 'compartment', display: 'Compartment(s)' },
         { name: 'subsystem', display: 'Subsystem(s)' },
       ],
-      reaction: {},
-      relatedReactions: [],
       errorMessage: '',
       showLoader: true,
       mapsAvailable: {},
-      referenceList: [],
       componentNotFound: false,
     };
   },
   computed: {
     ...mapState({
       model: state => state.models.model,
+      reaction: state => state.reactions.reaction,
+      referenceList: state => state.reactions.referenceList,
+      relatedReactions: state => state.reactions.relatedReactions,
     }),
   },
   watch: {
     /* eslint-disable quote-props */
-    '$route': function watchSetup() {
+    '$route': async function watchSetup() {
       if (this.$route.path.includes('/reaction/')) {
         if (this.rId !== this.$route.params.id) {
-          this.setup();
+          await this.setup();
         }
       }
     },
   },
-  beforeMount() {
-    this.setup();
+  async beforeMount() {
+    await this.setup();
   },
   methods: {
-    setup() {
+    async setup() {
       this.rId = this.$route.params.id;
-      this.load();
+      await this.load();
     },
-    load() {
-      axios.get(`${this.model.database_name}/get_reaction/${this.rId}/`)
-        .then((response) => {
-          this.componentNotFound = false;
-          this.showLoader = false;
-          this.reaction = response.data.reaction;
-          if (response.data.pmids.length !== 0) {
-            this.referenceList = response.data.pmids;
-          }
-          this.getRelatedReactions();
-        })
-        .catch(() => {
-          this.componentNotFound = true;
-          document.getElementById('search').focus();
-        });
+    async load() {
+      try {
+        const payload = { model: this.model.database_name, id: this.rId };
+        await this.$store.dispatch('reactions/getReactionData', payload);
+        this.componentNotFound = false;
+        this.showLoader = false;
+        await this.getRelatedReactions();
+      } catch {
+        this.componentNotFound = true;
+        document.getElementById('search').focus();
+      }
     },
-    getRelatedReactions() {
-      axios.get(`${this.model.database_name}/get_reaction/${this.rId}/related`)
-        .then((response) => {
-          this.relatedReactions = response.data;
-          this.relatedReactions.sort((a, b) => (a.compartment_str < b.compartment_str ? -1 : 1));
-        })
-        .catch(() => {
-          this.relatedReactions = [];
-        });
+    async getRelatedReactions() {
+      try {
+        const payload = { model: this.model.database_name, id: this.rId };
+        await this.$store.dispatch('reactions/getRelatedReactionsForReaction', payload);
+      } catch {
+        this.$store.dispatch('reactions/clearRelatedReactions');
+      }
     },
     reformatEquation() { return reformatChemicalReactionHTML(this.reaction, false, this.model.database_name); },
     reformatGenes() {

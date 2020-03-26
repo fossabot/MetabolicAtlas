@@ -1,11 +1,26 @@
 import reactionsApi from '@/api/reactions';
 
 const data = {
+  reaction: {},
+  referenceList: [],
   relatedReactions: [],
   relatedReactionsLimit: 0,
 };
 
 const actions = {
+  async getReactionData({ commit }, { model, id }) {
+    const { reaction, pmids } = await reactionsApi.fetchReactionData(model, id);
+    commit('setReaction', reaction);
+    if (pmids.length !== 0) {
+      commit('setReferenceList', pmids);
+    }
+  },
+
+  async getRelatedReactionsForReaction({ commit }, { model, id }) {
+    const reactions = await reactionsApi.fetchRelatedReactionsForReaction(model, id);
+    commit('setRelatedReactions', reactions);
+  },
+
   async getRelatedReactionsForGene({ commit }, { model, id }) {
     const reactions = await reactionsApi.fetchRelatedReactionsForGene(model, id);
     commit('setRelatedReactions', reactions);
@@ -28,6 +43,12 @@ const actions = {
 };
 
 const mutations = {
+  setReaction: (state, reaction) => {
+    state.reaction = reaction;
+  },
+  setReferenceList: (state, referenceList) => {
+    state.referenceList = referenceList;
+  },
   setRelatedReactions: (state, reactions) => {
     state.relatedReactions = reactions;
   },
