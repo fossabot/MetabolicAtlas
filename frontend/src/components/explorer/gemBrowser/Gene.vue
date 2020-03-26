@@ -68,7 +68,7 @@
 
 <script>
 import axios from 'axios';
-import { mapState } from 'vuex';
+import { mapGetters, mapState } from 'vuex';
 import GemContact from '@/components/shared/GemContact';
 import NotFound from '@/components/NotFound';
 import ExtIdTable from '@/components/explorer/gemBrowser/ExtIdTable';
@@ -93,8 +93,6 @@ export default {
       showReactionLoader: true,
       eId: '',
       type: 'gene',
-      gene: {},
-      geneName: '',
       mainTableKey: [
         { name: 'id' },
         { name: 'geneName', display: 'Gene&nbsp;name' },
@@ -110,48 +108,48 @@ export default {
   computed: {
     ...mapState({
       model: state => state.models.model,
+      gene: state => state.genes.gene,
+    }),
+    ...mapGetters({
+      geneNAme: 'genes/geneName',
     }),
   },
   watch: {
     /* eslint-disable quote-props */
-    '$route': function watchSetup() {
+    '$route': async function watchSetup() {
       if (this.$route.path.includes('/gene/')) {
         if (this.eId !== this.$route.params.id) {
-          this.setup();
+          await this.setup();
         }
       }
     },
   },
-  beforeMount() {
-    this.setup();
+  async beforeMount() {
+    await this.setup();
   },
   methods: {
-    setup() {
+    async setup() {
       this.eId = this.$route.params.id;
       if (this.eId) {
-        this.load();
+        await this.load();
         this.loadReactions();
       }
     },
     reformatTableKey(k) { return reformatTableKey(k); },
-    load() {
+    async load() {
       this.showLoader = true;
-      // const geneId = this.eid;
-      axios.get(`${this.model.database_name}/gene/${this.eId}/`)
-        .then((response) => {
-          this.showLoader = false;
-          this.componentNotFound = false;
-          this.eId = response.data.id;
-          this.geneName = response.data.name || response.data.id;
-          this.gene = response.data;
-          this.gene.geneName = this.geneName;
-        })
-        .catch(() => {
-          this.showLoader = false;
-          this.reactions = [];
-          this.componentNotFound = true;
-          document.getElementById('search').focus();
-        });
+      try {
+        const payload = { model: this.model.database_name, id: this.eId };
+        await this.$store.dispatch('genes/getGeneData', payload);
+        this.showLoader = false;
+        this.componentNotFound = false;
+        this.eId = this.gene.id;
+      } catch {
+        this.showLoader = false;
+        this.reactions = [];
+        this.componentNotFound = true;
+        document.getElementById('search').focus();
+      }
     },
     loadReactions() {
       // this.reactions = [];
