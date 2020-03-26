@@ -121,7 +121,6 @@ export default {
       info: {},
       metabolites: [],
       genes: [],
-      reactions: [],
       errorMessage: '',
       mainTableKey: [
         { name: 'name', display: 'Name' },
@@ -132,13 +131,14 @@ export default {
       displayedGene: 40,
       limitMetabolite: 0,
       limitGene: 0,
-      limitReaction: 0,
       componentNotFound: false,
     };
   },
   computed: {
     ...mapState({
       model: state => state.models.model,
+      reactions: state => state.reactions.relatedReactions,
+      limitReaction: state => state.reactions.relatedReactionsLimit,
     }),
     metabolitesListHtml() {
       const l = ['<span class="tags">'];
@@ -175,22 +175,22 @@ export default {
   },
   watch: {
     /* eslint-disable quote-props */
-    '$route': function watchSetup() {
+    '$route': async function watchSetup() {
       if (this.$route.path.includes('/gem-browser/') && this.$route.path.includes('/subsystem/')) {
         if (this.sName !== this.$route.params.id) {
-          this.setup();
+          await this.setup();
         }
       }
     },
   },
-  beforeMount() {
-    this.setup();
+  async beforeMount() {
+    await this.setup();
   },
   methods: {
-    setup() {
+    async setup() {
       this.sName = this.$route.params.id;
       this.load();
-      this.getReactions();
+      await this.getReactions();
     },
     load() {
       this.showLoader = true;
@@ -209,16 +209,15 @@ export default {
           document.getElementById('search').focus();
         });
     },
-    getReactions() {
+    async getReactions() {
       this.showReactionLoader = true;
-      axios.get(`${this.model.database_name}/subsystem/${this.sName}/get_reactions`)
-        .then((response) => {
-          this.reactions = response.data.reactions;
-          this.limitReaction = response.data.limit;
-          this.showReactionLoader = false;
-        })
-        .catch(() => {
-        });
+      try {
+        const payload = { model: this.model.database_name, id: this.sName };
+        this.$store.dispatch('reactions/getRelatedReactionsForSubsystem', payload);
+        this.showReactionLoader = false;
+      } catch {
+        // TODO: handle exception
+      }
     },
     reformatKey(k) { return reformatTableKey(k); },
   },
