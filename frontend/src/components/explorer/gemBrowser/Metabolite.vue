@@ -72,7 +72,6 @@
 </template>
 
 <script>
-import axios from 'axios';
 import { mapState } from 'vuex';
 import Reactome from '@/components/explorer/gemBrowser/Reactome';
 import GemContact from '@/components/shared/GemContact';
@@ -107,8 +106,6 @@ export default {
         { name: 'inchi', display: 'InChI' },
         { name: 'compartment' },
       ],
-      metabolite: {},
-      relatedMetabolites: [],
       componentNotFound: false,
       activePanel: 'table',
       showReactome: false,
@@ -117,6 +114,8 @@ export default {
   computed: {
     ...mapState({
       model: state => state.models.model,
+      metabolite: state => state.metabolites.metabolite,
+      relatedMetabolites: state => state.metabolites.relatedMetabolites,
     }),
   },
   watch: {
@@ -139,30 +138,27 @@ export default {
         this.load();
       }
     },
-    load() {
-      axios.get(`${this.model.database_name}/metabolite/${this.mId}/`)
-        .then((response) => {
-          this.componentNotFound = false;
-          this.metaboliteID = this.mId;
-          this.metabolite = response.data;
-          this.showReactome = true;
-          this.getRelatedMetabolites();
-        })
-        .catch(() => {
-          this.componentNotFound = true;
-          this.showReactome = false;
-          document.getElementById('search').focus();
-        });
+    async load() {
+      try {
+        const payload = { model: this.model.database_name, id: this.mId };
+        await this.$store.dispatch('metabolites/getMetaboliteData', payload);
+        this.componentNotFound = false;
+        this.metaboliteID = this.mId;
+        this.showReactome = true;
+        await this.getRelatedMetabolites();
+      } catch {
+        this.componentNotFound = true;
+        this.showReactome = false;
+        document.getElementById('search').focus();
+      }
     },
-    getRelatedMetabolites() {
-      axios.get(`${this.model.database_name}/metabolite/${this.mId}/related`)
-        .then((response) => {
-          this.relatedMetabolites = response.data;
-          this.relatedMetabolites.sort((a, b) => (a.compartment_str < b.compartment_str ? -1 : 1));
-        })
-        .catch(() => {
-          this.relatedMetabolites = [];
-        });
+    async getRelatedMetabolites() {
+      try {
+        const payload = { model: this.model.database_name, id: this.mId };
+        await this.$store.dispatch('metabolites/getRelatedMetabolites', payload);
+      } catch {
+        this.$store.dispatch('metabolites/clearRelatedMetabolites');
+      }
     },
     reformatTableKey(k) { return reformatTableKey(k); },
     chemicalFormula,
