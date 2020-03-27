@@ -10,4 +10,9 @@ const fetchRnaLevels = async (model, geneIds) => {
   return data;
 };
 
-export default { fetchTissues, fetchRnaLevels };
+const fetchRnaLevelsForMap = async (model, mapType, dim, mapName) => {
+  const { data } = await axios.get(`${model}/gene/hpa_rna_levels/${mapType}/${dim}/${mapName}`);
+  return data;
+};
+
+export default { fetchTissues, fetchRnaLevels, fetchRnaLevelsForMap };
