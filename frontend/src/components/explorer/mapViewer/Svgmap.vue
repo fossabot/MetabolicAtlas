@@ -56,7 +56,6 @@
 
 <script>
 
-import axios from 'axios';
 import { mapState } from 'vuex';
 import $ from 'jquery';
 import JQPanZoom from 'jquery.panzoom';
@@ -89,7 +88,6 @@ export default {
       loadedMap: null,
       loadedMapType: null,
       loadedMapHistory: {},
-      svgContent: null,
       svgContentHistory: {},
       svgName: '',
       isFullscreen: false,
@@ -104,7 +102,6 @@ export default {
       },
       currentZoomScale: 1,
 
-      idsFound: [],
       elmFound: [],
       elmsHL: [],
 
@@ -129,6 +126,9 @@ export default {
   computed: {
     ...mapState({
       model: state => state.models.model,
+      svgContent: state => state.maps.svgMap,
+      idsFound: state => state.maps.idsFound,
+      selectedElement: state => state.maps.selectedElement,
     }),
     isFullScreenDisabled() {
       if ((document.fullScreenElement !== undefined && document.fullScreenElement === null)
@@ -151,11 +151,11 @@ export default {
       this.haveSearched = false;
     },
   },
-  created() {
+  async created() {
     EventBus.$off('showSVGmap');
     EventBus.$off('apply2DHPARNAlevels');
 
-    EventBus.$on('showSVGmap', (type, name, ids, forceReload) => {
+    EventBus.$on('showSVGmap', async (type, name, ids, forceReload) => {
       if (forceReload) {
         this.svgName = '';
       }
@@ -163,12 +163,12 @@ export default {
       this.loadedMapType = type;
       if (type === 'compartment' || type === 'subsystem') {
         if (name) {
-          this.idsFound = ids;
+          this.$store.dispatch('maps/setIdsFound', ids);
           if (ids.length === 1) {
             this.searchTerm = ids[0]; // eslint-disable-line prefer-destructuring
-            this.loadSVG(name, this.searchComponentIDs);
+            await this.loadSVG(name, this.searchComponentIDs);
           } else {
-            this.loadSVG(name, null);
+            await this.loadSVG(name, null);
           }
         }
       } else if (type === 'find') {
@@ -180,11 +180,11 @@ export default {
       this.applyHPARNAlevelsOnMap(levels);
     });
   },
-  mounted() {
+  async mounted() {
     const self = this;
     ['.met', '.enz', '.rea', '.subsystem'].forEach((aClass) => {
-      $('#svg-wrapper').on('click', aClass, function f() {
-        self.selectElement($(this));
+      $('#svg-wrapper').on('click', aClass, async function f() {
+        await self.selectElement($(this));
       });
     });
     $('#svg-wrapper').on('mouseover', '.enz', function f(e) {
@@ -320,7 +320,7 @@ export default {
         }
       }, 0);
     },
-    loadSVG(id, callback) {
+    async loadSVG(id, callback) {
       // load the svg file from the server
       this.$emit('loading');
 
@@ -346,27 +346,26 @@ export default {
 
       if (newSvgName !== this.svgName) {
         if (newSvgName in this.loadedMapHistory) {
-          this.svgContent = this.svgContentHistory[newSvgName];
+          this.$store.dispatch('maps/setSvgMap', this.svgContentHistory[newSvgName]);
           this.loadedMap = this.loadedMapHistory[newSvgName];
           this.svgName = newSvgName;
           setTimeout(() => {
             this.loadSvgPanZoom(callback);
           }, 0);
         } else {
-          axios.get(`${this.svgMapURL}/${this.model.database_name}/${newSvgName}`)
-            .then((response) => {
-              this.svgContent = response.data;
-              this.svgName = newSvgName;
-              this.loadedMap = mapInfo;
-              this.svgContentHistory[this.svgName] = response.data;
-              this.loadedMapHistory[this.svgName] = mapInfo;
-              setTimeout(() => {
-                this.loadSvgPanZoom(callback);
-              }, 0);
-            })
-            .catch(() => {
-              this.$emit('loadComplete', false, messages.mapNotFound, 'danger');
-            });
+          try {
+            const payload = { mapUrl: this.svgMapURL, model: this.model.database_name, svgName: newSvgName };
+            await this.$store.dispatch('maps/getSvgMap', payload);
+            this.svgName = newSvgName;
+            this.loadedMap = mapInfo;
+            this.svgContentHistory[this.svgName] = this.svgContent;
+            this.loadedMapHistory[this.svgName] = mapInfo;
+            setTimeout(() => {
+              this.loadSvgPanZoom(callback);
+            }, 0);
+          } catch {
+            this.$emit('loadComplete', false, messages.mapNotFound, 'danger');
+          }
         }
       } else {
         this.loadedMap = mapInfo;
@@ -412,7 +411,7 @@ export default {
         });
       EventBus.$emit('loadRNAComplete', true, '');
     },
-    searchComponentIDs() {
+    async searchComponentIDs() {
       // get the correct IDs from the backend
       this.totalSearchMatch = 0;
       this.currentSearchMatch = 0;
@@ -422,21 +421,19 @@ export default {
         return;
       }
       this.isLoadingSearch = true;
-      axios.get(`${this.model.database_name}/get_id/${this.searchTerm}`)
-        .then((response) => {
-          // results are on the model, but may not be on the map!
-          this.idsFound = response.data;
-          this.findElementsOnSVG(true);
-        })
-        .catch(() => {
-          this.searchInputClass = 'is-danger';
-        })
-        .then(() => {
-          this.isLoadingSearch = false;
-          this.haveSearched = true;
-        });
+
+      try {
+        const payload = { model: this.model.database_name, searchTerm: this.searchTerm };
+        await this.$store.dispatch('maps/mapSearch', payload);
+        await this.findElementsOnSVG(true);
+      } catch {
+        this.searchInputClass = 'is-danger';
+      } finally {
+        this.isLoadingSearch = false;
+        this.haveSearched = true;
+      }
     },
-    findElementsOnSVG(zoomOn) {
+    async findElementsOnSVG(zoomOn) {
       if (!this.idsFound) {
         return;
       }
@@ -462,12 +459,12 @@ export default {
       }
       this.searchInputClass = 'is-success';
       if (zoomOn) {
-        this.centerElementOnSVG(1);
+        await this.centerElementOnSVG(1);
       } else {
         this.$emit('loadComplete', true, '');
       }
     },
-    centerElementOnSVG(increment) {
+    async centerElementOnSVG(increment) {
       if (this.totalSearchMatch === 0) {
         return;
       }
@@ -480,7 +477,7 @@ export default {
       const currentElem = this.elmFound[this.currentSearchMatch - 1];
 
       this.unSelectElement();
-      this.selectElement(currentElem);
+      await this.selectElement(currentElem);
 
       let coords = this.getSvgElemCoordinates(currentElem);
       if (!coords) {
@@ -536,7 +533,7 @@ export default {
       }
       return [element.attr('id'), 'subsystem'];
     },
-    selectElement(element) {
+    async selectElement(element) {
       const [id, type] = this.getElementIdAndType(element);
       if (type === 'subsystem' && this.loadedMapType === 'subsystem') {
         return;
@@ -564,28 +561,29 @@ export default {
         return;
       }
       EventBus.$emit('startSelectedElement');
-      axios.get(`${this.model.database_name}/${type === 'reaction' ? 'get_reaction' : type}/${id}`)
-        .then((response) => {
-          let { data } = response;
-          if (type === 'reaction') {
-            data = data.reaction;
-            data.equation = reformatChemicalReactionHTML(data, true);
-          } else if (type === 'gene') {
-          // add the RNA level if any
-            if (id in this.HPARNAlevels) {
-              data.rnaLvl = this.HPARNAlevels[id];
-            }
+      try {
+        const payload = { model: this.model.database_name, type, id };
+        await this.$store.dispatch('maps/getSelectedElement', payload);
+        // TODO: consider refactoring more of this block into Vuex
+        let data = this.selectedElement;
+        if (type === 'reaction') {
+          data = data.reaction;
+          data.equation = reformatChemicalReactionHTML(data, true);
+        } else if (type === 'gene') {
+        // add the RNA level if any
+          if (id in this.HPARNAlevels) {
+            data.rnaLvl = this.HPARNAlevels[id];
           }
-          selectionData.data = data;
-          this.selectedItemHistory[id] = selectionData.data;
-          EventBus.$emit('updatePanelSelectionData', selectionData);
-          EventBus.$emit('endSelectedElement', true);
-        })
-        .catch(() => {
-          EventBus.$emit('updatePanelSelectionData', selectionData);
-          this.$set(selectionData, 'error', true);
-          EventBus.$emit('endSelectedElement', false);
-        });
+        }
+        selectionData.data = data;
+        this.selectedItemHistory[id] = selectionData.data;
+        EventBus.$emit('updatePanelSelectionData', selectionData);
+        EventBus.$emit('endSelectedElement', true);
+      } catch {
+        EventBus.$emit('updatePanelSelectionData', selectionData);
+        this.$set(selectionData, 'error', true);
+        EventBus.$emit('endSelectedElement', false);
+      }
     },
     unSelectElement() {
       this.unHighlight();

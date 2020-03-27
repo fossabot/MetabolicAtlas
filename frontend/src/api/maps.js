@@ -10,4 +10,14 @@ const fetchMapsListing = async (model) => {
   return data;
 };
 
-export default { fetchAvailableMaps, fetchMapsListing };
+const fetchSvgMap = async (mapUrl, model, svgName) => {
+  const { data } = await axios.get(`${mapUrl}/${model}/${svgName}`);
+  return data;
+};
+
+const mapSearch = async (model, searchTerm) => {
+  const { data } = await axios.get(`${model}/get_id/${searchTerm}`);
+  return data;
+};
+
+export default { fetchAvailableMaps, fetchMapsListing, fetchSvgMap, mapSearch };

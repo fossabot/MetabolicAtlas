@@ -1,4 +1,7 @@
 import mapsApi from '@/api/maps';
+import genesApi from '@/api/genes';
+import reactionsApi from '@/api/reactions';
+import metabolitesApi from '@/api/metabolites';
 
 const data = {
   availableMaps: {},
@@ -8,6 +11,9 @@ const data = {
     compartmentsvg: [],
     subsystemsvg: [],
   },
+  svgMap: null,
+  idsFound: [],
+  selectedElement: null,
 };
 
 const getters = {
@@ -40,7 +46,7 @@ const getters = {
 
   has2DCompartmentMaps: (state, _getters) => Object.keys(_getters.mapsData2D.compartments).length > 0, // eslint-disable-line no-unused-vars
 
-  has2DSubysystemMaps: (state, _getters) => Object.keys(_getters.mapsData2D.subsystems).length > 0, // eslint-disable-line no-unused-vars
+  has2DSubsystemMaps: (state, _getters) => Object.keys(_getters.mapsData2D.subsystems).length > 0, // eslint-disable-line no-unused-vars
 };
 
 const actions = {
@@ -53,6 +59,47 @@ const actions = {
     const mapsListing = await mapsApi.fetchMapsListing(model);
     commit('setMapsListing', mapsListing);
   },
+
+  async getSvgMap({ commit }, { mapUrl, model, svgName }) {
+    const svgMap = await mapsApi.fetchSvgMap(mapUrl, model, svgName);
+    commit('setSvgMap', svgMap);
+  },
+
+  setSvgMap({ commit }, svgMap) {
+    commit('setSvgMap', svgMap);
+  },
+
+  async mapSearch({ commit }, { model, searchTerm }) {
+    const idsFound = await mapsApi.mapSearch(model, searchTerm);
+    commit('setIdsFound', idsFound);
+  },
+
+  setIdsFound({ commit }, idsFound) {
+    commit('setIdsFound', idsFound);
+  },
+
+  async getSelectedElement({ commit }, { model, type, id }) {
+    let apiFunc;
+
+    console.log(type);
+    switch (type) {
+      case 'gene':
+        apiFunc = genesApi.fetchGeneData;
+        break;
+      case 'reaction':
+        apiFunc = reactionsApi.fetchReactionData;
+        break;
+      case 'metabolite':
+        apiFunc = metabolitesApi.fetchMetaboliteData;
+        break;
+      default:
+        // TODO: handle unexpected type
+        break;
+    }
+
+    const selectedElement = await apiFunc(model, id);
+    commit('setSelectedElement', selectedElement);
+  },
 };
 
 const mutations = {
@@ -62,6 +109,18 @@ const mutations = {
 
   setMapsListing: (state, mapsListing) => {
     state.mapsListing = mapsListing;
+  },
+
+  setSvgMap: (state, svgMap) => {
+    state.svgMap = svgMap;
+  },
+
+  setIdsFound: (state, idsFound) => {
+    state.idsFound = idsFound;
+  },
+
+  setSelectedElement: (state, selectedElement) => {
+    state.selectedElement = selectedElement;
   },
 };
 
