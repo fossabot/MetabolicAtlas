@@ -14,6 +14,10 @@ const data = {
   svgMap: null,
   idsFound: [],
   selectedElement: null,
+  network: {
+    nodes: [],
+    links: [],
+  },
 };
 
 const getters = {
@@ -81,7 +85,6 @@ const actions = {
   async getSelectedElement({ commit }, { model, type, id }) {
     let apiFunc;
 
-    console.log(type);
     switch (type) {
       case 'gene':
         apiFunc = genesApi.fetchGeneData;
@@ -99,6 +102,15 @@ const actions = {
 
     const selectedElement = await apiFunc(model, id);
     commit('setSelectedElement', selectedElement);
+  },
+
+  async get3DMapNetwork({ commit }, { model, type, name }) {
+    const network = await mapsApi.fetch3DMapNetwork(model, type, name);
+    commit('setNetwork', network);
+  },
+
+  set3DMapNetwork({ commit }, network) {
+    commit('setNetwork', network);
   },
 };
 
@@ -121,6 +133,10 @@ const mutations = {
 
   setSelectedElement: (state, selectedElement) => {
     state.selectedElement = selectedElement;
+  },
+
+  setNetwork: (state, network) => {
+    state.network = network;
   },
 };
 

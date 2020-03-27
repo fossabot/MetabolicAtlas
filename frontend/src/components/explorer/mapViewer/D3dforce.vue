@@ -10,7 +10,6 @@
 <script>
 
 import { mapState } from 'vuex';
-import axios from 'axios';
 import forceGraph3D from '3d-force-graph';
 import { default as FileSaver } from 'file-saver';
 import { default as EventBus } from '@/event-bus';
@@ -26,10 +25,6 @@ export default {
       graph: null,
       emptyNetwork: true,
       networkHistory: {},
-      network: {
-        nodes: [],
-        links: [],
-      },
 
       selectedItemHistory: {},
       selectElementID: null,
@@ -43,6 +38,8 @@ export default {
   computed: {
     ...mapState({
       model: state => state.models.model,
+      network: state => state.maps.network,
+      selectedElement: state => state.maps.selectedElement,
     }),
   },
   created() {
@@ -51,7 +48,7 @@ export default {
     EventBus.$off('update3DLoadedComponent');
     EventBus.$off('apply3DHPARNAlevels');
 
-    EventBus.$on('show3Dnetwork', (type, name, ids) => {
+    EventBus.$on('show3Dnetwork', async (type, name, ids) => {
       if (ids && ids.length === 1) {
         this.focusOnID = ids[0]; // eslint-disable-line prefer-destructuring
       } else {
@@ -70,14 +67,14 @@ export default {
           this.$emit('loading');
           this.graph.resetCamera = true;
           this.graph.reloadHistory = true;
-          this.network = this.networkHistory[name];
+          this.$store.dispatch('maps/setNetwork', this.networkHistory[name]);
           this.graph.graphData(this.network);
         } else {
-          this.getJson();
+          await this.getJson();
         }
       } else if (this.focusOnID) {
         this.graph.emitLoadComplete = true;
-        this.focusOnNode(this.focusOnID);
+        await this.focusOnNode(this.focusOnID);
       } else {
         this.$emit('loadComplete', true, '');
       }
@@ -102,30 +99,34 @@ export default {
     });
   },
   methods: {
-    getJson() {
+    async getJson() {
       this.$emit('loading');
       this.HPARNAlevels = {};
-      axios.get(`/${this.model.database_name}/json/${this.loadedComponentType}/${this.loadedComponentName}`)
-        .then((response) => {
-          this.network = response.data;
-          setTimeout(() => {
-            if (this.graph === null) {
-              this.graph = {};
-              this.graph.emitLoadComplete = true;
-              this.graph.resetCamera = true;
-              this.constructGraph();
-            } else {
-              this.graph.resetCamera = true;
-              this.graph.graphData(this.network);
-            }
-            this.emptyNetwork = false;
-          }, 0);
-        })
-        .catch((error) => {
-          this.$emit('loadComplete', false, error, 'danger');
-        });
+
+      try {
+        const payload = {
+          model: this.model.database_name,
+          type: this.loadedComponentType,
+          name: this.loadedComponentName,
+        };
+        await this.$store.dispatch('maps/get3DMapNetwork', payload);
+        setTimeout(async () => {
+          if (this.graph === null) {
+            this.graph = {};
+            this.graph.emitLoadComplete = true;
+            this.graph.resetCamera = true;
+            await this.constructGraph();
+          } else {
+            this.graph.resetCamera = true;
+            this.graph.graphData(this.network);
+          }
+          this.emptyNetwork = false;
+        }, 0);
+      } catch (error) {
+        this.$emit('loadComplete', false, error, 'danger');
+      }
     },
-    constructGraph() {
+    async constructGraph() {
       /* eslint-disable no-param-reassign */
       this.graph = forceGraph3D()(document.getElementById('graph3D'))
         .showNavInfo(false)
@@ -140,8 +141,8 @@ export default {
         .nodeResolution(12)
         .warmupTicks(100)
         .cooldownTicks(0)
-        .onNodeClick((n) => {
-          this.selectElement(n);
+        .onNodeClick(async (n) => {
+          await this.selectElement(n);
         })
         .nodeColor((n) => {
           if (n.id === this.selectElementIDfull) {
@@ -161,7 +162,7 @@ export default {
           }
           return '#9df';
         })
-        .onEngineStop(() => {
+        .onEngineStop(async () => {
           if (this.graph === null
             || this.graph.reloadHistory === undefined
             || !this.graph.reloadHistory) {
@@ -180,7 +181,7 @@ export default {
             this.$emit('loadComplete', true, '');
           }
           if (this.focusOnID) {
-            this.focusOnNode(this.focusOnID);
+            await this.focusOnNode(this.focusOnID);
           }
         });
     },
@@ -212,7 +213,9 @@ export default {
       }
       return [element.id.split('-')[0], 'metabolite'];
     },
-    selectElement(element) {
+    async selectElement(element) {
+      // TODO: consider refactoring similar methods in SvgMap.vue
+
       const [id, type] = this.getElementIdAndType(element);
       if (this.selectElementID === id) {
         this.unSelectElement();
@@ -231,34 +234,35 @@ export default {
       }
 
       EventBus.$emit('startSelectedElement');
-      axios.get(`${this.model.database_name}/${type === 'reaction' ? 'get_reaction' : type}/${id}`)
-        .then((response) => {
-          let { data } = response;
-          if (type === 'reaction') {
-            data = data.reaction;
-            data.equation = reformatChemicalReactionHTML(data, true);
-          } else if (type === 'gene') {
-            // add the RNA level if any
-            if (id in this.HPARNAlevels) {
-              data.rnaLvl = this.HPARNAlevels[id];
-            }
+
+      try {
+        const payload = { model: this.model.database_name, type, id };
+        await this.$store.dispatch('maps/getSelectedElement', payload);
+        let data = this.selectedElement;
+        if (type === 'reaction') {
+          data = data.reaction;
+          data.equation = reformatChemicalReactionHTML(data, true);
+        } else if (type === 'gene') {
+          // add the RNA level if any
+          if (id in this.HPARNAlevels) {
+            data.rnaLvl = this.HPARNAlevels[id];
           }
-          selectionData.data = data;
-          EventBus.$emit('updatePanelSelectionData', selectionData);
-          this.selectedItemHistory[id] = selectionData.data;
-          EventBus.$emit('endSelectedElement', true);
-          this.updateGeometries(false);
-        })
-        .catch(() => {
-          EventBus.$emit('endSelectedElement', false);
-        });
+        }
+        selectionData.data = data;
+        EventBus.$emit('updatePanelSelectionData', selectionData);
+        this.selectedItemHistory[id] = selectionData.data;
+        EventBus.$emit('endSelectedElement', true);
+        this.updateGeometries(false);
+      } catch {
+        EventBus.$emit('endSelectedElement', false);
+      }
     },
     unSelectElement() {
       this.selectElementID = null;
       this.selectElementIDfull = null;
       EventBus.$emit('unSelectedElement');
     },
-    focusOnNode(id) {
+    async focusOnNode(id) {
       this.focusOnID = null;
       this.unSelectElement();
       let node = this.network.nodes.filter(n => n.g === 'r' && n.id.toLowerCase() === id.toLowerCase());
@@ -266,7 +270,7 @@ export default {
         return;
       }
       node = node[0]; // eslint-disable-line prefer-destructuring
-      this.selectElement(node, false);
+      await this.selectElement(node, false);
       const np = node.__threeObj.position; // eslint-disable-line no-underscore-dangle
       setTimeout(() => {
         const distance = 120;

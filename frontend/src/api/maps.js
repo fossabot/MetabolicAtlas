@@ -20,4 +20,9 @@ const mapSearch = async (model, searchTerm) => {
   return data;
 };
 
-export default { fetchAvailableMaps, fetchMapsListing, fetchSvgMap, mapSearch };
+const fetch3DMapNetwork = async (model, type, name) => {
+  const { data } = await axios.get(`/${model}/json/${type}/${name}`);
+  return data;
+};
+
+export default { fetchAvailableMaps, fetchMapsListing, fetchSvgMap, mapSearch, fetch3DMapNetwork };
