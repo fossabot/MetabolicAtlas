@@ -6,7 +6,7 @@
         <span>{{ messages.mapViewerName }}</span>
       </p>
     </header>
-    <div v-if="mapsAvailable" class="card-content" style="padding: 0.5rem;">
+    <div v-if="Object.keys(mapsAvailable).length > 0" class="card-content" style="padding: 0.5rem;">
       <div v-for="mapKey in ['2d', '3d']"
            :key="mapKey"
            class="content has-text-left is-paddingless" style="padding-bottom: 1rem">
@@ -28,7 +28,6 @@
 </template>
 
 <script>
-import axios from 'axios';
 import { mapState } from 'vuex';
 import { default as messages } from '@/helpers/messages';
 
@@ -41,21 +40,22 @@ export default {
   },
   data() {
     return {
-      mapsAvailable: '',
       messages,
     };
   },
   computed: {
     ...mapState({
       model: state => state.models.model,
+      mapsAvailable: state => state.maps.availableMaps,
     }),
   },
-  beforeMount() {
-    axios.get(`${this.model.database_name}/available_maps/${this.type}/${this.id}`)
-      .then((response) => {
-        this.mapsAvailable = response.data;
-      }).catch(() => {
-      });
+  async beforeMount() {
+    try {
+      const payload = { model: this.model.database_name, mapType: this.type, id: this.id };
+      await this.$store.dispatch('maps/getAvailableMaps', payload);
+    } catch {
+      // TODO: handle exception
+    }
   },
 };
 </script>
