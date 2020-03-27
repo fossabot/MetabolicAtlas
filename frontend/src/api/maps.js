@@ -5,4 +5,9 @@ const fetchAvailableMaps = async (model, mapType, id) => {
   return data;
 };
 
-export default { fetchAvailableMaps };
+const fetchMapsListing = async (model) => {
+  const { data } = await axios.get(`${model}/viewer/`);
+  return data;
+};
+
+export default { fetchAvailableMaps, fetchMapsListing };

@@ -164,9 +164,8 @@
 </template>
 
 <script>
-import { mapState } from 'vuex';
+import { mapGetters, mapState } from 'vuex';
 import $ from 'jquery';
-import axios from 'axios';
 import SidebarDataPanels from '@/components/explorer/mapViewer/SidebarDataPanels';
 import DataOverlay from '@/components/explorer/mapViewer/DataOverlay.vue';
 import Svgmap from '@/components/explorer/mapViewer/Svgmap';
@@ -195,24 +194,9 @@ export default {
       currentDisplayedType: '',
       currentDisplayedName: '',
       currentDisplayedData: '',
-      has2DCompartmentMaps: false,
-      has2DSubsystemMaps: false,
       showLoader: false,
       watchURL: true,
       URLID: null,
-
-      mapsData2D: {
-        compartments: {},
-        subsystems: {},
-      },
-      mapsData3D: {
-        compartments: {},
-        subsystems: {},
-      },
-      compartmentMapping: {
-        dim2D: {},
-        dim3D: {},
-      },
 
       selectionData: {
         type: '',
@@ -228,6 +212,13 @@ export default {
   computed: {
     ...mapState({
       model: state => state.models.model,
+    }),
+    ...mapGetters({
+      mapsData3D: 'maps/mapsData3D',
+      mapsData2D: 'maps/mapsData2D',
+      compartmentMapping: 'maps/compartmentMapping',
+      has2DCompartmentMaps: 'maps/has2DCompartmentMaps',
+      has2DSubsystemMaps: 'maps/has2DSubsystemMaps',
     }),
     activeSwitch() {
       return !this.showLoader && !this.disabled2D;
@@ -317,9 +308,8 @@ export default {
       this.showLoader = false;
     });
   },
-  beforeMount() {
-    // this.setup();
-    this.getSubComptData(this.model);
+  async beforeMount() {
+    await this.getSubComptData(this.model);
   },
   mounted() {
     // menu
@@ -415,53 +405,21 @@ export default {
         this.loadErrorMesssage = '';
       }, 3000);
     },
-    getSubComptData(model) {
-      axios.get(`${model.database_name}/viewer/`)
-        .then((response) => {
-          this.mapsData3D.compartments = {};
-          response.data.compartment.forEach((c) => {
-            this.mapsData3D.compartments[c.id] = c;
-            this.mapsData3D.compartments[c.id].alternateDim = c.compartment_svg;
-            this.compartmentMapping.dim3D[c.id] = c.compartment_svg;
-          });
+    async getSubComptData(model) {
+      try {
+        await this.$store.dispatch('maps/getMapsListing', model.database_name);
 
-          this.mapsData2D.compartments = {};
-          response.data.compartmentsvg.forEach((c) => {
-            this.mapsData2D.compartments[c.id] = c;
-            // this.mapsData2D.compartments[c.id].id = c.compartment;
-            this.mapsData2D.compartments[c.id].alternateDim = c.compartment;
-            this.compartmentMapping.dim2D[c.id] = c.compartment;
-          });
-
-          this.has2DCompartmentMaps = Object.keys(this.mapsData2D.compartments).length !== 0;
-
-          this.mapsData3D.subsystems = {};
-          response.data.subsystem.forEach((s) => {
-            this.mapsData3D.subsystems[s.id] = s;
-            this.mapsData3D.subsystems[s.id].alternateDim = s.subsystem_svg;
-          });
-
-          this.mapsData2D.subsystems = {};
-          response.data.subsystemsvg.forEach((s) => {
-            this.mapsData2D.subsystems[s.id] = s;
-            // this.mapsData2D.subsystems[s.id].id = s.subsystem;
-            this.mapsData2D.subsystems[s.id].alternateDim = s.subsystem;
-          });
-
-          this.has2DSubsystemMaps = Object.keys(this.mapsData2D.subsystems).length !== 0;
-
-          if (!this.has2DCompartmentMaps && !this.has2DSubsystemMaps) {
-            this.show3D = true;
-            this.show2D = false;
-          }
-          this.checkRoute();
-        })
-        .catch((error) => {
-          switch (error.response.status) {
-            default:
-              this.errorMessage = messages.unknownError;
-          }
-        });
+        if (!this.has2DCompartmentMaps && !this.has2DSubsystemMaps) {
+          this.show3D = true;
+          this.show2D = false;
+        }
+        this.checkRoute();
+      } catch (error) {
+        switch (error.status) {
+          default:
+            this.errorMessage = messages.unknownError;
+        }
+      }
     },
     checkRoute() {
       // load maps from url if contains map_id, the url is then cleaned of the id
