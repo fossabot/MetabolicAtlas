@@ -9,7 +9,9 @@ import subsystems from './modules/subsystems';
 import metabolites from './modules/metabolites';
 import compartments from './modules/compartments';
 import maps from './modules/maps';
+import interactionPartners from './modules/interactionPartners';
 import search from './modules/search';
+import humanProteinAtlas from './modules/humanProteinAtlas';
 
 Vue.use(Vuex);
 
@@ -24,6 +26,8 @@ export default new Vuex.Store({
     metabolites,
     compartments,
     maps,
+    interactionPartners,
     search,
+    humanProteinAtlas,
   },
 });
