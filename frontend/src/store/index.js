@@ -12,6 +12,7 @@ import maps from './modules/maps';
 import interactionPartners from './modules/interactionPartners';
 import search from './modules/search';
 import humanProteinAtlas from './modules/humanProteinAtlas';
+import europepmc from './modules/europepmc';
 
 Vue.use(Vuex);
 
@@ -29,5 +30,6 @@ export default new Vuex.Store({
     interactionPartners,
     search,
     humanProteinAtlas,
+    europepmc,
   },
 });
