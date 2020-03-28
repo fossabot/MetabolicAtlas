@@ -63,7 +63,7 @@
             <div class="card">
               <header class="card-header has-background-primary">
                 <div class="card-header-title is-centered">
-                  <div class="tabs is-centered">
+                  <div class="tabs is-medium is-centered">
                     <ul id="menu-mobile">
                       <li v-for="menuItem in menu" :key="menuItem.title">
                         <a :class="[ {'is-active' : menuItem.title === currentMenu.title}]"
@@ -277,6 +277,7 @@ export default {
     max-width: 480px;
   }
   #menu-mobile li {
+    padding-top: 10px;
     a {
       color: $white-bis;
     }
@@ -306,6 +307,11 @@ export default {
     display: flex;
     align-items: center;
     justify-content: center;
+  }
+  .tabs ul {
+    flex-shrink: 1;
+    flex-wrap: wrap;
+    border-bottom-color: transparent;
   }
 }
 
