@@ -17,7 +17,7 @@
       <div class="columns is-centered">
         <gem-search ref="gemSearch"></gem-search>
       </div>
-      <div v-if="selectedType === ''">
+      <div v-if="showTiles && !selectedType">
         <div class="columns is-centered">
           <div class="column is-10 is-size-5 has-text-centered">
             <br><br>
@@ -31,21 +31,21 @@
             <br>
           </div>
         </div>
-        <div v-if="starredComponents" id="gem-browser-tiles" class="tile is-ancestor is-size-5">
+        <div v-if="tileComponents" id="gem-browser-tiles" class="tile is-ancestor is-size-5">
           <div class="tile">
             <div class="tile is-vertical is-9">
               <div class="tile">
-                <tile type="reaction" :data="starredComponents.reactions[0]">
+                <tile type="reaction" :data="tileComponents.reactions[0]">
                 </tile>
                 <div class="tile is-vertical is-8">
-                  <tile type="subsystem" :data="starredComponents.subsystems[0]">
+                  <tile type="subsystem" :data="tileComponents.subsystems[0]">
                   </tile>
                   <div class="tile">
                     <tile type="gene" size="is-6"
-                          :data="starredComponents.genes[0]">
+                          :data="tileComponents.genes[0]">
                     </tile>
                     <tile type="metabolite" size="is-6"
-                          :data="starredComponents.metabolites[0]">
+                          :data="tileComponents.metabolites[0]">
                     </tile>
                   </div>
                 </div>
@@ -53,37 +53,39 @@
               <div class="tile">
                 <div class="tile is-vertical is-8">
                   <div class="tile">
-                    <tile type="subsystem" :data="starredComponents.subsystems[1]">
+                    <tile type="subsystem" :data="tileComponents.subsystems[1]">
                     </tile>
                   </div>
                   <div class="tile">
                     <tile type="metabolite" size="is-6"
-                          :data="starredComponents.metabolites[1]">
+                          :data="tileComponents.metabolites[1]">
                     </tile>
                     <tile type="gene" size="is-6"
-                          :data="starredComponents.genes[1]">
+                          :data="tileComponents.genes[1]">
                     </tile>
                   </div>
                 </div>
                 <div class="tile is-4">
-                  <tile type="reaction" :data="starredComponents.reactions[1]">
+                  <tile type="reaction" :data="tileComponents.reactions[1]">
                   </tile>
                 </div>
               </div>
             </div>
             <div class="tile is-vertical">
-              <tile type="compartment" :data="starredComponents.compartment">
+              <tile type="compartment" :data="tileComponents.compartment">
               </tile>
             </div>
           </div>
         </div>
       </div>
-      <div v-else>
-        <gene v-if="selectedType==='gene'"></gene>
-        <metabolite v-if="selectedType==='metabolite'"></metabolite>
-        <reaction v-if="selectedType==='reaction'"></reaction>
-        <subsystem v-if="selectedType==='subsystem'"></subsystem>
-        <compartment v-if="selectedType==='compartment'"></compartment>
+      <div v-show="selectedType">
+        <keep-alive>
+          <gene v-if="selectedType==='gene'"></gene>
+          <metabolite v-if="selectedType==='metabolite'"></metabolite>
+          <reaction v-if="selectedType==='reaction'"></reaction>
+          <subsystem v-if="selectedType==='subsystem'"></subsystem>
+          <compartment v-if="selectedType==='compartment'"></compartment>
+        </keep-alive>
       </div>
     </template>
   </div>
@@ -115,22 +117,21 @@ export default {
     return {
       messages,
       selectedType: '',
-      searchTerm: '',
-      searchResults: [],
+
+      showTiles: true,
       errorMessage: '',
-      componentID: '',
-      mapsAvailable: null,
     };
   },
   computed: {
     ...mapState({
       model: state => state.models.model,
-      starredComponents: state => state.browserTiles.starredComponents,
+      tileComponents: state => state.browserTiles.tileComponents,
     }),
   },
   watch: {
     /* eslint-disable quote-props */
     '$route': function watchSetup() {
+      this.selectedType = '';
       this.setup();
     },
   },
@@ -139,24 +140,28 @@ export default {
   },
   methods: {
     async setup() {
-      if (this.$route.name === 'browser' || this.$route.name === 'browserRoot') {
-        this.selectedType = this.$route.params.type || '';
-        this.componentID = this.$route.params.id || '';
-        if (!this.componentID || !this.selectedType) {
-          this.$router.push(`/explore/gem-browser/${this.model.database_name}`);
-          if (!this.starredComponents) {
-            await this.getTilesData();
-          }
+      if (['browser', 'browserRoot'].includes(this.$route.name)) {
+        if (!this.model || this.model.database_name !== this.$route.params.model) {
+          this.errorMessage = `Error: ${messages.modelNotFound}`;
+          return;
+        }
+        if (this.$route.name === 'browserRoot') {
+          await this.getTilesData();
         } else if (this.selectedType === 'interaction') {
           this.$router.replace(`/explore/interaction/${this.model.database_name}/${this.componentID}`);
+        } else {
+          this.selectedType = this.$route.params.type;
         }
+        this.showTiles = this.tileComponents !== null;
       }
     },
     async getTilesData() {
       try {
         await this.$store.dispatch('browserTiles/getBrowserTiles');
+        this.showTiles = true;
       } catch {
         this.errorMessage = messages.unknownError;
+        this.showTiles = false;
       }
     },
   },

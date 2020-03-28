@@ -56,7 +56,8 @@
             <td class="td-key has-background-primary has-text-white-bis">Related reaction(s)</td>
             <td>
               <span v-for="rr in relatedReactions" :key="rr.id">
-                <router-link :to="{ path: `/explore/gem-browser/${model.database_name}/reaction/${rr.id}`}">
+                <!-- eslint-disable-next-line max-len -->
+                <router-link :to="{ name: 'browser', params: { model: model.database_name, type: 'reaction', id: rr.id } }">
                   {{ rr.id }}
                 </router-link>
                 <div style="margin-left: 30px">
@@ -72,7 +73,7 @@
         <references :reference-list="referenceList" />
       </div>
       <div class="column is-2-widescreen is-3-desktop is-half-tablet has-text-centered">
-        <maps-available :id="rId" :type="type" :element-i-d="rId" />
+        <maps-available :id="rId" :type="type" :viewer-selected-i-d="reaction.id" />
         <gem-contact :id="rId" :type="type" />
       </div>
     </div>

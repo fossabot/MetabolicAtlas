@@ -38,11 +38,13 @@
             </div>
             <div class="column is-2-widescreen is-3-desktop is-full-tablet has-text-centered">
               <router-link class="button is-info is-fullwidth is-outlined"
-                           :to="{ path: `/explore/interaction/${model.database_name}/${gene.id}` }">
+                           :to="{ name: 'interPartner', params: { model: model.database_name, id: gene.id } }">
                 <span class="icon"><i class="fa fa-connectdevelop fa-lg"></i></span>&nbsp;
                 <span>{{ messages.interPartName }}</span>
               </router-link>
-              <gem-contact :id="eId" :type="type" />
+              <br>
+              <maps-available :id="eId" :type="'gene'" :viewer-selected-i-d="gene.id"></maps-available>
+              <gem-contact :type="type" :id="eId"/>
             </div>
           </div>
           <template v-if="!showLoader">
@@ -71,6 +73,7 @@ import { mapGetters, mapState } from 'vuex';
 import GemContact from '@/components/shared/GemContact';
 import NotFound from '@/components/NotFound';
 import ExtIdTable from '@/components/explorer/gemBrowser/ExtIdTable';
+import MapsAvailable from '@/components/explorer/gemBrowser/MapsAvailable';
 import ReactionTable from '@/components/explorer/gemBrowser/ReactionTable';
 import Loader from '@/components/Loader';
 import { reformatTableKey } from '@/helpers/utils';
@@ -80,6 +83,7 @@ export default {
   name: 'Gene',
   components: {
     NotFound,
+    MapsAvailable,
     ReactionTable,
     Loader,
     GemContact,
@@ -143,7 +147,6 @@ export default {
         await this.$store.dispatch('genes/getGeneData', payload);
         this.showLoader = false;
         this.componentNotFound = false;
-        this.eId = this.gene.id;
       } catch {
         this.showLoader = false;
         this.reactions = [];

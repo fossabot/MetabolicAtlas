@@ -28,8 +28,10 @@
             <td>
               <template v-for="(c, i) in info['compartments']">
                 <template v-if="i !== 0">, </template>
-                <!-- eslint-disable-next-line max-len -->
-                <router-link :key="c.id" :to="{ path: `/explore/gem-browser/${model.database_name}/compartment/${c.id}` }">{{ c.name }}</router-link>
+                <!-- eslint-disable-next-line vue/valid-v-for max-len -->
+                <router-link
+                  :to="{ name: 'browser', params: { model: model.database_name, type: 'compartment', id: c.id } }"
+                >{{ c.name }}</router-link>
               </template>
             </td>
           </tr>
@@ -67,7 +69,7 @@
         <ExtIdTable :type="type" :external-dbs="info.external_databases"></ExtIdTable>
       </div>
       <div class="column is-2-widescreen is-3-desktop is-half-tablet has-text-centered">
-        <maps-available :id="sName" :type="type" :element-i-d="''" />
+        <maps-available :id="sName" :type="type" :element-i-d="''"></maps-available>
         <gem-contact :id="sName" :type="type" />
       </div>
     </div>

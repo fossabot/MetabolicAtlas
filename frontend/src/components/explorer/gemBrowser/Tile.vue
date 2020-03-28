@@ -1,6 +1,6 @@
 <template>
   <router-link class="tile is-parent" :class="size"
-               :to="{ path: `/explore/gem-browser/${model.database_name}/${type}/${data.id}`}">
+               :to="{ name: 'browser', params: { model: model.database_name, type: type, id: data.id } }">
     <div class="tile is-child clickable box hoverable is-size-5-mobile"
          :title="`Click to view ${data.name || data.id}`">
       <p class="is-capitalized subtitle is-size-2-widescreen is-size-3-desktop is-size-4-tablet is-size-5-mobile

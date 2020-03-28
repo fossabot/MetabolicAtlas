@@ -42,7 +42,7 @@
         <div class="control">
           <p>RNA levels from <a href="https://www.proteinatlas.org" target="_blank">proteinAtlas.org</a></p>
           <div class="select is-fullwidth">
-            <select v-model="HPATissue1" @change="setFirstTissue('HPA')">
+            <select v-model="HPATissue1" :disabled="disabledRNAlvl" @change="setFirstTissue('HPA')">
               <option>None</option>
               <option v-for="tissue in HPATissues" :key="tissue"
                       class="clickable is-capitalized">{{ tissue }}</option>
@@ -70,7 +70,7 @@
         <div class="control">
           <p>RNA levels from <a href="https://www.proteinatlas.org" target="_blank">proteinAtlas.org</a></p>
           <div class="select is-fullwidth">
-            <select v-model="HPATissue2" @change="setSecondTissue('HPA')">
+            <select v-model="HPATissue2" :disabled="disabledRNAlvl" @change="setSecondTissue('HPA')">
               <option>None</option>
               <option v-for="tissue in HPATissues" :key="tissue"
                       class="clickable is-capitalized">{{ tissue }}</option>
@@ -109,6 +109,7 @@ import { mapState } from 'vuex';
 import $ from 'jquery';
 import RNAexpression from '@/components/explorer/mapViewer/RNAexpression.vue';
 import { default as EventBus } from '@/event-bus';
+import { setRouteForGeneExp1, setRouteForGeneExp2 } from '@/helpers/url';
 
 const NOFILELOADED = 'No file loaded';
 
@@ -150,7 +151,7 @@ export default {
       model: state => state.models.model,
     }),
     disabledRNAlvl() {
-      return !this.mapName || this.HPATissue.length === 0;
+      return !this.mapName || this.HPATissues.length === 0;
     },
     disabledCustomSelectData() {
       return this.customTissues.length === 1 && this.customTissues[0] === NOFILELOADED;
@@ -191,6 +192,27 @@ export default {
     EventBus.$off('loadingCustomFile');
 
     EventBus.$on('reloadGeneExpressionData', () => {
+      // check if tissues are provided in the URL
+      if (this.$route.query && (this.$route.query.g1 || this.$route.query.g2)) {
+        if (this.$route.query.g1 !== '_' && this.$route.query.g1 !== this.selectedTissue1) {
+          if (!this.HPATissues.includes(this.$route.query.g1)) {
+            this.HPATissue1 = 'None';
+            this.setRouteParam('', null);
+          } else {
+            this.HPATissue1 = this.$route.query.g1;
+            this.tissue1Source = 'HPA';
+          }
+        }
+        if (this.$route.query.g2 !== '_' && this.$route.query.g2 !== this.selectedTissue2) {
+          if (!this.HPATissues.includes(this.$route.query.g2)) {
+            this.HPATissue2 = 'None';
+            this.setRouteParam(null, '');
+          } else {
+            this.HPATissue2 = this.$route.query.g2;
+            this.tissue2Source = 'HPA';
+          }
+        }
+      }
       if (this.isSelectedTissue1 || this.isSelectedTissue2) {
         EventBus.$emit('selectTissues', this.selectedTissue1, this.tissue1Source, this.selectedTissue2, this.tissue2Source, this.dim);
       }
@@ -207,7 +229,6 @@ export default {
   },
   methods: {
     getFileName(e) {
-      // console.log(e);
       if (e.target.files.length !== 0) {
         this.customFileName = e.target.files[0].name;
         this.errorCustomFile = false;
@@ -264,6 +285,7 @@ export default {
     loadRNAlevelsTissue1(tissue, source) {
       if (!tissue) {
         EventBus.$emit('unselectFirstTissue');
+        this.setRouteParam('', null);
       } else {
         EventBus.$emit('selectFirstTissue', tissue, source, this.dim);
       }
@@ -271,6 +293,7 @@ export default {
     loadRNAlevelsTissue2(tissue, source) {
       if (!tissue) {
         EventBus.$emit('unselectSecondTissue');
+        this.setRouteParam(null, '');
       } else {
         EventBus.$emit('selectSecondTissue', tissue, source, this.dim);
       }
@@ -288,6 +311,13 @@ export default {
       this.errorCustomFile = true;
       this.errorCustomFileMsg = errorMsg;
       this.showFileLoader = false;
+    },
+    setRouteParam(value1, value2) {
+      if (value1 !== null) {
+        this.$router.replace(setRouteForGeneExp1({ route: this.$route, tissue: value1 })).catch(() => {});
+      } else if (value2 !== null) {
+        this.$router.replace(setRouteForGeneExp2({ route: this.$route, tissue: value2 })).catch(() => {});
+      }
     },
   },
 };

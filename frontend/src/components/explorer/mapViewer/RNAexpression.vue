@@ -17,6 +17,7 @@ import { default as EventBus } from '@/event-bus';
 import RNALegend from '@/components/explorer/mapViewer/RNALegend.vue';
 import { getSingleRNAExpressionColor, getComparisonRNAExpressionColor, multipleColors } from '@/expression-sources/hpa';
 import { default as messages } from '@/helpers/messages';
+import { setRouteForGeneExp1, setRouteForGeneExp2 } from '@/helpers/url';
 
 export default {
   name: 'RNAexpression',
@@ -85,8 +86,6 @@ export default {
         EventBus.$emit('unselectSecondTissue', true);
         EventBus.$emit('selectFirstTissue', tissue1, tissue1Source, dim);
       } else {
-        // EventBus.$emit('selectFirstTissue', tissue1, tissue1Source, dim, true);
-        // EventBus.$emit('selectSecondTissue', tissue2, tissue2Source, dim);
         await this.selectFirstTissue(tissue1, tissue1Source, dim, true);
         await this.selectSecondTissue(tissue2, tissue2Source, dim);
       }
@@ -155,7 +154,6 @@ export default {
       }
     },
     async loadHPAlevels(tissue, dim, index, callback) {
-      // todo : not fetch when tissue is none?
       if (this.mapName in this.HPARNAlevelsHistory && dim in this.HPARNAlevelsHistory[this.mapName]) {
         this.parseHPARNAlevels(tissue, dim, index, callback);
         return;
@@ -179,6 +177,11 @@ export default {
     parseHPARNAlevels(tissue, dim, index, callback) {
       const RNAlevels = {};
       const tissueIndex = this.HPARNAlevelsHistory[this.mapName][dim].tissues.indexOf(tissue);
+      if (index === 0) {
+        this.$router.replace(setRouteForGeneExp1({ route: this.$route, tissue })).catch(() => {});
+      } else {
+        this.$router.replace(setRouteForGeneExp2({ route: this.$route, tissue })).catch(() => {});
+      }
       const { levels } = this.HPARNAlevelsHistory[this.mapName][dim];
       levels.forEach((array) => {
         const enzID = array[0];

@@ -54,7 +54,7 @@
                   <span>{{ messages.gemBrowserName }}</span>
                 </router-link>
                 <router-link class="card-footer-item is-info is-outlined"
-                             :to="{ path: `/explore/map-viewer/${model.database_name}` }">
+                             :to="{ name: 'viewerRoot', params: { model: model.database_name } }">
                   <span class="icon is-large"><i class="fa fa-map-o fa-lg"></i></span>
                   <span>{{ messages.mapViewerName }}</span>
                 </router-link>
@@ -67,7 +67,7 @@
           While we do not provide support for these models, we are making them available to download.
           For support, the authors should be contacted. They are listed in the <i>References</i> section of each model.
           Click on a row to display more information. To download multiple models at once use the
-          <router-link :to=" { name: 'documentation', hash: 'FTP-download'} ">FTP server</router-link>.
+          <router-link :to=" { name: 'documentation', hash: '#FTP-download'} ">FTP server</router-link>.
         </p>
         <br>
         <loader v-show="showLoader"></loader>
@@ -283,6 +283,13 @@ export default {
       conditionFilterOptions: 'gems/conditionFilterOptions',
     }),
   },
+  watch: {
+    showModelTable(v) {
+      if (!v) {
+        this.$router.push({ name: 'gems' });
+      }
+    },
+  },
   async created() {
     // TODO: this should be removed, call dispatch else where if needed like following
     // await this.$store.dispatch('gems/getGemData', id);
@@ -298,6 +305,17 @@ export default {
     async getIntegratedModels() {
       try {
         await this.$store.dispatch('models/getModels');
+
+        if (this.$route.name === 'gemsModal') {
+          const urlId = this.$route.params.model_id;
+          const urlIntegrateModel = this.integratedModels.find(m => m.short_name === urlId);
+          if (urlIntegrateModel) {
+            this.showIntegratedModelData(urlIntegrateModel);
+          } else {
+            // concurrence getModels api query
+            await this.getModelData(urlId);
+          }
+        }
       } catch {
         this.errorMessage = messages.unknownError;
       }
@@ -311,11 +329,13 @@ export default {
         this.selectedModel = this.gem;
         this.referenceList = this.selectedModel.ref;
         this.showModelTable = true;
+        this.$router.push({ name: 'gemsModal', params: { model_id: id } });
       } catch {
         this.showModelTable = false;
       }
     },
     showIntegratedModelData(model) {
+      this.$router.push({ name: 'gemsModal', params: { model_id: model.short_name } });
       this.selectedModel = model;
       this.showModelTable = true;
     },

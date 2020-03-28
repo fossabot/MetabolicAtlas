@@ -474,7 +474,7 @@ export default {
       this.reactionHL = null;
       this.compartmentHL = '';
       this.subsystemHL = '';
-      this.$router.push(`/explore/interaction/${this.model.database_name}/${this.clickedElmId}`);
+      this.$router.push({ name: 'interPartner', params: { model: this.model.database_name, id: this.clickedElmId } });
     },
     async loadHPATissue() {
       try {

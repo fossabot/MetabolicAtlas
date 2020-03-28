@@ -58,7 +58,7 @@
           <template v-for="tool in explorerTools">
             <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
             <div class="column is-3-widescreen is-4-desktop is-6-tablet is-full-mobile is-size-5">
-              <router-link :to="{ path: `${tool.url}/${model.database_name }` }"
+              <router-link :to="{ name: tool.routeName, params: { model: model.database_name } }"
                            :title="`Click to access the ${tool.name} for ${model.short_name} model`">
                 <div class="card card-fullheight hoverable">
                   <header class="card-header">
@@ -106,15 +106,15 @@ export default {
       explorerTools: [
         { name: messages.gemBrowserName,
           img: require('../assets/gemBrowser.jpg'),
-          url: '/explore/gem-browser',
+          routeName: 'browserRoot',
           icon: 'table' },
         { name: messages.mapViewerName,
           img: require('../assets/mapViewer.jpg'),
-          url: '/explore/map-viewer',
+          routeName: 'viewerRoot',
           icon: 'map-o' },
         { name: messages.interPartName,
           img: require('../assets/interaction.jpg'),
-          url: '/explore/interaction',
+          routeName: 'interPartnerRoot',
           icon: 'share-alt' },
       ],
       modelNotFound: null,
@@ -137,20 +137,13 @@ export default {
     /* eslint-disable-next-line quote-props */
     '$route': function watchSetup() {
       this.setup();
+      this.updateRoute();
     },
-  },
-  beforeRouteUpdate(to, from, next) { // eslint-disable-line no-unused-vars
-    this.setup();
-    next();
   },
   async created() {
     this.setup();
     await this.getModelList();
 
-    EventBus.$on('requestViewer', (type, name, ids, forceReload) => {
-      this.displayViewer();
-      EventBus.$emit('showAction', type, name, ids, forceReload);
-    });
     EventBus.$on('showMapViewer', () => {
       this.displayViewer();
     });
@@ -177,7 +170,7 @@ export default {
         }
       }
       this.modelNotFound = null;
-      if (['viewer', 'viewerCompartment', 'viewerCompartmentRea', 'viewerSubsystem', 'viewerSubsystemRea'].includes(this.$route.name)) {
+      if (['viewerRoot', 'viewer'].includes(this.$route.name)) {
         this.displayViewer();
       } else if (['browserRoot', 'browser'].includes(this.$route.name)) {
         this.displayBrowser();
@@ -193,9 +186,21 @@ export default {
       // get integrated models list
       try {
         await this.$store.dispatch('models/getModels');
-        let defaultModel = this.models.human1;
+
+        const defaultModelKey = Object.keys(this.models).sort(
+          (a, b) => (a.toLowerCase() < b.toLowerCase() ? -1 : 1))[0];
+        console.log(defaultModelKey);
+        let defaultModel = this.models[defaultModelKey];
         if (this.$route.params.model && this.$route.params.model in this.models) {
+          // if a model DB is provide in the URL, use it to select the model
           defaultModel = this.models[this.$route.params.model];
+        } else if (this.$route.name === 'explorerRoot' && this.$route.query && this.$route.query.selected) {
+          // or if a selected=NAME is provided in the URL, try to use it to select the model
+          const modelShortNamesDict = {};
+          Object.values(this.models).forEach((m) => { modelShortNamesDict[m.short_name] = m; });
+          if (this.$route.query.selected in modelShortNamesDict) {
+            defaultModel = modelShortNamesDict[this.$route.query.selected];
+          }
         }
         this.$store.dispatch('models/selectModel', defaultModel);
         this.setup();
@@ -206,6 +211,12 @@ export default {
     selectModel(model) {
       if (!this.model || model.database_name !== this.model.database_name) {
         this.$store.dispatch('models/selectModel', model);
+      }
+      this.updateRoute(this.model.short_name);
+    },
+    updateRoute(modelName) {
+      if (this.$route.name === 'explorerRoot' && this.model && (!this.$route.query || !this.$route.query.selected || this.$route.query.selected !== modelName)) {
+        this.$router.replace({ name: 'explorerRoot', query: { selected: this.model.short_name } }).catch(() => {});
       }
     },
     displayBrowser() {

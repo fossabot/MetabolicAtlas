@@ -14,13 +14,13 @@
       <router-link
         v-if="selectedElm.type !== 'reaction'"
         class="is-paddingless is-info is-outlined card-footer-item has-text-centered"
-        :to="{ path: `/explore/interaction/${model.database_name}/${selectedElm.real_id || selectedElm.id}` }">
+        :to="{ name: 'interPartner',  params: { model: model.database_name, id: selectedElm.real_id || selectedElm.id } }">  <!-- eslint-disable-line max-len -->
         <span class="icon is-large"><i class="fa fa-share-alt fa-lg"></i></span>
         <span>{{ messages.interPartName }}</span>
       </router-link>
       <router-link
         class="is-paddingless is-info is-outlined card-footer-item has-text-centered"
-        :to="{ path: `/explore/gem-browser/${model.database_name}/${selectedElm.type}/${selectedElm.real_id || selectedElm.id}` }">  <!-- eslint-disable-line max-len -->
+        :to="{ name: 'browser', params: { model: model.database_name, type: selectedElm.type, id: selectedElm.real_id || selectedElm.id } }">  <!-- eslint-disable-line max-len -->
         <span class="icon is-large"><i class="fa fa-table fa-lg"></i></span>
         <span>{{ messages.gemBrowserName }}</span>
       </router-link>
