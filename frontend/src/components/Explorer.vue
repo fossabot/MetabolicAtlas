@@ -17,66 +17,69 @@
             <h3 class="title is-size-3">Explore the integrated models</h3>
           </div>
         </div>
+        <br>
         <div class="columns">
-          <div class="column has-text-centered-tablet">
+          <div class="column has-text-centered">
             <p class="has-text-weight-bold is-size-5">1. Select a model:</p>
           </div>
         </div>
-        <div class="columns is-centered">
-          <div class="column is-8-widescreen is-10-desktop is-fullwidth-tablet is-size-5">
-            <div v-for="cmodel in Object.values(models).sort((a, b) =>
-                   (a.short_name.toLowerCase() < b.short_name.toLowerCase() ? -1 : 1))"
-                 id="selectedModel" :key="cmodel.database_name"
+        <div class="columns is-multiline is-centered is-mobile">
+          <div v-for="cmodel in Object.values(models).sort((a, b) =>
+               (a.short_name.toLowerCase() < b.short_name.toLowerCase() ? -1 : 1))"
+               class="column is-5-desktop is-half-touch"
+               :key="cmodel.database_name">
+            <div id="selectedModel" style="height: 100%"
                  class="box has-text-centered clickable hoverable"
                  :class="cmodel.database_name === model.database_name ? 'selectedBox' : ''"
                  :title="`Select ${cmodel.short_name} as the model to explore`"
                  @mousedown.prevent="selectModel(cmodel)">
-              <div>
-                <span :class="cmodel.database_name === model.database_name ?
-                  'has-text-primary has-text-weight-bold' : ''">
-                  <span v-if="cmodel.database_name === model.database_name"
-                        class="icon"><i class="fa fa-check-square-o"></i></span>
-                  <span v-else><i class="fa fa-square-o"></i></span>
-                  {{ cmodel.short_name }} v{{ cmodel.version }}
-                </span> - {{ cmodel.full_name }}
-              </div>
-              <div class="has-text-grey">
+              <p class="title is-5"
+                 :class="cmodel.database_name === model.database_name ? 'has-text-primary' : ''">
+                <span v-if="cmodel.database_name === model.database_name"
+                      class="icon"><i class="fa fa-check-square-o"></i></span>
+                <span v-else><i class="fa fa-square-o"></i></span>
+                {{ cmodel.short_name }} {{ cmodel.version }}
+              </p>
+              <p>{{ cmodel.full_name }}</p>
+              <p class="has-text-grey is-touch-hidden">
                 {{ cmodel.reaction_count }} reactions -
                 {{ cmodel.metabolite_count }} metabolites -
                 {{ cmodel.gene_count }} genes
-              </div>
+              </p>
             </div>
           </div>
         </div>
-        <br>
+        <br><br><br>
         <div class="columns">
           <div class="column has-text-centered">
             <p class="has-text-weight-bold is-size-5">2. Select a tool:</p>
           </div>
         </div>
-        <div v-if="model" class="columns is-multiline is-centered">
-          <template v-for="tool in explorerTools">
-            <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
-            <div class="column is-3-widescreen is-4-desktop is-6-tablet is-full-mobile is-size-5">
-              <router-link :to="{ path: `${tool.url}/${model.database_name }` }"
-                           :title="`Click to access the ${tool.name} for ${model.short_name} model`">
-                <div class="card card-fullheight hoverable">
-                  <header class="card-header">
-                    <p class="card-header-title is-centered">
-                      <span class="icon is-medium"><i :class="`fa fa-${tool.icon}`"></i></span>
-                      &nbsp;{{ tool.name }}&nbsp;&nbsp;
-                      <span class="has-text-grey-light">{{ model.short_name }}</span>
-                    </p>
-                  </header>
-                  <div class="card-content">
-                    <div class="content">
-                      <img :src="tool.img" />
-                    </div>
+        <div v-if="model" class="columns is-multiline is-centered is-mobile">
+          <div v-for="tool in explorerTools" :key="tool.name"
+                class="column is-one-fifth-widescreen is-4-desktop is-4-tablet is-6-mobile">
+            <router-link :to="{ path: `${tool.url}/${model.database_name }` }"
+                          :title="`Click to access the ${tool.name} for ${model.short_name} model`">
+              <div class="card card-fullheight hoverable">
+                <header class="card-header">
+                  <p class="card-header-title is-block has-text-centered is-size-5" >
+                    <span class="icon is-medium" style="width: 100%">
+                      <i :class="`fa fa-${tool.icon}`"></i>
+                      &nbsp;&nbsp;{{ tool.name }}
+                    </span>
+                    <span class="is-visible-desktop has-text-grey-light" style="width: 100%">
+                      {{ model.short_name }}
+                    </span>
+                  </p>
+                </header>
+                <div class="card-content">
+                  <div class="content">
+                    <img :src="tool.img" />
                   </div>
                 </div>
-              </router-link>
-            </div>
-          </template>
+              </div>
+            </router-link>
+          </div>
         </div>
       </template>
     </div>
