@@ -10,10 +10,10 @@
       </div>
       <div class="hero-body">
         <div class="container has-text-centered">
-          <h1 class="is-size-1 title has-text-primary">METABOLIC ATLAS</h1>
-          <h2 class="is-size-2 has-text-gray">
+          <p class="is-size-2 title has-text-primary">METABOLIC ATLAS</p>
+          <h3 class="is-size-3 has-text-gray">
             THE ATLAS FOR EXPLORATION OF METABOLISM
-          </h2>
+          </h3>
         </div>
       </div>
     </section>
