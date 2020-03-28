@@ -5,15 +5,15 @@
         {{ errorMessage }}
       </div>
       <div v-else>
-        <h2 class="title is-2">Integrated GEMs</h2>
-        <p class="is-size-5">
+        <h3 class="title is-3">Integrated GEMs</h3>
+        <p>
           These models are integrated into the Metabolic Atlas database;
           they can be explored via {{ messages.gemBrowserName }}, {{ messages.mapViewerName }} and
           {{ messages.interPartName }}.
         </p><br><br>
         <div id="integrated" class="columns is-multiline is-variable is-6">
           <div v-for="model in integratedModels" :key="model.short_name" class="column is-half">
-            <div class="card is-size-5">
+            <div class="card">
               <header class="card-header clickable has-background-primary-lighter"
                       @click="showIntegratedModelData(model)">
                 <p class="card-header-title card-content has-text-weight-bold has-text-primary">
@@ -62,8 +62,9 @@
             </div>
           </div>
         </div>
-        <h2 class="title is-2">GEM Repository</h2>
-        <p class="is-size-5">
+        <br>
+        <h3 class="title is-3">GEM Repository</h3>
+        <p>
           While we do not provide support for these models, we are making them available to download.
           For support, the authors should be contacted. They are listed in the <i>References</i> section of each model.
           Click on a row to display more information. To download multiple models at once use the

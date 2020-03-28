@@ -41,11 +41,11 @@
             <td> {{ compartment.gene_count }}</td>
           </tr>
         </table>
-        <span class="is-size-5">The
+        <p>The
           <a :href="`/api/${model.database_name}/compartment/${cName}/`"
              target="_blank">complete list in JSON format</a>
           of reactions / metabolites / genes is available using our
-          <a href="/api/" target="_blank">API</a></span>
+          <a href="/api/" target="_blank">API</a></p>
       </div>
       <div class="column is-2-widescreen is-3-desktop is-half-tablet has-text-centered">
         <maps-available :id="cName" :model="model" :type="type" :element-i-d="''" />

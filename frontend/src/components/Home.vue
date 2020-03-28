@@ -26,7 +26,7 @@
                 <div id="menu-desktop"
                      class="column is-narrow has-background-primary has-text-weight-bold is-paddingless">
                   <aside class="menu">
-                    <ul class="menu-list is-size-5 is-unselectable">
+                    <ul class="menu-list is-unselectable">
                       <li v-for="menuItem in menu" :key="menuItem.title">
                         <a :class="[ {'is-active' : menuItem.title === currentMenu.title}]"
                            @click="currentMenu = menuItem">
@@ -40,7 +40,7 @@
                   </aside>
                 </div>
                 <div class="column more-padding is-v-aligned">
-                  <p class="is-size-5 has-text-justified" v-html="currentMenu.text"></p>
+                  <p class="has-text-justified" v-html="currentMenu.text"></p>
                 </div>
                 <div class="column more-padding is-v-aligned">
                   <router-link :to="currentMenu.url">
@@ -48,7 +48,7 @@
                       <img :src="currentMenu.img" :alt="currentMenu.title" />
                       <template v-if="currentMenu.cardLink">
                         <footer class="card-footer has-text-centered has-background-primary-lighter">
-                          <a class="card-footer-item is-size-5 has-text-weight-bold">{{ currentMenu.cardLink }}</a>
+                          <a class="card-footer-item has-text-weight-bold">{{ currentMenu.cardLink }}</a>
                         </footer>
                       </template>
                     </div>
@@ -60,7 +60,7 @@
         </div>
         <div class="columns is-hidden-desktop">
           <div class="column">
-            <div class="card is-size-5">
+            <div class="card">
               <header class="card-header has-background-primary">
                 <div class="card-header-title is-centered">
                   <div class="tabs is-centered">
@@ -87,7 +87,7 @@
                         <img :src="currentMenu.img" :alt="currentMenu.title" />
                         <template v-if="currentMenu.cardLink">
                           <footer class="card-footer has-text-centered has-background-primary-lighter">
-                            <a class="card-footer-item is-size-5 has-text-weight-bold">{{ currentMenu.cardLink }}</a>
+                            <a class="card-footer-item has-text-weight-bold">{{ currentMenu.cardLink }}</a>
                           </footer>
                         </template>
                       </div>
@@ -101,8 +101,8 @@
         <br>
         <div id="newsandcommunity" class="columns is-variable is-6">
           <div v-for="card in cards" :key="card.title" class="column is-half">
-            <div class="card card-fullheight is-size-5">
-              <header class="card-header has-background-success">
+            <div class="card card-fullheight">
+              <header class="card-header has-background-success ">
                 <p class="card-content has-text-weight-bold has-text-white">{{ card.title }}</p>
               </header>
               <div class="card-content has-text-justified">

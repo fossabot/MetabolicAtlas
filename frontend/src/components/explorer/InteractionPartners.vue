@@ -11,20 +11,23 @@
     <div class="columns is-centered">
       <gem-search ref="gemSearch" :model="model" :metabolites-and-genes-only="true"></gem-search>
     </div>
-    <br>
+    <br><br>
     <div v-if="!mainNodeID">
-      <div class="columns is-centered">
-        <p class="is-capitalized subtitle is-size-2-widescreen is-size-3-desktop is-size-4-tablet is-size-5-mobile
-           has-text-weight-light has-text-grey-light">Demo</p>
+      <div class="columns is-centered has-text-centered">
+        <p class="is-capitalized subtitle is-size-3 has-text-weight-light has-text-grey-light">
+          Demo
+        </p>
       </div>
-      <div class="columns is-centered">
+      <div class="columns is-centered has-text-justified">
         <div class="column is-three-fifths-desktop is-three-quarters-tablet is-fullwidth-mobile">
           <!-- eslint-disable max-len -->
-          <p class="is-size-5">For a given metabolite or gene, this page shows the other metabolites and genes with which it is connected via reactions. For more, see the <router-link :to="{ name: 'documentation', hash: '#Interaction-Partners' }">documentation on {{ messages.interPartName }}</router-link>.
-          </p><br>
+          <p>For a given metabolite or gene, this page shows the other metabolites and genes with which it is connected via reactions. For more, see the <router-link :to="{ name: 'documentation', hash: '#Interaction-Partners' }">documentation on {{ messages.interPartName }}</router-link>.
+          </p>
+          <br>
           <video poster="@/assets/interPart-cover.jpg" playsinline controls muted loop>
             <source src="@/assets/interPart.mp4" type="video/mp4">
           </video>
+          <br><br>
         </div>
       </div>
     </div>
