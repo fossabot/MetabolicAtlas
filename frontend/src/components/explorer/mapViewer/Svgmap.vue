@@ -133,8 +133,8 @@ export default {
     this.updateURLCoord = debounce(this.updateURLCoord, 150);
   },
   watch: {
-    requestedMapName() {
-      this.init();
+    async requestedMapName() {
+      await this.init();
     },
   },
   async mounted() {
@@ -177,7 +177,7 @@ export default {
       self.isFullscreen = $('.svgbox').first().hasClass('fullscreen');
     });
 
-    this.init();
+    await this.init();
   },
   methods: {
     async init() {
@@ -346,13 +346,18 @@ export default {
         return;
       }
 
+      console.log(type, this.mapType, newSvgName, this.mapName);
       if (type !== this.mapType || newSvgName !== this.mapName) {
         // this.$refs.mapsearch.reset();
         if (newSvgName in this.mapMetadataHistory) {
-          this.svgContent = this.svgContentHistory[newSvgName];
+          this.$store.dispatch('maps/setSvgMap', this.svgContentHistory[newSvgName]);
           this.mapMetadata = this.mapMetadataHistory[newSvgName];
           this.mapType = type;
           this.mapName = newSvgName;
+          setTimeout(() => {
+            this.loadSvgPanZoom();
+          }, 0);
+        } else {
           try {
             const payload = { mapUrl: this.svgMapURL, model: this.model.database_name, svgName: newSvgName };
             await this.$store.dispatch('maps/getSvgMap', payload);
