@@ -23,10 +23,10 @@
             <p class="has-text-weight-bold is-size-5">1. Select a model:</p>
           </div>
         </div>
-        <div class="columns is-multiline is-centered is-mobile">
+        <div class="columns is-multiline is-centered">
           <div v-for="cmodel in Object.values(models).sort((a, b) =>
                (a.short_name.toLowerCase() < b.short_name.toLowerCase() ? -1 : 1))"
-               class="column is-5-desktop is-half-touch"
+               class="column is-5-desktop is-half-tablet"
                :key="cmodel.database_name">
             <div id="selectedModel" style="height: 100%"
                  class="box has-text-centered clickable hoverable"
@@ -37,8 +37,8 @@
                  :class="cmodel.database_name === model.database_name ? 'has-text-primary' : ''">
                 <span v-if="cmodel.database_name === model.database_name"
                       class="icon"><i class="fa fa-check-square-o"></i></span>
-                <span v-else><i class="fa fa-square-o"></i></span>
-                {{ cmodel.short_name }} {{ cmodel.version }}
+                <span v-else><i class="fa fa-square-o">&nbsp;</i></span>
+                &nbsp;{{ cmodel.short_name }} {{ cmodel.version }}
               </p>
               <p>{{ cmodel.full_name }}</p>
               <p class="has-text-grey is-touch-hidden">
@@ -55,9 +55,9 @@
             <p class="has-text-weight-bold is-size-5">2. Select a tool:</p>
           </div>
         </div>
-        <div v-if="model" class="columns is-multiline is-centered is-mobile">
+        <div v-if="model" class="columns is-multiline is-centered">
           <div v-for="tool in explorerTools" :key="tool.name"
-                class="column is-one-fifth-widescreen is-4-desktop is-4-tablet is-6-mobile">
+                class="column is-one-fifth-widescreen is-4-desktop is-4-tablet">
             <router-link :to="{ path: `${tool.url}/${model.database_name }` }"
                           :title="`Click to access the ${tool.name} for ${model.short_name} model`">
               <div class="card card-fullheight hoverable">
