@@ -1,13 +1,13 @@
 <template>
   <div class="container cytoscape-table">
     <div class="columns">
-      <div class="column is-half">
+      <div class="column is-half is-8-tablet">
         <input v-model="tableSearch" class="input" type="text" placeholder="Search in table"
                data-hj-whitelist @keyup.prevent="updateTable">
       </div>
       <div class="column"></div>
-      <div class="column is-2">
-        <ExportTSV class="is-pulled-right" :filename="`${filename}.tsv`" :format-function="formatToTSV" />
+      <div class="column is-narrow">
+        <ExportTSV :filename="`${filename}.tsv`" :format-function="formatToTSV" />
       </div>
     </div>
     <div class="columns">
@@ -24,8 +24,8 @@
           <span v-show="geneCount" class="tag">
             # Unique Gene(s): {{ geneCount }}
           </span>
-          <span v-show="isGraphVisible" class="is-pulled-right">
-            Click on a <span class="tag is-rounded"><span class="is-size-6">label</span></span>
+          <span v-show="isGraphVisible">
+            &nbsp; Click on a <span class="tag is-rounded"><span class="is-size-6">label</span></span>
             to highlight the corresponding element on the graph
           </span>
         </div>
