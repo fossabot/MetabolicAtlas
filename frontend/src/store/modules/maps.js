@@ -178,6 +178,14 @@ const actions = {
     commit('setSelectedElementId', selectedElementId);
   },
 
+  setTissue1({ commit }, tissue1) {
+    commit('setTissue1', tissue1);
+  },
+
+  setTissue2({ commit }, tissue2) {
+    commit('setTissue2', tissue2);
+  },
+
   initFromQueryParams({ commit }, { dim, panel, coords, sel, search, g1, g2 }) {
     // TODO: handle errors
     commit('setShow2D', dim === '2d');

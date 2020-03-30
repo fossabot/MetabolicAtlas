@@ -109,7 +109,6 @@ import { mapState } from 'vuex';
 import $ from 'jquery';
 import RNAexpression from '@/components/explorer/mapViewer/RNAexpression.vue';
 import { default as EventBus } from '@/event-bus';
-import { setRouteForGeneExp1, setRouteForGeneExp2 } from '@/helpers/url';
 
 const NOFILELOADED = 'No file loaded';
 
@@ -313,10 +312,11 @@ export default {
       this.showFileLoader = false;
     },
     setRouteParam(value1, value2) {
+      // TODO: refactor to use maps/tissue1 from store instead of HPATissue1
       if (value1 !== null) {
-        this.$router.replace(setRouteForGeneExp1({ route: this.$route, tissue: value1 })).catch(() => {});
+        this.$store.dispatch('maps/setTissue1', value1);
       } else if (value2 !== null) {
-        this.$router.replace(setRouteForGeneExp2({ route: this.$route, tissue: value2 })).catch(() => {});
+        this.$store.dispatch('maps/setTissue2', value2);
       }
     },
   },
