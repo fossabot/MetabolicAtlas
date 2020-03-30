@@ -4,23 +4,23 @@
       <p class="card-header-title">
         <span class="is-capitalized">
           {{ selectedElm.type }}: {{ selectedElm.name || selectedElm.id }}
-          <span v-if="selectedElm.type === 'metabolite'" class="is-size-7 has-text-grey">
+          <span v-if="selectedElm.type === 'metabolite'" class="has-text-weight-light has-text-grey-light">
             {{ selectedElm.compartment }}
           </span>
         </span>
       </p>
     </header>
-    <footer class="card-footer">
+    <footer class="card-footer has-text-centered">
       <router-link
-        v-if="selectedElm.type !== 'reaction'"
-        class="is-paddingless is-info is-outlined card-footer-item has-text-centered"
-        :to="{ path: `/explore/interaction/${model.database_name}/${selectedElm.real_id || selectedElm.id}` }">
+        v-if="!onlyGB && selectedElm.type !== 'reaction'"
+        class="card-footer-item is-paddingless"
+        :to="{ path: `/explore/interaction/${model.database_name}/${elmId}` }">
         <span class="icon is-large"><i class="fa fa-share-alt fa-lg"></i></span>
         <span>{{ messages.interPartName }}</span>
       </router-link>
       <router-link
-        class="is-paddingless is-info is-outlined card-footer-item has-text-centered"
-        :to="{ path: `/explore/gem-browser/${model.database_name}/${selectedElm.type}/${selectedElm.real_id || selectedElm.id}` }">  <!-- eslint-disable-line max-len -->
+        class="card-footer-item is-paddingless"
+        :to="{ path: `/explore/gem-browser/${model.database_name}/${selectedElm.type}/${elmId}` }">  <!-- eslint-disable-line max-len -->
         <span class="icon is-large"><i class="fa fa-table fa-lg"></i></span>
         <span>{{ messages.gemBrowserName }}</span>
       </router-link>
@@ -37,6 +37,12 @@ export default {
   props: {
     model: Object,
     selectedElm: Object,
+    onlyGB: Boolean,
+  },
+  computed: {
+    elmId() {
+      return this.selectedElm.real_id || this.selectedElm.id;
+    },
   },
   data() {
     return {
