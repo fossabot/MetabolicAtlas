@@ -103,7 +103,7 @@
 
 <script>
 
-import ExportTSV from '@/components/explorer/gemBrowser/ExportTSV';
+import ExportTSV from '@/components/shared/ExportTSV';
 import { default as compare } from '@/helpers/compare';
 import { reformatEqSign } from '@/helpers/utils';
 

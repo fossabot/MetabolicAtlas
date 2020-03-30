@@ -174,7 +174,7 @@ import axios from 'axios';
 import $ from 'jquery';
 import { VueGoodTable } from 'vue-good-table';
 import Loader from '@/components/Loader';
-import ExportTSV from '@/components/explorer/gemBrowser/ExportTSV';
+import ExportTSV from '@/components/shared/ExportTSV';
 import 'vue-good-table/dist/vue-good-table.css';
 import { chemicalFormula } from '../helpers/chemical-formatters';
 import { reformatEqSign, sortResults } from '../helpers/utils';

@@ -1,24 +1,18 @@
 <template>
   <div class="reaction-table">
-    <div class="field">
-      <span class="tag is-medium" :class="reactions.length === limit ? 'is-warning' : ''">
-        # Reactions: {{ reactions.length }}
-      </span>
-      <template v-if="transportReactionCount !== 0">
-        &nbsp;including&nbsp;
-        <span class="tag is-medium clickable" @click="sortTable('is_transport', null, 'desc')">
-          {{ transportReactionCount }} transport reactions
+    <div class="columns">
+      <div class="column">
+        <span :class="reactions.length === limit ? 'tag is-medium is-warning' : ''"
+              :title="`The number of reactions displayed is limited to ${limit}`">
+          Showing {{ reactions.length }} reaction(s)
+          <template v-if="transportReactionCount !== 0">
+            including {{ transportReactionCount }} transport reaction(s)
+          </template>
         </span>
-      </template>
-      <ExportTSV
-        class="is-pulled-right"
-        :style="{ 'margin-left': '1rem' }"
-        :filename="`reaction_${sourceName}.tsv`"
-        :format-function="formatToTSV"
-      ></ExportTSV>
-      <span v-show="reactions.length === limit" class="tag is-medium is-warning is-pulled-right">
-        The number of reactions displayed is limited to {{ limit }}.
-      </span>
+      </div>
+      <div class="column is-narrow">
+        <ExportTSV :filename="`reaction_${sourceName}.tsv`" :format-function="formatToTSV"/>
+      </div>
     </div>
     <div class="table-container">
       <table ref="table" class="table is-bordered is-striped is-narrow is-fullwidth">
@@ -74,7 +68,7 @@
 
 <script>
 import { default as compare } from '@/helpers/compare';
-import ExportTSV from '@/components/explorer/gemBrowser/ExportTSV';
+import ExportTSV from '@/components/shared/ExportTSV';
 import { idfy, reformatChemicalReactionHTML, getChemicalReaction } from '@/helpers/utils';
 
 export default {
