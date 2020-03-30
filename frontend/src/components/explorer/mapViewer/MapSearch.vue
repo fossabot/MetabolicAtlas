@@ -1,11 +1,12 @@
 <template>
   <div id="svgSearch" class="overlay" :class="[{'fullscreen' : fullscreen}]">
     <div class="control" :class="{ 'is-loading' : isSearching }">
-      <input id="searchInput" v-model.trim="searchTerm" data-hj-whitelist
+      <input id="searchInput" data-hj-whitelist
              title="Exact search by id, name, alias. Press Enter for results" class="input"
              type="text" :class="searchInputClass"
+             :value="searchTerm"
              :disabled="!ready" placeholder="Exact search by id, name, alias"
-             @keyup.enter="search()" />
+             @keyup.enter="e => search(e.target.value)" />
     </div>
     <template v-if="searchTerm && matches && matches.length !== 0 && totalSearchMatch !== 0">
       <span id="searchResCount" class="button has-text-dark"
@@ -30,13 +31,11 @@
 
 import { mapState } from 'vuex';
 import { debounce } from 'vue-debounce';
-import { setRouteForSearch } from '@/helpers/url';
 import { default as messages } from '../../../helpers/messages';
 
 export default {
   name: 'MapSearch',
   props: {
-    model: Object,
     matches: Array, // list of matched objects on the map/graph
     ready: Boolean,
     fullscreen: Boolean,
@@ -45,7 +44,6 @@ export default {
     return {
       errorMessage: '',
 
-      searchTerm: '',
       prevSearchTerm: null,
       searchInputClass: '',
       isSearching: false,
@@ -58,6 +56,8 @@ export default {
   },
   computed: {
     ...mapState({
+      model: state => state.models.model,
+      searchTerm: state => state.maps.searchTerm,
       idsFound: state => state.maps.idsFound,
     }),
   },
@@ -69,7 +69,7 @@ export default {
         this.currentSearchMatch = 0;
         this.searchInputClass = 'is-info';
         this.prevSearchTerm = null;
-        this.$router.replace(setRouteForSearch({ route: this.$route, searchTerm: '' })).catch(() => {});
+        this.$store.dispatch('maps/clearSearchTerm');
       }
       this.haveSearched = false;
     },
@@ -90,29 +90,24 @@ export default {
   methods: {
     reset() {
       // reset
-      this.searchTerm = '';
       this.prevSearchTerm = null;
       this.totalSearchMatch = 0;
       this.currentSearchMatch = 0;
       this.searchInputClass = 'is-info';
     },
     async search(term) {
-      if (term) {
-        this.searchTerm = term;
-      }
-      this.$store.dispatch('maps/setIdsFound', []);
-      if (!this.searchTerm) {
+      if (!term) {
         this.searchInputClass = 'is-warning';
         return;
       }
-      if (this.prevSearchTerm === this.searchTerm) {
+      if (this.prevSearchTerm === term) {
         this.centerViewOn(1);
         return;
       }
       // get the IDs from the backend, then search in the SVG
       this.isSearching = true;
       try {
-        const payload = { model: this.model.database_name, searchTerm: this.searchTerm };
+        const payload = { model: this.model.database_name, searchTerm: term };
         await this.$store.dispatch('maps/mapSearch', payload);
         this.totalSearchMatch = 0;
         this.currentSearchMatch = 0;
@@ -121,10 +116,8 @@ export default {
       } finally {
         this.isSearching = false;
         this.haveSearched = true;
-        this.prevSearchTerm = this.searchTerm;
+        this.prevSearchTerm = term;
         this.$emit('searchOnMap', this.idsFound); // let the view call its own search function
-        this.$router.replace(setRouteForSearch(
-          { route: this.$route, searchTerm: this.searchTerm })).catch(() => {});
       }
     },
     centerViewOn(position) {
@@ -138,9 +131,6 @@ export default {
         this.currentSearchMatch = 0;
       }
       this.$emit('centerViewOn', this.matches[this.currentSearchMatch]);
-    },
-    setSearchTerm(term) {
-      this.searchTerm = term;
     },
   },
 };

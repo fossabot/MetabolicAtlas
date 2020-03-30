@@ -79,13 +79,11 @@
         </div>
       </div>
       <div v-show="selectedType">
-        <keep-alive>
-          <gene v-if="selectedType==='gene'"></gene>
-          <metabolite v-if="selectedType==='metabolite'"></metabolite>
-          <reaction v-if="selectedType==='reaction'"></reaction>
-          <subsystem v-if="selectedType==='subsystem'"></subsystem>
-          <compartment v-if="selectedType==='compartment'"></compartment>
-        </keep-alive>
+        <gene v-if="selectedType==='gene'"></gene>
+        <metabolite v-if="selectedType==='metabolite'"></metabolite>
+        <reaction v-if="selectedType==='reaction'"></reaction>
+        <subsystem v-if="selectedType==='subsystem'"></subsystem>
+        <compartment v-if="selectedType==='compartment'"></compartment>
       </div>
     </template>
   </div>
@@ -128,6 +126,7 @@ export default {
       tileComponents: state => state.browserTiles.tileComponents,
     }),
   },
+  // TODO: remove selectedType and nested components, use router for navigation
   watch: {
     /* eslint-disable quote-props */
     '$route': async function watchSetup(newRoute, lastRoute) {

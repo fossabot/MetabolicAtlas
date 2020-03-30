@@ -174,7 +174,6 @@ import SidebarDataPanels from '@/components/explorer/mapViewer/SidebarDataPanels
 import DataOverlay from '@/components/explorer/mapViewer/DataOverlay.vue';
 import Svgmap from '@/components/explorer/mapViewer/Svgmap';
 import D3dforce from '@/components/explorer/mapViewer/D3dforce';
-import { setRouteForMap, setRouteForSel, setRouteForOverlay, setRouteForDim, setDefaultQuery, areRoutesIdentical } from '@/helpers/url';
 import { default as EventBus } from '@/event-bus';
 import { default as messages } from '@/helpers/messages';
 
@@ -192,9 +191,6 @@ export default {
       loadErrorMesssage: '',
       loadErrorTypeMesssage: 'danger', // or 'info'
       showOverviewScreen: true,
-      show2D: true,
-      show3D: false,
-      readyToShowMap: false,
       requestedType: '',
       requestedName: '',
       currentDisplayedType: '',
@@ -210,7 +206,6 @@ export default {
       },
       showSelectionLoader: false,
       isHoverMenuItem: false,
-      dataOverlayPanelVisible: false,
       lastRoute: {},
       messages,
     };
@@ -218,6 +213,8 @@ export default {
   computed: {
     ...mapState({
       model: state => state.models.model,
+      show2D: state => state.maps.show2D,
+      dataOverlayPanelVisible: state => state.maps.dataOverlayPanelVisible,
     }),
     ...mapGetters({
       mapsData3D: 'maps/mapsData3D',
@@ -225,6 +222,8 @@ export default {
       compartmentMapping: 'maps/compartmentMapping',
       has2DCompartmentMaps: 'maps/has2DCompartmentMaps',
       has2DSubsystemMaps: 'maps/has2DSubsystemMaps',
+      show3D: 'maps/show3D',
+      queryParams: 'maps/queryParams',
     }),
     activeSwitch() {
       return !this.showLoader && !this.disabled2D;
@@ -247,22 +246,18 @@ export default {
       return this.show2D ? '2d' : '3d';
     },
     showMapViewer() {
-      return this.readyToShowMap && this.$route.name === 'viewer';
+      return this.$route.name === 'viewer';
     },
   },
   watch: {
-    /* eslint-disable-next-line quote-props */
-    '$route': function watchSetup(to, from) { // eslint-disable-line no-unused-vars
-      if (to.name.includes('viewer')) {
-        if (to.name === 'viewerRoot' && from.name === 'viewer') {
-          this.showOverviewScreen = true;
-          this.currentDisplayedType = '';
-          this.currentDisplayedName = '';
-        } else {
-          // some action no not trigger the update, like using the 'previous page' button
-          this.$forceUpdate();
-        }
+    queryParams(newQuery, oldQuery) {
+      if (JSON.stringify(newQuery) === JSON.stringify(oldQuery)) {
+        return;
       }
+
+      const queryString = Object.entries(newQuery).map(e => e.join('=')).join('&');
+
+      history.pushState({}, null, `${this.$route.path}?${queryString}`); // eslint-disable-line no-restricted-globals
     },
   },
   created() {
@@ -285,63 +280,16 @@ export default {
       }
       this.showLoader = false;
     });
-    this.dataOverlayPanelVisible = this.$route.query && this.$route.query.panel === '1';
   },
   async beforeMount() {
+    this.$store.dispatch('maps/initFromQueryParams', this.$route.query);
     await this.getSubComptData(this.model);
   },
   beforeUpdate() {
-    // console.log('before update, route', JSON.stringify(this.$route.params), JSON.stringify(this.$route.query));
-    if (this.$route.name === 'viewerRoot' || areRoutesIdentical({ route: this.$route, oldRoute: this.lastRoute })) {
-      if (this.$route.name === 'viewerRoot') {
-        this.$router.replace(setRouteForDim(
-          { route: this.$route, dim: this.dim })).catch(() => {});
-      }
-      this.lastRoute = Object.assign({}, this.$route);
-      return;
+    if (!this.checkValidRequest(this.$route.params.type, this.$route.params.map_id) && this.showMapViewer) {
+      this.handleLoadComplete(false, messages.mapNotFound, 'danger');
     }
-
-    if (this.$route.params.reload || this.$route.params.reload === undefined) {
-      let defaultValues = {};
-      if (Object.keys(this.$route.query).length !== 3 // do not reset when from map available link
-        && Object.keys(this.lastRoute).length !== 0
-        && (this.$route.params.type !== this.lastRoute.params.type
-        || this.$route.params.map_id !== this.lastRoute.params.map_id)) { // always reset on map change
-        defaultValues = { sel: '', search: '' };
-      }
-
-
-      if (this.$route.name !== 'browser') {
-        this.$router.replace(setDefaultQuery(
-          { route: this.$route, defaultValues })).catch(() => {}); // reload is always set to false
-      }
-
-      if (this.$route.params.reload === undefined && (this.$route.query.g1 || this.$route.query.g2)) {
-        // first load of the map viewer, set the panel visible if g1 or g2 are set
-        this.$router.replace(setRouteForOverlay(
-          { route: this.$route, isOpen: true })).catch(() => {});
-        this.dataOverlayPanelVisible = true;
-      }
-
-      if (this.$route.query.dim !== this.dim) {
-        this.show3D = !this.show3D;
-        this.show2D = !this.show2D;
-      }
-
-      if (this.showLoader) {
-        return;
-      }
-
-      if (!this.checkValidRequest(this.$route.params.type, this.$route.params.map_id) && this.showMapViewer) {
-        this.handleLoadComplete(false, messages.mapNotFound, 'danger');
-        return;
-      }
-      this.showOverviewScreen = false; // to get the loader visible
-      this.selectionData.data = null;
-
-      this.readyToShowMap = true;
-    }
-    this.lastRoute = Object.assign({}, this.$route);
+    this.showOverviewScreen = false; // to get the loader visible
   },
   mounted() {
     // menu
@@ -379,13 +327,11 @@ export default {
       $('#menu ul.l1, #menu ul.l2').hide();
     },
     toggleDataOverlayPanel() {
-      this.dataOverlayPanelVisible = !this.dataOverlayPanelVisible;
+      this.$store.dispatch('maps/toggleDataOverlayPanelVisible');
       if (this.show3D) {
         // fix the 3D canvas size when open/close dataOverlay
         EventBus.$emit('recompute3DCanvasBounds');
       }
-      this.$router.replace(setRouteForOverlay(
-        { route: this.$route, isOpen: this.dataOverlayPanelVisible })).catch(() => {});
     },
     switchDimension() {
       if (!this.activeSwitch || !this.currentDisplayedType || !this.currentDisplayedName) {
@@ -397,8 +343,7 @@ export default {
         return;
       }
 
-      this.show3D = !this.show3D;
-      this.show2D = !this.show2D;
+      this.$store.dispatch('maps/toggleShow2D');
 
       // preserve panel, selection and search on dim change
       this.$router.push({
@@ -407,15 +352,9 @@ export default {
           model: this.model.database_name,
           type: this.currentDisplayedType,
           map_id: this.currentDisplayedName,
-          reload: true,
         },
-        query: {
-          dim: this.dim,
-          panel: this.dataOverlayPanelVisible ? '1' : '0',
-          sel: this.$route.query.sel,
-          search: this.$route.query.search,
-          coords: '',
-        },
+        // TODO: use maps/queryParams from store
+        query: this.queryParams,
       }).catch(() => {});
     },
     handleLoadComplete(isSuccess, errorMessage, messageType) {
@@ -429,11 +368,6 @@ export default {
       this.showOverviewScreen = false;
       this.currentDisplayedType = this.requestedType;
       this.currentDisplayedName = this.requestedName;
-
-      this.$router.push(setRouteForMap({
-        route: this.$route, mapType: this.currentDisplayedType, mapId: this.currentDisplayedName, dim: this.dim,
-      })).catch(() => {});
-
       this.showLoader = false;
       this.$nextTick(() => {
         EventBus.$emit('reloadGeneExpressionData');
@@ -455,8 +389,7 @@ export default {
         await this.$store.dispatch('maps/getMapsListing', model.database_name);
 
         if (!this.has2DCompartmentMaps && !this.has2DSubsystemMaps) {
-          this.show3D = true;
-          this.show2D = false;
+          this.$store.dispatch('maps/setShow2D', false);
         }
       } catch (error) {
         switch (error.status) {
@@ -492,8 +425,8 @@ export default {
       if (compartmentOrSubsystemID) {
         this.$router.push({
           name: 'viewer',
-          params: { model: this.model.database_name, type, map_id: compartmentOrSubsystemID, reload: true },
-          query: { dim, panel: this.dataOverlayPanelVisible ? '1' : '0' },
+          params: { model: this.model.database_name, type, map_id: compartmentOrSubsystemID },
+          query: { dim, panel: this.queryParams.panel },
         }).catch(() => {});
       } else {
         this.currentDisplayedType = '';
@@ -509,14 +442,9 @@ export default {
     unSelect() {
       this.selectionData.error = false;
       this.selectionData.data = null;
-      this.$router.replace(setRouteForSel({ route: this.$route, id: '' })).catch(() => {});
     },
     updatePanelSelectionData(data) {
       this.selectionData = data;
-      this.$router.replace(setRouteForSel({
-        route: this.$route,
-        id: data.error ? '' : this.selectionData.data.id,
-      })).catch(() => {});
     },
   },
 };

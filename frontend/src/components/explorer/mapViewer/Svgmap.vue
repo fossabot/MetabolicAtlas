@@ -31,7 +31,7 @@
 
 <script>
 
-import { mapState } from 'vuex';
+import { mapGetters, mapState } from 'vuex';
 import $ from 'jquery';
 import JQPanZoom from 'jquery.panzoom';
 import JQMouseWheel from 'jquery-mousewheel';
@@ -41,7 +41,6 @@ import MapSearch from '@/components/explorer/mapViewer/MapSearch';
 import { default as EventBus } from '@/event-bus';
 import { default as messages } from '@/helpers/messages';
 import { reformatChemicalReactionHTML } from '@/helpers/utils';
-import { parseRoute, setRouteForCoord } from '@/helpers/url';
 
 // hack: the only way for jquery plugins to play nice with the plugins inside Vue
 $.Panzoom = JQPanZoom;
@@ -86,7 +85,6 @@ export default {
       },
       currentZoomScale: 1,
 
-      selectIDs: [],
       selectedNodesOnMap: [],
       selectedElemsHL: [],
 
@@ -94,11 +92,8 @@ export default {
       searchedElemsHL: [],
 
       currentCoords: { x: null, y: null, zoom: null },
-      urlCoords: null,
 
       selectedItemHistory: {},
-      selectedElementID: null,
-      searchTerm: '',
 
       HPARNAlevels: {}, // enz id as key, [current tissue level, color] as value
       svgMapURL: process.env.VUE_APP_SVGMAPURL,
@@ -112,6 +107,12 @@ export default {
       svgContent: state => state.maps.svgMap,
       idsFound: state => state.maps.idsFound,
       selectedElement: state => state.maps.selectedElement,
+      coords: state => state.maps.coords,
+      selectedElementId: state => state.maps.selectedElementId,
+      searchTerm: state => state.maps.searchTerm,
+    }),
+    ...mapGetters({
+      selectIds: 'maps/selectIds',
     }),
     isFullScreenDisabled() {
       if ((document.fullScreenElement !== undefined && document.fullScreenElement === null)
@@ -182,10 +183,6 @@ export default {
   methods: {
     async init() {
       this.$refs.mapsearch.reset(); // always reset the search
-      const { searchTerm, selectIDs, coords } = parseRoute(this.$route);
-      this.searchTerm = searchTerm;
-      this.selectIDs = selectIDs;
-      this.urlCoords = coords;
       const type = this.requestedMapType;
       const name = this.requestedMapName;
       if (name && (type === 'compartment' || type === 'subsystem')) {
@@ -262,34 +259,32 @@ export default {
       this.zoomToValue(1.0);
       this.panToCoords({ panX: x, panY: y, zoom });
       this.zoomToValue(zoom);
-      this.$router.replace(setRouteForCoord({
-        route: this.$route, x, y, z: zoom, u: 0, v: 0, w: 0,
-      })).catch(() => {});
+
+      const payload = { x, y, z: zoom, lx: 0, ly: 0, lz: 0 };
+      this.$store.dispatch('maps/setCoords', payload);
     },
     updateURLCoord(e, v, o) { // eslint-disable-line no-unused-vars
       const z = parseFloat(o[0]);
       const x = -parseFloat(o[4]);
       const y = -parseFloat(o[5]);
       // FIXME invalid coord
-      this.$router.replace(setRouteForCoord({
-        route: this.$route, x, y, z, u: 0, v: 0, w: 0,
-      })).catch(() => {});
+
+      const payload = { x, y, z, lx: 0, ly: 0, lz: 0 };
+      this.$store.dispatch('maps/setCoords', payload);
     },
     processSelSearchParam() {
       // unselect
-      this.selectedElementID = null;
       this.unHighlight(this.searchedElemsHL, 'schhl');
       this.unHighlight(this.selectedElemsHL, 'selhl');
       if (this.searchTerm) {
         this.$refs.mapsearch.search(this.searchTerm);
-      } else if (this.urlCoords) {
-        const coords = this.urlCoords.split(',').map(v => parseFloat(v));
+      } else if (this.coords) {
+        const coords = Object.values(this.coords);
         this.restoreMapPosition(coords[0], coords[1], coords[2]);
-        this.urlCoords = null;
       }
       // selection (sidebar), get the first node with this id
-      const elms = this.findElementsOnSVG(this.selectIDs);
-      this.selectElement(elms[0] || null);
+      const elms = this.findElementsOnSVG(this.selectIds);
+      this.selectElement(elms[0] || null, true);
     },
     loadSvgPanZoom() {
       // load the lib svgPanZoom on the SVG loaded
@@ -346,7 +341,6 @@ export default {
         return;
       }
 
-      console.log(type, this.mapType, newSvgName, this.mapName);
       if (type !== this.mapType || newSvgName !== this.mapName) {
         // this.$refs.mapsearch.reset();
         if (newSvgName in this.mapMetadataHistory) {
@@ -423,10 +417,9 @@ export default {
         this.searchedNodesOnMap = this.findElementsOnSVG(this.searchIDs);
         if (this.searchedNodesOnMap.length !== 0) {
           this.searchedElemsHL = this.highlight(this.searchedNodesOnMap, 'schhl');
-          if (this.urlCoords) {
-            const coords = this.urlCoords.split(',').map(v => parseFloat(v));
+          if (this.coords) {
+            const coords = Object.values(this.coords);
             this.restoreMapPosition(coords[0], coords[1], coords[2]);
-            this.urlCoords = null;
           } else {
             this.centerElementOnSVG(this.searchedNodesOnMap[0]);
           }
@@ -505,7 +498,7 @@ export default {
       }
       return [element.attr('id'), 'subsystem'];
     },
-    async selectElement(element) {
+    async selectElement(element, routeSelect = false) {
       if (!element) {
         return;
       }
@@ -515,13 +508,12 @@ export default {
         return;
       }
 
-      if (this.selectedElementID === id) {
+      if (this.selectedElementId === id && !routeSelect) {
         this.unSelectElement();
         return;
       }
 
       const selectionData = { type, data: null, error: false };
-      this.selectedElementID = id;
 
       this.unHighlight(this.selectedElemsHL, 'selhl');
       if (!element.hasClass('subsystem')) {
@@ -564,7 +556,7 @@ export default {
     },
     unSelectElement() {
       this.unHighlight(this.selectedElemsHL, 'selhl');
-      this.selectedElementID = null;
+      this.$store.dispatch('maps/setSelectedElementId', null);
       this.selectedElemsHL = [];
       this.$emit('unSelect');
     },

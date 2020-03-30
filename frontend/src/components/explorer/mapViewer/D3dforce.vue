@@ -12,12 +12,11 @@
 
 <script>
 
-import { mapState } from 'vuex';
+import { mapGetters, mapState } from 'vuex';
 import forceGraph3D from '3d-force-graph';
 import { default as FileSaver } from 'file-saver';
 import { debounce } from 'vue-debounce';
 import MapSearch from '@/components/explorer/mapViewer/MapSearch';
-import { parseRoute, setRouteForCoord } from '@/helpers/url';
 import { default as EventBus } from '@/event-bus';
 import { reformatChemicalReactionHTML } from '@/helpers/utils';
 
@@ -38,9 +37,7 @@ export default {
       graph: null,
       networkHistory: {},
 
-      selectIDs: [],
       selectedItemHistory: {},
-      selectElementID: null,
       selectElementIDfull: null,
 
       searchIDsSet: new Set(),
@@ -52,10 +49,11 @@ export default {
       HPARNAlevels: {},
       defaultGeneColor: '#feb',
       tissue: 'None',
-      searchTerm: '',
 
       listenControl: false,
       disableControlsListener: false,
+
+      initialLoad: false,
     };
   },
   computed: {
@@ -63,6 +61,12 @@ export default {
       model: state => state.models.model,
       network: state => state.maps.network,
       selectedElement: state => state.maps.selectedElement,
+      coords: state => state.maps.coords,
+      selectedElementId: state => state.maps.selectedElementId,
+      searchTerm: state => state.maps.searchTerm,
+    }),
+    ...mapGetters({
+      selectIds: 'maps/selectIds',
     }),
   },
   watch: {
@@ -116,14 +120,9 @@ export default {
   methods: {
     async init() {
       this.$refs.mapsearch.reset();
-      const { searchTerm, selectIDs, coords } = parseRoute(this.$route);
-      this.searchTerm = searchTerm;
-      this.selectIDs = selectIDs;
-      this.urlCoords = coords;
       const type = this.requestedMapType;
       const name = this.requestedMapName;
       if (this.loadedComponentType !== type || this.loadedComponentName !== name) {
-        this.selectElementID = null;
         this.selectElementIDfull = null;
         if (this.graph) {
           // a graph was already loaded, but it is a new map requested => reset coords
@@ -139,10 +138,10 @@ export default {
           this.graph.graphData(this.network);
           this.graph.emitLoadComplete = true;
           this.graph.skipLoadComplete = false;
-        } else {
+        } else if (this.loadedComponentType && this.loadedComponentName) {
           await this.getJson();
         }
-      } else if ((this.selectIDs && this.selectIDs.length !== 0) || this.searchTerm) {
+      } else if ((this.selectIds && this.selectIds.length !== 0) || this.searchTerm) {
         this.updateGeometries();
         this.$emit('loadComplete', true, '');
       }
@@ -176,6 +175,7 @@ export default {
     },
     async constructGraph() {
       /* eslint-disable no-param-reassign */
+      this.initialLoad = true;
       this.graph = forceGraph3D()(document.getElementById('graph3D'))
         .showNavInfo(false)
         .nodeLabel('n')
@@ -194,7 +194,7 @@ export default {
         })
         .nodeColor((n) => {
           const partialID = n.id.split('-')[0];
-          if (partialID === this.selectElementID) {
+          if (partialID === this.selectedElementId) {
             return 'red';
           }
           if (this.searchIDsSet.size !== 0 && this.searchIDsSet.has(partialID)) {
@@ -220,13 +220,14 @@ export default {
             this.networkHistory[this.loadedComponentName] = this.network;
           }
           this.updateGraphBounds();
-          if (this.selectIDs.length !== 0 && this.selectIDs[0] !== this.selectElementID) {
+          if (this.selectIds.length !== 0 && this.initialLoad) {
+            this.initialLoad = false;
             this.selectElement(
               this.graph.graphData().nodes.find(
-                n => n.id.split('-')[0].toLowerCase() === this.selectIDs[0].toLowerCase()
-              )
+                n => n.id.split('-')[0].toLowerCase() === this.selectIds[0].toLowerCase()
+              ), true
             );
-            this.selectIDs = [];
+            // this.selectIDs = [];
           }
 
           if (this.urlCoords && this.urlCoords !== '0,0,0,0,0,0') {
@@ -237,14 +238,12 @@ export default {
             this.staticSearch = true;
           } else if (this.graph.emitLoadComplete) {
             // set coord to origine, for newly loaded graph
-            this.$router.replace(setRouteForCoord({
-              route: this.$route, x: 0, y: 0, z: 0, u: 0, v: 0, w: 0,
-            })).catch(() => {});
+            const payload = { x: 0, y: 0, z: 0, lx: 0, ly: 0, lz: 0 };
+            this.$store.dispatch('maps/setCoords', payload);
           }
 
           if (this.searchTerm) {
             this.$refs.mapsearch.search(this.searchTerm);
-            this.searchTerm = '';
           }
 
           if (this.graph.resetCamera) {
@@ -280,9 +279,8 @@ export default {
       const pos = ev.target.object.position; // eslint-disable-line no-unused-vars
       const { lookAt } = this.graph.cameraPosition(); // eslint-disable-line no-unused-vars
       // FIXME invalid coor, lookAt seems correct but the camera rotation point is not
-      this.$router.replace(setRouteForCoord({
-        route: this.$route, x: pos.x, y: pos.y, z: pos.z, u: lookAt.x, v: lookAt.y, w: lookAt.z,
-      })).catch(() => {});
+      const payload = { x: pos.x, y: pos.y, z: pos.z, lx: lookAt.x, ly: lookAt.y, lz: lookAt.z };
+      this.$store.dispatch('maps/setCoords', payload);
     },
     downloadPNG() {
       window.requestAnimationFrame(() => {
@@ -310,20 +308,20 @@ export default {
       }
       return [element.id.split('-')[0], 'metabolite'];
     },
-    async selectElement(element) {
+    async selectElement(element, routeSelect = false) {
       // TODO: consider refactoring similar methods in SvgMap.vue
 
       if (!element) {
         return;
       }
       const [id, type] = this.getElementIdAndType(element);
-      if (this.selectElementID === id) {
+      if (this.selectedElementId === id && !routeSelect) {
         this.unSelectElement();
         this.updateGeometries();
         return;
       }
       const selectionData = { type, data: null, error: false };
-      this.selectElementID = id;
+      this.$store.dispatch('maps/setSelectedElementId', id);
       this.selectElementIDfull = element.id;
 
       if (this.selectedItemHistory[id]) {
@@ -360,7 +358,7 @@ export default {
       }
     },
     unSelectElement() {
-      this.selectElementID = null;
+      this.$store.dispatch('maps/setSelectedElementId', null);
       this.selectElementIDfull = null;
       this.$emit('unSelect');
     },

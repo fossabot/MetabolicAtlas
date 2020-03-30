@@ -18,6 +18,20 @@ const data = {
     nodes: [],
     links: [],
   },
+  show2D: true,
+  dataOverlayPanelVisible: false,
+  coords: {
+    x: 0,
+    y: 0,
+    z: 1,
+    lx: 0,
+    ly: 0,
+    lz: 0,
+  },
+  searchTerm: '',
+  selectedElementId: null,
+  tissue1: null,
+  tissue2: null,
 };
 
 const getters = {
@@ -51,6 +65,27 @@ const getters = {
   has2DCompartmentMaps: (state, _getters) => Object.keys(_getters.mapsData2D.compartments).length > 0, // eslint-disable-line no-unused-vars
 
   has2DSubsystemMaps: (state, _getters) => Object.keys(_getters.mapsData2D.subsystems).length > 0, // eslint-disable-line no-unused-vars
+
+  show3D: state => !state.show2D,
+  // selectedElementId: (state) => {
+  //   if (!state.selectedElement) {
+  //     return null;
+  //   }
+
+  //   return state.selectedElement.reaction ? state.selectedElement.reaction.id : state.selectedElement.id;
+  // },
+
+  selectIds: state => [state.selectedElementId].filter(x => x),
+
+  queryParams: state => ({
+    dim: state.show2D ? '2d' : '3d',
+    panel: +state.dataOverlayPanelVisible,
+    sel: state.selectedElementId,
+    search: state.searchTerm,
+    coords: Object.values(state.coords).join(','),
+    g1: state.tissue1,
+    g2: state.tissue2,
+  }),
 };
 
 const actions = {
@@ -74,8 +109,13 @@ const actions = {
   },
 
   async mapSearch({ commit }, { model, searchTerm }) {
+    commit('setSearchTerm', searchTerm);
     const idsFound = await mapsApi.mapSearch(model, searchTerm);
     commit('setIdsFound', idsFound);
+  },
+
+  clearSearchTerm({ commit }) {
+    commit('setSearchTerm', '');
   },
 
   setIdsFound({ commit }, idsFound) {
@@ -101,6 +141,7 @@ const actions = {
     }
 
     const selectedElement = await apiFunc(model, id);
+    commit('setSelectedElementId', id);
     commit('setSelectedElement', selectedElement);
   },
 
@@ -111,6 +152,58 @@ const actions = {
 
   set3DMapNetwork({ commit }, network) {
     commit('setNetwork', network);
+  },
+
+  toggleShow2D({ state, commit }) {
+    commit('setShow2D', !state.show2D);
+  },
+
+  setShow2D({ commit }, show2D) {
+    commit('setShow2D', show2D);
+  },
+
+  toggleDataOverlayPanelVisible({ state, commit }) {
+    commit('setDataOverlayPanelVisible', !state.dataOverlayPanelVisible);
+  },
+
+  setDataOverlayPanelVisible({ commit }, dataOverlayPanelVisible) {
+    commit('setDataOverlayPanelVisible', dataOverlayPanelVisible);
+  },
+
+  setCoords({ commit }, coords) {
+    commit('setCoords', coords);
+  },
+
+  setSelectedElementId({ commit }, selectedElementId) {
+    commit('setSelectedElementId', selectedElementId);
+  },
+
+  initFromQueryParams({ commit }, { dim, panel, coords, sel, search, g1, g2 }) {
+    // TODO: handle errors
+    commit('setShow2D', dim === '2d');
+    commit('setDataOverlayPanelVisible', panel === '1' || g1 || g2);
+    commit('setSelectedElementId', sel);
+    commit('setSearchTerm', search);
+
+    if (coords && coords.length > 0) {
+      const parsedCoords = coords.split(',').map(c => parseFloat(c));
+      commit('setCoords', {
+        x: parsedCoords[0],
+        y: parsedCoords[1],
+        z: parsedCoords[2],
+        lx: parsedCoords[3],
+        ly: parsedCoords[4],
+        lz: parsedCoords[5],
+      });
+    }
+
+    if (g1 && g1.length > 0) {
+      commit('setTissue1', g1);
+    }
+
+    if (g2 && g2.length > 0) {
+      commit('setTissue2', g2);
+    }
   },
 };
 
@@ -137,6 +230,34 @@ const mutations = {
 
   setNetwork: (state, network) => {
     state.network = network;
+  },
+
+  setShow2D: (state, show2D) => {
+    state.show2D = show2D;
+  },
+
+  setDataOverlayPanelVisible: (state, dataOverlayPanelVisible) => {
+    state.dataOverlayPanelVisible = dataOverlayPanelVisible;
+  },
+
+  setCoords: (state, coords) => {
+    state.coords = coords;
+  },
+
+  setSelectedElementId: (state, selectedElementId) => {
+    state.selectedElementId = selectedElementId;
+  },
+
+  setSearchTerm: (state, searchTerm) => {
+    state.searchTerm = searchTerm;
+  },
+
+  setTissue1: (state, tissue1) => {
+    state.tissue1 = tissue1;
+  },
+
+  setTissue2: (state, tissue2) => {
+    state.tissue2 = tissue2;
   },
 };
 

@@ -54,6 +54,7 @@ export default {
       reactions: state => state.reactions.relatedReactions,
     }),
   },
+  // TODO: consider replacing this watcher
   watch: {
     async metaboliteID() {
       if (this.metaboliteID) {
