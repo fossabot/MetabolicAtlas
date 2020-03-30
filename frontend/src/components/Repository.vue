@@ -72,7 +72,7 @@
         <br>
         <loader v-show="showLoader"></loader>
         <div v-if="GEMS.length != 0">
-          <vue-good-table :columns="columns" :rows="GEMS" :search-options="{ enabled: true }"
+          <vue-good-table :columns="columns" :rows="GEMS" :search-options="{ enabled: true, skipDiacritics: true }"
                           :sort-options="{ enabled: true }" style-class="vgt-table striped"
                           :pagination-options="tablePaginationOpts" @on-row-click="getModel">
           </vue-good-table>
