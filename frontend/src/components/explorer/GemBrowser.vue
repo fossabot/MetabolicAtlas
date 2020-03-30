@@ -130,22 +130,23 @@ export default {
   },
   watch: {
     /* eslint-disable quote-props */
-    '$route': function watchSetup() {
+    '$route': async function watchSetup(newRoute, lastRoute) {
       this.selectedType = '';
-      this.setup();
+      const loadTiles = !this.tileComponents || !(newRoute.name === 'browserRoot' && lastRoute.name === 'browser');
+      await this.setup(loadTiles);
     },
   },
   async beforeMount() {
     await this.setup();
   },
   methods: {
-    async setup() {
+    async setup(loadTiles = true) {
       if (['browser', 'browserRoot'].includes(this.$route.name)) {
         if (!this.model || this.model.database_name !== this.$route.params.model) {
           this.errorMessage = `Error: ${messages.modelNotFound}`;
           return;
         }
-        if (this.$route.name === 'browserRoot') {
+        if (this.$route.name === 'browserRoot' && loadTiles) {
           await this.getTilesData();
         } else if (this.selectedType === 'interaction') {
           this.$router.replace(`/explore/interaction/${this.model.database_name}/${this.componentID}`);
