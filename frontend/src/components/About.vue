@@ -7,13 +7,7 @@
         <div class="column is-half has-text-justified">
           <div class="box is-hidden-tablet">
             <p class="subtitle has-text-weight-bold is-size-4 has-text-primary has-text-centered">Citing Metabolic Atlas</p>
-            <i>Article under consideration</i>
-            <!-- <p>
-                <a href="" target="_blank">APA style reference with DOI</a><br><br>
-                Abstract here
-                <br><br>
-                Genome scale metabolic model in the publication <a @click="viewGem()">Human1</a>
-              </p> -->
+            <a href="https://doi.org/10.1126/scisignal.aaz1482" target="_blank">Robinson, J., et al, 2020. <i>An atlas of human metabolism</i>. Sci. Signal. 13, eaaz1482 </a>
           </div>
           The Metabolic Atlas project is headed by <a href="https://www.sysbio.se/labs/nielsen" target="_new">Professor Jens Nielsen</a>, <a href="https://www.sysbio.se">Division of Systems and Synthetic Biology</a>, Department of Biology and Biological Engineering at the <a href="https://www.chalmers.se" target="_new">Chalmers University of Technology</a>. The platform is developed by members of <a href="https://www.chalmers.se/en/researchinfrastructure/csb/Pages/default.aspx">Computational Systems Biology Infrastructure</a> at Chalmers University of Technology and <a href="https://nbis.se" target="blank">National Bioinformatics Infrastructure Sweden</a>.<br><br>
 
@@ -31,31 +25,22 @@
         <div class="column is-half has-text-justified content">
           <div class="box is-hidden-mobile">
             <p class="subtitle has-text-weight-bold is-size-4 has-text-primary has-text-centered">Citing Metabolic Atlas</p>
-            <i>Article under consideration</i>
-            <!-- <p>
-              <a href="" target="_blank">APA style reference with DOI</a><br><br>
-              Abstract here
-              <br><br>
-              Genome scale metabolic model in the publication <a @click="viewGem()">Human1</a>
-            </p> -->
+            <a href="https://doi.org/10.1126/scisignal.aaz1482" target="_blank">Robinson, J., et al, 2020. <i>An atlas of human metabolism</i>. Sci. Signal. 13, eaaz1482 </a>
           </div>
-          <img width="100%" src="../assets/group_18a.jpg">
-          <center>The SysBio group 2018</center>
+          <img width="100%" alt="The SysBio group 2019" src="../assets/group_19.jpg">
+          <center>The SysBio group 2019</center>
+          <br><br>
           <h4 class="title is-4">Scientific Advisors</h4>
           <nav id="advisors" class="level">
-            <div class="level-left">
-              <span class="level-item">
-                <figure class="image is-64x64">
-                  <img class="is-rounded" src="../assets/pic-jens.jpg" />
-                </figure>
-                Jens Nielsen
-              </span>
-              <span class="level-item">
-                <figure class="image is-64x64">
-                  <img class="is-rounded" src="../assets/pic-jon.jpg" />
-                </figure>
-                Jon Robinson
-              </span>
+            <div v-for="advisor in advisors" :key="advisor.name" class="level-left">
+              <a :href="advisor.url" target="_blank">
+                <span class="level-item">
+                  <figure class="image is-64x64">
+                    <img class="is-rounded" :alt="advisor.name" :src="advisor.img" />
+                  </figure>
+                  {{ advisor.name }}
+                </span>
+              </a>
             </div>
           </nav>
           <br>
@@ -122,6 +107,8 @@ export default {
     return {
       news: {
         2020: [
+          { date: '23 March 2020',
+            text: '<b>Metabolic Atlas v1.6</b> is out. This release contains many user interface improvements, documentation updates and correction of typos. More details can be found <a href="https://github.com/SysBioChalmers/MetabolicAtlas/releases/tag/v1.6" target="_blank">on GitHub</a>.' },
           { date: '7 February 2020',
             text: '<b>Metabolic Atlas v1.5</b> is out. This release updates the layout of the <i>Home</i>, <i>Explore</i>, and <i>Interaction Partner</i> pages. A <i>News</i> section has also been added on the <i>About</i> page. Other features include suggestions on the <i>Search</i> page, a contact button in the <i>GEM Browser</i>, and a progress bar at the top indicating page loading status. The Human-GEM has also been updated to v1.3, and the Yeast-GEM to v.8.3.4. More details can be found <a href="https://github.com/SysBioChalmers/MetabolicAtlas/releases/tag/v1.5" target="_blank">on GitHub</a>.' },
         ],
@@ -171,6 +158,18 @@ export default {
 
         ],
       },
+      /* eslint-disable global-require */
+      advisors: [
+        {
+          name: 'Prof. Jens Nielsen',
+          img: require('../assets/pic-jens.jpg'),
+          url: 'https://www.sysbio.se/labs/nielsen/',
+        }, {
+          name: 'Dr. Jonathan Robinson',
+          img: require('../assets/pic-jon.jpg'),
+          url: 'https://nbis.se/about/staff/jonathan-robinson/',
+        },
+      ],
     };
   },
   methods: {
