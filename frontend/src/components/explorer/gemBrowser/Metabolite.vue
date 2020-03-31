@@ -1,7 +1,7 @@
 <template>
   <div id="metabolite-page">
     <div v-if="componentNotFound" class="columns is-centered">
-      <notFound :type="type" :component-id="mId"></notFound>
+      <notFound :type="type" :component-id="metaboliteId"></notFound>
     </div>
     <div v-else>
       <div class="columns">
@@ -56,21 +56,18 @@
         </div>
         <div class="column is-2-widescreen is-3-desktop is-full-tablet has-text-centered">
           <router-link class="button is-info is-fullwidth is-outlined"
-                       :to="{ name: 'interPartner', params: { model: model.database_name, id: mId } }">
+                       :to="{ name: 'interPartner', params: { model: model.database_name, id: metaboliteId } }">
             <span class="icon"><i class="fa fa-connectdevelop fa-lg"></i></span>&nbsp;
             <span>{{ messages.interPartName }}</span>
           </router-link>
           <br>
           <!-- eslint-disable-next-line max-len -->
-          <maps-available :id="mId" :type="'metabolite'" :viewer-selected-i-d="metabolite.id"></maps-available>
-          <gem-contact :type="type" :id="mId"/>
+          <maps-available :id="metaboliteId" :type="'metabolite'" :viewer-selected-i-d="metabolite.id" />
+          <gem-contact :id="metaboliteId" :type="type" />
         </div>
       </div>
-      <div class="columns">
-        <reactome v-show="showReactome" id="metabolite-reactome" :metabolite-i-d="metaboliteID"
-                  :disable-but="relatedMetabolites.length === 0">
-        </reactome>
-      </div>
+      <reaction-table :selected-elm-id="metaboliteId" :source-name="metaboliteId" :type="type"
+                      :related-met-count="relatedMetabolites.length" />
     </div>
   </div>
 </template>
@@ -78,13 +75,13 @@
 <script>
 import { mapState } from 'vuex';
 import MapsAvailable from '@/components/explorer/gemBrowser/MapsAvailable';
-import Reactome from '@/components/explorer/gemBrowser/Reactome';
+import ReactionTable from '@/components/explorer/gemBrowser/ReactionTable';
 import GemContact from '@/components/shared/GemContact';
 import NotFound from '@/components/NotFound';
 import ExtIdTable from '@/components/explorer/gemBrowser/ExtIdTable';
-import { chemicalFormula } from '../../../helpers/chemical-formatters';
-import { reformatTableKey } from '../../../helpers/utils';
-import { default as messages } from '../../../helpers/messages';
+import { chemicalFormula } from '@/helpers/chemical-formatters';
+import { reformatTableKey } from '@/helpers/utils';
+import { default as messages } from '@/helpers/messages';
 
 export default {
   name: 'Metabolite',
@@ -92,15 +89,14 @@ export default {
     NotFound,
     ExtIdTable,
     MapsAvailable,
-    Reactome,
+    ReactionTable,
     GemContact,
   },
   data() {
     return {
       messages,
-      mId: this.$route.params.id,
       type: 'metabolite',
-      metaboliteID: '',
+      metaboliteId: '',
       mainTableKey: [
         { name: 'id' },
         { name: 'name' },
@@ -124,32 +120,13 @@ export default {
       relatedMetabolites: state => state.metabolites.relatedMetabolites,
     }),
   },
-  watch: {
-    /* eslint-disable quote-props */
-    '$route': function watchSetup() {
-      if (this.$route.path.includes('/metabolite/')) {
-        if (this.mId !== this.$route.params.id) {
-          this.setup();
-        }
-      }
-    },
-  },
-  beforeMount() {
-    this.setup();
-  },
-  methods: {
-    setup() {
-      this.mId = this.$route.params.id;
-      if (this.mId) {
-        this.load();
-      }
-    },
-    async load() {
+  async beforeMount() {
+    if (this.$route.params.id) {
+      this.metaboliteId = this.$route.params.id;
       try {
-        const payload = { model: this.model.database_name, id: this.mId };
+        const payload = { model: this.model.database_name, id: this.metaboliteId };
         await this.$store.dispatch('metabolites/getMetaboliteData', payload);
         this.componentNotFound = false;
-        this.metaboliteID = this.mId;
         this.showReactome = true;
         await this.getRelatedMetabolites();
       } catch {
@@ -157,10 +134,12 @@ export default {
         this.showReactome = false;
         document.getElementById('search').focus();
       }
-    },
+    }
+  },
+  methods: {
     async getRelatedMetabolites() {
       try {
-        const payload = { model: this.model.database_name, id: this.mId };
+        const payload = { model: this.model.database_name, id: this.metaboliteId };
         await this.$store.dispatch('metabolites/getRelatedMetabolites', payload);
       } catch {
         this.$store.dispatch('metabolites/clearRelatedMetabolites');

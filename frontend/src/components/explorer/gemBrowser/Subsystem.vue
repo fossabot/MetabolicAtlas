@@ -30,8 +30,9 @@
                 <template v-if="i !== 0">, </template>
                 <!-- eslint-disable-next-line vue/valid-v-for max-len -->
                 <router-link
-                  :to="{ name: 'browser', params: { model: model.database_name, type: 'compartment', id: c.id } }"
-                >{{ c.name }}</router-link>
+                  :to="{ name: 'browser', params: { model: model.database_name, type: 'compartment', id: c.id } }">
+                  {{ c.name }}
+                </router-link>
               </template>
             </td>
           </tr>
@@ -76,18 +77,7 @@
     <template v-if="!showLoader">
       <h4 class="title is-4">Reactions</h4>
     </template>
-    <div class="columns">
-      <div class="column">
-        <template v-if="!showLoader && showReactionLoader">
-          <loader></loader>
-        </template>
-        <template v-else-if="!showReactionLoader">
-          <reaction-table :source-name="sName" :reactions="reactions" :show-subsystem="false"
-                          :limit="1000">
-          </reaction-table>
-        </template>
-      </div>
-    </div>
+    <reaction-table :source-name="sName" :type="type" :show-subsystem="false" />
   </div>
 </template>
 
@@ -101,7 +91,7 @@ import MapsAvailable from '@/components/explorer/gemBrowser/MapsAvailable';
 import ExtIdTable from '@/components/explorer/gemBrowser/ExtIdTable';
 import ReactionTable from '@/components/explorer/gemBrowser/ReactionTable';
 import GemContact from '@/components/shared/GemContact';
-import { buildCustomLink, reformatTableKey } from '../../../helpers/utils';
+import { buildCustomLink, reformatTableKey } from '@/helpers/utils';
 
 export default {
   name: 'Subsystem',
@@ -118,7 +108,6 @@ export default {
       sName: this.$route.params.id,
       type: 'subsystem',
       showLoader: true,
-      showReactionLoader: true,
       errorMessage: '',
       mainTableKey: [
         { name: 'name', display: 'Name' },
@@ -133,8 +122,6 @@ export default {
   computed: {
     ...mapState({
       model: state => state.models.model,
-      reactions: state => state.reactions.relatedReactions,
-      limitReaction: state => state.reactions.relatedReactionsLimit,
     }),
     ...mapGetters({
       info: 'subsystems/info',
@@ -176,48 +163,20 @@ export default {
       return l.join('');
     },
   },
-  watch: {
-    /* eslint-disable quote-props */
-    '$route': async function watchSetup() {
-      if (this.$route.path.includes('/gem-browser/') && this.$route.path.includes('/subsystem/')) {
-        if (this.sName !== this.$route.params.id) {
-          await this.setup();
-        }
-      }
-    },
-  },
   async beforeMount() {
-    await this.setup();
+    this.sName = this.$route.params.id;
+    this.showLoader = true;
+    try {
+      const payload = { model: this.model.database_name, id: this.sName };
+      this.$store.dispatch('subsystems/getSubsystemSummary', payload);
+      this.componentNotFound = false;
+      this.showLoader = false;
+    } catch {
+      this.componentNotFound = true;
+      document.getElementById('search').focus();
+    }
   },
   methods: {
-    async setup() {
-      this.sName = this.$route.params.id;
-      await this.load();
-      await this.getReactions();
-    },
-    async load() {
-      this.showLoader = true;
-
-      try {
-        const payload = { model: this.model.database_name, id: this.sName };
-        this.$store.dispatch('subsystems/getSubsystemSummary', payload);
-        this.componentNotFound = false;
-        this.showLoader = false;
-      } catch {
-        this.componentNotFound = true;
-        document.getElementById('search').focus();
-      }
-    },
-    async getReactions() {
-      this.showReactionLoader = true;
-      try {
-        const payload = { model: this.model.database_name, id: this.sName };
-        this.$store.dispatch('reactions/getRelatedReactionsForSubsystem', payload);
-        this.showReactionLoader = false;
-      } catch {
-        // TODO: handle exception
-      }
-    },
     reformatKey(k) { return reformatTableKey(k); },
   },
 };

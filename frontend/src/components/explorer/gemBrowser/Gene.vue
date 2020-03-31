@@ -1,7 +1,7 @@
 <template>
   <div class="connected-metabolites">
     <div v-if="componentNotFound" class="columns is-centered">
-      <notFound :type="type" :component-id="eId"></notFound>
+      <notFound :type="type" :component-id="geneId"></notFound>
     </div>
     <div v-else>
       <div class="container columns">
@@ -43,25 +43,11 @@
                 <span>{{ messages.interPartName }}</span>
               </router-link>
               <br>
-              <maps-available :id="eId" :type="'gene'" :viewer-selected-i-d="gene.id"></maps-available>
-              <gem-contact :type="type" :id="eId"/>
+              <maps-available :id="geneId" :type="'gene'" :viewer-selected-i-d="gene.id" />
+              <gem-contact :id="geneId" :type="type" />
             </div>
           </div>
-          <template v-if="!showLoader">
-            <h4 class="title is-4">Reactions</h4>
-          </template>
-          <div class="columns">
-            <div class="column">
-              <template v-if="!showLoader && showReactionLoader">
-                <loader></loader>
-              </template>
-              <template v-else-if="!showReactionLoader">
-                <reaction-table :source-name="geneName" :reactions="reactions" :show-subsystem="true"
-                                :limit="limitReaction">
-                </reaction-table>
-              </template>
-            </div>
-          </div>
+          <reaction-table :source-name="geneId" :type="type" :show-subsystem="true" :selected-elm-id="geneName"/>
         </div>
       </div>
     </div>
@@ -75,7 +61,6 @@ import NotFound from '@/components/NotFound';
 import ExtIdTable from '@/components/explorer/gemBrowser/ExtIdTable';
 import MapsAvailable from '@/components/explorer/gemBrowser/MapsAvailable';
 import ReactionTable from '@/components/explorer/gemBrowser/ReactionTable';
-import Loader from '@/components/Loader';
 import { reformatTableKey } from '@/helpers/utils';
 import { default as messages } from '@/helpers/messages';
 
@@ -85,7 +70,6 @@ export default {
     NotFound,
     MapsAvailable,
     ReactionTable,
-    Loader,
     GemContact,
     ExtIdTable,
   },
@@ -94,7 +78,7 @@ export default {
       messages,
       showLoader: true,
       showReactionLoader: true,
-      eId: '',
+      geneId: '',
       type: 'gene',
       mainTableKey: [
         { name: 'id' },
@@ -111,39 +95,17 @@ export default {
     ...mapState({
       model: state => state.models.model,
       gene: state => state.genes.gene,
-      reactions: state => state.reactions.relatedReactions,
     }),
     ...mapGetters({
       geneName: 'genes/geneName',
     }),
   },
-  watch: {
-    /* eslint-disable quote-props */
-    '$route': async function watchSetup() {
-      if (this.$route.path.includes('/gene/')) {
-        if (this.eId !== this.$route.params.id) {
-          await this.setup();
-        }
-      }
-    },
-  },
   async beforeMount() {
-    await this.setup();
-  },
-  methods: {
-    async setup() {
-      this.eId = this.$route.params.id;
-      if (this.eId) {
-        await this.load();
-        await this.loadReactions();
-      }
-    },
-    reformatTableKey(k) { return reformatTableKey(k); },
-    async load() {
+    if (this.$route.params.id) {
+      this.geneId = this.$route.params.id;
       this.showLoader = true;
-
       try {
-        const payload = { model: this.model.database_name, id: this.eId };
+        const payload = { model: this.model.database_name, id: this.geneId };
         await this.$store.dispatch('genes/getGeneData', payload);
         this.showLoader = false;
         this.componentNotFound = false;
@@ -153,18 +115,10 @@ export default {
         this.componentNotFound = true;
         document.getElementById('search').focus();
       }
-    },
-    async loadReactions() {
-      this.showReactionLoader = true;
-
-      try {
-        const payload = { model: this.model.database_name, id: this.eId };
-        await this.$store.dispatch('reactions/getRelatedReactionsForGene', payload);
-        this.showReactionLoader = false;
-      } catch {
-        this.$store.dispatch('reactions/clearRelatedReactions');
-      }
-    },
+    }
+  },
+  methods: {
+    reformatTableKey(k) { return reformatTableKey(k); },
   },
 };
 
