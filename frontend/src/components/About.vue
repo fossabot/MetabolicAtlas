@@ -99,8 +99,6 @@
 </template>
 
 <script>
-import { default as EventBus } from '../event-bus';
-
 export default {
   name: 'About',
   data() {
@@ -172,17 +170,10 @@ export default {
       ],
     };
   },
-  methods: {
-    viewGem() {
-      this.$router.push({ name: 'gems' });
-      EventBus.$emit('viewGem', 'Human1');
-    },
-  },
 };
 </script>
 
 <style lang="scss">
-
 #advisors{
   figure {
     margin: 0 1rem 0 0;
@@ -192,5 +183,4 @@ export default {
     margin: 0 4rem 0 0;
   }
 }
-
 </style>
