@@ -12,7 +12,7 @@
     </header>
     <footer class="card-footer has-text-centered">
       <router-link
-        v-if="!onlyGB && selectedElm.type !== 'reaction'"
+        v-if="showIPbutton && selectedElm.type !== 'reaction'"
         class="card-footer-item is-paddingless"
         :to="{ path: `/explore/interaction/${model.database_name}/${elmId}` }">
         <span class="icon is-large"><i class="fa fa-share-alt fa-lg"></i></span>
@@ -37,7 +37,7 @@ export default {
   props: {
     model: Object,
     selectedElm: Object,
-    onlyGB: Boolean,
+    showIPbutton: Boolean,
   },
   computed: {
     elmId() {

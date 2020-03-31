@@ -250,7 +250,7 @@
             </div>
             <br>
           </template>
-          <sidebar id="sidebar" :selected-elm="clickedElm" :onlyGB="clickedElmId === mainNodeID" :model="model" />
+          <sidebar id="sidebar" :selected-elm="clickedElm" :showIPbutton="clickedElmId !== mainNodeID" :model="model" />
         </div>
       </div>
       <cytoscape-table :reactions="reactions" :selected-elm-id="clickedElmId" :selected-reaction-id="reactionHL"
