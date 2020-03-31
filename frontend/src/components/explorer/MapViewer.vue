@@ -257,10 +257,21 @@ export default {
 
       const queryString = Object.entries(newQuery).map(e => e.join('=')).join('&');
 
-      history.pushState({}, null, `${this.$route.path}?${queryString}`); // eslint-disable-line no-restricted-globals
+      const payload = [{}, null, `${this.$route.path}?${queryString}`];
+      if (newQuery.dim === oldQuery.dim) {
+        history.replaceState(...payload); // eslint-disable-line no-restricted-globals
+      } else {
+        history.pushState(...payload); // eslint-disable-line no-restricted-globals
+      }
     },
   },
   created() {
+    window.onpopstate = () => {
+      if (this.$route.query.dim !== this.queryParams.dim) {
+        this.$store.dispatch('maps/setShow2D', this.$route.query.dim !== '3d');
+      }
+    };
+
     EventBus.$off('loadRNAComplete');
 
     EventBus.$on('loadRNAComplete', (isSuccess, errorMessage) => {
@@ -344,18 +355,6 @@ export default {
       }
 
       this.$store.dispatch('maps/toggleShow2D');
-
-      // preserve panel, selection and search on dim change
-      this.$router.push({
-        name: 'viewer',
-        params: {
-          model: this.model.database_name,
-          type: this.currentDisplayedType,
-          map_id: this.currentDisplayedName,
-        },
-        // TODO: use maps/queryParams from store
-        query: this.queryParams,
-      }).catch(() => {});
     },
     handleLoadComplete(isSuccess, errorMessage, messageType) {
       if (!isSuccess) {
@@ -422,17 +421,23 @@ export default {
     showMap(compartmentOrSubsystemID, type, dim) {
       this.selectionData.data = null;
       this.hideDropleftMenus();
+
+      if (dim) {
+        this.$store.dispatch('maps/setShow2D', dim !== '3d');
+      }
+
       if (compartmentOrSubsystemID) {
+        this.$store.dispatch('maps/resetParamsExcept', ['dim', 'panel']);
         this.$router.push({
           name: 'viewer',
           params: { model: this.model.database_name, type, map_id: compartmentOrSubsystemID },
-          query: { dim, panel: this.queryParams.panel },
         }).catch(() => {});
       } else {
         this.currentDisplayedType = '';
         this.currentDisplayedName = '';
         this.showOverviewScreen = true;
-        this.$router.push({ name: 'viewerRoot', params: { model: this.model.database_name }, query: { dim: this.dim } }).catch(() => {});
+        this.$store.dispatch('maps/resetParamsExcept', ['dim']);
+        this.$router.push({ name: 'viewerRoot', params: { model: this.model.database_name } }).catch(() => {});
       }
     },
     endSelection(isSuccess) {

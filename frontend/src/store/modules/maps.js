@@ -188,8 +188,9 @@ const actions = {
 
   initFromQueryParams({ commit }, { dim, panel, coords, sel, search, g1, g2 }) {
     // TODO: handle errors
-    commit('setShow2D', dim === '2d');
-    commit('setDataOverlayPanelVisible', panel === '1' || g1 || g2);
+    commit('setShow2D', dim !== '3d');
+    console.log(panel);
+    commit('setDataOverlayPanelVisible', !!(panel === '1' || g1 || g2));
     commit('setSelectedElementId', sel);
     commit('setSearchTerm', search);
 
@@ -211,6 +212,43 @@ const actions = {
 
     if (g2 && g2.length > 0) {
       commit('setTissue2', g2);
+    }
+  },
+
+  resetParamsExcept({ commit }, paramsToKeep) {
+    if (!paramsToKeep.includes('dim')) {
+      commit('setShow2D', true);
+    }
+
+    if (!paramsToKeep.includes('panel')) {
+      commit('setDataOverlayPanelVisible', false);
+    }
+
+    if (!paramsToKeep.includes('sel')) {
+      commit('setSelectedElementId', null);
+    }
+
+    if (!paramsToKeep.includes('search')) {
+      commit('setSearchTerm', '');
+    }
+
+    if (!paramsToKeep.includes('coords')) {
+      commit('setCoords', {
+        x: 0,
+        y: 0,
+        z: 1,
+        lx: 0,
+        ly: 0,
+        lz: 0,
+      });
+    }
+
+    if (!paramsToKeep.includes('g1')) {
+      commit('setTissue1', null);
+    }
+
+    if (!paramsToKeep.includes('g2')) {
+      commit('setTissue2', null);
     }
   },
 };

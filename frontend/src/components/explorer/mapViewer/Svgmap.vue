@@ -99,6 +99,8 @@ export default {
       svgMapURL: process.env.VUE_APP_SVGMAPURL,
       defaultGeneColor: '#feb',
       messages,
+
+      initialLoad: true,
     };
   },
   computed: {
@@ -134,7 +136,10 @@ export default {
     this.updateURLCoord = debounce(this.updateURLCoord, 150);
   },
   watch: {
-    async requestedMapName() {
+    async requestedMapName(newName, oldName) {
+      if (oldName && oldName.length > 0 && newName !== oldName) {
+        this.initialLoad = false;
+      }
       await this.init();
     },
   },
@@ -278,7 +283,7 @@ export default {
       this.unHighlight(this.selectedElemsHL, 'selhl');
       if (this.searchTerm) {
         this.$refs.mapsearch.search(this.searchTerm);
-      } else if (this.coords) {
+      } else if (this.coords && this.initialLoad) {
         const coords = Object.values(this.coords);
         this.restoreMapPosition(coords[0], coords[1], coords[2]);
       }
@@ -297,6 +302,8 @@ export default {
         this.$panzoom.off('panzoomchange');
       }
       setTimeout(() => {
+        this.$panzoom.on('panzoomchange', (e, v, o) => this.updateURLCoord(e, v, o));
+
         const minZoomScale = Math.min($('.svgbox').width() / $('#svg-wrapper svg').width(),
           $('.svgbox').height() / $('#svg-wrapper svg').height());
         const focusX = ($('#svg-wrapper svg').width() / 2) - ($('.svgbox').width() / 2);
@@ -318,7 +325,6 @@ export default {
         this.$panzoom.on('panzoomzoom', (e, panzoom, scale) => { // eslint-disable-line no-unused-vars
           this.currentZoomScale = scale;
         });
-        this.$panzoom.on('panzoomchange', (e, v, o) => this.updateURLCoord(e, v, o));
 
         this.processSelSearchParam();
         this.$emit('loadComplete', true, '');
