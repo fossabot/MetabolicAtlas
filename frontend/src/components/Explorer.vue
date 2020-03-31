@@ -8,7 +8,7 @@
       </template>
       <template v-else-if="currentShowComponent">
         <keep-alive>
-          <component :is="currentShowComponent"></component>
+          <component :is="currentShowComponent" />
         </keep-alive>
       </template>
       <template v-else>
@@ -89,8 +89,8 @@ import GemBrowser from '@/components/explorer/GemBrowser';
 import MapViewer from '@/components/explorer/MapViewer';
 import InteractionPartners from '@/components/explorer/InteractionPartners';
 import NotFound from '@/components/NotFound';
+import { default as messages } from '@/helpers/messages';
 import { default as EventBus } from '../event-bus';
-import { default as messages } from '../helpers/messages';
 
 export default {
   name: 'Explorer',
