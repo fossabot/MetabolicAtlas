@@ -1,5 +1,5 @@
 <template>
-  <div class="container loading has-text-centered">
+  <div class="container is-centered">
     <a class="button is-primary is-inverted is-outlined is-large is-loading"></a>
     <p class="is-size-5">{{ message }}</p>
   </div>

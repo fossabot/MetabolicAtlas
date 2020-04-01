@@ -9,7 +9,7 @@
           <h3 class="title is-3">
             <span class="is-capitalized">{{ type }}</span> {{ metabolite.name }}
             <span v-if="metabolite && metabolite.compartment" class="has-text-weight-light has-text-grey-light">
-             in {{ metabolite.compartment.name }}
+              in {{ metabolite.compartment.name }}
             </span>
           </h3>
         </div>
@@ -58,7 +58,7 @@
         </div>
         <div class="column is-2-widescreen is-3-desktop is-full-tablet has-text-centered">
           <router-link class="button is-info is-fullwidth is-outlined"
-                      :to="{ name: 'interPartner', params: { model: model.database_name, id: metaboliteId } }">
+                       :to="{ name: 'interPartner', params: { model: model.database_name, id: metaboliteId } }">
             <span class="icon"><i class="fa fa-connectdevelop fa-lg"></i></span>&nbsp;
             <span>{{ messages.interPartName }}</span>
           </router-link>
