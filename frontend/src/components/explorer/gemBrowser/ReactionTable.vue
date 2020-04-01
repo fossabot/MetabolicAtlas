@@ -12,7 +12,6 @@
         <button class="button" @click="toggleExpandAllCompartment">
           {{ !expandAllCompartment ?
             "See reactions with from all compartments" : "Restrict to current compartment" }}
-            {{ relatedMetCount }}
         </button>
       </p>
       <div class="field">
