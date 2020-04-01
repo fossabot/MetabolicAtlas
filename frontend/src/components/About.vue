@@ -1,8 +1,8 @@
 <template>
   <!-- eslint-disable max-len -->
-  <section class="section extended-section is-size-5">
+  <section class="section extended-section">
     <div class="container">
-      <h2 class="title is-2">Metabolic Atlas</h2>
+      <h3 class="title is-3">Metabolic Atlas</h3>
       <div class="columns is-variable is-8">
         <div class="column is-half has-text-justified">
           <div class="box is-hidden-tablet">
@@ -49,7 +49,7 @@
         </div>
       </div>
       <br>
-      <h2 class="title is-2">News</h2>
+      <h3 class="title is-3">News</h3>
       <div class="timeline is-centered">
         <header class="timeline-header">
           <span class="tag is-large has-text-primary has-text-weight-bold">today</span>
@@ -77,7 +77,7 @@
       <br><br>
       <div class="columns is-variable is-8">
         <div class="column has-text-justified content">
-          <h2 id="privacy" class="title is-2">Privacy Notice</h2>
+          <h3 id="privacy" class="title is-3">Privacy Notice</h3>
           <p>
             Metabolic Atlas gathers information about users solely to improve the usability and usefulness of the website. There are two types of cookies that are set by Metabolic Atlas: functionality cookies and tracking cookies.<br>
             Functionality cookies are used to personalize the appearence of the Metabolic Atlas.<br>
@@ -87,7 +87,7 @@
             If you have any questions, please email us at <a href="mailto:">contact [at] metabolicatlas [dot] org</a>.
           </p>
 
-          <h2 class="title is-2">Terms of Use</h2>
+          <h3 class="title is-3">Terms of Use</h3>
           <p>
             We do not guarantee the accuracy of any provided data, generated database, software or online service nor the suitability of databases, software and online services for any purpose.
             The content presented on Metabolic Atlas is contributed by members of the community who remain owners of said content.

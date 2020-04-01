@@ -19,9 +19,9 @@
       </div>
       <div v-if="showTiles && !selectedType">
         <div class="columns is-centered">
-          <div class="column is-10 is-size-5 has-text-centered">
+          <div class="column is-10 has-text-centered">
             <br><br>
-            <a id="randomButton" class="button is-rounded is-outlined is-size-5 is-success"
+            <a id="randomButton" class="button is-rounded is-outlined is-success"
                title="Fetch another random set of components" @click="getTilesData()">
               <span class="icon">
                 <i class="fa fa-random"></i>
@@ -31,7 +31,7 @@
             <br>
           </div>
         </div>
-        <div v-if="tileComponents" id="gem-browser-tiles" class="tile is-ancestor is-size-5">
+        <div v-if="tileComponents" id="gem-browser-tiles" class="tile is-ancestor">
           <div class="tile">
             <div class="tile is-vertical is-9">
               <div class="tile">

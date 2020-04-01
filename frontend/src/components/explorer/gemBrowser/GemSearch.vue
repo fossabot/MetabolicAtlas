@@ -21,8 +21,13 @@
             <i class="fa" :class="metabolitesAndGenesOnly ? 'fa-connectdevelop' : 'fa-table'"></i>
           </span>
         </p>
+        <router-link v-if="$route.name === 'browser'"
+                     class="is-pulled-left is-size-5 has-text-grey-light"
+                     :to="{ name: 'browserRoot', params: { model: model.database_name } }">
+          &larr; back to tiles
+        </router-link>
         <router-link class="is-pulled-right is-size-5" :to="{ name: 'search', query: { term: searchTermString } }">
-          Global search
+          Global Search
         </router-link>
       </div>
       <div v-show="showResults && searchTermString.length > 1" id="searchResults" ref="searchResults">
