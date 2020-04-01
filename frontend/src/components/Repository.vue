@@ -5,19 +5,20 @@
         {{ errorMessage }}
       </div>
       <div v-else>
-        <h2 class="title is-2">Integrated GEMs</h2>
-        <p class="is-size-5">
+        <h3 class="title is-3">Integrated GEMs</h3>
+        <p class="has-text-justified">
           These models are integrated into the Metabolic Atlas database;
           they can be explored via {{ messages.gemBrowserName }}, {{ messages.mapViewerName }} and
           {{ messages.interPartName }}.
         </p><br><br>
         <div id="integrated" class="columns is-multiline is-variable is-6">
-          <div v-for="model in integratedModels" :key="model.short_name" class="column is-half">
-            <div class="card is-size-5">
+          <div v-for="model in integratedModels" :key="model.short_name"
+               class="column is-4-widescreen is-5-desktop is-6-tablet">
+            <div class="card">
               <header class="card-header clickable has-background-primary-lighter"
                       @click="showIntegratedModelData(model)">
-                <p class="card-header-title card-content has-text-weight-bold has-text-primary">
-                  {{ model.short_name }} &ndash; {{ model.full_name }}
+                <p class="card-header-title card-content has-text-primary">
+                  {{ model.short_name }} {{ model.version }}
                 </p>
                 <div class="card-header-icon">
                   <span class="icon has-text-primary">
@@ -25,27 +26,17 @@
                   </span>
                 </div>
               </header>
-              <div class="card-content is-fullheight">
-                <div class="columns">
-                  <div class="column">
-                    Reactions: {{ model.reaction_count }}<br>
-                    Metabolites: {{ model.metabolite_count }}<br>
-                    Genes: {{ model.gene_count }}<br>
-                  </div>
-                  <div class="column">
-                    Date: {{ model.date || "n/a" }}<br>
-                    <a :href="model.link" target="_blank">
-                      <template v-if="model.link.includes('github.com')">
-                        <span class="icon"><i class="fa fa-github"></i></span>
-                        GitHub
-                      </template>
-                      <template v-else>
-                        <span class="icon"><i class="fa fa-link fa-lg"></i></span>
-                        External link
-                      </template>
-                    </a>
-                  </div>
-                </div>
+              <div class="card-content card-fullheight">
+                <p class="has-text-justified">{{ model.full_name }}</p><br>
+                <p>
+                  Reactions: {{ model.reaction_count }}<br>
+                  Metabolites: {{ model.metabolite_count }}<br>
+                  Genes: {{ model.gene_count }}<br><br>
+                  Updated {{ model.date || "n/a" }} from
+                  <a :href="model.link" target="_blank">
+                    GitHub<span class="icon"><i class="fa fa-github"></i></span>
+                  </a>
+                </p>
               </div>
               <footer class="card-footer">
                 <router-link class="card-footer-item is-info is-outlined"
@@ -62,8 +53,9 @@
             </div>
           </div>
         </div>
-        <h2 class="title is-2">GEM Repository</h2>
-        <p class="is-size-5">
+        <br>
+        <h3 class="title is-3">GEM Repository</h3>
+        <p class="has-text-justified">
           While we do not provide support for these models, we are making them available to download.
           For support, the authors should be contacted. They are listed in the <i>References</i> section of each model.
           Click on a row to display more information. To download multiple models at once use the

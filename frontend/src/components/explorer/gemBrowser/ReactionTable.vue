@@ -90,7 +90,7 @@
 import { mapState } from 'vuex';
 import Loader from '@/components/Loader';
 import { default as compare } from '@/helpers/compare';
-import ExportTSV from '@/components/explorer/gemBrowser/ExportTSV';
+import ExportTSV from '@/components/shared/ExportTSV';
 import { idfy, reformatChemicalReactionHTML, getChemicalReaction } from '@/helpers/utils';
 
 export default {

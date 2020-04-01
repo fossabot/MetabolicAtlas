@@ -8,8 +8,9 @@
         <div class="column">
           <h3 class="title is-3">
             <span class="is-capitalized">{{ type }}</span> {{ metabolite.name }}
-            <span v-if="metabolite && metabolite.compartment" class="is-size-5 has-text-grey">
-              {{ metabolite.compartment.id }}</span>
+            <span v-if="metabolite && metabolite.compartment" class="has-text-weight-light has-text-grey-light">
+             in {{ metabolite.compartment.name }}
+            </span>
           </h3>
         </div>
       </div>
