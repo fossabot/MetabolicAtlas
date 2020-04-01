@@ -4,7 +4,7 @@
     <nav id="navbar" class="navbar has-background-primary-lighter" role="navigation" aria-label="main navigation">
       <div class="container">
         <div class="navbar-brand">
-          <router-link class="navbar-item" :to="{ path: '/' }" active-class="" @click.native="isMobileMenu = false">
+          <router-link class="navbar-item" :to="{ name: 'home' }" active-class="" @click.native="isMobileMenu = false">
             <img :src="require('./assets/logo.png')" />
           </router-link>
           <div class="navbar-burger" :class="{ 'is-active': isMobileMenu }" @click="isMobileMenu = !isMobileMenu">
@@ -16,7 +16,7 @@
         <div id="#nav-menu" class="navbar-menu" :class="{ 'is-active': isMobileMenu }">
           <div v-show="model" class="navbar-start has-text-centered"
                title="Click to toggle between the GEM Browser and the Map Viewer">
-            <router-link v-if="activeViewerBut || activeBrowserBut" :to="{ path: '/explore'}"
+            <router-link v-if="activeViewerBut || activeBrowserBut" :to="{ name: 'explorerRoot' }"
                          class="navbar-item is-size-3 has-text-primary has-text-weight-bold is-unselectable"
                          title="Current selected model, click to change your selection" exact>
               {{ model ? model.short_name : '' }}
@@ -106,7 +106,7 @@
           We use cookies to enhance the usability of our website.
           By continuing you are agreeing to our
           <router-link class="has-text-white has-text-weight-bold"
-                       :to="{path: '/about', hash: 'privacy'}">
+                       :to="{ name: 'about', hash: '#privacy' }">
             Privacy Notice and Terms of Use
           </router-link>&emsp;
           <p class="button is-small is-rounded has-background-danger has-text-white has-text-weight-bold"
@@ -122,7 +122,7 @@
 
 <script>
 
-import { default as EventBus } from './event-bus';
+import { mapState } from 'vuex';
 import { isCookiePolicyAccepted, acceptCookiePolicy } from './helpers/store';
 
 export default {
@@ -170,60 +170,67 @@ export default {
       showCookieMsg: navigator.doNotTrack !== '1' && !isCookiePolicyAccepted(),
       acceptCookiePolicy,
       activeDropMenu: '',
-      model: null,
-      browserLastPath: '',
-      viewerLastPath: '',
+      browserLastRoute: {},
+      viewerLastRoute: {},
       isMobileMenu: false,
     };
+  },
+  computed: {
+    ...mapState({
+      model: state => state.models.model,
+    }),
   },
   watch: {
     $route: function watchSetup() {
       this.setupButons();
     },
   },
-  beforeMount() {
-    EventBus.$on('modelSelected', (model) => {
-      if (this.model) {
-        this.viewerLastPath = '';
-        this.browserLastPath = '';
-      }
-      this.model = model;
-    });
-  },
   created() {
     this.setupButons();
   },
   methods: {
     setupButons() {
-      if (this.$route.name === 'browser' || this.$route.name === 'browserRoot') {
+      if (['browserRoot', 'browser'].includes(this.$route.name)) {
         this.activeBrowserBut = true;
         this.activeViewerBut = false;
-        this.savePath();
-      } else if (['viewer', 'viewerCompartment', 'viewerCompartmentRea', 'viewerSubsystem', 'viewerSubsystemRea'].includes(this.$route.name)) {
+        this.saveRoute();
+      } else if (['viewerRoot', 'viewer'].includes(this.$route.name)) {
         this.activeBrowserBut = false;
         this.activeViewerBut = true;
-        this.savePath();
+        this.saveRoute();
       } else {
         this.activeBrowserBut = false;
         this.activeViewerBut = false;
       }
     },
     goToGemBrowser() {
-      this.$router.push(this.browserLastPath || `/explore/gem-browser/${this.$route.params.model}`);
-    },
-    savePath() {
-      if (this.$route.name === 'browser') {
-        this.browserLastPath = this.$route.path;
-      } else if (this.$route.name === 'browserRoot') {
-        this.browserLastPath = '';
-      } else if (['viewerCompartment', 'viewerCompartmentRea', 'viewerSubsystem', 'viewerSubsystemRea'].includes(this.$route.name)) {
-        this.viewerLastPath = this.$route.fullPath;
-      } else if (this.$route.name === 'viewer') {
-        this.viewerLastPath = '';
+      if (Object.keys(this.browserLastRoute).length !== 0) {
+        if (this.$route.path !== this.browserLastRoute.path) {
+          this.$router.push(this.browserLastRoute);
+        }
+      } else {
+        this.$router.push({ name: 'browserRoot', params: { model: this.$route.params.model } });
       }
     },
     goToMapViewer() {
-      this.$router.push(this.viewerLastPath || `/explore/map-viewer/${this.$route.params.model}`);
+      if (Object.keys(this.viewerLastRoute).length !== 0) {
+        if (this.$route.path !== this.viewerLastRoute.path) {
+          this.$router.push(this.viewerLastRoute);
+        }
+      } else {
+        this.$router.push({ name: 'viewerRoot', params: { model: this.$route.params.model } });
+      }
+    },
+    saveRoute() {
+      if (this.$route.name === 'browser') {
+        this.browserLastRoute = Object.assign(this.$route);
+      } else if (this.$route.name === 'browserRoot') {
+        this.browserLastRoute = {};
+      } else if (this.$route.name === 'viewer') {
+        this.viewerLastRoute = Object.assign(this.$route);
+      } else if (this.$route.name === 'viewerRoot') {
+        this.viewerLastRoute = {};
+      }
     },
   },
 };

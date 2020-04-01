@@ -14,13 +14,13 @@
       <router-link
         v-if="showIPbutton && selectedElm.type !== 'reaction'"
         class="card-footer-item is-paddingless"
-        :to="{ path: `/explore/interaction/${model.database_name}/${elmId}` }">
+        :to="{ name: 'interPartner', params: { model: model.database_name, id: selectedElm.real_id || selectedElm.id } }">  <!-- eslint-disable-line max-len -->
         <span class="icon is-large"><i class="fa fa-share-alt fa-lg"></i></span>
         <span>{{ messages.interPartName }}</span>
       </router-link>
       <router-link
         class="card-footer-item is-paddingless"
-        :to="{ path: `/explore/gem-browser/${model.database_name}/${selectedElm.type}/${elmId}` }">  <!-- eslint-disable-line max-len -->
+        :to="{ name: 'browser', params: { model: model.database_name, type: selectedElm.type, id: selectedElm.real_id || selectedElm.id } }">  <!-- eslint-disable-line max-len -->
         <span class="icon is-large"><i class="fa fa-table fa-lg"></i></span>
         <span>{{ messages.gemBrowserName }}</span>
       </router-link>
@@ -30,24 +30,24 @@
 
 <script>
 
+import { mapState } from 'vuex';
 import { default as messages } from '@/helpers/messages';
 
 export default {
   name: 'Sidebar',
   props: {
-    model: Object,
     selectedElm: Object,
     showIPbutton: Boolean,
-  },
-  computed: {
-    elmId() {
-      return this.selectedElm.real_id || this.selectedElm.id;
-    },
   },
   data() {
     return {
       messages,
     };
+  },
+  computed: {
+    ...mapState({
+      model: state => state.models.model,
+    }),
   },
 };
 </script>

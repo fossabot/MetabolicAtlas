@@ -6,7 +6,7 @@ import NProgress from 'nprogress';
 import App from '@/App';
 import router from '@/router';
 import { default as EventBus } from '@/event-bus';
-import store from '@/store';
+import store from './store';
 import linkHandlerMixin from './mixins/linkHandler';
 
 axios.defaults.baseURL = '/api';

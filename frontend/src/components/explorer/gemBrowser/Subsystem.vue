@@ -28,8 +28,10 @@
             <td>
               <template v-for="(c, i) in info['compartments']">
                 <template v-if="i !== 0">, </template>
-                <!-- eslint-disable-next-line max-len -->
-                <router-link :key="c.id" :to="{ path: `/explore/gem-browser/${model.database_name}/compartment/${c.id}` }">{{ c.name }}</router-link>
+                <!-- eslint-disable-next-line vue/valid-v-for max-len -->
+                <router-link
+                  :to="{ name: 'browser', params: { model: model.database_name, type: 'compartment', id: c.id } }"
+                >{{ c.name }}</router-link>
               </template>
             </td>
           </tr>
@@ -67,8 +69,8 @@
         <ExtIdTable :type="type" :external-dbs="info.external_databases"></ExtIdTable>
       </div>
       <div class="column is-2-widescreen is-3-desktop is-half-tablet has-text-centered">
-        <maps-available :id="sName" :model="model" :type="type" :element-i-d="''" />
-        <gem-contact :id="sName" :model="model" :type="type" />
+        <maps-available :id="sName" :type="type" :element-i-d="''"></maps-available>
+        <gem-contact :id="sName" :type="type" />
       </div>
     </div>
     <template v-if="!showLoader">
@@ -81,7 +83,7 @@
         </template>
         <template v-else-if="!showReactionLoader">
           <reaction-table :source-name="sName" :reactions="reactions" :show-subsystem="false"
-                          :model="model" :limit="1000">
+                          :limit="1000">
           </reaction-table>
         </template>
       </div>
@@ -92,7 +94,7 @@
 
 <script>
 
-import axios from 'axios';
+import { mapGetters, mapState } from 'vuex';
 import Loader from '@/components/Loader';
 import NotFound from '@/components/NotFound';
 import MapsAvailable from '@/components/explorer/gemBrowser/MapsAvailable';
@@ -111,21 +113,12 @@ export default {
     Loader,
     GemContact,
   },
-  props: {
-    model: {
-      type: Object,
-    },
-  },
   data() {
     return {
       sName: this.$route.params.id,
       type: 'subsystem',
       showLoader: true,
       showReactionLoader: true,
-      info: {},
-      metabolites: [],
-      genes: [],
-      reactions: [],
       errorMessage: '',
       mainTableKey: [
         { name: 'name', display: 'Name' },
@@ -134,13 +127,22 @@ export default {
       showFullGene: false,
       displayedMetabolite: 40,
       displayedGene: 40,
-      limitMetabolite: 0,
-      limitGene: 0,
-      limitReaction: 0,
       componentNotFound: false,
     };
   },
   computed: {
+    ...mapState({
+      model: state => state.models.model,
+      reactions: state => state.reactions.relatedReactions,
+      limitReaction: state => state.reactions.relatedReactionsLimit,
+    }),
+    ...mapGetters({
+      info: 'subsystems/info',
+      metabolites: 'subsystems/metabolites',
+      genes: 'subsystems/genes',
+      limitMetabolite: 'subsystems/limitMetabolite',
+      limitGene: 'subsystems/limitGene',
+    }),
     metabolitesListHtml() {
       const l = ['<span class="tags">'];
       const metsSorted = this.metabolites.concat().sort((a, b) => (a.name < b.name ? -1 : 1));
@@ -176,50 +178,45 @@ export default {
   },
   watch: {
     /* eslint-disable quote-props */
-    '$route': function watchSetup() {
+    '$route': async function watchSetup() {
       if (this.$route.path.includes('/gem-browser/') && this.$route.path.includes('/subsystem/')) {
         if (this.sName !== this.$route.params.id) {
-          this.setup();
+          await this.setup();
         }
       }
     },
   },
-  beforeMount() {
-    this.setup();
+  async beforeMount() {
+    await this.setup();
   },
   methods: {
-    setup() {
+    async setup() {
       this.sName = this.$route.params.id;
-      this.load();
-      this.getReactions();
+      await this.load();
+      await this.getReactions();
     },
-    load() {
+    async load() {
       this.showLoader = true;
-      axios.get(`${this.model.database_name}/subsystem/${this.sName}/summary/`)
-        .then((response) => {
-          this.componentNotFound = false;
-          this.info = response.data.info;
-          this.metabolites = response.data.metabolites;
-          this.genes = response.data.genes;
-          this.limitMetabolite = response.data.limit;
-          this.limitGene = response.data.limit;
-          this.showLoader = false;
-        })
-        .catch(() => {
-          this.componentNotFound = true;
-          document.getElementById('search').focus();
-        });
+
+      try {
+        const payload = { model: this.model.database_name, id: this.sName };
+        this.$store.dispatch('subsystems/getSubsystemSummary', payload);
+        this.componentNotFound = false;
+        this.showLoader = false;
+      } catch {
+        this.componentNotFound = true;
+        document.getElementById('search').focus();
+      }
     },
-    getReactions() {
+    async getReactions() {
       this.showReactionLoader = true;
-      axios.get(`${this.model.database_name}/subsystem/${this.sName}/get_reactions`)
-        .then((response) => {
-          this.reactions = response.data.reactions;
-          this.limitReaction = response.data.limit;
-          this.showReactionLoader = false;
-        })
-        .catch(() => {
-        });
+      try {
+        const payload = { model: this.model.database_name, id: this.sName };
+        this.$store.dispatch('reactions/getRelatedReactionsForSubsystem', payload);
+        this.showReactionLoader = false;
+      } catch {
+        // TODO: handle exception
+      }
     },
     reformatKey(k) { return reformatTableKey(k); },
   },

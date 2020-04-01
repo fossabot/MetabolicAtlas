@@ -31,8 +31,8 @@
                 </span>
                 <span v-else-if="el.name === 'compartment' && metabolite[el.name]">
                   <!-- eslint-disable-next-line max-len -->
-                  <router-link :to="{ path: `/explore/gem-browser/${model.database_name}/compartment/${metabolite[el.name].id}` }"
-                  >{{ metabolite[el.name].name }}</router-link>
+                  <router-link :to="{ name: 'browser', params: { model: model.database_name, type: 'compartment', id: metabolite[el.name].id } }"
+                  >{{ metabolite[el.name].id }}</router-link>
                 </span>
                 <span v-else>
                   {{ metabolite[el.name] }}
@@ -45,7 +45,8 @@
               <td>
                 <span v-for="(rm, i) in relatedMetabolites" :key="rm.id">
                   <br v-if="i !== 0">
-                  <router-link :to="{ path: `/explore/gem-browser/${model.database_name}/metabolite/${rm.id}`}">
+                  <!-- eslint-disable-next-line max-len -->
+                  <router-link :to="{ name: 'browser', params: { model: model.database_name, type: 'metabolite', id: rm.id } }">
                     {{ rm.full_name }}
                   </router-link> in {{ rm.compartment_str }}
                 </span>
@@ -56,15 +57,18 @@
         </div>
         <div class="column is-2-widescreen is-3-desktop is-full-tablet has-text-centered">
           <router-link class="button is-info is-fullwidth is-outlined"
-                       :to="{path: `/explore/interaction/${model.database_name}/${mId}`}">
+                       :to="{ name: 'interPartner', params: { model: model.database_name, id: mId } }">
             <span class="icon"><i class="fa fa-connectdevelop fa-lg"></i></span>&nbsp;
             <span>{{ messages.interPartName }}</span>
           </router-link>
-          <gem-contact :id="mId" :model="model" :type="type" />
+          <br>
+          <!-- eslint-disable-next-line max-len -->
+          <maps-available :id="mId" :type="'metabolite'" :viewer-selected-i-d="metabolite.id"></maps-available>
+          <gem-contact :type="type" :id="mId"/>
         </div>
       </div>
       <div class="columns">
-        <reactome v-show="showReactome" id="metabolite-reactome" :model="model" :metabolite-i-d="metaboliteID"
+        <reactome v-show="showReactome" id="metabolite-reactome" :metabolite-i-d="metaboliteID"
                   :disable-but="relatedMetabolites.length === 0">
         </reactome>
       </div>
@@ -73,7 +77,8 @@
 </template>
 
 <script>
-import axios from 'axios';
+import { mapState } from 'vuex';
+import MapsAvailable from '@/components/explorer/gemBrowser/MapsAvailable';
 import Reactome from '@/components/explorer/gemBrowser/Reactome';
 import GemContact from '@/components/shared/GemContact';
 import NotFound from '@/components/NotFound';
@@ -87,11 +92,9 @@ export default {
   components: {
     NotFound,
     ExtIdTable,
+    MapsAvailable,
     Reactome,
     GemContact,
-  },
-  props: {
-    model: Object,
   },
   data() {
     return {
@@ -110,12 +113,17 @@ export default {
         { name: 'inchi', display: 'InChI' },
         { name: 'compartment' },
       ],
-      metabolite: {},
-      relatedMetabolites: [],
       componentNotFound: false,
       activePanel: 'table',
       showReactome: false,
     };
+  },
+  computed: {
+    ...mapState({
+      model: state => state.models.model,
+      metabolite: state => state.metabolites.metabolite,
+      relatedMetabolites: state => state.metabolites.relatedMetabolites,
+    }),
   },
   watch: {
     /* eslint-disable quote-props */
@@ -137,30 +145,27 @@ export default {
         this.load();
       }
     },
-    load() {
-      axios.get(`${this.model.database_name}/metabolite/${this.mId}/`)
-        .then((response) => {
-          this.componentNotFound = false;
-          this.metaboliteID = this.mId;
-          this.metabolite = response.data;
-          this.showReactome = true;
-          this.getRelatedMetabolites();
-        })
-        .catch(() => {
-          this.componentNotFound = true;
-          this.showReactome = false;
-          document.getElementById('search').focus();
-        });
+    async load() {
+      try {
+        const payload = { model: this.model.database_name, id: this.mId };
+        await this.$store.dispatch('metabolites/getMetaboliteData', payload);
+        this.componentNotFound = false;
+        this.metaboliteID = this.mId;
+        this.showReactome = true;
+        await this.getRelatedMetabolites();
+      } catch {
+        this.componentNotFound = true;
+        this.showReactome = false;
+        document.getElementById('search').focus();
+      }
     },
-    getRelatedMetabolites() {
-      axios.get(`${this.model.database_name}/metabolite/${this.mId}/related`)
-        .then((response) => {
-          this.relatedMetabolites = response.data;
-          this.relatedMetabolites.sort((a, b) => (a.compartment_str < b.compartment_str ? -1 : 1));
-        })
-        .catch(() => {
-          this.relatedMetabolites = [];
-        });
+    async getRelatedMetabolites() {
+      try {
+        const payload = { model: this.model.database_name, id: this.mId };
+        await this.$store.dispatch('metabolites/getRelatedMetabolites', payload);
+      } catch {
+        this.$store.dispatch('metabolites/clearRelatedMetabolites');
+      }
     },
     reformatTableKey(k) { return reformatTableKey(k); },
     chemicalFormula,
