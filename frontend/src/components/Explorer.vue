@@ -8,7 +8,7 @@
       </template>
       <template v-else-if="currentShowComponent">
         <keep-alive>
-          <component :is="currentShowComponent" :model="model"></component>
+          <component :is="currentShowComponent"></component>
         </keep-alive>
       </template>
       <template v-else>
@@ -22,7 +22,7 @@
             <p class="has-text-weight-bold is-size-5">1. Select a model:</p>
           </div>
         </div>
-        <div class="columns is-centered">
+        <div v-if="model" class="columns is-centered">
           <div class="column is-8-widescreen is-10-desktop is-fullwidth-tablet is-size-5">
             <div v-for="cmodel in Object.values(models).sort((a, b) =>
                    (a.short_name.toLowerCase() < b.short_name.toLowerCase() ? -1 : 1))"
@@ -58,7 +58,7 @@
           <template v-for="tool in explorerTools">
             <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
             <div class="column is-3-widescreen is-4-desktop is-6-tablet is-full-mobile is-size-5">
-              <router-link :to="{ path: `${tool.url}/${model.database_name }` }"
+              <router-link :to="{ name: tool.routeName, params: { model: model.database_name } }"
                            :title="`Click to access the ${tool.name} for ${model.short_name} model`">
                 <div class="card card-fullheight hoverable">
                   <header class="card-header">
@@ -84,7 +84,7 @@
 </template>
 
 <script>
-import axios from 'axios';
+import { mapGetters, mapState } from 'vuex';
 import GemBrowser from '@/components/explorer/GemBrowser';
 import MapViewer from '@/components/explorer/MapViewer';
 import InteractionPartners from '@/components/explorer/InteractionPartners';
@@ -106,19 +106,17 @@ export default {
       explorerTools: [
         { name: messages.gemBrowserName,
           img: require('../assets/gemBrowser.jpg'),
-          url: '/explore/gem-browser',
+          routeName: 'browserRoot',
           icon: 'table' },
         { name: messages.mapViewerName,
           img: require('../assets/mapViewer.jpg'),
-          url: '/explore/map-viewer',
+          routeName: 'viewerRoot',
           icon: 'map-o' },
         { name: messages.interPartName,
           img: require('../assets/interaction.jpg'),
-          url: '/explore/interaction',
+          routeName: 'interPartnerRoot',
           icon: 'share-alt' },
       ],
-      model: null,
-      models: {},
       modelNotFound: null,
       extendWindow: false,
       currentShowComponent: '',
@@ -127,24 +125,25 @@ export default {
       errorMessage: '',
     };
   },
+  computed: {
+    ...mapGetters({
+      models: 'models/models',
+    }),
+    ...mapState({
+      model: state => state.models.model,
+    }),
+  },
   watch: {
     /* eslint-disable-next-line quote-props */
     '$route': function watchSetup() {
       this.setup();
+      this.updateRoute();
     },
   },
-  beforeRouteUpdate(to, from, next) { // eslint-disable-line no-unused-vars
+  async created() {
     this.setup();
-    next();
-  },
-  created() {
-    this.setup();
-    this.getModelList();
+    await this.getModelList();
 
-    EventBus.$on('requestViewer', (type, name, ids, forceReload) => {
-      this.displayViewer();
-      EventBus.$emit('showAction', type, name, ids, forceReload);
-    });
     EventBus.$on('showMapViewer', () => {
       this.displayViewer();
     });
@@ -171,7 +170,7 @@ export default {
         }
       }
       this.modelNotFound = null;
-      if (['viewer', 'viewerCompartment', 'viewerCompartmentRea', 'viewerSubsystem', 'viewerSubsystemRea'].includes(this.$route.name)) {
+      if (['viewerRoot', 'viewer'].includes(this.$route.name)) {
         this.displayViewer();
       } else if (['browserRoot', 'browser'].includes(this.$route.name)) {
         this.displayBrowser();
@@ -183,30 +182,41 @@ export default {
         this.currentShowComponent = '';
       }
     },
-    getModelList() {
+    async getModelList() {
       // get integrated models list
-      axios.get('models/')
-        .then((response) => {
-          this.models = {};
-          response.data.forEach((model) => {
-            model.email = model.authors[0].email; // eslint-disable-line no-param-reassign
-            this.models[model.database_name] = model;
-          });
-          let defaultModel = this.models.human1;
-          if (this.$route.params.model && this.$route.params.model in this.models) {
-            defaultModel = this.models[this.$route.params.model];
+      try {
+        await this.$store.dispatch('models/getModels');
+
+        const defaultModelKey = Object.keys(this.models).sort(
+          (a, b) => (a.toLowerCase() < b.toLowerCase() ? -1 : 1))[0];
+        console.log(defaultModelKey);
+        let defaultModel = this.models[defaultModelKey];
+        if (this.$route.params.model && this.$route.params.model in this.models) {
+          // if a model DB is provide in the URL, use it to select the model
+          defaultModel = this.models[this.$route.params.model];
+        } else if (this.$route.name === 'explorerRoot' && this.$route.query && this.$route.query.selected) {
+          // or if a selected=NAME is provided in the URL, try to use it to select the model
+          const modelShortNamesDict = {};
+          Object.values(this.models).forEach((m) => { modelShortNamesDict[m.short_name] = m; });
+          if (this.$route.query.selected in modelShortNamesDict) {
+            defaultModel = modelShortNamesDict[this.$route.query.selected];
           }
-          this.selectModel(defaultModel);
-          this.setup();
-        })
-        .catch(() => {
-          this.errorMessage = messages.unknownError;
-        });
+        }
+        this.$store.dispatch('models/selectModel', defaultModel);
+        this.setup();
+      } catch {
+        this.errorMessage = messages.unknownError;
+      }
     },
     selectModel(model) {
       if (!this.model || model.database_name !== this.model.database_name) {
-        this.model = model;
-        EventBus.$emit('modelSelected', this.model);
+        this.$store.dispatch('models/selectModel', model);
+      }
+      this.updateRoute(this.model.short_name);
+    },
+    updateRoute(modelName) {
+      if (this.$route.name === 'explorerRoot' && this.model && (!this.$route.query || !this.$route.query.selected || this.$route.query.selected !== modelName)) {
+        this.$router.replace({ name: 'explorerRoot', query: { selected: this.model.short_name } }).catch(() => {});
       }
     },
     displayBrowser() {

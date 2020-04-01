@@ -9,7 +9,7 @@
       </div>
     </div>
     <div class="columns is-centered">
-      <gem-search ref="gemSearch" :model="model" :metabolites-and-genes-only="true"></gem-search>
+      <gem-search ref="gemSearch" :metabolites-and-genes-only="true"></gem-search>
     </div>
     <br>
     <div v-if="!mainNodeID">
@@ -196,7 +196,7 @@
                      class="select is-fullwidth"
                      :class="{ 'is-loading' : loadingHPA && toggleGeneExpLevel}">
                   <select id="enz-select" ref="enzHPAselect"
-                          v-model="selectedSample" :disabled="!toggleGeneExpLevel"
+                          v-if="tissues.HPA" v-model="selectedSample" :disabled="!toggleGeneExpLevel"
                           title="Select a tissue type"
                           @change.prevent="applyLevels('gene', 'HPA', 'RNA', selectedSample)">
                     <optgroup label="HPA - RNA levels - Tissues">
@@ -247,7 +247,7 @@
             </div>
             <br>
           </template>
-          <sidebar id="sidebar" :selected-elm="clickedElm" :view="'interaction'" :model="model">
+          <sidebar id="sidebar" :selected-elm="clickedElm" :view="'interaction'">
           </sidebar>
         </div>
       </div>
@@ -261,8 +261,7 @@
 </template>
 
 <script>
-import Vue from 'vue';
-import axios from 'axios';
+import { mapGetters, mapState } from 'vuex';
 import cytoscape from 'cytoscape';
 import jquery from 'jquery';
 import cola from 'cytoscape-cola';
@@ -279,7 +278,6 @@ import NotFound from '@/components/NotFound';
 import { default as transform } from '@/data-mappers/hmr-closest-interaction-partners';
 import { default as graph } from '@/graph-stylers/hmr-closest-interaction-partners';
 
-import { chemicalName } from '@/helpers/chemical-formatters';
 import { default as convertGraphML } from '@/helpers/graph-ml-converter';
 
 import { getSingleRNAExpressionColor } from '@/expression-sources/hpa';
@@ -297,28 +295,21 @@ export default {
     'compact-picker': Compact,
     RNALegend,
   },
-  props: {
-    model: Object,
-  },
   data() {
     return {
       loading: false,
       loadingHPA: false,
       componentNotFound: false,
       errorMessage: '',
-      title: '',
 
       nodeCount: 0,
       warnNodeCount: 50,
       maxNodeCount: 100,
       showNetworkGraph: false,
       largeNetworkGraph: false,
-      tooLargeNetworkGraph: false,
 
       rawRels: {},
       rawElms: {},
-      reactions: [],
-      reactionSet: null,
 
       mainNodeID: '',
       mainNode: null,
@@ -327,10 +318,8 @@ export default {
       clickedElm: null,
       selectedSample: '',
 
-      componentName: '',
       expandedIds: [],
 
-      tissues: {},
       cellLines: {},
       legend: '',
 
@@ -423,6 +412,20 @@ export default {
     };
   },
   computed: {
+    ...mapState({
+      model: state => state.models.model,
+      tissues: state => state.humanProteinAtlas.tissues,
+      matLevels: state => state.humanProteinAtlas.matLevels,
+      tooLargeNetworkGraph: state => state.interactionPartners.tooLargeNetworkGraph,
+      expansion: state => state.interactionPartners.expansion,
+    }),
+    ...mapGetters({
+      component: 'interactionPartners/component',
+      reactions: 'interactionPartners/reactions',
+      title: 'interactionPartners/title',
+      reactionSet: 'interactionPartners/reactionsSet',
+      componentName: 'interactionPartners/componentName',
+    }),
     filename() {
       return `MetAtlas Interaction Partners for ${this.componentName} ${this.mainNodeID}`;
     },
@@ -438,32 +441,32 @@ export default {
   },
   watch: {
     /* eslint-disable quote-props */
-    '$route': function watchSetup() {
+    '$route': async function watchSetup() {
       if (this.$route.path.includes('/interaction/')) {
         if (this.mainNodeID !== this.$route.params.id) {
-          this.setup();
+          await this.setup();
         }
       }
     },
   },
-  beforeMount() {
+  async beforeMount() {
     cytoscape.use(cola);
     jquery(window).resize(() => {
       jquery('#cy').height(jquery('#cy').width() / 1.5);
       this.fitGraph();
     });
-    this.setup();
+    await this.setup();
   },
   methods: {
-    setup() {
+    async setup() {
       this.mainNodeID = this.$route.params.id;
       this.mainNode = null;
       this.reactionHL = null;
       this.compartmentHL = '';
       this.subsystemHL = '';
-      this.loadHPATissue();
+      await this.loadHPATissue();
       if (this.mainNodeID) {
-        this.load();
+        await this.load();
         jquery('#cy').height(jquery('#cy').width() / 1.5);
       }
     },
@@ -471,156 +474,136 @@ export default {
       this.reactionHL = null;
       this.compartmentHL = '';
       this.subsystemHL = '';
-      this.$router.push(`/explore/interaction/${this.model.database_name}/${this.clickedElmId}`);
+      this.$router.push({ name: 'interPartner', params: { model: this.model.database_name, id: this.clickedElmId } });
     },
-    loadHPATissue() {
-      axios.get(`${this.model.database_name}/gene/hpa_tissue/`)
-        .then((response) => {
-          Vue.set(this.tissues, 'HPA', response.data);
-          if (response.data.length === 0) {
-            this.disableExpLvl = true;
-          }
-        })
-        .catch(() => {
-          // HPA tissue might not be available, depending on the selected model
+    async loadHPATissue() {
+      try {
+        await this.$store.dispatch('humanProteinAtlas/getTissues', this.model.database_name);
+        if (this.tissues.HPA.length === 0) {
           this.disableExpLvl = true;
-        });
+        }
+      } catch {
+        this.disableExpLvl = true;
+      }
     },
-    load() {
+    async load() {
       this.loading = true;
-      axios.get(`${this.model.database_name}/reaction_components/${this.mainNodeID}/with_interaction_partners`)
-        .then((response) => {
-          this.componentNotFound = false;
-          this.showGraphContextMenu = false;
-          const { component } = response.data;
-          this.reactions = response.data.reactions;
-          this.title = component.type === 'metabolite' ? chemicalName(component.name) : component.name;
-          if (!this.reactions) {
-            this.tooLargeNetworkGraph = true;
-            this.showNetworkGraph = false;
-            return;
-          }
-          this.tooLargeNetworkGraph = false;
 
-          this.reactionSet = new Set();
-          this.reactions.forEach((r) => {
-            this.reactionSet.add(r.id);
-          });
+      try {
+        const payload = { model: this.model.database_name, id: this.mainNodeID };
+        await this.$store.dispatch('interactionPartners/getInteractionPartners', payload);
 
-          this.componentName = component.name || component.id;
+        // TODO: consider refactoring the following lines in this try block into Vuex,
+        //       as well as duplication with the loadExpansion method
+        this.componentNotFound = false;
+        this.showGraphContextMenu = false;
+        if (this.tooLargeNetworkGraph) {
+          this.showNetworkGraph = false;
+          return;
+        }
 
-          [this.rawElms,
-            this.rawRels,
-            this.compartmentList,
-            this.subsystemList] = transform(component, this.reactions, null, null, null, null);
-          if (this.compartmentList.length === 1) {
-            this.compartmentHL = '';
-            this.disableCompartmentHL = true;
-          }
-          this.mainNode = this.rawElms[component.id];
-          this.mainNode.name = this.componentName;
+        [this.rawElms,
+          this.rawRels,
+          this.compartmentList,
+          this.subsystemList] = transform(this.component, this.reactions, null, null, null, null);
+        if (this.compartmentList.length === 1) {
+          this.compartmentHL = '';
+          this.disableCompartmentHL = true;
+        }
+        this.mainNode = this.rawElms[this.component.id];
+        this.mainNode.name = this.componentName;
 
-          this.expandedIds = [];
-          this.expandedIds.push(component.id);
+        this.expandedIds = [];
+        this.expandedIds.push(this.component.id);
 
-          this.nodeCount = Object.keys(this.rawElms).length;
-          if (this.nodeCount > this.warnNodeCount) {
-            this.showNetworkGraph = false;
-            this.largeNetworkGraph = true;
-            this.errorMessage = '';
-            return;
-          }
-          this.largeNetworkGraph = false;
-          this.showNetworkGraph = true;
+        this.nodeCount = Object.keys(this.rawElms).length;
+        if (this.nodeCount > this.warnNodeCount) {
+          this.showNetworkGraph = false;
+          this.largeNetworkGraph = true;
           this.errorMessage = '';
+          return;
+        }
+        this.largeNetworkGraph = false;
+        this.showNetworkGraph = true;
+        this.errorMessage = '';
 
-          this.resetGeneExpression();
+        this.resetGeneExpression();
 
-          // The set time out wrapper enforces this happens last.
-          setTimeout(() => {
-            this.constructGraph(this.rawElms, this.rawRels, this.fitGraph);
-          }, 0);
-        })
-        .catch((error) => {
-          switch (error.response.status) {
-            case 404:
-              this.componentNotFound = true;
-              break;
-            default:
-              this.errorMessage = messages.unknownError;
-          }
-        }).then(() => {
-          this.loading = false;
-        });
+        // The set time out wrapper enforces this happens last.
+        setTimeout(() => {
+          this.constructGraph(this.rawElms, this.rawRels, this.fitGraph);
+        }, 0);
+      } catch (error) {
+        switch (error.status) {
+          case 404:
+            this.componentNotFound = true;
+            break;
+          default:
+            this.errorMessage = messages.unknownError;
+        }
+      } finally {
+        this.loading = false;
+      }
     },
-    loadExpansion() {
-      axios.get(`${this.model.database_name}/reaction_components/${this.clickedElmId}/with_interaction_partners`)
-        .then((response) => {
-          this.reactionHL = null;
-          this.errorMessage = null;
-          this.showGraphContextMenu = false;
+    async loadExpansion() {
+      try {
+        const payload = { model: this.model.database_name, id: this.mainNodeID };
+        await this.$store.dispatch('interactionPartners/loadExpansion', payload);
 
-          const { component } = response.data;
-          let { reactions } = response.data;
-          if (!reactions) {
-            this.tooLargeNetworkGraph = true;
-            this.showNetworkGraph = false;
-            return;
-          }
-          this.tooLargeNetworkGraph = false;
+        this.reactionHL = null;
+        this.errorMessage = null;
+        this.showGraphContextMenu = false;
 
-          reactions = reactions.filter(r => !this.reactionSet.has(r.id));
-          this.reactions = this.reactions.concat(reactions);
-          this.reactions.forEach((r) => {
-            this.reactionSet.add(r.id);
-          });
+        if (this.tooLargeNetworkGraph) {
+          this.showNetworkGraph = false;
+          return;
+        }
 
-          [this.rawElms,
-            this.rawRels,
-            this.compartmentList,
-            this.subsystemList] = transform(component, reactions, this.rawElms, this.rawRels,
-            this.compartmentList, this.subsystemList);
-          if (this.compartmentList.length === 1) {
-            this.compartmentHL = '';
-            this.disableCompartmentHL = true;
-          } else {
-            this.disableCompartmentHL = false;
-          }
+        [this.rawElms, this.rawRels, this.compartmentList, this.subsystemList] = transform(
+          this.expansion.component,
+          this.expansion.reactions,
+          this.rawElms,
+          this.rawRels,
+          this.compartmentList,
+          this.subsystemList
+        );
 
-          // Object.assign(this.rawElms, newElms);
-          // Object.assign(this.rawRels, newRels);
-          // this.rawElms = this.loadHPAData(this.rawElms);
+        if (this.compartmentList.length === 1) {
+          this.compartmentHL = '';
+          this.disableCompartmentHL = true;
+        } else {
+          this.disableCompartmentHL = false;
+        }
 
-          this.expandedIds.push(component.id);
+        this.expandedIds.push(this.expansion.component.id);
 
-          this.nodeCount = Object.keys(this.rawElms).length;
-          if (this.nodeCount > this.warnNodeCount) {
-            this.showNetworkGraph = false;
-            this.largeNetworkGraph = true;
-            this.errorMessage = '';
-            return;
-          }
-          this.showNetworkGraph = true;
+        this.nodeCount = Object.keys(this.rawElms).length;
+        if (this.nodeCount > this.warnNodeCount) {
+          this.showNetworkGraph = false;
+          this.largeNetworkGraph = true;
           this.errorMessage = '';
+          return;
+        }
+        this.showNetworkGraph = true;
+        this.errorMessage = '';
 
-          this.resetGeneExpression();
+        this.resetGeneExpression();
 
-          // The set time out wrapper enforces this happens last.
-          setTimeout(() => {
-            this.constructGraph(this.rawElms, this.rawRels);
-          }, 0);
-        })
-        .catch((error) => {
-          switch (error.response.status) {
-            case 404:
-              this.errorMessage = messages.notFoundError;
-              break;
-            default:
-              this.errorMessage = messages.unknownError;
-          }
-        }).then(() => {
-          this.loading = false;
-        });
+        // The set time out wrapper enforces this happens last.
+        setTimeout(() => {
+          this.constructGraph(this.rawElms, this.rawRels);
+        }, 0);
+      } catch (error) {
+        switch (error.status) {
+          case 404:
+            this.errorMessage = messages.notFoundError;
+            break;
+          default:
+            this.errorMessage = messages.unknownError;
+        }
+      } finally {
+        this.loading = false;
+      }
     },
     isCompartmentSubsystemHLDisabled() {
       return ((this.compartmentHL === '' && this.subsystemHL === '')
@@ -682,7 +665,7 @@ export default {
       this.compartmentHL = '';
       this.subsystemHL = '';
     },
-    resetGraph(reload) {
+    async resetGraph(reload) {
       this.reactionHL = null;
       this.mainNode = null;
       this.clickedElm = null;
@@ -691,7 +674,7 @@ export default {
       this.resetGeneExpression();
       this.resetHighlight();
       if (reload) {
-        this.load();
+        await this.load();
       } else {
         this.redrawGraph();
       }
@@ -890,8 +873,8 @@ export default {
       a.click();
       document.body.removeChild(a);
     },
-    applyLevels(componentType, expSource, expType, expSample) {
-      setTimeout(() => { // wait this.toggleGeneExpLevel
+    async applyLevels(componentType, expSource, expType, expSample) {
+      setTimeout(async () => { // wait this.toggleGeneExpLevel
         if (this.disableExpLvl) {
           return;
         }
@@ -908,7 +891,7 @@ export default {
                 || !this.expSourceLoaded[componentType][expSource]) {
                 // sources that load all exp type
                 if (expSource === 'HPA') {
-                  this.getHPAexpression(this.rawElms, expSample);
+                  await this.getHPAexpression(this.rawElms, expSample);
                 } else {
                   // load expression data from another source here
                 }
@@ -981,61 +964,61 @@ export default {
       this.nodeDisplayParams.geneExpSample = false;
       this.expSourceLoaded.gene = {};
     },
-    getHPAexpression(rawElms) {
+    async getHPAexpression(rawElms) {
       this.loadingHPA = true;
       const genes = Object.keys(rawElms).filter(el => rawElms[el].type === 'gene');
-      const geneIDs = genes.map(k => rawElms[k].id);
+      const geneIds = genes.map(k => rawElms[k].id);
 
-      axios.post(`${this.model.database_name}/gene/hpa_rna_levels/`, { data: geneIDs })
-        .then((response) => {
-          const matLevels = response.data.levels;
-          for (let i = 0; i < matLevels.length; i += 1) {
-            const array = matLevels[i];
-            const enzID = array[0];
+      try {
+        const payload = { model: this.model.database_name, geneIds };
+        await this.$store.dispatch('humanProteinAtlas/getMatLevels', payload);
 
-            if (!(enzID in this.rawElms)) {
-              continue; // eslint-disable-line no-continue
-            }
+        for (let i = 0; i < this.matLevels.length; i += 1) {
+          const array = this.matLevels[i];
+          const enzID = array[0];
 
-            if (!this.rawElms[enzID].expressionLvl) {
-              this.rawElms[enzID].expressionLvl = {};
-            }
-            if (!this.rawElms[enzID].expressionLvl.HPA) {
-              this.rawElms[enzID].expressionLvl.HPA = {};
-            }
-            if (!this.rawElms[enzID].expressionLvl.HPA.RNA) {
-              this.rawElms[enzID].expressionLvl.HPA.RNA = {};
-            }
-
-            for (let j = 0; j < this.tissues.HPA.length; j += 1) {
-              const tissue = this.tissues.HPA[j];
-              let level = Math.log2(parseFloat(array[1].split(',')[j]) + 1);
-              level = Math.round((level + 0.00001) * 100) / 100;
-              this.rawElms[enzID].expressionLvl.HPA.RNA[tissue] = getSingleRNAExpressionColor(level);
-            }
+          if (!(enzID in this.rawElms)) {
+            continue; // eslint-disable-line no-continue
           }
-          this.expSourceLoaded.gene.HPA = {};
-          this.expSourceLoaded.gene.HPA.RNA = true;
-          this.disableExpLvl = false;
-          this.loadingHPA = false;
-          setTimeout(() => {
-          // if ((expSource && expType) && !expSample) {
-            // fix option selection! because of optgroup?
-            // if (this.toggleGeneExpLevel) {
-            this.fixEnzSelectOption();
-            // }
-            //  }
-            this.redrawGraph(true);
-          }, 0);
-        })
-        .catch(() => {
-          this.loadingHPA = false;
-          this.toggleGeneExpLevel = false;
-          this.disableExpLvl = true;
-          this.nodeDisplayParams.geneExpSource = false;
-          this.nodeDisplayParams.geneExpType = false;
-          this.nodeDisplayParams.geneExpSample = false;
-        });
+
+          if (!this.rawElms[enzID].expressionLvl) {
+            this.rawElms[enzID].expressionLvl = {};
+          }
+          if (!this.rawElms[enzID].expressionLvl.HPA) {
+            this.rawElms[enzID].expressionLvl.HPA = {};
+          }
+          if (!this.rawElms[enzID].expressionLvl.HPA.RNA) {
+            this.rawElms[enzID].expressionLvl.HPA.RNA = {};
+          }
+
+          for (let j = 0; j < this.tissues.HPA.length; j += 1) {
+            const tissue = this.tissues.HPA[j];
+            let level = Math.log2(parseFloat(array[1].split(',')[j]) + 1);
+            level = Math.round((level + 0.00001) * 100) / 100;
+            this.rawElms[enzID].expressionLvl.HPA.RNA[tissue] = getSingleRNAExpressionColor(level);
+          }
+        }
+        this.expSourceLoaded.gene.HPA = {};
+        this.expSourceLoaded.gene.HPA.RNA = true;
+        this.disableExpLvl = false;
+        this.loadingHPA = false;
+        setTimeout(() => {
+        // if ((expSource && expType) && !expSample) {
+          // fix option selection! because of optgroup?
+          // if (this.toggleGeneExpLevel) {
+          this.fixEnzSelectOption();
+          // }
+          //  }
+          this.redrawGraph(true);
+        }, 0);
+      } catch {
+        this.loadingHPA = false;
+        this.toggleGeneExpLevel = false;
+        this.disableExpLvl = true;
+        this.nodeDisplayParams.geneExpSource = false;
+        this.nodeDisplayParams.geneExpType = false;
+        this.nodeDisplayParams.geneExpSample = false;
+      }
     },
     toggleGeneColorPicker() {
       this.showColorPickerMeta = false;

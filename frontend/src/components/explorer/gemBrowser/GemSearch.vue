@@ -5,7 +5,7 @@
         <p class="control has-icons-right has-icons-left">
           <!-- eslint-disable max-len -->
           <input id="search" ref="searchInput"
-                 v-model="searchTermString" v-debounce:700="searchDebounce" data-hj-whitelist
+                 v-debounce:700="searchDebounce" data-hj-whitelist
                  type="text" class="input is-medium"
                  :placeholder="placeholder"
                  @keyup.esc="showResults = false"
@@ -42,7 +42,7 @@
               </router-link>
             </div>
             <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
-            <hr v-if="searchResults[type].length !== 0" class="bhr">
+            <hr v-if="searchResults[type] && searchResults[type].length !== 0" class="bhr">
           </template>
         </div>
         <div v-show="showLoader" class="has-text-centered">
@@ -63,9 +63,8 @@
 </template>
 
 <script>
-import axios from 'axios';
+import { mapGetters, mapState } from 'vuex';
 import $ from 'jquery';
-import { sortResults } from '@/helpers/utils';
 import { chemicalReaction } from '@/helpers/chemical-formatters';
 import { default as messages } from '@/helpers/messages';
 
@@ -73,15 +72,11 @@ export default {
   name: 'GemSearch',
   props: {
     searchTerm: String,
-    model: Object,
     metabolitesAndGenesOnly: Boolean,
   },
   data() {
     return {
       errorMessage: '',
-      resultsOrder: ['metabolite', 'gene', 'reaction', 'subsystem', 'compartment'],
-      searchResults: [],
-      searchTermString: '',
       showSearchCharAlert: false,
       showResults: true,
       showLoader: false,
@@ -98,6 +93,14 @@ export default {
     };
   },
   computed: {
+    ...mapState({
+      model: state => state.models.model,
+      resultsOrder: state => state.search.categories,
+      searchTermString: state => state.search.searchTermString,
+    }),
+    ...mapGetters({
+      searchResults: 'search/categorizedAndSortedResults',
+    }),
     placeholder() {
       if (this.metabolitesAndGenesOnly) {
         return 'uracil, malate, SULT1A3, CNDP1';
@@ -112,76 +115,54 @@ export default {
     blur() {
       setTimeout(() => { this.showResults = $('#search').is(':focus'); }, 200);
     },
-    searchDebounce() {
+    async searchDebounce(searchTerm) {
       this.noResult = false;
-      this.showSearchCharAlert = this.searchTermString.length === 1;
-      this.showLoader = true;
-      if (this.searchTermString.length > 1) {
-        this.showResults = true;
-        this.search(this.searchTermString);
+      this.showSearchCharAlert = searchTerm.length === 1;
+      this.$store.dispatch('search/setSearchTermString', searchTerm);
+
+      const canSearch = searchTerm.length > 1;
+
+      this.showLoader = canSearch;
+      this.showResults = canSearch;
+      if (canSearch) {
+        await this.search(searchTerm);
       }
     },
-    search(searchTerm) {
+    async search() {
       $('#search').focus();
-      this.searchTermString = searchTerm;
-      const url = `${this.model.database_name}/search_${this.metabolitesAndGenesOnly ? 'ip' : 'gb'}/${searchTerm}`;
-      axios.get(url)
-        .then((response) => {
-          const localResults = {
-            metabolite: [],
-            gene: [],
-            reaction: [],
-            subsystem: [],
-            compartment: [],
-          };
+      if (this.searchTermString.length < 2) {
+        return;
+      }
 
-          Object.keys(response.data).forEach((model) => {
-            const resultsModel = response.data[model];
-            this.resultsOrder.forEach((resultType) => {
-              if (this.metabolitesAndGenesOnly && !['metabolite', 'gene'].includes(resultType)) {
-                return;
-              }
-              if (resultsModel[resultType]) {
-                localResults[resultType] = localResults[resultType].concat(
-                  resultsModel[resultType].map(
-                    (e) => {
-                      const d = e; d.model = { id: model, name: resultsModel.name }; return d;
-                    })
-                );
-              }
-            });
-          });
-          this.searchResults = localResults;
+      try {
+        const payload = {
+          model: this.model.database_name,
+          metabolitesAndGenesOnly: this.metabolitesAndGenesOnly,
+        };
+        await this.$store.dispatch('search/search', payload);
 
-          this.noResult = true;
-          const keyList = Object.keys(this.searchResults);
-          for (let i = 0; i < keyList.length; i += 1) {
-            const k = keyList[i];
-            if (this.searchResults[k].length) {
-              this.showSearchCharAlert = false;
-              this.noResult = false;
-              break;
-            }
+        this.noResult = true;
+        const keyList = Object.keys(this.searchResults);
+        for (let i = 0; i < keyList.length; i += 1) {
+          const k = keyList[i];
+          if (this.searchResults[k].length) {
+            this.showSearchCharAlert = false;
+            this.noResult = false;
+            break;
           }
-          this.showLoader = false;
-          // sort result by exact matched first, then by alpha order
-          Object.keys(localResults).forEach((k) => {
-            if (localResults[k].length) {
-              localResults[k].sort((a, b) => sortResults(a, b, this.searchTermString));
-            }
-          });
-          this.$refs.searchResults.scrollTop = 0;
-        })
-        .catch((error) => {
-          this.searchResults = [];
-          this.noResult = true;
-          if (error.response.headers.suggestions) {
-            this.notFoundSuggestions = JSON.parse(error.response.headers.suggestions);
-          } else {
-            this.notFoundSuggestions = [];
-          }
-          this.showLoader = false;
-        });
+        }
+        this.showLoader = false;
+        this.$refs.searchResults.scrollTop = 0;
+      } catch (error) {
+        this.$store.dispatch('search/clearSearchResults');
+        this.noResult = true;
+        if (error.response.headers.suggestions) {
+          this.notFoundSuggestions = JSON.parse(error.response.headers.suggestions);
+        } else {
+          this.notFoundSuggestions = [];
+        }
+        this.showLoader = false;
+      }
     },
     getRouterUrl(type, id) {
       if (this.metabolitesAndGenesOnly) {

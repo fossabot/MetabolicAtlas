@@ -82,7 +82,7 @@
                 <ul>
                   <li>ID</li>
                   <li>Equation (see the
-                    <router-link :to="{ 'path': '/documentation', hash: 'Global-search'}">documentation</router-link>
+                    <router-link :to="{ name: 'documentation', hash: 'Global-search'}">documentation</router-link>
                     for more information)</li>
                   <li>EC code</li>
                   <li>External identifiers</li>
@@ -120,7 +120,7 @@
                     <span v-html="formulaFormater(props.row[props.column.field], props.row.charge)"></span>
                   </template>
                   <template v-else-if="['name', 'id'].includes(props.column.field)">
-                    <router-link :to="{ path: `/explore/gem-browser/${props.row.model.id}/${header}/${props.row.id}` }">
+                    <router-link :to="{ name: 'browser', params: { model: props.row.model.id, type: header, id: props.row.id } }">
                       {{ props.row.name || props.row.id }}
                     </router-link>
                   </template>
@@ -131,7 +131,7 @@
                     <template v-for="(sub, i) in props.formattedRow[props.column.field]" v-else>
                       <template v-if="i !== 0">; </template>
                       <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key max-len -->
-                      <router-link :to="{ path: `/explore/gem-browser/${props.row.model.id}/subsystem/${sub.id}` }"> {{ sub.name }}</router-link>
+                      <router-link :to="{ name: 'browser', params: { model: props.row.model.id, type: 'subsystem', id: sub.id } }">{{ sub.name }}</router-link>
                     </template>
                   </template>
                   <template v-else-if="['compartment', 'compartments'].includes(props.column.field)">
@@ -141,14 +141,14 @@
                     <template v-else-if="['gene', 'subsystem', 'reaction'].includes(header)">
                       <template v-for="(comp, i) in props.formattedRow[props.column.field]">
                         <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
-                        <template v-if="i != 0">; </template><router-link :to="{ path: `/explore/gem-browser/${props.row.model.id}/compartment/${comp.id}` }">{{ comp.name }}</router-link>
+                        <template v-if="i != 0">; </template><router-link :to="{ name: 'browser', params: { model: props.row.model.id, type: 'compartment', id: comp.id } }">{{ comp.name }}</router-link>
                       </template>
                     </template>
                     <template v-else-if="Array.isArray(props.formattedRow[props.column.field])">
                       {{ props.formattedRow[props.column.field].join("; ") }}
                     </template>
                     <template v-else>
-                      <router-link :to="{ path: `/explore/gem-browser/${props.row.model.id}/compartment/${props.formattedRow[props.column.field].id}` }">
+                      <router-link :to="{ name: 'browser', params: { model: props.row.model.id, type: 'compartment', id: props.formattedRow[props.column.field].id } }">
                         {{ props.formattedRow[props.column.field].name }}
                       </router-link>
                     </template>
@@ -171,7 +171,7 @@
 
 <script>
 
-import axios from 'axios';
+import { mapGetters, mapState } from 'vuex';
 import $ from 'jquery';
 import { VueGoodTable } from 'vue-good-table';
 import Loader from '@/components/Loader';
@@ -203,13 +203,6 @@ export default {
         rowsPerPageLabel: 'Rows per page',
         ofLabel: 'of',
       },
-      tabs: [
-        'metabolite',
-        'gene',
-        'reaction',
-        'subsystem',
-        'compartment',
-      ],
       columns: {
         metabolite: [
           {
@@ -439,10 +432,8 @@ export default {
           },
         ],
       },
-      resultsCount: {},
       searchTerm: '',
       searchedTerm: '',
-      searchResults: [],
       showSearchCharAlert: false,
       showTabType: '',
       loading: false,
@@ -456,16 +447,31 @@ export default {
       notFoundSuggestions: [],
     };
   },
+  computed: {
+    ...mapState({
+      tabs: state => state.search.categories,
+    }),
+    ...mapGetters({
+      searchResults: 'search/categorizedGlobalResults',
+      resultsCount: 'search/categorizedGlobalResultsCount',
+    }),
+  },
   beforeRouteEnter(to, from, next) { // eslint-disable-line no-unused-vars
     next((vm) => {
-      vm.searchedTerm = to.query.term; // eslint-disable-line no-param-reassign
-      vm.validateSearch(to.query.term);
+      if (to.query.term) {
+        vm.searchedTerm = to.query.term; // eslint-disable-line no-param-reassign
+        vm.validateSearch(to.query.term);
+      } else if (vm.searchTerm) {
+        vm.$router.replace({ query: { term: vm.searchTerm } });
+      }
       next();
     });
   },
-  beforeRouteUpdate(to, from, next) { // eslint-disable-line no-unused-vars
-    this.searchedTerm = to.query.term;
-    this.validateSearch(to.query.term);
+  async beforeRouteUpdate(to, from, next) { // eslint-disable-line no-unused-vars
+    if (to.query.term && to.query.term !== this.searchedTerm) {
+      this.searchedTerm = to.query.term;
+      await this.validateSearch(to.query.term);
+    }
     next();
   },
   updated() {
@@ -474,14 +480,6 @@ export default {
   methods: {
     formulaFormater(formula, charge) {
       return chemicalFormula(formula, charge);
-    },
-    countResults() {
-      this.tabs.forEach((key) => { this.resultsCount[key] = 0; });
-      Object.keys(this.searchResults)
-        .filter(el => el in this.resultsCount)
-        .forEach((el) => {
-          this.resultsCount[el] = this.searchResults[el].length;
-        });
     },
     fillFilterFields() {
       const filterTypeDropdown = {
@@ -651,66 +649,44 @@ export default {
     showTab(elementType) {
       return this.showTabType === elementType;
     },
-    validateSearch(term) {
+    async validateSearch(term) {
       this.searchTerm = term;
       this.showSearchCharAlert = false;
-      this.searchResults = [];
+      this.$store.dispatch('search/clearGlobalSearchResults');
       this.showTabType = '';
       this.searchResultsFiltered = {};
       if (this.searchTerm.length > 1) {
-        this.search();
+        await this.search();
       } else if (this.searchTerm.length === 1) {
         this.showSearchCharAlert = true;
       }
     },
-    search() {
-      this.loading = true;
-      axios.get(`all/search/${this.searchTerm}`)
-        .then((response) => {
-          const localResults = {
-            metabolite: [],
-            gene: [],
-            reaction: [],
-            subsystem: [],
-            compartment: [],
-          };
-
-          Object.keys(response.data).forEach((model) => {
-            const resultsModel = response.data[model];
-            this.tabs.filter(resultType => resultsModel[resultType])
-              .forEach((resultType) => {
-                localResults[resultType] = localResults[resultType].concat(
-                  resultsModel[resultType].map(
-                    (e) => {
-                      const d = e; d.model = { id: model, name: resultsModel.name }; return d;
-                    })
-                );
-              });
-          });
-          this.searchResults = localResults;
-        })
-        .catch((error) => {
-          if (error.response.headers.suggestions) {
-            this.notFoundSuggestions = JSON.parse(error.response.headers.suggestions);
-          } else {
-            this.notFoundSuggestions = [];
-          }
-          this.searchResults = [];
-        })
-        .then(() => {
-          this.loading = false;
-          // count types
-          this.countResults();
-          // get filters
-          this.fillFilterFields();
-          // select the active tab
-          Object.keys(this.resultsCount)
-            .filter(key => this.resultsCount[key] !== 0)
-            .every((key) => {
-              this.showTabType = key;
-              return false;
-            });
+    postProcessSearch() {
+      this.loading = false;
+      // get filters
+      this.fillFilterFields();
+      // select the active tab
+      Object.keys(this.resultsCount)
+        .filter(key => this.resultsCount[key] !== 0)
+        .every((key) => {
+          this.showTabType = key;
+          return false;
         });
+    },
+    async search() {
+      this.loading = true;
+      try {
+        await this.$store.dispatch('search/globalSearch', this.searchTerm);
+        this.postProcessSearch();
+      } catch (error) {
+        if (error.response.headers.suggestions) {
+          this.notFoundSuggestions = JSON.parse(error.response.headers.suggestions);
+        } else {
+          this.notFoundSuggestions = [];
+        }
+        this.$store.dispatch('search/clearGlobalSearchResults');
+        this.postProcessSearch();
+      }
     },
     formatToTSV(index) {
       const rows = Array.from(this.$refs.searchTables[index].filteredRows[0].children);

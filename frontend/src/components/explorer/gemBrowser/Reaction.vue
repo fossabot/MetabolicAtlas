@@ -56,7 +56,8 @@
             <td class="td-key has-background-primary has-text-white-bis">Related reaction(s)</td>
             <td>
               <span v-for="rr in relatedReactions" :key="rr.id">
-                <router-link :to="{ path: `/explore/gem-browser/${model.database_name}/reaction/${rr.id}`}">
+                <!-- eslint-disable-next-line max-len -->
+                <router-link :to="{ name: 'browser', params: { model: model.database_name, type: 'reaction', id: rr.id } }">
                   {{ rr.id }}
                 </router-link>
                 <div style="margin-left: 30px">
@@ -72,15 +73,15 @@
         <references :reference-list="referenceList" />
       </div>
       <div class="column is-2-widescreen is-3-desktop is-half-tablet has-text-centered">
-        <maps-available :id="rId" :model="model" :type="type" :element-i-d="rId" />
-        <gem-contact :id="rId" :model="model" :type="type" />
+        <maps-available :id="rId" :type="type" :viewer-selected-i-d="reaction.id" />
+        <gem-contact :id="rId" :type="type" />
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import axios from 'axios';
+import { mapState } from 'vuex';
 import Loader from '@/components/Loader';
 import NotFound from '@/components/NotFound';
 import MapsAvailable from '@/components/explorer/gemBrowser/MapsAvailable';
@@ -99,9 +100,6 @@ export default {
     ExtIdTable,
     References,
   },
-  props: {
-    model: Object,
-  },
   data() {
     return {
       rId: this.$route.params.id,
@@ -116,58 +114,57 @@ export default {
         { name: 'compartment', display: 'Compartment(s)' },
         { name: 'subsystem', display: 'Subsystem(s)' },
       ],
-      reaction: {},
-      relatedReactions: [],
       errorMessage: '',
       showLoader: true,
       mapsAvailable: {},
-      referenceList: [],
       componentNotFound: false,
     };
   },
+  computed: {
+    ...mapState({
+      model: state => state.models.model,
+      reaction: state => state.reactions.reaction,
+      referenceList: state => state.reactions.referenceList,
+      relatedReactions: state => state.reactions.relatedReactions,
+    }),
+  },
   watch: {
     /* eslint-disable quote-props */
-    '$route': function watchSetup() {
+    '$route': async function watchSetup() {
       if (this.$route.path.includes('/reaction/')) {
         if (this.rId !== this.$route.params.id) {
-          this.setup();
+          await this.setup();
         }
       }
     },
   },
-  beforeMount() {
-    this.setup();
+  async beforeMount() {
+    await this.setup();
   },
   methods: {
-    setup() {
+    async setup() {
       this.rId = this.$route.params.id;
-      this.load();
+      await this.load();
     },
-    load() {
-      axios.get(`${this.model.database_name}/get_reaction/${this.rId}/`)
-        .then((response) => {
-          this.componentNotFound = false;
-          this.showLoader = false;
-          this.reaction = response.data.reaction;
-          if (response.data.pmids.length !== 0) {
-            this.referenceList = response.data.pmids;
-          }
-          this.getRelatedReactions();
-        })
-        .catch(() => {
-          this.componentNotFound = true;
-          document.getElementById('search').focus();
-        });
+    async load() {
+      try {
+        const payload = { model: this.model.database_name, id: this.rId };
+        await this.$store.dispatch('reactions/getReactionData', payload);
+        this.componentNotFound = false;
+        this.showLoader = false;
+        await this.getRelatedReactions();
+      } catch {
+        this.componentNotFound = true;
+        document.getElementById('search').focus();
+      }
     },
-    getRelatedReactions() {
-      axios.get(`${this.model.database_name}/get_reaction/${this.rId}/related`)
-        .then((response) => {
-          this.relatedReactions = response.data;
-          this.relatedReactions.sort((a, b) => (a.compartment_str < b.compartment_str ? -1 : 1));
-        })
-        .catch(() => {
-          this.relatedReactions = [];
-        });
+    async getRelatedReactions() {
+      try {
+        const payload = { model: this.model.database_name, id: this.rId };
+        await this.$store.dispatch('reactions/getRelatedReactionsForReaction', payload);
+      } catch {
+        this.$store.dispatch('reactions/clearRelatedReactions');
+      }
     },
     reformatEquation() { return reformatChemicalReactionHTML(this.reaction, false, this.model.database_name); },
     reformatGenes() {

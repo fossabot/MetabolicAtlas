@@ -73,6 +73,7 @@
 </template>
 
 <script>
+import { mapState } from 'vuex';
 import { default as compare } from '@/helpers/compare';
 import ExportTSV from '@/components/explorer/gemBrowser/ExportTSV';
 import { idfy, reformatChemicalReactionHTML, getChemicalReaction } from '@/helpers/utils';
@@ -83,7 +84,6 @@ export default {
     ExportTSV,
   },
   props: {
-    model: Object,
     sourceName: String,
     reactions: Array,
     selectedElmId: String,
@@ -118,6 +118,9 @@ export default {
     };
   },
   computed: {
+    ...mapState({
+      model: state => state.models.model,
+    }),
     showCP() {
       return this.selectedElmId; // true or false
     },

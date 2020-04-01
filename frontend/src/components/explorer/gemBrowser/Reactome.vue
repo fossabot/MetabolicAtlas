@@ -7,9 +7,8 @@
           {{ !expandAllCompartment ? "Expand to all compartments" : "Restrict to current compartment" }}
         </button>
       </p>
-      <reaction-table v-show="!showLoader" :show-subsystem="true" :model="model" :limit="200"
-                      :reactions="!expandAllCompartment ? reactions : reactionsAllcompartment"
-                      :selected-elm-id="ID" :source-name="metaboliteID">
+      <reaction-table v-show="!showLoader" :show-subsystem="true" :limit="200"
+                      :reactions="reactions" :selected-elm-id="ID" :source-name="metaboliteID">
       </reaction-table>
       <div v-if="errorMessage" class="columns">
         <div class="column notification is-danger is-half is-offset-one-quarter has-text-centered">
@@ -25,7 +24,7 @@
 
 <script>
 
-import axios from 'axios';
+import { mapState } from 'vuex';
 import Loader from '@/components/Loader';
 import ReactionTable from '@/components/explorer/gemBrowser/ReactionTable';
 
@@ -36,15 +35,12 @@ export default {
     Loader,
   },
   props: {
-    model: Object,
     metaboliteID: String,
     disableBut: Boolean,
   },
   data() {
     return {
       errorMessage: '',
-      reactions: [],
-      reactionsAllcompartment: [],
       showLoader: true,
       showTable: false,
       expandAllCompartment: false,
@@ -52,54 +48,45 @@ export default {
       reactomeID: '',
     };
   },
+  computed: {
+    ...mapState({
+      model: state => state.models.model,
+      reactions: state => state.reactions.relatedReactions,
+    }),
+  },
+  // TODO: consider replacing this watcher
   watch: {
-    metaboliteID() {
+    async metaboliteID() {
       if (this.metaboliteID) {
         this.ID = this.metaboliteID;
         this.reactomeID = '';
-        this.reactions = [];
-        this.reactionsAllcompartment = [];
+        this.$store.dispatch('reactions/clearRelatedReactions');
         this.expandAllCompartment = false;
-        this.loadReactions(this.ID);
+        await this.loadReactions(this.ID);
       }
     },
   },
   methods: {
-    loadReactions(ID) {
-      if (this.reactomeID
-          && ((this.expandAllCompartment && this.reactionsAllcompartment.length !== 0)
-         || (!this.expandAllCompartment && this.reactions.length !== 0))) {
-        this.reactomeID = ID;
-        return;
-      }
+    async loadReactions(ID) {
       this.showLoader = true;
       this.reactomeID = ID;
-      let url = `${this.model.database_name}/metabolite/${ID}/get_reactions/`;
-      if (this.expandAllCompartment) {
-        url = `${this.model.database_name}/metabolite/${ID}/get_reactions/all_compartments/`;
+      try {
+        const payload = { model: this.model.database_name, id: ID, allCompartments: this.expandAllCompartment };
+        await this.$store.dispatch('reactions/getRelatedReactionsForMetabolite', payload);
+        this.errorMessage = '';
+        this.showTable = true;
+        this.showLoader = false;
+      } catch {
+        this.showLoader = false;
+        this.showTable = false;
       }
-      axios.get(url)
-        .then((response) => {
-          this.errorMessage = '';
-          if (this.expandAllCompartment) {
-            this.reactionsAllcompartment = response.data;
-          } else {
-            this.reactions = response.data;
-          }
-          this.showTable = true;
-          this.showLoader = false;
-        })
-        .catch(() => {
-          this.showLoader = false;
-          this.showTable = false;
-        });
     },
-    toggleExpandAllCompartment() {
+    async toggleExpandAllCompartment() {
       if (this.disableBut) {
         return;
       }
       this.expandAllCompartment = !this.expandAllCompartment;
-      this.loadReactions(this.ID);
+      await this.loadReactions(this.ID);
     },
   },
 };

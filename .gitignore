@@ -92,6 +92,7 @@ utils/svg/input/*
 utils/svg/output/*
 *.pyc
 node_modules/
+utils/mockData/**/*csv
 
 
 # Log files
