@@ -8,6 +8,7 @@
                  v-debounce:700="searchDebounce" data-hj-whitelist
                  type="text" class="input is-medium"
                  :placeholder="placeholder"
+                 :value="searchTermString"
                  @keyup.esc="showResults = false"
                  @focus="showResults = true"
                  @blur="blur()">
@@ -53,7 +54,7 @@
           <div v-if="notFoundSuggestions.length !== 0">
             Do you mean:&nbsp;
             <template v-for="v in notFoundSuggestions">
-              <a :key="v" class="suggestions has-text-link" @click.prevent="search(v)">{{ v }}</a>&nbsp;
+              <a :key="v" class="suggestions has-text-link" @click.prevent="searchDebounce(v)">{{ v }}</a>&nbsp;
             </template>?
           </div>
         </div>
