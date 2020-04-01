@@ -15,7 +15,7 @@
         </div>
       </div>
       <div class="columns is-centered">
-        <gem-search ref="gemSearch"></gem-search>
+        <gem-search ref="gemSearch" />
       </div>
       <div v-if="showTiles && !selectedType">
         <div class="columns is-centered">
@@ -79,11 +79,11 @@
         </div>
       </div>
       <div v-show="selectedType">
-        <gene v-if="selectedType==='gene'"></gene>
-        <metabolite v-if="selectedType==='metabolite'"></metabolite>
-        <reaction v-if="selectedType==='reaction'"></reaction>
-        <subsystem v-if="selectedType==='subsystem'"></subsystem>
-        <compartment v-if="selectedType==='compartment'"></compartment>
+        <gene v-if="selectedType==='gene'" />
+        <metabolite v-if="selectedType==='metabolite'" />
+        <reaction v-if="selectedType==='reaction'" />
+        <subsystem v-if="selectedType==='subsystem'" />
+        <compartment v-if="selectedType==='compartment'" />
       </div>
     </template>
   </div>
