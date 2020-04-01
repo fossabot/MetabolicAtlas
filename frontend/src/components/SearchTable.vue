@@ -233,7 +233,7 @@ export default {
             field: 'subsystem',
             filterOptions: {
               enabled: true,
-              filterDropdownItems: [],
+              filterFn: (e, s) => e.filter(v => v.name.toLowerCase().includes(s.toLowerCase())).length !== 0,
             },
             sortable: true,
           }, {
@@ -242,6 +242,7 @@ export default {
             filterOptions: {
               enabled: true,
               filterDropdownItems: [],
+              filterFn: (e, s) => e.name === s,
             },
             sortable: true,
           },
@@ -267,7 +268,7 @@ export default {
             field: 'subsystem',
             filterOptions: {
               enabled: true,
-              filterDropdownItems: [],
+              filterFn: (e, s) => e.filter(v => v.name.toLowerCase().includes(s.toLowerCase())).length !== 0,
             },
             sortable: true,
           }, {
@@ -276,6 +277,7 @@ export default {
             filterOptions: {
               enabled: true,
               filterDropdownItems: [],
+              filterFn: (e, s) => e.filter(v => v.name === s).length !== 0,
             },
             sortable: true,
           },
@@ -309,7 +311,7 @@ export default {
             field: 'subsystem',
             filterOptions: {
               enabled: true,
-              filterDropdownItems: [],
+              filterFn: (e, s) => e.filter(v => v.name.toLowerCase().includes(s.toLowerCase())).length !== 0,
             },
             sortable: true,
           }, {
@@ -318,6 +320,7 @@ export default {
             filterOptions: {
               enabled: true,
               filterDropdownItems: [],
+              filterFn: (e, s) => e.filter(v => v.name === s).length !== 0,
             },
             sortable: true,
           }, {
@@ -353,6 +356,7 @@ export default {
             filterOptions: {
               enabled: true,
               filterDropdownItems: [],
+              filterFn: (e, s) => e.filter(v => v.name === s).length !== 0,
             },
             sortable: true,
           }, {
@@ -523,14 +527,8 @@ export default {
             Object.keys(filterTypeDropdown[componentType]).forEach((field) => {
               if (field === 'model') {
                 filterTypeDropdown[componentType][field][el[field].id] = el[field].name;
-              } else if (field === 'subsystem') {
-                el[field]
-                  .filter(v => !(v.id in filterTypeDropdown[componentType][field]))
-                  .forEach((v) => {
-                    filterTypeDropdown[componentType][field][v.id] = 1;
-                  });
-              } else if (!(el[field] in filterTypeDropdown[componentType][field])) {
-                filterTypeDropdown[componentType][field][el[field]] = 1;
+              } else if (field === 'compartment') {
+                filterTypeDropdown[componentType][field][el[field].name] = 1;
               }
             });
             rows[componentType].push(el);
@@ -538,24 +536,22 @@ export default {
             Object.keys(filterTypeDropdown[componentType]).forEach((field) => {
               if (field === 'model') {
                 filterTypeDropdown[componentType][field][el[field].id] = el[field].name;
-              } else if (['compartment', 'subsystem'].includes(field)) {
+              } else if (field === 'compartment') {
                 el[field]
                   .filter(v => !(v.id in filterTypeDropdown[componentType][field]))
                   .forEach((v) => {
-                    filterTypeDropdown[componentType][field][v.id] = 1;
+                    filterTypeDropdown[componentType][field][v.name] = 1;
                   });
-              } else if (!(el[field] in filterTypeDropdown[componentType][field])) {
-                filterTypeDropdown[componentType][field][el[field]] = 1;
               }
             });
             rows[componentType].push(el);
           } else if (componentType === 'reaction') {
             Object.keys(filterTypeDropdown[componentType]).forEach((field) => {
-              if (['compartment', 'subsystem'].includes(field) && el[field]) {
+              if (field === 'compartment') {
                 el[field]
                   .filter(v => !(v in filterTypeDropdown[componentType][field]))
                   .forEach((v) => {
-                    filterTypeDropdown[componentType][field][v] = 1;
+                    filterTypeDropdown[componentType][field][v.name] = 1;
                   });
               } else if (field === 'model') {
                 filterTypeDropdown[componentType][field][el[field].id] = el[field].name;
@@ -577,22 +573,17 @@ export default {
                 el[field]
                   .filter(compartment => !(compartment.id in filterTypeDropdown[componentType][field]))
                   .forEach((compartment) => {
-                    filterTypeDropdown[componentType][field][compartment.id] = 1;
+                    filterTypeDropdown[componentType][field][compartment.name] = 1;
                   });
               } else if (field === 'model') {
                 filterTypeDropdown[componentType][field][el[field].id] = el[field].name;
-              } else if (!(el[field] in filterTypeDropdown[componentType][field])) {
-                filterTypeDropdown[componentType][field][el[field]] = 1;
               }
             });
             rows[componentType].push(el);
           } else if (componentType === 'compartment') {
             Object.keys(filterTypeDropdown[componentType]).forEach((field) => {
-              if (field === 'model') {
-                filterTypeDropdown[componentType][field][el[field].id] = el[field].name;
-              } else if (!(el[field] in filterTypeDropdown[componentType][field])) {
-                filterTypeDropdown[componentType][field][el[field]] = 1;
-              }
+              // 'model' field
+              filterTypeDropdown[componentType][field][el[field].id] = el[field].name;
             });
             rows[componentType].push(el);
           }
@@ -619,7 +610,6 @@ export default {
       });
       // assign filter choices lists to the columns
       this.columns.metabolite[0].filterOptions.filterDropdownItems = filterTypeDropdown.metabolite.model;
-      this.columns.metabolite[3].filterOptions.filterDropdownItems = filterTypeDropdown.metabolite.subsystem;
       this.columns.metabolite[4].filterOptions.filterDropdownItems = filterTypeDropdown.metabolite.compartment;
 
       this.columns.gene[0].filterOptions.filterDropdownItems = filterTypeDropdown.gene.model;
@@ -630,8 +620,7 @@ export default {
       this.columns.reaction[5].filterOptions.filterDropdownItems = filterTypeDropdown.reaction.is_transport;
 
       this.columns.subsystem[0].filterOptions.filterDropdownItems = filterTypeDropdown.subsystem.model;
-      this.columns.subsystem[2].filterOptions.filterDropdownItems = filterTypeDropdown.subsystem.system;
-      this.columns.subsystem[3].filterOptions.filterDropdownItems = filterTypeDropdown.subsystem.compartment;
+      this.columns.subsystem[2].filterOptions.filterDropdownItems = filterTypeDropdown.subsystem.compartments;
 
       this.columns.compartment[0].filterOptions.filterDropdownItems = filterTypeDropdown.subsystem.model;
       this.rows = rows;
