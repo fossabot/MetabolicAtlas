@@ -13,7 +13,8 @@
           </h3>
         </div>
       </div>
-      <div class="columns is-multiline metabolite-table is-variable is-8">
+      <loader v-if="showLoaderMessage" :message="showLoaderMessage" class="columns" />
+      <div v-else class="columns is-multiline metabolite-table is-variable is-8">
         <div class="column is-10-widescreen is-9-desktop is-full-tablet">
           <table v-if="metabolite" class="table main-table is-fullwidth">
             <tr v-for="el in mainTableKey" :key="el.name">
@@ -56,7 +57,7 @@
         </div>
         <div class="column is-2-widescreen is-3-desktop is-full-tablet has-text-centered">
           <router-link class="button is-info is-fullwidth is-outlined"
-                       :to="{ name: 'interPartner', params: { model: model.database_name, id: metaboliteId } }">
+                      :to="{ name: 'interPartner', params: { model: model.database_name, id: metaboliteId } }">
             <span class="icon"><i class="fa fa-connectdevelop fa-lg"></i></span>&nbsp;
             <span>{{ messages.interPartName }}</span>
           </router-link>
@@ -65,9 +66,9 @@
           <maps-available :id="metaboliteId" :type="'metabolite'" :viewer-selected-i-d="metabolite.id" />
           <gem-contact :id="metaboliteId" :type="type" />
         </div>
+        <reaction-table :selected-elm-id="metaboliteId" :source-name="metaboliteId" :type="type"
+                        :related-met-count="relatedMetabolites.length" />
       </div>
-      <reaction-table :selected-elm-id="metaboliteId" :source-name="metaboliteId" :type="type"
-                      :related-met-count="relatedMetabolites.length" />
     </div>
   </div>
 </template>
@@ -78,6 +79,7 @@ import MapsAvailable from '@/components/explorer/gemBrowser/MapsAvailable';
 import ReactionTable from '@/components/explorer/gemBrowser/ReactionTable';
 import GemContact from '@/components/shared/GemContact';
 import NotFound from '@/components/NotFound';
+import Loader from '@/components/Loader';
 import ExtIdTable from '@/components/explorer/gemBrowser/ExtIdTable';
 import { chemicalFormula } from '@/helpers/chemical-formatters';
 import { reformatTableKey } from '@/helpers/utils';
@@ -87,6 +89,7 @@ export default {
   name: 'Metabolite',
   components: {
     NotFound,
+    Loader,
     ExtIdTable,
     MapsAvailable,
     ReactionTable,
@@ -108,9 +111,9 @@ export default {
         { name: 'inchi', display: 'InChI' },
         { name: 'compartment' },
       ],
-      componentNotFound: false,
       activePanel: 'table',
-      showReactome: false,
+      componentNotFound: false,
+      showLoaderMessage: 'Loading metabolite data',
     };
   },
   computed: {
@@ -121,19 +124,16 @@ export default {
     }),
   },
   async beforeMount() {
-    if (this.$route.params.id) {
-      this.metaboliteId = this.$route.params.id;
-      try {
-        const payload = { model: this.model.database_name, id: this.metaboliteId };
-        await this.$store.dispatch('metabolites/getMetaboliteData', payload);
-        this.componentNotFound = false;
-        this.showReactome = true;
-        await this.getRelatedMetabolites();
-      } catch {
-        this.componentNotFound = true;
-        this.showReactome = false;
-        document.getElementById('search').focus();
-      }
+    this.metaboliteId = this.$route.params.id;
+    try {
+      const payload = { model: this.model.database_name, id: this.metaboliteId };
+      await this.$store.dispatch('metabolites/getMetaboliteData', payload);
+      this.componentNotFound = false;
+      this.showLoaderMessage = '';
+      await this.getRelatedMetabolites();
+    } catch {
+      this.componentNotFound = true;
+      document.getElementById('search').focus();
     }
   },
   methods: {

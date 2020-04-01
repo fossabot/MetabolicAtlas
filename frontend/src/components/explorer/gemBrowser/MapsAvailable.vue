@@ -84,24 +84,13 @@ export default {
       return limited;
     },
   },
-  watch: {
-    async id() {
-      this.mapLimitPerDim = 4;
-      await this.getAvailableMaps();
-    },
-  },
   async beforeMount() {
-    await this.getAvailableMaps();
-  },
-  methods: {
-    async getAvailableMaps() {
-      try {
-        const payload = { model: this.model.database_name, mapType: this.type, id: this.id };
-        await this.$store.dispatch('maps/getAvailableMaps', payload);
-      } catch {
-        // TODO: handle exception
-      }
-    },
+    try {
+      const payload = { model: this.model.database_name, mapType: this.type, id: this.id };
+      await this.$store.dispatch('maps/getAvailableMaps', payload);
+    } catch {
+      // TODO: handle exception
+    }
   },
 };
 </script>

@@ -8,9 +8,7 @@
         <h3 class="title is-size-3"><span class="is-capitalized">{{ type }}</span> {{ reaction.id }}</h3>
       </div>
     </div>
-    <div v-if="showLoader" class="columns">
-      <loader></loader>
-    </div>
+    <loader v-if="showLoaderMessage" :message="showLoaderMessage" class="columns" />
     <div v-else class="columns is-multiline is-variable is-8">
       <div class="reaction-table column is-10-widescreen is-9-desktop is-full-tablet">
         <table v-if="reaction && Object.keys(reaction).length !== 0" class="table main-table is-fullwidth">
@@ -115,7 +113,7 @@ export default {
         { name: 'subsystem', display: 'Subsystem(s)' },
       ],
       errorMessage: '',
-      showLoader: true,
+      showLoaderMessage: 'Loading reaction data',
       mapsAvailable: {},
       componentNotFound: false,
     };
@@ -128,36 +126,20 @@ export default {
       relatedReactions: state => state.reactions.relatedReactions,
     }),
   },
-  watch: {
-    /* eslint-disable quote-props */
-    '$route': async function watchSetup() {
-      if (this.$route.path.includes('/reaction/')) {
-        if (this.rId !== this.$route.params.id) {
-          await this.setup();
-        }
-      }
-    },
-  },
   async beforeMount() {
-    await this.setup();
+    this.rId = this.$route.params.id;
+    try {
+      const payload = { model: this.model.database_name, id: this.rId };
+      await this.$store.dispatch('reactions/getReactionData', payload);
+      this.componentNotFound = false;
+      this.showLoaderMessage = '';
+      await this.getRelatedReactions();
+    } catch {
+      this.componentNotFound = true;
+      document.getElementById('search').focus();
+    }
   },
   methods: {
-    async setup() {
-      this.rId = this.$route.params.id;
-      await this.load();
-    },
-    async load() {
-      try {
-        const payload = { model: this.model.database_name, id: this.rId };
-        await this.$store.dispatch('reactions/getReactionData', payload);
-        this.componentNotFound = false;
-        this.showLoader = false;
-        await this.getRelatedReactions();
-      } catch {
-        this.componentNotFound = true;
-        document.getElementById('search').focus();
-      }
-    },
     async getRelatedReactions() {
       try {
         const payload = { model: this.model.database_name, id: this.rId };

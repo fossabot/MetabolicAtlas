@@ -1,20 +1,21 @@
 <template>
-  <div class="container loading">
+  <div class="container loading has-text-centered">
     <a class="button is-primary is-inverted is-outlined is-large is-loading"></a>
+    <p class="is-size-5">{{ message }}</p>
   </div>
 </template>
 
 <script>
-
 export default {
   name: 'Loader',
+  props: {
+    message: { type: String, required: false },
+  },
 };
-
 </script>
 
-<style lang="scss">
-  .loading {
-    text-align: center;
-    font-size: 42px;
+<style lang="scss" scoped>
+  p {
+    line-height: 3em;
   }
 </style>

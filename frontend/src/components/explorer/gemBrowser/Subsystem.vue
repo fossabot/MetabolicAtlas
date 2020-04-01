@@ -5,11 +5,11 @@
   <div v-else>
     <div class="columns">
       <div class="column">
-        <h3 class="title is-3"><span class="is-capitalized">{{ type }}</span> {{ !showLoader ? info.name : '' }}</h3>
+        <h3 class="title is-3"><span class="is-capitalized">{{ type }}</span> {{ info.name }}</h3>
       </div>
     </div>
-    <loader v-show="showLoader"></loader>
-    <div v-show="!showLoader" class="columns is-multiline is-variable is-8">
+    <loader v-if="showLoaderMessage" :message="showLoaderMessage" class="columns" />
+    <div v-else class="columns is-multiline is-variable is-8">
       <div class="subsystem-table column is-10-widescreen is-9-desktop is-full-tablet">
         <table v-if="info && Object.keys(info).length !== 0" class="table main-table is-fullwidth">
           <tr v-for="el in mainTableKey" :key="el.name" class="m-row">
@@ -74,9 +74,6 @@
         <gem-contact :id="sName" :type="type" />
       </div>
     </div>
-    <template v-if="!showLoader">
-      <h4 class="title is-4">Reactions</h4>
-    </template>
     <reaction-table :source-name="sName" :type="type" :show-subsystem="false" />
   </div>
 </template>
@@ -85,8 +82,8 @@
 <script>
 
 import { mapGetters, mapState } from 'vuex';
-import Loader from '@/components/Loader';
 import NotFound from '@/components/NotFound';
+import Loader from '@/components/Loader';
 import MapsAvailable from '@/components/explorer/gemBrowser/MapsAvailable';
 import ExtIdTable from '@/components/explorer/gemBrowser/ExtIdTable';
 import ReactionTable from '@/components/explorer/gemBrowser/ReactionTable';
@@ -97,17 +94,16 @@ export default {
   name: 'Subsystem',
   components: {
     NotFound,
+    Loader,
     MapsAvailable,
     ReactionTable,
     ExtIdTable,
-    Loader,
     GemContact,
   },
   data() {
     return {
       sName: this.$route.params.id,
       type: 'subsystem',
-      showLoader: true,
       errorMessage: '',
       mainTableKey: [
         { name: 'name', display: 'Name' },
@@ -117,6 +113,7 @@ export default {
       displayedMetabolite: 40,
       displayedGene: 40,
       componentNotFound: false,
+      showLoaderMessage: 'Loading subsystem data',
     };
   },
   computed: {
@@ -165,12 +162,11 @@ export default {
   },
   async beforeMount() {
     this.sName = this.$route.params.id;
-    this.showLoader = true;
     try {
       const payload = { model: this.model.database_name, id: this.sName };
       this.$store.dispatch('subsystems/getSubsystemSummary', payload);
       this.componentNotFound = false;
-      this.showLoader = false;
+      this.showLoaderMessage = '';
     } catch {
       this.componentNotFound = true;
       document.getElementById('search').focus();

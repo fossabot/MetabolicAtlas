@@ -11,7 +11,8 @@
           </h3>
         </div>
       </div>
-      <div class="columns">
+      <loader v-if="showLoaderMessage" :message="showLoaderMessage" class="columns" />
+      <div v-else class="columns">
         <div class="column">
           <div class="columns is-multiline is-variable is-8">
             <div id="gene-details" class="reaction-table column is-10-widescreen is-9-desktop is-full-tablet">
@@ -58,6 +59,7 @@
 import { mapGetters, mapState } from 'vuex';
 import GemContact from '@/components/shared/GemContact';
 import NotFound from '@/components/NotFound';
+import Loader from '@/components/Loader';
 import ExtIdTable from '@/components/explorer/gemBrowser/ExtIdTable';
 import MapsAvailable from '@/components/explorer/gemBrowser/MapsAvailable';
 import ReactionTable from '@/components/explorer/gemBrowser/ReactionTable';
@@ -68,6 +70,7 @@ export default {
   name: 'Gene',
   components: {
     NotFound,
+    Loader,
     MapsAvailable,
     ReactionTable,
     GemContact,
@@ -76,7 +79,6 @@ export default {
   data() {
     return {
       messages,
-      showLoader: true,
       showReactionLoader: true,
       geneId: '',
       type: 'gene',
@@ -89,6 +91,7 @@ export default {
       ],
       limitReaction: 200,
       componentNotFound: false,
+      showLoaderMessage: 'Loading gene data',
     };
   },
   computed: {
@@ -101,20 +104,16 @@ export default {
     }),
   },
   async beforeMount() {
-    if (this.$route.params.id) {
-      this.geneId = this.$route.params.id;
-      this.showLoader = true;
-      try {
-        const payload = { model: this.model.database_name, id: this.geneId };
-        await this.$store.dispatch('genes/getGeneData', payload);
-        this.showLoader = false;
-        this.componentNotFound = false;
-      } catch {
-        this.showLoader = false;
-        this.reactions = [];
-        this.componentNotFound = true;
-        document.getElementById('search').focus();
-      }
+    this.geneId = this.$route.params.id;
+    try {
+      const payload = { model: this.model.database_name, id: this.geneId };
+      await this.$store.dispatch('genes/getGeneData', payload);
+      this.componentNotFound = false;
+      this.showLoaderMessage = '';
+    } catch {
+      this.reactions = [];
+      this.componentNotFound = true;
+      document.getElementById('search').focus();
     }
   },
   methods: {
