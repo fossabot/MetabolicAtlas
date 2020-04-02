@@ -18,43 +18,49 @@
       <template v-else>
         <div class="columns is-multiline metabolite-table is-variable is-8">
           <div class="column is-10-widescreen is-9-desktop is-full-tablet">
-            <table v-if="metabolite" class="table main-table is-fullwidth">
-              <tr v-for="el in mainTableKey" :key="el.name">
-                <td v-if="el.display" class="td-key has-background-primary has-text-white-bis" v-html="el.display"></td>
-                <td v-else-if="el.name === 'id'"
-                    class="td-key has-background-primary has-text-white-bis">
-                  {{ model.short_name }} ID
-                </td>
-                <td v-else class="td-key has-background-primary has-text-white-bis">{{ reformatTableKey(el.name) }}</td>
-                <td v-if="metabolite[el.name] !== null">
-                  <span v-if="el.name === 'formula'" v-html="chemicalFormula(metabolite[el.name], metabolite.charge)">
-                  </span>
-                  <span v-else-if="el.modifier" v-html="el.modifier(metabolite[el.name])">
-                  </span>
-                  <span v-else-if="el.name === 'compartment' && metabolite[el.name]">
-                    <!-- eslint-disable-next-line max-len -->
-                    <router-link :to="{ name: 'browser', params: { model: model.database_name, type: 'compartment', id: metabolite[el.name].id } }"
-                    >{{ metabolite[el.name].id }}</router-link>
-                  </span>
-                  <span v-else>
-                    {{ metabolite[el.name] }}
-                  </span>
-                </td>
-                <td v-else> - </td>
-              </tr>
-              <tr v-if="relatedMetabolites.length !== 0">
-                <td class="td-key has-background-primary has-text-white-bis">Related metabolite(s)</td>
-                <td>
-                  <span v-for="(rm, i) in relatedMetabolites" :key="rm.id">
-                    <br v-if="i !== 0">
-                    <!-- eslint-disable-next-line max-len -->
-                    <router-link :to="{ name: 'browser', params: { model: model.database_name, type: 'metabolite', id: rm.id } }">
-                      {{ rm.full_name }}
-                    </router-link> in {{ rm.compartment_str }}
-                  </span>
-                </td>
-              </tr>
-            </table>
+            <div class="table-container">
+              <table v-if="metabolite" class="table main-table is-fullwidth">
+                <tr v-for="el in mainTableKey" :key="el.name">
+                  <td v-if="el.display"
+                      class="td-key has-background-primary has-text-white-bis" v-html="el.display">
+                  </td>
+                  <td v-else-if="el.name === 'id'"
+                      class="td-key has-background-primary has-text-white-bis">
+                    {{ model.short_name }} ID
+                  </td>
+                  <td v-else class="td-key has-background-primary has-text-white-bis">
+                      {{ reformatTableKey(el.name) }}
+                  </td>
+                  <td v-if="metabolite[el.name] !== null">
+                    <span v-if="el.name === 'formula'" v-html="chemicalFormula(metabolite[el.name], metabolite.charge)">
+                    </span>
+                    <span v-else-if="el.modifier" v-html="el.modifier(metabolite[el.name])">
+                    </span>
+                    <span v-else-if="el.name === 'compartment' && metabolite[el.name]">
+                      <!-- eslint-disable-next-line max-len -->
+                      <router-link :to="{ name: 'browser', params: { model: model.database_name, type: 'compartment', id: metabolite[el.name].id } }"
+                      >{{ metabolite[el.name].id }}</router-link>
+                    </span>
+                    <span v-else>
+                      {{ metabolite[el.name] }}
+                    </span>
+                  </td>
+                  <td v-else> - </td>
+                </tr>
+                <tr v-if="relatedMetabolites.length !== 0">
+                  <td class="td-key has-background-primary has-text-white-bis">Related metabolite(s)</td>
+                  <td>
+                    <span v-for="(rm, i) in relatedMetabolites" :key="rm.id">
+                      <br v-if="i !== 0">
+                      <!-- eslint-disable-next-line max-len -->
+                      <router-link :to="{ name: 'browser', params: { model: model.database_name, type: 'metabolite', id: rm.id } }">
+                        {{ rm.full_name }}
+                      </router-link> in {{ rm.compartment_str }}
+                    </span>
+                  </td>
+                </tr>
+              </table>
+            </div>
             <ExtIdTable :type="type" :external-dbs="metabolite.external_databases"></ExtIdTable>
           </div>
           <div class="column is-2-widescreen is-3-desktop is-full-tablet has-text-centered">

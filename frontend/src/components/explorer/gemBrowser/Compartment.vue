@@ -11,36 +11,39 @@
     <loader v-if="showLoaderMessage" :message="showLoaderMessage" class="columns" />
     <div v-else class="columns is-multiline is-variable is-8">
       <div class="subsystem-table column is-10-widescreen is-9-desktop is-full-tablet">
-        <table v-if="compartment && Object.keys(compartment).length != 0" class="table main-table is-fullwidth">
-          <tr>
-            <td class="td-key has-background-primary has-text-white-bis">Name</td>
-            <td> {{ compartment.name }}</td>
-          </tr>
-          <tr>
-            <td class="td-key has-background-primary has-text-white-bis">Subsystems</td>
-            <td>
-              <div v-html="subsystemListHtml"></div>
-              <div v-if="!showFullSubsystem && subsystems.length > limitSubsystem">
-                <br>
-                <button class="is-small button" @click="showFullSubsystem=true">
-                  ... and {{ subsystems.length - limitSubsystem }} more
-                </button>
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <td class="td-key has-background-primary has-text-white-bis">Reactions</td>
-            <td> {{ compartment.reaction_count }}</td>
-          </tr>
-          <tr>
-            <td class="td-key has-background-primary has-text-white-bis">Metabolites</td>
-            <td> {{ compartment.metabolite_count }}</td>
-          </tr>
-          <tr>
-            <td class="td-key has-background-primary has-text-white-bis">Genes</td>
-            <td> {{ compartment.gene_count }}</td>
-          </tr>
-        </table>
+        <div class="table-container">
+          <table v-if="compartment && Object.keys(compartment).length != 0"
+                class="table main-table is-fullwidth">
+            <tr>
+              <td class="td-key has-background-primary has-text-white-bis">Name</td>
+              <td> {{ compartment.name }}</td>
+            </tr>
+            <tr>
+              <td class="td-key has-background-primary has-text-white-bis">Subsystems</td>
+              <td>
+                <div v-html="subsystemListHtml"></div>
+                <div v-if="!showFullSubsystem && subsystems.length > limitSubsystem">
+                  <br>
+                  <button class="is-small button" @click="showFullSubsystem=true">
+                    ... and {{ subsystems.length - limitSubsystem }} more
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td class="td-key has-background-primary has-text-white-bis">Reactions</td>
+              <td> {{ compartment.reaction_count }}</td>
+            </tr>
+            <tr>
+              <td class="td-key has-background-primary has-text-white-bis">Metabolites</td>
+              <td> {{ compartment.metabolite_count }}</td>
+            </tr>
+            <tr>
+              <td class="td-key has-background-primary has-text-white-bis">Genes</td>
+              <td> {{ compartment.gene_count }}</td>
+            </tr>
+          </table>
+        </div>
         <p>The
           <a :href="`/api/${model.database_name}/compartment/${cName}/`"
              target="_blank">complete list in JSON format</a>

@@ -16,25 +16,27 @@
         <div class="column">
           <div class="columns is-multiline is-variable is-8">
             <div id="gene-details" class="reaction-table column is-10-widescreen is-9-desktop is-full-tablet">
-              <table v-if="gene && Object.keys(gene).length !== 0" class="table main-table is-fullwidth">
-                <tr v-for="el in mainTableKey" :key="el.name">
-                  <td v-if="'display' in el"
-                      class="td-key has-background-primary has-text-white-bis"
-                      v-html="el.display"></td>
-                  <td v-else-if="el.name === 'id'"
-                      class="td-key has-background-primary has-text-white-bis">{{ model.short_name }} ID</td>
-                  <td v-else
-                      class="td-key has-background-primary has-text-white-bis">{{ reformatTableKey(el.name) }}</td>
-                  <td v-if="gene[el.name]">
-                    <span v-if="'modifier' in el" v-html="el.modifier(gene)">
-                    </span>
-                    <span v-else>
-                      {{ gene[el.name] }}
-                    </span>
-                  </td>
-                  <td v-else> - </td>
-                </tr>
-              </table>
+              <div class="table-contaner">
+                <table v-if="gene && Object.keys(gene).length !== 0" class="table main-table is-fullwidth">
+                  <tr v-for="el in mainTableKey" :key="el.name">
+                    <td v-if="'display' in el"
+                        class="td-key has-background-primary has-text-white-bis"
+                        v-html="el.display"></td>
+                    <td v-else-if="el.name === 'id'"
+                        class="td-key has-background-primary has-text-white-bis">{{ model.short_name }} ID</td>
+                    <td v-else
+                        class="td-key has-background-primary has-text-white-bis">{{ reformatTableKey(el.name) }}</td>
+                    <td v-if="gene[el.name]">
+                      <span v-if="'modifier' in el" v-html="el.modifier(gene)">
+                      </span>
+                      <span v-else>
+                        {{ gene[el.name] }}
+                      </span>
+                    </td>
+                    <td v-else> - </td>
+                  </tr>
+                </table>
+              </div>
               <ExtIdTable :type="type" :external-dbs="gene.external_databases"></ExtIdTable>
             </div>
             <div class="column is-2-widescreen is-3-desktop is-full-tablet has-text-centered">

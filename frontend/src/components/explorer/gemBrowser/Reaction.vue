@@ -11,62 +11,64 @@
     <loader v-if="showLoaderMessage" :message="showLoaderMessage" class="columns" />
     <div v-else class="columns is-multiline is-variable is-8">
       <div class="reaction-table column is-10-widescreen is-9-desktop is-full-tablet">
-        <table v-if="reaction && Object.keys(reaction).length !== 0" class="table main-table is-fullwidth">
-          <tr v-for="el in mainTableKey" :key="el.name">
-            <td v-if="'display' in el"
-                class="td-key has-background-primary has-text-white-bis"
-                v-html="el.display"></td>
-            <td v-else-if="el.name === 'id'"
-                class="td-key has-background-primary has-text-white-bis">
-              {{ model.short_name }} ID</td>
-            <td v-else class="td-key has-background-primary has-text-white-bis">{{ reformatTableKey(el.name) }}</td>
-            <td v-if="reaction[el.name]">
-              <template v-if="'modifier' in el"><span v-html="el.modifier()"></span></template>
-              <template v-else-if="el.name === 'subsystem'">
-                <template v-for="(v, i) in reaction[el.name]">
-                  <template v-if="i !== 0">; </template>
-                  <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key max-len -->
-                  <router-link :to="{ name: 'browser', params: { model: model.database_name, type: 'subsystem', id: v.id } }"> {{ v.name }}</router-link>
+        <div class="table-container">
+          <table v-if="reaction && Object.keys(reaction).length !== 0" class="table main-table is-fullwidth">
+            <tr v-for="el in mainTableKey" :key="el.name">
+              <td v-if="'display' in el"
+                  class="td-key has-background-primary has-text-white-bis"
+                  v-html="el.display"></td>
+              <td v-else-if="el.name === 'id'"
+                  class="td-key has-background-primary has-text-white-bis">
+                {{ model.short_name }} ID</td>
+              <td v-else class="td-key has-background-primary has-text-white-bis">{{ reformatTableKey(el.name) }}</td>
+              <td v-if="reaction[el.name]">
+                <template v-if="'modifier' in el"><span v-html="el.modifier()"></span></template>
+                <template v-else-if="el.name === 'subsystem'">
+                  <template v-for="(v, i) in reaction[el.name]">
+                    <template v-if="i !== 0">; </template>
+                    <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key max-len -->
+                    <router-link :to="{ name: 'browser', params: { model: model.database_name, type: 'subsystem', id: v.id } }"> {{ v.name }}</router-link>
+                  </template>
                 </template>
-              </template>
-              <template v-else-if="el.name === 'compartment'">
-                <template v-for="(v, i) in reaction[el.name]">
-                  <template v-if="i !== 0">; </template>
-                  <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key max-len -->
-                  <router-link :to="{ name: 'browser', params: { model: model.database_name, type: 'compartment', id: v.id } }"> {{ v.name }}</router-link>
+                <template v-else-if="el.name === 'compartment'">
+                  <template v-for="(v, i) in reaction[el.name]">
+                    <template v-if="i !== 0">; </template>
+                    <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key max-len -->
+                    <router-link :to="{ name: 'browser', params: { model: model.database_name, type: 'compartment', id: v.id } }"> {{ v.name }}</router-link>
+                  </template>
+                  <template v-if="reaction.is_transport">
+                    (transport reaction)
+                  </template>
                 </template>
-                <template v-if="reaction.is_transport">
-                  (transport reaction)
+                <template v-else-if="el.name === 'ec'">
+                  <!-- eslint-disable-next-line max-len -->
+                  <router-link v-for="eccode in reaction[el.name].split('; ')" :key="eccode" :to="{ name: 'search', query: { term: eccode }}">
+                    {{ eccode }}
+                  </router-link>
                 </template>
-              </template>
-              <template v-else-if="el.name === 'ec'">
-                <!-- eslint-disable-next-line max-len -->
-                <router-link v-for="eccode in reaction[el.name].split('; ')" :key="eccode" :to="{ name: 'search', query: { term: eccode }}">
-                  {{ eccode }}
-                </router-link>
-              </template>
-              <template v-else>{{ reaction[el.name] }}</template>
-            </td>
-            <td v-else-if="'modifier' in el"><span v-html="el.modifier()"></span></td>
-            <td v-else> - </td>
-          </tr>
-          <tr v-if="relatedReactions.length !== 0">
-            <td class="td-key has-background-primary has-text-white-bis">Related reaction(s)</td>
-            <td>
-              <span v-for="rr in relatedReactions" :key="rr.id">
-                <!-- eslint-disable-next-line max-len -->
-                <router-link :to="{ name: 'browser', params: { model: model.database_name, type: 'reaction', id: rr.id } }">
-                  {{ rr.id }}
-                </router-link>
-                <div style="margin-left: 30px">
-                  <span v-html="reformatChemicalReactionHTML(rr, true, model.database_name)"></span>
-                  (<span v-html="reformatEqSign(rr.compartment_str, rr.is_reversible)">
-                  </span>)
-                </div>
-              </span>
-            </td>
-          </tr>
-        </table>
+                <template v-else>{{ reaction[el.name] }}</template>
+              </td>
+              <td v-else-if="'modifier' in el"><span v-html="el.modifier()"></span></td>
+              <td v-else> - </td>
+            </tr>
+            <tr v-if="relatedReactions.length !== 0">
+              <td class="td-key has-background-primary has-text-white-bis">Related reaction(s)</td>
+              <td>
+                <span v-for="rr in relatedReactions" :key="rr.id">
+                  <!-- eslint-disable-next-line max-len -->
+                  <router-link :to="{ name: 'browser', params: { model: model.database_name, type: 'reaction', id: rr.id } }">
+                    {{ rr.id }}
+                  </router-link>
+                  <div style="margin-left: 30px">
+                    <span v-html="reformatChemicalReactionHTML(rr, true, model.database_name)"></span>
+                    (<span v-html="reformatEqSign(rr.compartment_str, rr.is_reversible)">
+                    </span>)
+                  </div>
+                </span>
+              </td>
+            </tr>
+          </table>
+        </div>
         <ExtIdTable :type="type" :external-dbs="reaction.external_databases"></ExtIdTable>
         <references :reference-list="referenceList" />
       </div>

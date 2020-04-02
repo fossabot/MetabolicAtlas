@@ -11,62 +11,64 @@
     <loader v-if="showLoaderMessage" :message="showLoaderMessage" class="columns" />
     <div v-else class="columns is-multiline is-variable is-8">
       <div class="subsystem-table column is-10-widescreen is-9-desktop is-full-tablet">
-        <table v-if="info && Object.keys(info).length !== 0" class="table main-table is-fullwidth">
-          <tr v-for="el in mainTableKey" :key="el.name" class="m-row">
-            <template v-if="info[el.name]">
-              <td v-if="el.display" class="td-key has-background-primary has-text-white-bis">{{ el.display }}</td>
-              <td v-else class="td-key has-background-primary has-text-white-bis">{{ reformatKey(el.name) }}</td>
-              <td v-if="info[el.name]">
-                <span v-if="el.modifier" v-html="el.modifier(info[el.name])"></span>
-                <span v-else>{{ info[el.name] }}</span>
-              </td>
-              <td v-else> - </td>
-            </template>
-          </tr>
-          <tr>
-            <td class="td-key has-background-primary has-text-white-bis">Compartments</td>
-            <td>
-              <template v-for="(c, i) in info['compartments']">
-                <template v-if="i !== 0">, </template>
-                <!-- eslint-disable-next-line vue/valid-v-for max-len -->
-                <router-link
-                  :to="{ name: 'browser', params: { model: model.database_name, type: 'compartment', id: c.id } }">
-                  {{ c.name }}
-                </router-link>
+        <div class="table-container">
+          <table v-if="info && Object.keys(info).length !== 0" class="table main-table is-fullwidth">
+            <tr v-for="el in mainTableKey" :key="el.name" class="m-row">
+              <template v-if="info[el.name]">
+                <td v-if="el.display" class="td-key has-background-primary has-text-white-bis">{{ el.display }}</td>
+                <td v-else class="td-key has-background-primary has-text-white-bis">{{ reformatKey(el.name) }}</td>
+                <td v-if="info[el.name]">
+                  <span v-if="el.modifier" v-html="el.modifier(info[el.name])"></span>
+                  <span v-else>{{ info[el.name] }}</span>
+                </td>
+                <td v-else> - </td>
               </template>
-            </td>
-          </tr>
-          <tr>
-            <td class="td-key has-background-primary has-text-white-bis">Metabolites</td>
-            <td>
-              <div v-html="metabolitesListHtml"></div>
-              <div v-if="!showFullMetabolite && metabolites.length > displayedMetabolite">
-                <br>
-                <button class="is-small button" @click="showFullMetabolite=true">
-                  ... and {{ metabolites.length - displayedMetabolite }} more
-                </button>
-                <span v-show="metabolites.length === limitMetabolite" class="tag is-medium is-warning is-pulled-right">
-                  The number of metabolites displayed is limited to {{ limitMetabolite }}.
-                </span>
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <td class="td-key has-background-primary has-text-white-bis">Genes</td>
-            <td>
-              <div v-html="genesListHtml"></div>
-              <div v-if="!showFullGene && genes.length > displayedGene">
-                <br>
-                <button class="is-small button" @click="showFullGene=true">
-                  ... and {{ genes.length - displayedGene }} more
-                </button>
-                <span v-show="genes.length === limitGene" class="tag is-medium is-warning is-pulled-right">
-                  The number of genes displayed is limited to {{ limitGene }}.
-                </span>
-              </div>
-            </td>
-          </tr>
-        </table>
+            </tr>
+            <tr>
+              <td class="td-key has-background-primary has-text-white-bis">Compartments</td>
+              <td>
+                <template v-for="(c, i) in info['compartments']">
+                  <template v-if="i !== 0">, </template>
+                  <!-- eslint-disable-next-line vue/valid-v-for max-len -->
+                  <router-link :to="{ name: 'browser', params: { model: model.database_name, type: 'compartment', id: c.id } }">
+                    {{ c.name }}
+                  </router-link>
+                </template>
+              </td>
+            </tr>
+            <tr>
+              <td class="td-key has-background-primary has-text-white-bis">Metabolites</td>
+              <td>
+                <div v-html="metabolitesListHtml"></div>
+                <div v-if="!showFullMetabolite && metabolites.length > displayedMetabolite">
+                  <br>
+                  <button class="is-small button" @click="showFullMetabolite=true">
+                    ... and {{ metabolites.length - displayedMetabolite }} more
+                  </button>
+                  <span v-show="metabolites.length === limitMetabolite"
+                        class="tag is-medium is-warning is-pulled-right">
+                    The number of metabolites displayed is limited to {{ limitMetabolite }}.
+                  </span>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td class="td-key has-background-primary has-text-white-bis">Genes</td>
+              <td>
+                <div v-html="genesListHtml"></div>
+                <div v-if="!showFullGene && genes.length > displayedGene">
+                  <br>
+                  <button class="is-small button" @click="showFullGene=true">
+                    ... and {{ genes.length - displayedGene }} more
+                  </button>
+                  <span v-show="genes.length === limitGene" class="tag is-medium is-warning is-pulled-right">
+                    The number of genes displayed is limited to {{ limitGene }}.
+                  </span>
+                </div>
+              </td>
+            </tr>
+          </table>
+        </div>
         <ExtIdTable :type="type" :external-dbs="info.external_databases"></ExtIdTable>
       </div>
       <div class="column is-2-widescreen is-3-desktop is-half-tablet has-text-centered">
@@ -178,5 +180,4 @@ export default {
 };
 </script>
 
-<style lang="scss">
-</style>
+<style lang="scss"></style>
