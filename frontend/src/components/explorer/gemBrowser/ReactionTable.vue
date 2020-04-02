@@ -103,7 +103,7 @@ export default {
     type: { type: String, required: true },
     selectedElmId: { type: String, required: false, default: null },
     showSubsystem: { type: Boolean, required: false, default: false },
-    relatedMetCount: { type: Number, required: false, defualt: 0 },
+    relatedMetCount: { type: Number, required: false, default: 0 },
   },
   data() {
     return {
