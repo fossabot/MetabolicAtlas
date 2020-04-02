@@ -102,7 +102,6 @@ export default {
     sourceName: { type: String, required: true },
     type: { type: String, required: true },
     selectedElmId: { type: String, required: false, default: null },
-    showSubsystem: { type: Boolean, required: false, default: false },
     relatedMetCount: { type: Number, required: false, default: 0 },
   },
   data() {
@@ -134,6 +133,9 @@ export default {
     },
     transportReactionCount() {
       return this.reactions.filter(r => r.is_transport).length;
+    },
+    showSubsystem() {
+      return this.type !== 'subsystem';
     },
     sortedReactions() {
       let reactionsCopy = [...this.reactions];
@@ -239,14 +241,10 @@ export default {
 
 </script>
 
-<style lang="scss">
-
-.reaction-table {
-  a.cms {
-    color: rgb(54, 54, 54);
-    cursor: default;
-    font-weight: 600;
-  }
+<style lang="scss" scoped>
+a.cms {
+  color: rgb(54, 54, 54);
+  cursor: default;
+  font-weight: 600;
 }
-
 </style>

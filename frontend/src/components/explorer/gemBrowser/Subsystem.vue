@@ -74,7 +74,7 @@
         <gem-contact :id="sName" :type="type" />
       </div>
     </div>
-    <reaction-table :source-name="sName" :type="type" :show-subsystem="false" />
+    <reaction-table :source-name="sName" :type="type" />
   </div>
 </template>
 

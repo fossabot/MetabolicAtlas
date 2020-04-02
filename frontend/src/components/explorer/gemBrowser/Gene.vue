@@ -48,7 +48,7 @@
               <gem-contact :id="geneId" :type="type" />
             </div>
           </div>
-          <reaction-table :source-name="geneId" :type="type" :show-subsystem="true" :selected-elm-id="geneName"/>
+          <reaction-table :source-name="geneId" :type="type" :selected-elm-id="geneName" />
         </div>
       </div>
     </div>
