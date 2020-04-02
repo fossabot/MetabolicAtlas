@@ -44,7 +44,7 @@
                 <span>{{ messages.interPartName }}</span>
               </router-link>
               <br>
-              <maps-available :id="geneId" :type="'gene'" :viewer-selected-i-d="gene.id" />
+              <maps-available :id="geneId" :type="type" :viewer-selected-i-d="gene.id" />
               <gem-contact :id="geneId" :type="type" />
             </div>
           </div>

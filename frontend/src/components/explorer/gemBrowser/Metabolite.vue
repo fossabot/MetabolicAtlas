@@ -64,7 +64,7 @@
           </router-link>
           <br>
           <!-- eslint-disable-next-line max-len -->
-          <maps-available :id="metaboliteId" :type="'metabolite'" :viewer-selected-i-d="metabolite.id" />
+          <maps-available :id="metaboliteId" :type="type" :viewer-selected-i-d="metabolite.id" />
           <gem-contact :id="metaboliteId" :type="type" />
         </div>
         <reaction-table :selected-elm-id="metaboliteId" :source-name="metaboliteId" :type="type"
