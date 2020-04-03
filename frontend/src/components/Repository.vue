@@ -83,7 +83,7 @@
                   {{ selectedModel.full_name }}
                 </template>
                 <template v-else>
-                  {{ selectedModel.set_name }} -
+                  <span class="is-capitalized">{{ selectedModel.set_name }}</span> -
                   {{ selectedModel.tag || selectedModel.tissue
                     || selectedModel.cell_type || selectedModel.cell_line || "" }}
                 </template>
