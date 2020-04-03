@@ -14,25 +14,23 @@
             "See reactions with from all compartments" : "Restrict to current compartment" }}
         </button>
       </p>
-      <div class="field">
-        <span class="tag is-medium" :class="(reactions.length || -1) === limitReaction ? 'is-warning' : ''">
-          # Reactions: {{ reactions.length }}
-        </span>
-        <template v-if="transportReactionCount !== 0">
-          &nbsp;including&nbsp;
-          <span class="tag is-medium clickable" @click="sortTable('is_transport', null, 'desc')">
-            {{ transportReactionCount }} transport reactions
+      <div class="field columns">
+        <div class="column"
+             :title="(reactions.length || -1) === limitReaction ?
+             `The number of reactions displayed is limited to ${limitReaction}` : ''"
+        >
+          <span v-show="(reactions.length || -1) === limitReaction" class="icon">
+            <i class="fa fa-exclamation-triangle has-text-danger"></i>
           </span>
-        </template>
-        <ExportTSV
-          class="is-pulled-right"
-          :style="{ 'margin-left': '1rem' }"
-          :filename="`reaction_${sourceName}.tsv`"
-          :format-function="formatToTSV"
-        ></ExportTSV>
-        <span v-show="(reactions.length || -1) === limitReaction" class="tag is-medium is-warning is-pulled-right">
-          The number of reactions displayed is limited to {{ limitReaction }}.
-        </span>
+           {{ reactions.length }} reactions
+          <template v-if="transportReactionCount !== 0">
+            including {{ transportReactionCount }} transport reactions
+          </template>
+        </div>
+        <div class="column is-narrow">
+          <ExportTSV :filename="`Reactions for ${type} ${sourceName}.tsv`" :format-function="formatToTSV">
+          </ExportTSV>
+        </div>
       </div>
       <div class="table-container">
         <table ref="table" class="table is-bordered is-striped is-narrow is-fullwidth">
