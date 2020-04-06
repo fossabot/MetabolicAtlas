@@ -57,14 +57,12 @@ export default function (
       },
     });
   });
-  // for (const id of Object.keys(rels)) {
 
   const metaboliteColor = nodeDisplayParams.metaboliteNodeColor.hex;
   const textColor = '#363636';
   const textColorHL = '#CC3636';
   const textColorHLpartial = '#f4ad42';
   const lineColor = '#bbbbbb';
-  // const expLineColor = '#bbbbbb';
 
   const stylesheet = cytoscape.stylesheet()
     .selector('node')
