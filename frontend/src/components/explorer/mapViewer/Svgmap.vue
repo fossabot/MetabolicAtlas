@@ -337,7 +337,7 @@ export default {
       if (!mapInfo) {
         this.mapType = null;
         this.mapName = null;
-        this.$emit('loadComplete', false, 'Invalid map ID', 'danger');
+        this.$emit('loadComplete', false, `Invalid map ID "${name}"`, 'danger');
         return;
       }
 

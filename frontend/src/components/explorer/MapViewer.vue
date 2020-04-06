@@ -128,16 +128,11 @@
             </span>
           </div>
           <transition name="slide-fade">
-            <article v-if="loadErrorMesssage" id="errorBar"
-                     class="message"
-                     :class="loadErrorTypeMesssage === 'danger' ? 'is-danger' : 'is-info'">
+            <article v-if="loadMapErrorMessage" id="errorPanel" :class="`message is-${loadMapErrorType}`">
               <div class="message-header">
-                <i class="fa"
-                   :class="loadErrorTypeMesssage === 'danger' ? 'is-danger' : 'is-info'"></i>
+                <b>Oops!..</b>
               </div>
-              <div class="message-body">
-                <h5 class="title is-5">{{ loadErrorMesssage }}</h5>
-              </div>
+              <div class="message-body has-text-centered"><h5 class="title is-6">{{ loadMapErrorMessage }}</h5></div>
             </article>
           </transition>
         </div>
@@ -188,8 +183,8 @@ export default {
   data() {
     return {
       errorMessage: '',
-      loadErrorMesssage: '',
-      loadErrorTypeMesssage: 'danger', // or 'info'
+      loadMapErrorMessage: '',
+      loadMapErrorType: 'danger', // or 'info'
       showOverviewScreen: true,
       requestedType: '',
       requestedName: '',
@@ -276,20 +271,12 @@ export default {
 
     EventBus.$on('loadRNAComplete', (isSuccess, errorMessage) => {
       if (!isSuccess) {
-        // show error
-        this.loadErrorMesssage = errorMessage;
-        if (!this.loadErrorMesssage) {
-          this.loadErrorMesssage = messages.unknownError;
-        }
-        this.showLoader = false;
+        this.showMessage(errorMessage, 'danger');
         EventBus.$emit('unselectFirstTissue');
         EventBus.$emit('unselectSecondTissue');
-        setTimeout(() => {
-          this.loadErrorMesssage = '';
-        }, 3000);
-        return;
+      } else {
+        this.showLoader = false;
       }
-      this.showLoader = false;
     });
   },
   async beforeMount() {
@@ -298,7 +285,9 @@ export default {
   },
   beforeUpdate() {
     if (!this.checkValidRequest(this.$route.params.type, this.$route.params.map_id) && this.showMapViewer) {
-      this.handleLoadComplete(false, messages.mapNotFound, 'danger');
+      this.handleLoadComplete(false, `Invalid map ID "${this.$route.params.map_id}"`, 'danger');
+    } else {
+      this.loadMapErrorMessage = '';
     }
     this.showOverviewScreen = false; // to get the loader visible
   },
@@ -350,7 +339,7 @@ export default {
       }
 
       if (!this.checkValidRequest(this.currentDisplayedType, this.currentDisplayedName)) {
-        this.showMessage(messages.mapNotFound, 'info');
+        this.showMessage(`Invalid map ID "${this.currentDisplayedName}"`, 'info');
         return;
       }
 
@@ -373,15 +362,12 @@ export default {
       });
     },
     showMessage(errorMessage, messageType) {
-      this.loadErrorMesssage = errorMessage;
-      this.loadErrorTypeMesssage = messageType;
-      if (!this.loadErrorMesssage) {
-        this.loadErrorMesssage = messages.unknownError;
+      this.loadMapErrorMessage = errorMessage;
+      this.loadMapErrorType = messageType;
+      if (!this.loadMapErrorMessage) {
+        this.loadMapErrorMessage = messages.unknownError;
       }
       this.showLoader = false;
-      setTimeout(() => {
-        this.loadErrorMesssage = '';
-      }, 3000);
     },
     async getSubComptData(model) {
       try {
@@ -584,12 +570,15 @@ export default {
   }
 
 
-  #errorBar {
+  #errorPanel {
     z-index: 11;
     position: absolute;
-    margin: 0;
+    left: 0;
     right: 0;
-    bottom: 35px;
+    margin-left: auto;
+    margin-right: auto;
+    width: 350px;
+    bottom: 2rem;
     border: 1px solid gray;
   }
 
@@ -600,7 +589,7 @@ export default {
     transition: all .8s cubic-bezier(1.0, 0.5, 0.8, 1.0);
   }
   .slide-fade-enter, .slide-fade-leave-active {
-    transform: translateX(200px);
+    transform: translateY(200px);
     opacity: 0;
   }
 }
