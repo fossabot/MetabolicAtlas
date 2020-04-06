@@ -29,7 +29,7 @@
         </div>
       </div>
       <!-- eslint-disable-next-line max-len -->
-      <div v-if="notFoundSuggestions.length !== 0 && searchResults.length === 0" class="columns is-centered">
+      <div v-if="notFoundSuggestions.length !== 0 && searchResultsEmpty" class="columns is-centered">
         <div class="column is-three-fifths-desktop is-three-quarters-tablet is-fullwidth-mobile control is-size-5">
           Do you mean:&nbsp;
           <template v-for="v in notFoundSuggestions">
@@ -58,7 +58,7 @@
         <loader v-show="loading && searchTerm !== ''"></loader>
         <div v-show="!loading">
           <div class="columns is-centered">
-            <div v-if="Object.keys(searchResults).length === 0"
+            <div v-if="searchResultsEmpty"
                  class="column is-three-fifths-desktop is-three-quarters-tablet is-fullwidth-mobile">
               <div v-if="searchedTerm" class="has-text-centered notification is-size-5">
                 {{ messages.searchNoResult }} for <b><i>{{ searchedTerm }}</i></b><br>
@@ -457,6 +457,7 @@ export default {
     }),
     ...mapGetters({
       searchResults: 'search/categorizedGlobalResults',
+      searchResultsEmpty: 'search/globalResultsEmpty',
       resultsCount: 'search/categorizedGlobalResultsCount',
     }),
   },
@@ -650,23 +651,10 @@ export default {
         this.showSearchCharAlert = true;
       }
     },
-    postProcessSearch() {
-      this.loading = false;
-      // get filters
-      this.fillFilterFields();
-      // select the active tab
-      Object.keys(this.resultsCount)
-        .filter(key => this.resultsCount[key] !== 0)
-        .every((key) => {
-          this.showTabType = key;
-          return false;
-        });
-    },
     async search() {
       this.loading = true;
       try {
         await this.$store.dispatch('search/globalSearch', this.searchTerm);
-        this.postProcessSearch();
       } catch (error) {
         if (error.response.headers.suggestions) {
           this.notFoundSuggestions = JSON.parse(error.response.headers.suggestions);
@@ -674,7 +662,17 @@ export default {
           this.notFoundSuggestions = [];
         }
         this.$store.dispatch('search/clearGlobalSearchResults');
-        this.postProcessSearch();
+      } finally {
+        this.loading = false;
+        // get filters
+        this.fillFilterFields();
+        // select the active tab
+        Object.keys(this.resultsCount)
+          .filter(key => this.resultsCount[key] !== 0)
+          .every((key) => {
+            this.showTabType = key;
+            return false;
+          });
       }
     },
     formatToTSV(index) {

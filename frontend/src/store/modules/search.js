@@ -32,6 +32,8 @@ const categorizeResults = (results) => {
 };
 
 const getters = {
+  globalResultsEmpty: state => Object.keys(state.globalResults).length === 0,
+
   categorizedGlobalResults: state => categorizeResults(state.globalResults),
 
   categorizedGlobalResultsCount: (state, _getters) => Object.fromEntries( // eslint-disable-line no-unused-vars
