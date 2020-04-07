@@ -356,6 +356,7 @@ m, .clickable {
   .main-table tr td.td-key, #ed-table tr td.td-key {
     width: 150px;
   }
+  font-size: 0.93em;
 }
 
 #cookies {
