@@ -66,24 +66,24 @@
         <div v-if="gems.length != 0">
           <vue-good-table :columns="columns" :rows="gems" :search-options="{ enabled: true, skipDiacritics: true }"
                           :sort-options="{ enabled: true }" style-class="vgt-table striped"
-                          :pagination-options="tablePaginationOpts" @on-row-click="getModel">
+                          :pagination-options="tablePaginationOpts" @on-row-click="t => getModelData(t.row.id)">
           </vue-good-table>
         </div>
         <div v-else>
           <span v-if="!showLoader">No models available</span>
         </div>
         <br>
-        <div v-if="showModelTable" id="gem-list-modal" class="modal is-active">
-          <div class="modal-background" @click="showModelTable = false"></div>
+        <div v-if="showModelId" id="gem-list-modal" class="modal is-active">
+          <div class="modal-background" @click="showModelId = ''"></div>
           <div class="modal-content column is-6-fullhd is-8-desktop is-10-tablet is-full-mobile has-background-white"
-               tabindex="0" @keyup.esc="showModelTable = false">
+               tabindex="0" @keyup.esc="showModelId = ''">
             <div id="modal-info" class="model-table">
               <h2 class="title">
                 <template v-if="selectedModel.database_name">
                   {{ selectedModel.full_name }}
                 </template>
                 <template v-else>
-                  {{ selectedModel.set_name }} -
+                  <span class="is-capitalized">{{ selectedModel.set_name }}</span> -
                   {{ selectedModel.tag || selectedModel.tissue
                     || selectedModel.cell_type || selectedModel.cell_line || "" }}
                 </template>
@@ -128,7 +128,7 @@
               </template>
             </div>
           </div>
-          <button class="modal-close is-large" @click="showModelTable = false"></button>
+          <button class="modal-close is-large" @click="showModelId = ''"></button>
         </div>
       </div>
     </div>
@@ -142,7 +142,6 @@ import { VueGoodTable } from 'vue-good-table';
 import 'vue-good-table/dist/vue-good-table.css';
 import Loader from '@/components/Loader';
 import References from '@/components/shared/References';
-import { default as EventBus } from '@/event-bus';
 import { default as messages } from '@/helpers/messages';
 
 export default {
@@ -245,7 +244,7 @@ export default {
       selectedModel: {},
       referenceList: [],
       errorMessage: '',
-      showModelTable: false,
+      showModelId: '',
       showLoader: false,
       tablePaginationOpts: {
         enabled: true,
@@ -276,18 +275,13 @@ export default {
     }),
   },
   watch: {
-    showModelTable(v) {
-      if (!v) {
-        this.$router.push({ name: 'gems' });
+    showModelId(modelId) {
+      if (modelId) {
+        this.$router.push({ name: 'gemsModal', params: { model_id: modelId } });
+        return;
       }
+      this.$router.push({ name: 'gems' });
     },
-  },
-  async created() {
-    // TODO: this should be removed, call dispatch else where if needed like following
-    // await this.$store.dispatch('gems/getGemData', id);
-    EventBus.$on('viewGem', async (modelID) => {
-      await this.getModelData(modelID);
-    });
   },
   async beforeMount() {
     await this.getIntegratedModels();
@@ -312,24 +306,19 @@ export default {
         this.errorMessage = messages.unknownError;
       }
     },
-    async getModel(params) {
-      await this.getModelData(params.row.id);
-    },
     async getModelData(id) {
       try {
         await this.$store.dispatch('gems/getGemData', id);
         this.selectedModel = this.gem;
         this.referenceList = this.selectedModel.ref;
-        this.showModelTable = true;
-        this.$router.push({ name: 'gemsModal', params: { model_id: id } });
+        this.showModelId = id;
       } catch {
-        this.showModelTable = false;
+        this.showModelId = '';
       }
     },
     showIntegratedModelData(model) {
-      this.$router.push({ name: 'gemsModal', params: { model_id: model.short_name } });
       this.selectedModel = model;
-      this.showModelTable = true;
+      this.showModelId = model.short_name;
     },
     async getModels() {
       this.showLoader = true;

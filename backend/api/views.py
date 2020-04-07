@@ -337,15 +337,15 @@ def get_metabolite_reactions(request, model, id, all_compartment=False, api=True
         List all the reactions involving the metabolite.
         Supply a metabolite ID or its name (for example m02439c or malate[c]).
     """
-    if not all_compartment:
-        component = APImodels.ReactionComponent.objects.using(model).filter((Q(id__iexact=id) |
-                                                                             Q(full_name__iexact=id)) &
-                                                                             Q(component_type='m'))
-    else:
+    if all_compartment:
         component = APImodels.ReactionComponent.objects.using(model).filter((Q(id__iexact=id) |
                                                                       Q(name__iexact=id) |
                                                                       Q(full_name__iexact=id)) &
                                                                       Q(component_type='m'))
+    else:
+        component = APImodels.ReactionComponent.objects.using(model).filter((Q(id__iexact=id) |
+                                                                     Q(full_name__iexact=id)) &
+                                                                     Q(component_type='m'))
     if not component:
         return HttpResponse(status=404)
 
@@ -362,16 +362,22 @@ def get_metabolite_reactions(request, model, id, all_compartment=False, api=True
                 prefetch_related('reactionreactant_set', 'reactionreactant_set__reactant',
                                  'reactionproduct_set', 'reactionproduct_set__product', 'genes').distinct()
         reactions |= reactions_as_met
-
     reactions = reactions.distinct()
-    if not api:
-        reactions = reactions[:200]
-        ReactionSerializerClass = componentDBserializerSelector(model, 'reaction', serializer_type='table', api_version=request.version)
-    else:
-        ReactionSerializerClass = componentDBserializerSelector(model, 'reaction', serializer_type='basic', api_version=request.version)
 
-    serializer = ReactionSerializerClass(reactions, many=True)
-    return JSONResponse(serializer.data)
+    if api:
+        ReactionSerializerClass = componentDBserializerSelector(model, 'reaction', serializer_type='basic', api_version=request.version)
+        return JSONResponse(ReactionSerializerClass(reactions, many=True).data),
+
+    limit = 200
+    reactions = reactions[:limit]
+    ReactionSerializerClass = componentDBserializerSelector(model, 'reaction', serializer_type='table', api_version=request.version)
+
+    results = {
+        'reactions': ReactionSerializerClass(reactions, many=True).data,
+        'limit': limit,
+    }
+
+    return JSONResponse(results)
 
  
 @api_view()
@@ -398,17 +404,22 @@ def get_gene_reactions(request, model, id, api=True):
                 prefetch_related('reactionreactant_set', 'reactionreactant_set__reactant',
                                  'reactionproduct_set', 'reactionproduct_set__product', 'genes').distinct()
         reactions |= reactions_as_gene
-
     reactions = reactions.distinct()
-    if not api:
-        reactions = reactions[:200]
-        ReactionSerializerClass = componentDBserializerSelector(model, 'reaction', serializer_type='table', api_version=request.version)
-    else:
+
+    if api:
         ReactionSerializerClass = componentDBserializerSelector(model, 'reaction', serializer_type='basic', api_version=request.version)
+        return JSONResponse(ReactionSerializerClass(reactions, many=True).data)
 
-    serializer = ReactionSerializerClass(reactions, many=True)
+    limit = 200
+    reactions = reactions[:limit]
+    ReactionSerializerClass = componentDBserializerSelector(model, 'reaction', serializer_type='table', api_version=request.version)
 
-    return JSONResponse(serializer.data)
+    results = {
+        'reactions': ReactionSerializerClass(reactions, many=True).data,
+        'limit': limit,
+    }
+
+    return JSONResponse(results)
 
 
 @api_view()
