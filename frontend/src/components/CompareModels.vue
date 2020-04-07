@@ -35,7 +35,7 @@
         <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
         <div class="columns is-variable is-8">
           <div class="column">
-            <h5 class="title is-size-5">Exclusive reactions by compartment</h5>
+            <h5 class="subtitle is-size-5">Exclusive reactions by compartment</h5>
             <div class="table-container">
               <table class="table is-fullwidth is-striped is-hoverable">
                 <thead>
@@ -60,7 +60,7 @@
           </div>
 
           <div class="column">
-            <h5 class="title is-size-5">Exclusive reactions by subsystem</h5>
+            <h5 class="subtitle is-size-5">Exclusive reactions by subsystem</h5>
             <div class="table-container">
               <table class="table is-fullwidth is-striped is-hoverable">
                 <thead>

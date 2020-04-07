@@ -4,7 +4,7 @@
       <loader />
     </div>
     <div v-else class="column reaction-table">
-      <h4 class="title is-4">Reactions</h4>
+      <h4 class="subtitle is-4">Reactions</h4>
       <div v-if="errorMessage" class="notification is-danger">
         {{ errorMessage }}
       </div>
