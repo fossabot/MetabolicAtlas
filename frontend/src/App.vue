@@ -241,6 +241,19 @@ export default {
 @import '~bulma';
 @import '~bulma-timeline';
 
+
+html {
+  @include mobile {
+    font-size: 13px;
+  }
+  @include tablet {
+    font-size: 14px;
+  }
+  @include desktop {
+    font-size: 16px; // Bulma default
+  }
+}
+
 .extended-section {
   flex: 1;
 }
