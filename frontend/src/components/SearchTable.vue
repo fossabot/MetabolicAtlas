@@ -29,12 +29,11 @@
         </div>
       </div>
       <!-- eslint-disable-next-line max-len -->
-      <div v-if="notFoundSuggestions.length !== 0 && searchResults.length === 0" class="columns is-centered">
+      <div v-if="notFoundSuggestions.length !== 0 && searchResultsEmpty" class="columns is-centered">
         <div class="column is-three-fifths-desktop is-three-quarters-tablet is-fullwidth-mobile control is-size-5">
           Do you mean:&nbsp;
           <template v-for="v in notFoundSuggestions">
-            <!-- eslint-disable-next-line vue/valid-v-for -->
-            <router-link :to="{ name: 'search', query: { term: v }}">
+            <router-link :key="v" :to="{ name: 'search', query: { term: v }}">
               <span class="suggestions">{{ v }}</span>
             </router-link>&nbsp;
           </template>?
@@ -59,7 +58,7 @@
         <loader v-show="loading && searchTerm !== ''"></loader>
         <div v-show="!loading">
           <div class="columns is-centered">
-            <div v-if="Object.keys(searchResults).length === 0"
+            <div v-if="searchResultsEmpty"
                  class="column is-three-fifths-desktop is-three-quarters-tablet is-fullwidth-mobile">
               <div v-if="searchedTerm" class="has-text-centered notification is-size-5">
                 {{ messages.searchNoResult }} for <b><i>{{ searchedTerm }}</i></b><br>
@@ -83,10 +82,11 @@
                 <ul>
                   <li>ID</li>
                   <li>Equation (see the
-                    <router-link :to="{ 'path': '/documentation', hash: 'Global-search'}">documentation</router-link>
+                    <router-link :to="{ name: 'documentation', hash: 'Global-search'}">documentation</router-link>
                     for more information)</li>
                   <li>EC code</li>
                   <li>External identifiers</li>
+                  <li>PMID</li>
                 </ul>
                 <span>Subsystems and compartments</span>
                 <ul>
@@ -100,7 +100,8 @@
             <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
             <div v-show="showTab(header) && resultsCount[header] !== 0">
               <vue-good-table ref="searchTables" :columns="columns[header]" :rows="rows[header]"
-                              :sort-options="{ enabled: true }" style-class="vgt-table striped bordered"
+                              :sort-options="{ enabled: true, skipDiacritics: true }"
+                              style-class="vgt-table striped bordered"
                               :pagination-options="tablePaginationOpts">
                 <div slot="table-actions">
                   <ExportTSV :arg="index" :style="{'margin': '0.3rem 1rem'}" :filename="`${searchTerm}-${header}.tsv`"
@@ -119,7 +120,7 @@
                     <span v-html="formulaFormater(props.row[props.column.field], props.row.charge)"></span>
                   </template>
                   <template v-else-if="['name', 'id'].includes(props.column.field)">
-                    <router-link :to="{ path: `/explore/gem-browser/${props.row.model.id}/${header}/${props.row.id}` }">
+                    <router-link :to="{ name: 'browser', params: { model: props.row.model.id, type: header, id: props.row.id } }">
                       {{ props.row.name || props.row.id }}
                     </router-link>
                   </template>
@@ -130,7 +131,7 @@
                     <template v-for="(sub, i) in props.formattedRow[props.column.field]" v-else>
                       <template v-if="i !== 0">; </template>
                       <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key max-len -->
-                      <router-link :to="{ path: `/explore/gem-browser/${props.row.model.id}/subsystem/${sub.id}` }"> {{ sub.name }}</router-link>
+                      <router-link :to="{ name: 'browser', params: { model: props.row.model.id, type: 'subsystem', id: sub.id } }">{{ sub.name }}</router-link>
                     </template>
                   </template>
                   <template v-else-if="['compartment', 'compartments'].includes(props.column.field)">
@@ -140,14 +141,14 @@
                     <template v-else-if="['gene', 'subsystem', 'reaction'].includes(header)">
                       <template v-for="(comp, i) in props.formattedRow[props.column.field]">
                         <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
-                        <template v-if="i != 0">; </template><router-link :to="{ path: `/explore/gem-browser/${props.row.model.id}/compartment/${comp.id}` }">{{ comp.name }}</router-link>
+                        <template v-if="i != 0">; </template><router-link :to="{ name: 'browser', params: { model: props.row.model.id, type: 'compartment', id: comp.id } }">{{ comp.name }}</router-link>
                       </template>
                     </template>
                     <template v-else-if="Array.isArray(props.formattedRow[props.column.field])">
                       {{ props.formattedRow[props.column.field].join("; ") }}
                     </template>
                     <template v-else>
-                      <router-link :to="{ path: `/explore/gem-browser/${props.row.model.id}/compartment/${props.formattedRow[props.column.field].id}` }">
+                      <router-link :to="{ name: 'browser', params: { model: props.row.model.id, type: 'compartment', id: props.formattedRow[props.column.field].id } }">
                         {{ props.formattedRow[props.column.field].name }}
                       </router-link>
                     </template>
@@ -170,11 +171,11 @@
 
 <script>
 
-import axios from 'axios';
+import { mapGetters, mapState } from 'vuex';
 import $ from 'jquery';
 import { VueGoodTable } from 'vue-good-table';
 import Loader from '@/components/Loader';
-import ExportTSV from '@/components/explorer/gemBrowser/ExportTSV';
+import ExportTSV from '@/components/shared/ExportTSV';
 import 'vue-good-table/dist/vue-good-table.css';
 import { chemicalFormula } from '../helpers/chemical-formatters';
 import { reformatEqSign, sortResults } from '../helpers/utils';
@@ -202,13 +203,6 @@ export default {
         rowsPerPageLabel: 'Rows per page',
         ofLabel: 'of',
       },
-      tabs: [
-        'metabolite',
-        'gene',
-        'reaction',
-        'subsystem',
-        'compartment',
-      ],
       columns: {
         metabolite: [
           {
@@ -239,7 +233,7 @@ export default {
             field: 'subsystem',
             filterOptions: {
               enabled: true,
-              filterDropdownItems: [],
+              filterFn: (e, s) => e.filter(v => v.name.toLowerCase().includes(s.toLowerCase())).length !== 0,
             },
             sortable: true,
           }, {
@@ -248,6 +242,7 @@ export default {
             filterOptions: {
               enabled: true,
               filterDropdownItems: [],
+              filterFn: (e, s) => e.name === s,
             },
             sortable: true,
           },
@@ -273,7 +268,7 @@ export default {
             field: 'subsystem',
             filterOptions: {
               enabled: true,
-              filterDropdownItems: [],
+              filterFn: (e, s) => e.filter(v => v.name.toLowerCase().includes(s.toLowerCase())).length !== 0,
             },
             sortable: true,
           }, {
@@ -282,6 +277,7 @@ export default {
             filterOptions: {
               enabled: true,
               filterDropdownItems: [],
+              filterFn: (e, s) => e.filter(v => v.name === s).length !== 0,
             },
             sortable: true,
           },
@@ -315,7 +311,7 @@ export default {
             field: 'subsystem',
             filterOptions: {
               enabled: true,
-              filterDropdownItems: [],
+              filterFn: (e, s) => e.filter(v => v.name.toLowerCase().includes(s.toLowerCase())).length !== 0,
             },
             sortable: true,
           }, {
@@ -324,6 +320,7 @@ export default {
             filterOptions: {
               enabled: true,
               filterDropdownItems: [],
+              filterFn: (e, s) => e.filter(v => v.name === s).length !== 0,
             },
             sortable: true,
           }, {
@@ -359,6 +356,7 @@ export default {
             filterOptions: {
               enabled: true,
               filterDropdownItems: [],
+              filterFn: (e, s) => e.filter(v => v.name === s).length !== 0,
             },
             sortable: true,
           }, {
@@ -438,10 +436,8 @@ export default {
           },
         ],
       },
-      resultsCount: {},
       searchTerm: '',
       searchedTerm: '',
-      searchResults: [],
       showSearchCharAlert: false,
       showTabType: '',
       loading: false,
@@ -455,16 +451,32 @@ export default {
       notFoundSuggestions: [],
     };
   },
+  computed: {
+    ...mapState({
+      tabs: state => state.search.categories,
+    }),
+    ...mapGetters({
+      searchResults: 'search/categorizedGlobalResults',
+      searchResultsEmpty: 'search/globalResultsEmpty',
+      resultsCount: 'search/categorizedGlobalResultsCount',
+    }),
+  },
   beforeRouteEnter(to, from, next) { // eslint-disable-line no-unused-vars
     next((vm) => {
-      vm.searchedTerm = to.query.term; // eslint-disable-line no-param-reassign
-      vm.validateSearch(to.query.term);
+      if (to.query.term) {
+        vm.searchedTerm = to.query.term; // eslint-disable-line no-param-reassign
+        vm.validateSearch(to.query.term);
+      } else if (vm.searchTerm) {
+        vm.$router.replace({ query: { term: vm.searchTerm } });
+      }
       next();
     });
   },
-  beforeRouteUpdate(to, from, next) { // eslint-disable-line no-unused-vars
-    this.searchedTerm = to.query.term;
-    this.validateSearch(to.query.term);
+  async beforeRouteUpdate(to, from, next) { // eslint-disable-line no-unused-vars
+    if (to.query.term && to.query.term !== this.searchedTerm) {
+      this.searchedTerm = to.query.term;
+      await this.validateSearch(to.query.term);
+    }
     next();
   },
   updated() {
@@ -473,14 +485,6 @@ export default {
   methods: {
     formulaFormater(formula, charge) {
       return chemicalFormula(formula, charge);
-    },
-    countResults() {
-      this.tabs.forEach((key) => { this.resultsCount[key] = 0; });
-      Object.keys(this.searchResults)
-        .filter(el => el in this.resultsCount)
-        .forEach((el) => {
-          this.resultsCount[el] = this.searchResults[el].length;
-        });
     },
     fillFilterFields() {
       const filterTypeDropdown = {
@@ -524,14 +528,8 @@ export default {
             Object.keys(filterTypeDropdown[componentType]).forEach((field) => {
               if (field === 'model') {
                 filterTypeDropdown[componentType][field][el[field].id] = el[field].name;
-              } else if (field === 'subsystem') {
-                el[field]
-                  .filter(v => !(v.id in filterTypeDropdown[componentType][field]))
-                  .forEach((v) => {
-                    filterTypeDropdown[componentType][field][v.id] = 1;
-                  });
-              } else if (!(el[field] in filterTypeDropdown[componentType][field])) {
-                filterTypeDropdown[componentType][field][el[field]] = 1;
+              } else if (field === 'compartment') {
+                filterTypeDropdown[componentType][field][el[field].name] = 1;
               }
             });
             rows[componentType].push(el);
@@ -539,24 +537,22 @@ export default {
             Object.keys(filterTypeDropdown[componentType]).forEach((field) => {
               if (field === 'model') {
                 filterTypeDropdown[componentType][field][el[field].id] = el[field].name;
-              } else if (['compartment', 'subsystem'].includes(field)) {
+              } else if (field === 'compartment') {
                 el[field]
                   .filter(v => !(v.id in filterTypeDropdown[componentType][field]))
                   .forEach((v) => {
-                    filterTypeDropdown[componentType][field][v.id] = 1;
+                    filterTypeDropdown[componentType][field][v.name] = 1;
                   });
-              } else if (!(el[field] in filterTypeDropdown[componentType][field])) {
-                filterTypeDropdown[componentType][field][el[field]] = 1;
               }
             });
             rows[componentType].push(el);
           } else if (componentType === 'reaction') {
             Object.keys(filterTypeDropdown[componentType]).forEach((field) => {
-              if (['compartment', 'subsystem'].includes(field) && el[field]) {
+              if (field === 'compartment') {
                 el[field]
                   .filter(v => !(v in filterTypeDropdown[componentType][field]))
                   .forEach((v) => {
-                    filterTypeDropdown[componentType][field][v] = 1;
+                    filterTypeDropdown[componentType][field][v.name] = 1;
                   });
               } else if (field === 'model') {
                 filterTypeDropdown[componentType][field][el[field].id] = el[field].name;
@@ -578,22 +574,17 @@ export default {
                 el[field]
                   .filter(compartment => !(compartment.id in filterTypeDropdown[componentType][field]))
                   .forEach((compartment) => {
-                    filterTypeDropdown[componentType][field][compartment.id] = 1;
+                    filterTypeDropdown[componentType][field][compartment.name] = 1;
                   });
               } else if (field === 'model') {
                 filterTypeDropdown[componentType][field][el[field].id] = el[field].name;
-              } else if (!(el[field] in filterTypeDropdown[componentType][field])) {
-                filterTypeDropdown[componentType][field][el[field]] = 1;
               }
             });
             rows[componentType].push(el);
           } else if (componentType === 'compartment') {
             Object.keys(filterTypeDropdown[componentType]).forEach((field) => {
-              if (field === 'model') {
-                filterTypeDropdown[componentType][field][el[field].id] = el[field].name;
-              } else if (!(el[field] in filterTypeDropdown[componentType][field])) {
-                filterTypeDropdown[componentType][field][el[field]] = 1;
-              }
+              // 'model' field
+              filterTypeDropdown[componentType][field][el[field].id] = el[field].name;
             });
             rows[componentType].push(el);
           }
@@ -620,7 +611,6 @@ export default {
       });
       // assign filter choices lists to the columns
       this.columns.metabolite[0].filterOptions.filterDropdownItems = filterTypeDropdown.metabolite.model;
-      this.columns.metabolite[3].filterOptions.filterDropdownItems = filterTypeDropdown.metabolite.subsystem;
       this.columns.metabolite[4].filterOptions.filterDropdownItems = filterTypeDropdown.metabolite.compartment;
 
       this.columns.gene[0].filterOptions.filterDropdownItems = filterTypeDropdown.gene.model;
@@ -631,8 +621,7 @@ export default {
       this.columns.reaction[5].filterOptions.filterDropdownItems = filterTypeDropdown.reaction.is_transport;
 
       this.columns.subsystem[0].filterOptions.filterDropdownItems = filterTypeDropdown.subsystem.model;
-      this.columns.subsystem[2].filterOptions.filterDropdownItems = filterTypeDropdown.subsystem.system;
-      this.columns.subsystem[3].filterOptions.filterDropdownItems = filterTypeDropdown.subsystem.compartment;
+      this.columns.subsystem[2].filterOptions.filterDropdownItems = filterTypeDropdown.subsystem.compartments;
 
       this.columns.compartment[0].filterOptions.filterDropdownItems = filterTypeDropdown.subsystem.model;
       this.rows = rows;
@@ -650,66 +639,41 @@ export default {
     showTab(elementType) {
       return this.showTabType === elementType;
     },
-    validateSearch(term) {
+    async validateSearch(term) {
       this.searchTerm = term;
       this.showSearchCharAlert = false;
-      this.searchResults = [];
+      this.$store.dispatch('search/clearGlobalSearchResults');
       this.showTabType = '';
       this.searchResultsFiltered = {};
       if (this.searchTerm.length > 1) {
-        this.search();
+        await this.search();
       } else if (this.searchTerm.length === 1) {
         this.showSearchCharAlert = true;
       }
     },
-    search() {
+    async search() {
       this.loading = true;
-      axios.get(`all/search/${this.searchTerm}`)
-        .then((response) => {
-          const localResults = {
-            metabolite: [],
-            gene: [],
-            reaction: [],
-            subsystem: [],
-            compartment: [],
-          };
-
-          Object.keys(response.data).forEach((model) => {
-            const resultsModel = response.data[model];
-            this.tabs.filter(resultType => resultsModel[resultType])
-              .forEach((resultType) => {
-                localResults[resultType] = localResults[resultType].concat(
-                  resultsModel[resultType].map(
-                    (e) => {
-                      const d = e; d.model = { id: model, name: resultsModel.name }; return d;
-                    })
-                );
-              });
+      try {
+        await this.$store.dispatch('search/globalSearch', this.searchTerm);
+      } catch (error) {
+        if (error.response.headers.suggestions) {
+          this.notFoundSuggestions = JSON.parse(error.response.headers.suggestions);
+        } else {
+          this.notFoundSuggestions = [];
+        }
+        this.$store.dispatch('search/clearGlobalSearchResults');
+      } finally {
+        this.loading = false;
+        // get filters
+        this.fillFilterFields();
+        // select the active tab
+        Object.keys(this.resultsCount)
+          .filter(key => this.resultsCount[key] !== 0)
+          .every((key) => {
+            this.showTabType = key;
+            return false;
           });
-          this.searchResults = localResults;
-        })
-        .catch((error) => {
-          if (error.response.headers.suggestions) {
-            this.notFoundSuggestions = JSON.parse(error.response.headers.suggestions);
-          } else {
-            this.notFoundSuggestions = [];
-          }
-          this.searchResults = [];
-        })
-        .then(() => {
-          this.loading = false;
-          // count types
-          this.countResults();
-          // get filters
-          this.fillFilterFields();
-          // select the active tab
-          Object.keys(this.resultsCount)
-            .filter(key => this.resultsCount[key] !== 0)
-            .every((key) => {
-              this.showTabType = key;
-              return false;
-            });
-        });
+      }
     },
     formatToTSV(index) {
       const rows = Array.from(this.$refs.searchTables[index].filteredRows[0].children);

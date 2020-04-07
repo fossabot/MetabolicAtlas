@@ -1,19 +1,13 @@
 <template>
   <!-- eslint-disable max-len -->
-  <section class="section extended-section is-size-5">
+  <section class="section extended-section">
     <div class="container">
-      <h2 class="title is-2">Metabolic Atlas</h2>
+      <h3 class="title is-3">Metabolic Atlas</h3>
       <div class="columns is-variable is-8">
         <div class="column is-half has-text-justified">
           <div class="box is-hidden-tablet">
             <p class="subtitle has-text-weight-bold is-size-4 has-text-primary has-text-centered">Citing Metabolic Atlas</p>
-            <i>Article under consideration</i>
-            <!-- <p>
-                <a href="" target="_blank">APA style reference with DOI</a><br><br>
-                Abstract here
-                <br><br>
-                Genome scale metabolic model in the publication <a @click="viewGem()">Human1</a>
-              </p> -->
+            <a href="https://doi.org/10.1126/scisignal.aaz1482" target="_blank">Robinson, J., et al, 2020. <i>An atlas of human metabolism</i>. Sci. Signal. 13, eaaz1482 </a>
           </div>
           The Metabolic Atlas project is headed by <a href="https://www.sysbio.se/labs/nielsen" target="_new">Professor Jens Nielsen</a>, <a href="https://www.sysbio.se">Division of Systems and Synthetic Biology</a>, Department of Biology and Biological Engineering at the <a href="https://www.chalmers.se" target="_new">Chalmers University of Technology</a>. The platform is developed by members of <a href="https://www.chalmers.se/en/researchinfrastructure/csb/Pages/default.aspx">Computational Systems Biology Infrastructure</a> at Chalmers University of Technology and <a href="https://nbis.se" target="blank">National Bioinformatics Infrastructure Sweden</a>.<br><br>
 
@@ -31,40 +25,31 @@
         <div class="column is-half has-text-justified content">
           <div class="box is-hidden-mobile">
             <p class="subtitle has-text-weight-bold is-size-4 has-text-primary has-text-centered">Citing Metabolic Atlas</p>
-            <i>Article under consideration</i>
-            <!-- <p>
-              <a href="" target="_blank">APA style reference with DOI</a><br><br>
-              Abstract here
-              <br><br>
-              Genome scale metabolic model in the publication <a @click="viewGem()">Human1</a>
-            </p> -->
+            <a href="https://doi.org/10.1126/scisignal.aaz1482" target="_blank">Robinson, J., et al, 2020. <i>An atlas of human metabolism</i>. Sci. Signal. 13, eaaz1482 </a>
           </div>
-          <img width="100%" src="../assets/group_18a.jpg">
-          <center>The SysBio group 2018</center>
+          <img width="100%" alt="The SysBio group 2019" src="../assets/group_19.jpg">
+          <center>The SysBio group 2019</center>
+          <br><br>
           <h4 class="title is-4">Scientific Advisors</h4>
           <nav id="advisors" class="level">
-            <div class="level-left">
-              <span class="level-item">
-                <figure class="image is-64x64">
-                  <img class="is-rounded" src="../assets/pic-jens.jpg" />
-                </figure>
-                Jens Nielsen
-              </span>
-              <span class="level-item">
-                <figure class="image is-64x64">
-                  <img class="is-rounded" src="../assets/pic-jon.jpg" />
-                </figure>
-                Jon Robinson
-              </span>
+            <div v-for="advisor in advisors" :key="advisor.name" class="level-left">
+              <a :href="advisor.url" target="_blank">
+                <span class="level-item">
+                  <figure class="image is-64x64">
+                    <img class="is-rounded" :alt="advisor.name" :src="advisor.img" />
+                  </figure>
+                  {{ advisor.name }}
+                </span>
+              </a>
             </div>
           </nav>
           <br>
           <h4 class="title is-4">Contact</h4>
-          <p>For any questions, comments or suggestions please email us <a href="mailto:">contact [at] metabolicatlas [dot] org</a> .</p>
+          <p>For any questions, comments or suggestions please email us at <a href="mailto:">contact [at] metabolicatlas [dot] org</a>.</p>
         </div>
       </div>
       <br>
-      <h2 class="title is-2">News</h2>
+      <h3 class="title is-3">News</h3>
       <div class="timeline is-centered">
         <header class="timeline-header">
           <span class="tag is-large has-text-primary has-text-weight-bold">today</span>
@@ -92,15 +77,17 @@
       <br><br>
       <div class="columns is-variable is-8">
         <div class="column has-text-justified content">
-          <h2 id="privacy" class="title is-2">Privacy Notice</h2>
+          <h3 id="privacy" class="title is-3">Privacy Notice</h3>
           <p>
             Metabolic Atlas gathers information about users solely to improve the usability and usefulness of the website. There are two types of cookies that are set by Metabolic Atlas: functionality cookies and tracking cookies.<br>
             Functionality cookies are used to personalize the appearence of the Metabolic Atlas.<br>
-            Tracking cookies are used by our private analytics to track the users on our website. We use these to observe the anonymized behaviour on our website in order to improve it. We store partial IP, operating system, browser and browser language. This information is stored permanently and is not shared with any third party. To opt out, please set your browser to use the "DoNotTrack" header; doing this will disable the tracking.<br>
-            Additionally, we use the services of HotJar.com. This is an additional independent tracking service, which can produce a screen capture of the interactions on our website. We use it for the purpose of figuring out how to improve our website. The data is stored for at most 3 months. To opt out, see the <a href="https://www.hotjar.com/legal/compliance/opt-out" target="_blank">instructions on their website</a>. HotJar adheres to GDPR, <a href="https://www.hotjar.com/legal/compliance/gdpr-commitment" target="_blank">see more on their website.</a>
+            Tracking cookies are used by our private analytics to track the users on our website. We use these to observe the anonymized behaviour on our website in order to improve it. We store partial IP, operating system, browser and browser language. This information is stored permanently for statistics and is not shared with any third party.<br>
+            Additionally, we use the services of <a href="https://www.hotjar.com/" target="_blank">Hotjar</a>. This is an additional independent tracking service, which can produce a screen capture of the interactions on our website, including mouse movement. We use it for the purpose of figuring out how to improve our website, for example when the website interface is confusing. The data is stored for at most 3 months. Hotjar adheres to GDPR, <a href="https://www.hotjar.com/legal/compliance/gdpr-commitment" target="_blank">see more on their website</a>.<br>
+            To opt out of any of these cookies, please set your browser to use the "DoNotTrack" header; doing this will disable the tracking. It is a good practice to enable this setting, here is how to do this for <a href="https://support.google.com/chrome/answer/2790761" target="_blank">Chrome</a> and <a href="https://support.mozilla.org/en-US/kb/how-do-i-turn-do-not-track-feature" target="_blank">Firefox</a> (in Safari this is enabled by default). Alternatively, see <a href="https://www.hotjar.com/legal/compliance/opt-out" target="_blank">Hotjar's instructions on their website</a>.<br>
+            If you have any questions, please email us at <a href="mailto:">contact [at] metabolicatlas [dot] org</a>.
           </p>
 
-          <h2 class="title is-2">Terms of Use</h2>
+          <h3 class="title is-3">Terms of Use</h3>
           <p>
             We do not guarantee the accuracy of any provided data, generated database, software or online service nor the suitability of databases, software and online services for any purpose.
             The content presented on Metabolic Atlas is contributed by members of the community who remain owners of said content.
@@ -112,14 +99,14 @@
 </template>
 
 <script>
-import { default as EventBus } from '../event-bus';
-
 export default {
   name: 'About',
   data() {
     return {
       news: {
         2020: [
+          { date: '23 March 2020',
+            text: '<b>Metabolic Atlas v1.6</b> is out. This release contains many user interface improvements, documentation updates and correction of typos. More details can be found <a href="https://github.com/SysBioChalmers/MetabolicAtlas/releases/tag/v1.6" target="_blank">on GitHub</a>.' },
           { date: '7 February 2020',
             text: '<b>Metabolic Atlas v1.5</b> is out. This release updates the layout of the <i>Home</i>, <i>Explore</i>, and <i>Interaction Partner</i> pages. A <i>News</i> section has also been added on the <i>About</i> page. Other features include suggestions on the <i>Search</i> page, a contact button in the <i>GEM Browser</i>, and a progress bar at the top indicating page loading status. The Human-GEM has also been updated to v1.3, and the Yeast-GEM to v.8.3.4. More details can be found <a href="https://github.com/SysBioChalmers/MetabolicAtlas/releases/tag/v1.5" target="_blank">on GitHub</a>.' },
         ],
@@ -169,19 +156,24 @@ export default {
 
         ],
       },
+      /* eslint-disable global-require */
+      advisors: [
+        {
+          name: 'Prof. Jens Nielsen',
+          img: require('../assets/pic-jens.jpg'),
+          url: 'https://www.sysbio.se/labs/nielsen/',
+        }, {
+          name: 'Dr. Jonathan Robinson',
+          img: require('../assets/pic-jon.jpg'),
+          url: 'https://nbis.se/about/staff/jonathan-robinson/',
+        },
+      ],
     };
-  },
-  methods: {
-    viewGem() {
-      this.$router.push({ name: 'gems' });
-      EventBus.$emit('viewGem', 'Human1');
-    },
   },
 };
 </script>
 
 <style lang="scss">
-
 #advisors{
   figure {
     margin: 0 1rem 0 0;
@@ -191,5 +183,4 @@ export default {
     margin: 0 4rem 0 0;
   }
 }
-
 </style>

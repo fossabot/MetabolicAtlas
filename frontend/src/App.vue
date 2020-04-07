@@ -4,7 +4,7 @@
     <nav id="navbar" class="navbar has-background-primary-lighter" role="navigation" aria-label="main navigation">
       <div class="container">
         <div class="navbar-brand">
-          <router-link class="navbar-item" :to="{ path: '/' }" active-class="" @click.native="isMobileMenu = false">
+          <router-link class="navbar-item" :to="{ name: 'home' }" active-class="" @click.native="isMobileMenu = false">
             <img :src="require('./assets/logo.png')" />
           </router-link>
           <div class="navbar-burger" :class="{ 'is-active': isMobileMenu }" @click="isMobileMenu = !isMobileMenu">
@@ -16,7 +16,7 @@
         <div id="#nav-menu" class="navbar-menu" :class="{ 'is-active': isMobileMenu }">
           <div v-show="model" class="navbar-start has-text-centered"
                title="Click to toggle between the GEM Browser and the Map Viewer">
-            <router-link v-if="activeViewerBut || activeBrowserBut" :to="{ path: '/explore'}"
+            <router-link v-if="activeViewerBut || activeBrowserBut" :to="{ name: 'explorerRoot' }"
                          class="navbar-item is-size-3 has-text-primary has-text-weight-bold is-unselectable"
                          title="Current selected model, click to change your selection" exact>
               {{ model ? model.short_name : '' }}
@@ -31,30 +31,31 @@
             </a>
           </div>
           <div class="navbar-end has-background-primary-lighter">
-            <template v-for="(menuPath, menuName) in menuElems">
-              <template v-if="typeof menuPath === 'string'">
+            <template v-for="(menuElem) in menuElems">
+              <template v-if="menuElem.routeName">
                 <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
                 <router-link class="navbar-item is-unselectable is-active-underline"
-                             :to="{ path: menuPath }" @click.native="isMobileMenu = false" v-html="menuName">
+                             :to="{ name: menuElem.routeName }"
+                             @click.native="isMobileMenu = false" v-html="menuElem.displayName">
                 </router-link>
               </template>
               <template v-else>
-                <template v-for="(submenus, menuurl) in menuPath">
+                <template>
                   <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
                   <div class="navbar-item has-dropdown is-hoverable is-unselectable has-background-primary-lighter">
                     <a class="navbar-link is-active-underline"
-                       :class="{ 'router-link-active': $route.path.toLowerCase().includes(menuurl) }">
-                      {{ menuName }}
+                       :class="{
+                         'router-link-active': menuElem.subMenuElems.map(sme => sme.routeName).includes($route.name)
+                       }">
+                      {{ menuElem.displayName }}
                     </a>
                     <div class="navbar-dropdown has-background-primary-lighter is-paddingless">
-                      <template v-for="submenu in submenus">
-                        <template v-for="(submenuPath, submenuName) in submenu">
-                          <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
-                          <router-link class="navbar-item is-unselectable has-background-primary-lighter"
-                                       :to="{ path: submenuPath }"
-                                       @click.native="isMobileMenu = false">{{ submenuName }}
-                          </router-link>
-                        </template>
+                      <template v-for="(subMenuElem) in menuElem.subMenuElems">
+                        <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
+                        <router-link class="navbar-item is-unselectable has-background-primary-lighter"
+                                     :to="{ name: subMenuElem.routeName }"
+                                     @click.native="isMobileMenu = false">{{ subMenuElem.displayName }}
+                        </router-link>
                       </template>
                     </div>
                   </div>
@@ -71,7 +72,7 @@
     <footer id="footer" class="footer has-background-primary-lighter is-size-6">
       <div class="columns is-gapless">
         <div class="column is-7">
-          <p>2019 © Department of Biology and Biological Engineering | Chalmers University of Technology</p>
+          <p>2020 © Department of Biology and Biological Engineering | Chalmers University of Technology</p>
         </div>
         <div class="column">
           <div class="content has-text-right">
@@ -105,7 +106,7 @@
           We use cookies to enhance the usability of our website.
           By continuing you are agreeing to our
           <router-link class="has-text-white has-text-weight-bold"
-                       :to="{path: '/about', hash: 'privacy'}">
+                       :to="{ name: 'about', hash: '#privacy' }">
             Privacy Notice and Terms of Use
           </router-link>&emsp;
           <p class="button is-small is-rounded has-background-danger has-text-white has-text-weight-bold"
@@ -121,7 +122,7 @@
 
 <script>
 
-import { default as EventBus } from './event-bus';
+import { mapState } from 'vuex';
 import { isCookiePolicyAccepted, acceptCookiePolicy } from './helpers/store';
 
 export default {
@@ -129,78 +130,107 @@ export default {
   data() {
     return {
       /* eslint-disable quote-props */
-      menuElems: {
-        '<span class="icon is-large"><i id="search-icon" class="fa fa-search"></i></span>': '/search?term=',
-        'Explore': '/explore',
-        'GEM': {
-          '/gems/': [
-            { 'Repository': '/gems/repository' },
-            { 'Comparison': '/gems/comparison' },
+      menuElems: [
+        {
+          displayName: '<span class="icon is-large"><i id="search-icon" class="fa fa-search"></i></span>',
+          routeName: 'search',
+        },
+        {
+          displayName: 'Explore',
+          routeName: 'explorerRoot',
+        },
+        {
+          displayName: 'GEM',
+          subMenuElems: [
+            {
+              displayName: 'Repository',
+              routeName: 'gems',
+            },
+            {
+              displayName: 'Comparison',
+              routeName: 'comparemodels',
+            },
           ],
         },
-        'Resources': '/resources',
-        'Documentation': '/documentation',
-        'About': '/about',
-      },
+        {
+          displayName: 'Resources',
+          routeName: 'resources',
+        },
+        {
+          displayName: 'Documentation',
+          routeName: 'documentation',
+        },
+        {
+          displayName: 'About',
+          routeName: 'about',
+        },
+      ],
       activeBrowserBut: false,
       activeViewerBut: false,
       showCookieMsg: navigator.doNotTrack !== '1' && !isCookiePolicyAccepted(),
       acceptCookiePolicy,
       activeDropMenu: '',
-      model: null,
-      browserLastPath: '',
-      viewerLastPath: '',
+      browserLastRoute: {},
+      viewerLastRoute: {},
       isMobileMenu: false,
     };
+  },
+  computed: {
+    ...mapState({
+      model: state => state.models.model,
+    }),
   },
   watch: {
     $route: function watchSetup() {
       this.setupButons();
     },
   },
-  beforeMount() {
-    EventBus.$on('modelSelected', (model) => {
-      if (this.model) {
-        this.viewerLastPath = '';
-        this.browserLastPath = '';
-      }
-      this.model = model;
-    });
-  },
   created() {
     this.setupButons();
   },
   methods: {
     setupButons() {
-      if (this.$route.name === 'browser' || this.$route.name === 'browserRoot') {
+      if (['browserRoot', 'browser'].includes(this.$route.name)) {
         this.activeBrowserBut = true;
         this.activeViewerBut = false;
-        this.savePath();
-      } else if (['viewer', 'viewerCompartment', 'viewerCompartmentRea', 'viewerSubsystem', 'viewerSubsystemRea'].includes(this.$route.name)) {
+        this.saveRoute();
+      } else if (['viewerRoot', 'viewer'].includes(this.$route.name)) {
         this.activeBrowserBut = false;
         this.activeViewerBut = true;
-        this.savePath();
+        this.saveRoute();
       } else {
         this.activeBrowserBut = false;
         this.activeViewerBut = false;
       }
     },
     goToGemBrowser() {
-      this.$router.push(this.browserLastPath || `/explore/gem-browser/${this.$route.params.model}`);
-    },
-    savePath() {
-      if (this.$route.name === 'browser') {
-        this.browserLastPath = this.$route.path;
-      } else if (this.$route.name === 'browserRoot') {
-        this.browserLastPath = '';
-      } else if (['viewerCompartment', 'viewerCompartmentRea', 'viewerSubsystem', 'viewerSubsystemRea'].includes(this.$route.name)) {
-        this.viewerLastPath = this.$route.fullPath;
-      } else if (this.$route.name === 'viewer') {
-        this.viewerLastPath = '';
+      if (Object.keys(this.browserLastRoute).length !== 0) {
+        if (this.$route.path !== this.browserLastRoute.path) {
+          this.$router.push(this.browserLastRoute);
+        }
+      } else {
+        this.$router.push({ name: 'browserRoot', params: { model: this.$route.params.model } });
       }
     },
     goToMapViewer() {
-      this.$router.push(this.viewerLastPath || `/explore/map-viewer/${this.$route.params.model}`);
+      if (Object.keys(this.viewerLastRoute).length !== 0) {
+        if (this.$route.path !== this.viewerLastRoute.path) {
+          this.$router.push(this.viewerLastRoute);
+        }
+      } else {
+        this.$router.push({ name: 'viewerRoot', params: { model: this.$route.params.model } });
+      }
+    },
+    saveRoute() {
+      if (this.$route.name === 'browser') {
+        this.browserLastRoute = Object.assign(this.$route);
+      } else if (this.$route.name === 'browserRoot') {
+        this.browserLastRoute = {};
+      } else if (this.$route.name === 'viewer') {
+        this.viewerLastRoute = Object.assign(this.$route);
+      } else if (this.$route.name === 'viewerRoot') {
+        this.viewerLastRoute = {};
+      }
     },
   },
 };

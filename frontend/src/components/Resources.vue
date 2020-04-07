@@ -1,17 +1,22 @@
 <template>
   <section class="section section-no-top extended-section">
-    <div class="container is-size-5">
+    <div class="container">
       <template v-for="(elems, category) in resources">
         <!-- eslint-disable-next-line vue/require-v-for-key -->
-        <h2 class="title is-2">{{ category }}</h2>
+        <div class="columns">
+          <div class="column is-offset-2 has-text-centered-mobile">
+            <h3 class="title is-3">{{ category }}</h3>
+          </div>
+        </div>
         <div v-for="elem in elems" :key="elem.name" class="columns">
-          <div class="column is-1">
+          <br>
+          <div class="column is-2 has-text-centered">
             <a :href="elem.link" target="_blank">
               <template v-if="elem.img">
                 <img :src="elem.img" />
               </template>
               <template v-else>
-                {{ elem.name }}
+                <h4 class="has-text-centered title is-4">{{ elem.name }}</h4>
               </template>
             </a>
           </div>

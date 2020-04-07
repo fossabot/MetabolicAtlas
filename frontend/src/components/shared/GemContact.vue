@@ -20,13 +20,11 @@
 </template>
 
 <script>
+import { mapState } from 'vuex';
+
 export default {
   name: 'GemContact',
   props: {
-    model: {
-      type: Object,
-      required: true,
-    },
     type: {
       type: String,
       required: true,
@@ -40,6 +38,11 @@ export default {
     return {
       isExpanded: false,
     };
+  },
+  computed: {
+    ...mapState({
+      model: state => state.models.model,
+    }),
   },
 };
 </script>

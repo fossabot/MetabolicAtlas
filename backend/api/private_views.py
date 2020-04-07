@@ -12,6 +12,8 @@ import api.serializers_cs as APIcsSerializer
 from api.views import is_model_valid
 from functools import reduce
 from random import randint
+from operator import itemgetter
+from collections import OrderedDict
 import re
 import logging
 import json
@@ -48,7 +50,7 @@ def get_gemodel(request, gem_id):
         is_int = False
 
     if is_int:
-         model = APImodels.GEModel.objects.filter(id=gem_id). \
+         model = APImodels.GEModel.objects.filter(model_id=gem_id). \
          prefetch_related('files', 'ref')
     else:
          model = APImodels.GEModel.objects.filter(tag__iexact=gem_id). \
@@ -125,32 +127,41 @@ def get_id(request, model, term):
     # get the list of reaction id
     reaction_ids = APImodels.Reaction.objects.using(model).prefetch_related('external_databases').filter(reaction_query).values_list('id', flat=True).distinct()
 
-    if not reaction_component_ids.count() and not reaction_ids.count():
+    if len(reaction_component_ids) + len(reaction_ids) == 0:
         return HttpResponse(status=404)
 
     results = list(chain(reaction_component_ids, reaction_ids))
     return JSONResponse(results)
 
 
+def fetch_map_available(results, map_type, dim, model, database, filter_condition, related_model_name, order_by, value_list_tuple):
+    res = model.objects.using(database) \
+         .filter(filter_condition) \
+         .select_related(related_model_name) \
+         .order_by(order_by) \
+         .values_list(*value_list_tuple)
+
+    if res:
+        results[dim][map_type] = res
+    return results
+
+
 @api_view()
 @is_model_valid
 def get_available_maps(request, model, component_type, component_id):
 
-    results = { "count" : 0,
-            "2d" : {
-                "compartment" : [],
-                "subsystem" : [],
-                "count" : 0,
-            },
-            "3d" : {
-                "compartment" : [],
-                "subsystem" : [],
-                "count" : 0,
-            },
-            'default' : None  # is there is only one map it's there
-          }
+    results = {
+        "2d" : {
+            "compartment" : [],
+            "subsystem" : [],
+        },
+        "3d" : {
+            "compartment" : [],
+            "subsystem" : [],
+        },
+      }
 
-    if component_type not in ['reaction', 'compartment', 'subsystem']:
+    if component_type not in ['reaction', 'gene', 'metabolite', 'compartment', 'subsystem']:
         return HttpResponse(status=404)
 
     if component_type == 'reaction':
@@ -159,43 +170,44 @@ def get_available_maps(request, model, component_type, component_id):
         except APImodels.Reaction.DoesNotExist:
             return HttpResponse(status=404)
 
-        # check 2D maps
-        compartment_svg = APImodels.ReactionCompartmentSvg.objects.using(model) \
-                    .filter(Q(reaction_id=reaction.id)).select_related('compartmentsvg').order_by("compartmentsvg__name").extra(select = {'type': "'compartment'"}). \
-                    values_list('compartmentsvg__name_id', 'compartmentsvg__name', 'type')
-        if compartment_svg:
-            results["2d"]["compartment"] = compartment_svg
-            results["2d"]["count"] += compartment_svg.count()
-            results["count"] += compartment_svg.count()
-            results["default"] = compartment_svg[0]
+        results = fetch_map_available(results, "compartment", "2d", APImodels.ReactionCompartmentSvg, model, Q(reaction_id=reaction.id),
+            "compartmentsvg", "compartmentsvg__name", ('compartmentsvg__name_id', 'compartmentsvg__name'))
+        results = fetch_map_available(results, "subsystem", "2d", APImodels.ReactionSubsystemSvg, model, Q(reaction_id=reaction.id),
+            "subsystemsvg", "subsystemsvg__name", ('subsystemsvg__name_id', 'subsystemsvg__name'))
+        results = fetch_map_available(results, "compartment", "3d", APImodels.ReactionCompartment, model, Q(reaction_id=reaction.id),
+            "compartment", "compartment__name", ('compartment__name_id', 'compartment__name'))
+        results = fetch_map_available(results, "subsystem", "3d", APImodels.SubsystemReaction, model, Q(reaction_id=reaction.id),
+            "subsystem", "subsystem__name", ('subsystem__name_id', 'subsystem__name'))
 
-        subsystem_svg = APImodels.ReactionSubsystemSvg.objects.using(model) \
-                    .filter(Q(reaction_id=reaction.id)).select_related('subsystemsvg').order_by("subsystemsvg__name").extra(select = {'type': "'subsystem'"}). \
-                    values_list('subsystemsvg__name_id', 'subsystemsvg__name', 'type')
-        if subsystem_svg:
-            results["2d"]["subsystem"] = subsystem_svg
-            results["2d"]["count"] += subsystem_svg.count()
-            results["count"] += subsystem_svg.count()
-            results["default"] = subsystem_svg[0]
+    elif component_type == 'gene':
+        try:
+            gene = APImodels.ReactionComponent.objects.using(model).get(id__iexact=component_id)
+        except APImodels.ReactionComponent.DoesNotExist:
+            return HttpResponse(status=404)
 
-        #check 3D maps
-        compartment = APImodels.ReactionCompartment.objects.using(model) \
-                    .filter(Q(reaction_id=reaction.id)).select_related('compartment').order_by("compartment__name").extra(select = {'type': "'compartment'"}). \
-                    values_list('compartment__name_id', 'compartment__name', 'type')
-        if compartment:
-            results["3d"]["compartment"] = compartment
-            results["3d"]["count"] += compartment.count()
-            results["count"] += compartment.count()
-            results["default"] = compartment[0]
+        results = fetch_map_available(results, "compartment", "2d", APImodels.CompartmentSvgGene, model, Q(rc_id=gene.id),
+            "compartmentsvg", "compartmentsvg__name", ('compartmentsvg__name_id', 'compartmentsvg__name'))
+        results = fetch_map_available(results, "subsystem", "2d", APImodels.SubsystemSvgGene, model, Q(rc_id=gene.id),
+            "subsystemsvg", "subsystemsvg__name", ('subsystemsvg__name_id', 'subsystemsvg__name'))
+        results = fetch_map_available(results, "compartment", "3d", APImodels.CompartmentGene, model, Q(rc_id=gene.id),
+            "compartment", "compartment__name", ('compartment__name_id', 'compartment__name'))
+        results = fetch_map_available(results, "subsystem", "3d", APImodels.SubsystemGene, model, Q(rc_id=gene.id),
+            "subsystem", "subsystem__name", ('subsystem__name_id', 'subsystem__name'))
 
-        subsystem = APImodels.SubsystemReaction.objects.using(model) \
-                    .filter(Q(reaction_id=reaction.id)).select_related('subsystem').order_by("subsystem__name").extra(select = {'type': "'subsystem'"}). \
-                    values_list('subsystem__name_id', 'subsystem__name', 'type')
-        if subsystem:
-            results["3d"]["subsystem"] = subsystem
-            results["3d"]["count"] += subsystem.count()
-            results["count"] += subsystem.count()
-            results["default"] = subsystem[0]
+    elif component_type == 'metabolite':
+        try:
+            metabolite = APImodels.ReactionComponent.objects.using(model).get(id__iexact=component_id)
+        except APImodels.ReactionComponent.DoesNotExist:
+            return HttpResponse(status=404)
+
+        results = fetch_map_available(results, "compartment", "2d", APImodels.ReactionComponentCompartmentSvg, model, Q(rc_id=metabolite.id),
+            "compartmentsvg", "compartmentsvg__name", ('compartmentsvg__name_id', 'compartmentsvg__name'))
+        results = fetch_map_available(results, "subsystem", "2d", APImodels.ReactionComponentSubsystemSvg, model, Q(rc_id=metabolite.id),
+            "subsystemsvg", "subsystemsvg__name", ('subsystemsvg__name_id', 'subsystemsvg__name'))
+        results = fetch_map_available(results, "compartment", "3d", APImodels.ReactionComponentCompartment, model, Q(rc_id=metabolite.id),
+            "compartment", "compartment__name", ('compartment__name_id', 'compartment__name'))
+        results = fetch_map_available(results, "subsystem", "3d", APImodels.SubsystemReactionComponent, model, Q(rc_id=metabolite.id),
+            "subsystem", "subsystem__name", ('subsystem__name_id', 'subsystem__name'))
 
     elif component_type == 'compartment':
         try:
@@ -203,25 +215,10 @@ def get_available_maps(request, model, component_type, component_id):
         except APImodels.Compartment.DoesNotExist:
             return HttpResponse(status=404)
 
-        # check 2D maps
-        compartment_svg = APImodels.CompartmentSvg.objects.using(model) \
-                    .filter(Q(compartment=compartment.id)).order_by("name").extra(select = {'type': "'compartment'"}). \
-                    values_list('name_id', 'name', 'type')
-        if compartment_svg:
-            results["2d"]["compartment"] = compartment_svg
-            results["2d"]["count"] += compartment_svg.count()
-            results["count"] += compartment_svg.count()
-            results["default"] = compartment_svg[0]
-
-        #check 3D maps
-        compartment = APImodels.Compartment.objects.using(model).filter(name_id__iexact=component_id). \
-                order_by("name").extra(select = {'type': "'compartment'"}).values_list('name_id', 'name', 'type')
-
-        if compartment:
-            results["3d"]["compartment"] = compartment
-            results["3d"]["count"] = compartment.count() # should be 1
-            results["count"] = compartment.count()
-            results["default"] = compartment[0]
+        results = fetch_map_available(results, "compartment", "2d", APImodels.CompartmentSvg, model, Q(compartment=compartment.id),
+            None, "name", ('name_id', 'name'))
+        results = fetch_map_available(results, "compartment", "3d", APImodels.Compartment, model, Q(id=compartment.id),
+            None, "name", ('name_id', 'name'))
 
     elif component_type == 'subsystem':
         try:
@@ -229,27 +226,14 @@ def get_available_maps(request, model, component_type, component_id):
         except APImodels.Subsystem.DoesNotExist:
             return HttpResponse(status=404)
 
-        # check 2D maps
-        subsystem_svg = APImodels.SubsystemSvg.objects.using(model) \
-                    .filter(Q(subsystem=subsystem.id) & Q(sha__isnull=False)).order_by("name").extra(select = {'type': "'subsystem'"}). \
-                    values_list('name_id', 'name', 'type')
-        if subsystem_svg:
-            results["2d"]["compartment"] = subsystem_svg
-            results["2d"]["count"] += subsystem_svg.count()
-            results["count"] += subsystem_svg.count()
-            results["default"] = subsystem_svg[0]
+        results = fetch_map_available(results, "subsystem", "2d", APImodels.SubsystemSvg, model, Q(subsystem=subsystem.id) & Q(sha__isnull=False),
+            None, "name", ('name_id', 'name'))
+        results = fetch_map_available(results, "subsystem", "3d", APImodels.Subsystem, model, Q(id=subsystem.id),
+            None, "name", ('name_id', 'name'))
 
-        #check 3D maps
-        subsystem = APImodels.Subsystem.objects.using(model).filter(name_id__iexact=component_id). \
-                order_by("name").extra(select = {'type': "'subsystem'"}).values_list('name_id', 'name', 'type')
-
-        if subsystem:
-            results["3d"]["compartment"] = subsystem
-            results["3d"]["count"] = subsystem.count()  # should be 1
-            results["count"] = subsystem.count()
-            results["default"] = subsystem[0]
-
-    if results["count"] == 0:
+    if len(results["2d"]["compartment"]) + len(results["2d"]["subsystem"]) + \
+       len(results["3d"]["compartment"]) + len(results["3d"]["subsystem"]) == 0:
+        # not possible ?
         return HttpResponse(status=404)
 
     return JSONResponse(results)
@@ -554,28 +538,23 @@ def get_component_with_interaction_partners(request, model, id):
     c = {}
     c.update(component_serializer.data)
     c['type'] = 'metabolite' if component.component_type == 'm' else 'gene';
-    print (c)
-    reactions_count = component.reactions_as_metabolite.count() + \
-        component.reactions_as_gene.count()
 
-    if reactions_count > 200:
+    reactions = None
+    if component.component_type == 'm':
+        reactions = component.reactions_as_metabolite. \
+        prefetch_related('subsystem', 'reactants', 'products', 'genes').all()
+
+    else:
+        reactions = component.reactions_as_gene. \
+        prefetch_related('subsystem', 'reactants', 'products', 'genes').all()
+
+    if len(reactions) > 200:
         result = {
              'component': c,
              'reactions': None
          }
 
         return JSONResponse(result)
-
-    reactions = list(chain(
-        component.reactions_as_metabolite. \
-        prefetch_related('reactants', 'products', 'genes', 'reactants__metabolite', \
-            'products__metabolite', 'genes__gene', \
-            'reactants__compartment', 'products__compartment', 'genes__compartment').all(),
-        component.reactions_as_gene. \
-        prefetch_related('reactants', 'products', 'genes', 'reactants__metabolite', \
-            'products__metabolite', 'genes__gene', \
-            'reactants__compartment', 'products__compartment', 'genes__compartment').all()
-    ))
 
     reactions_serializer = APIserializer.InteractionPartnerSerializer(reactions, many=True)
     result = {
@@ -675,7 +654,7 @@ def get_related_metabolites(request, model, id):
 
 
 @api_view()
-def search(request, model, term):
+def search(request, model, term, type='global'):
     """
         Searches for the term in metabolites, genes, reactions, subsystems and compartments.
         Current search rules:
@@ -719,16 +698,10 @@ def search(request, model, term):
         return HttpResponse("Invalid query, term must be at least 2 characters long", status=400)
 
     results = {}
-    models_dict = {}
-    quickSearch = model != 'all'
-    if not quickSearch:
+    if type == 'global':
         models = [k for k in settings.DATABASES if k not in ['default', 'gems']]
         limit = 10000
     else:
-        try:
-            m = APImodels.GEM.objects.get(database_name=model)
-        except APImodels.GEM.DoesNotExist:
-            return HttpResponse("Invalid model name '%s'" % model, status=404)
         models = [model]
         limit = 50
 
@@ -737,20 +710,17 @@ def search(request, model, term):
     for model_db_name in models:
         try:
             m = APImodels.GEM.objects.get(database_name=model_db_name)
-            models_dict[model_db_name] = m.short_name
-            filtered_models.append(model_db_name)
+            filtered_models.append(m)
         except APImodels.GEM.DoesNotExist:
-            pass
+            return HttpResponse("Invalid model name '%s'" % model, status=404)
     models = filtered_models
 
-
     match_found = False
-    for model in models:
+    for modelData in models:
+        model = modelData.database_name
+        model_short_name = modelData.short_name
         if model not in results:
             results[model] = {}
-
-        m = APImodels.GEM.objects.get(database_name=model)
-        model_short_name = m.short_name
 
         term = term.replace("→", "=>")
         term = term.replace("⇒", "=>")
@@ -763,7 +733,7 @@ def search(request, model, term):
         compartments = APImodels.Compartment.objects.using(model).none()
         subsystems = APImodels.Subsystem.objects.using(model).none()
 
-        if '=>' in term and term.count('=>') == 1:
+        if type != 'IP' and '=>' in term and term.count('=>') == 1:
             if not term.strip() == '=>':
                 dr = {}
                 reactants, products = term.split('=>')
@@ -798,49 +768,49 @@ def search(request, model, term):
 
                 if dr and len(dr) == len(reactants_mets_terms) and dp and len(dp) == len(products_mets_terms):
                     reactions = APImodels.Reaction.objects.using(model) \
-                    .prefetch_related('subsystem').filter(
+                    .prefetch_related('subsystem', 'compartment').filter(
                         reduce(lambda x, y: x & y, [Q(id__in=APImodels.ReactionReactant.objects.filter(reactant_id__in=l) \
                             .values_list('reaction_id', flat=True)) for l in dr.values()]), \
                         reduce(lambda x, y: x & y, [Q(id__in=APImodels.ReactionProduct.objects.filter(product_id__in=l) \
                             .values_list('reaction_id', flat=True)) for l in dp.values()]), \
                         )[:limit]
-                    if set((r.id for r in reactants)) != set((p.id for p in products)) and reactions.count() < limit:
+                    if set((r.id for r in reactants)) != set((p.id for p in products)) and len(reactions) < limit:
                         reactions_rev = APImodels.Reaction.objects.using(model) \
-                        .prefetch_related('subsystem').filter(Q(is_reversible=True) &
+                        .prefetch_related('subsystem', 'compartment').filter(Q(is_reversible=True) &
                             reduce(lambda x, y: x & y, [Q(id__in=APImodels.ReactionReactant.objects.filter(reactant_id__in=l) \
                                 .values_list('reaction_id', flat=True)) for l in dp.values()]), \
                             reduce(lambda x, y: x & y, [Q(id__in=APImodels.ReactionProduct.objects.filter(product_id__in=l) \
                                 .values_list('reaction_id', flat=True)) for l in dr.values()]), \
-                            )[:(limit - reactions.count())]
+                            )[:(limit - len(reactions))]
                         reactions = list(chain(reactions, reactions_rev))
                 elif dr and len(dr) == len(reactants_mets_terms) and not products_mets_terms:
                     reactions = APImodels.Reaction.objects.using(model) \
-                    .prefetch_related('subsystem').filter(
+                    .prefetch_related('subsystem', 'compartment').filter(
                         reduce(lambda x, y: x & y, [Q(id__in=APImodels.ReactionReactant.objects.filter(reactant_id__in=l) \
                             .values_list('reaction_id', flat=True)) for l in dr.values()]) \
                         )[:limit]
-                    if reactions.count() < limit:
+                    if len(reactions) < limit:
                         reactions_rev = APImodels.Reaction.objects.using(model) \
-                        .prefetch_related('subsystem').filter(Q(is_reversible=True) &
+                        .prefetch_related('subsystem', 'compartment').filter(Q(is_reversible=True) &
                             reduce(lambda x, y: x & y, [Q(id__in=APImodels.ReactionProduct.objects.filter(product_id__in=l) \
                                 .values_list('reaction_id', flat=True)) for l in dr.values()]) \
-                            )[:(limit - reactions.count())]
+                            )[:(limit - len(reactions))]
                         reactions = list(chain(reactions, reactions_rev))
                 elif dp and len(dp) == len(products_mets_terms) and not reactants_mets_terms:
                     reactions = APImodels.Reaction.objects.using(model) \
-                    .prefetch_related('subsystem').filter(
+                    .prefetch_related('subsystem', 'compartment').filter(
                         reduce(lambda x, y: x & y, [Q(id__in=APImodels.ReactionProduct.objects.filter(product_id__in=l) \
                             .values_list('reaction_id', flat=True)) for l in dp.values()]) \
                         )[:limit]
-                    if reactions.count() < limit:
+                    if len(reactions) < limit:
                         reactions_rev = APImodels.Reaction.objects.using(model) \
-                        .prefetch_related('subsystem').filter(Q(is_reversible=True) &
+                        .prefetch_related('subsystem', 'compartment').filter(Q(is_reversible=True) &
                             reduce(lambda x, y: x & y, [Q(id__in=APImodels.ReactionReactant.objects.filter(reactant_id__in=l) \
                                 .values_list('reaction_id', flat=True)) for l in dp.values()]) \
-                            )[:(limit - reactions.count())]
+                            )[:(limit - len(reactions))]
                         reactions = list(chain(reactions, reactions_rev))
 
-        elif " + " in term:
+        elif type != 'IP' and " + " in term:
             mets_terms = [m.strip() for m in term.split(" + ") if m.strip()]
             if mets_terms:
                 mets = APImodels.ReactionComponent.objects.using(model).filter(
@@ -858,22 +828,12 @@ def search(request, model, term):
                 if len(d) == len(mets_terms):
                     reactions = APImodels.Reaction.objects.using(model).filter(
                         reduce(lambda x, y: x & y, [Q(id__in=APImodels.ReactionMetabolite.objects.filter(rc_id__in=l).values_list('reaction_id', flat=True)) \
-                         for l in d.values()])).prefetch_related('subsystem')[:limit]
+                         for l in d.values()])).prefetch_related('subsystem', 'compartment')[:limit]
 
         else:
             synonym_regex = r"(?:^" + re.escape(term) + r"(?:;|$)" + r")|(?:; " + re.escape(term) + r"(?:;|$))"
-            compartments = APImodels.Compartment.objects.using(model).filter(
-                Q(name_id__iexact=term) |
-                Q(name__icontains=term)
-            )[:limit]
-
-            subsystems = APImodels.Subsystem.objects.using(model).prefetch_related('compartment', 'external_databases').filter(
-                Q(name_id__iexact=term) |
-                Q(name__icontains=term) |
-                Q(external_databases__external_id__iexact=term)
-            ).distinct()[:limit]
-
-            metabolites = APImodels.ReactionComponent.objects.using(model).select_related('metabolite').prefetch_related('subsystem_metabolite', 'external_databases').filter(
+            metabolites = APImodels.ReactionComponent.objects.using(model).select_related('metabolite'). \
+            prefetch_related('subsystem_metabolite', 'compartment').filter(
                 Q(component_type__exact='m') &
                 (Q(id__iexact=term) |
                 Q(full_name__icontains=term) |
@@ -881,60 +841,83 @@ def search(request, model, term):
                 Q(alt_name2__icontains=term) |
                 Q(aliases__iregex=synonym_regex) |
                 Q(formula__icontains=term) |
-                Q(external_databases__external_id__iexact=term))
-            ).distinct()[:limit]
+                Q(id__in=APImodels.ReactionComponentEID.objects.using(model).filter(external_id__iexact=term).values('rc')))
+            )[:limit]
 
-            exact_metabolites = APImodels.ReactionComponent.objects.using(model).filter(
-                Q(component_type__exact='m') &
-                (Q(id__iexact=term) |
-                Q(name__iexact=term) |
-                Q(full_name__iexact=term))
-            )
-
-            reactions = APImodels.Reaction.objects.using(model).prefetch_related('subsystem', 'external_databases').filter(
-                Q(id__iexact=term) |
-                Q(name__icontains=term) |
-                Q(ec__icontains=term) |
-                Q(external_databases__external_id__iexact=term)
-            ).distinct()[:limit]
-            if reactions.count() < limit:
-                reactions_mets = APImodels.Reaction.objects.using(model).prefetch_related('subsystem').distinct().filter(
-                    Q(metabolites__in=exact_metabolites) & ~Q(id__in=reactions.values_list('id', flat=True)))[:(limit - reactions.count())]
-                reactions = list(chain(reactions, reactions_mets))
-
-            genes = APImodels.ReactionComponent.objects.using(model).select_related('gene').prefetch_related('subsystem_gene', 'compartment_gene', 'external_databases').filter(
+            genes = APImodels.ReactionComponent.objects.using(model).select_related('gene'). \
+            prefetch_related('subsystem_gene', 'compartment_gene').filter(
                 Q(component_type__exact='e') &
                 (Q(id__iexact=term) |
                 Q(name__icontains=term) |
                 Q(alt_name1__icontains=term) |
                 Q(alt_name2__icontains=term) |
                 Q(aliases__iregex=synonym_regex) |
-                Q(external_databases__external_id__iexact=term))
-            ).distinct()[:limit]
+                Q(id__in=APImodels.ReactionComponentEID.objects.using(model).filter(external_id__iexact=term).values('rc')))
+            )[:limit]
 
-        if (metabolites.count() + genes.count() + compartments.count() + subsystems.count() + len(reactions)) != 0:
+            if type != 'IP':
+                compartments = APImodels.Compartment.objects.using(model).filter(
+                    Q(name_id__iexact=term) |
+                    Q(name__icontains=term)
+                )[:limit]
+
+                subsystems = APImodels.Subsystem.objects.using(model).prefetch_related('compartment').filter(
+                    Q(name_id__iexact=term) |
+                    Q(name__icontains=term) |
+                    Q(id__in=APImodels.SubsystemEID.objects.using(model).filter(external_id__iexact=term).values('subsystem'))
+                )[:limit]
+
+                exact_metabolites = APImodels.ReactionComponent.objects.using(model).filter(
+                    Q(component_type__exact='m') &
+                    (Q(id__iexact=term) |
+                    Q(name__iexact=term) |
+                    Q(full_name__iexact=term))
+                )
+
+                reactions = APImodels.Reaction.objects.using(model).prefetch_related('subsystem', 'compartment').filter(
+                    Q(id__iexact=term) |
+                    Q(name__icontains=term) |
+                    Q(ec__icontains=term) |
+                    Q(id__in=APImodels.ReactionEID.objects.using(model).filter(external_id__iexact=term).values('reaction')) |
+                    Q(id__in=APImodels.ReactionReference.objects.using(model).filter(pmid__iexact=term).values('reaction'))
+                )[:limit]
+
+                if len(exact_metabolites) and len(reactions) < limit:
+                    reactions_mets = APImodels.Reaction.objects.using(model).prefetch_related('subsystem', 'compartment').distinct().filter(
+                        Q(metabolites__in=exact_metabolites) & ~Q(id__in=reactions))[:(limit - len(reactions))]
+                    reactions = list(chain(reactions, reactions_mets))
+
+        if type != 'IP':
+            if (len(metabolites) + len(genes) + len(compartments) + len(subsystems) + len(reactions)) != 0:
+                match_found = True
+        elif (len(metabolites) + len(genes)) != 0:
             match_found = True
 
-        MetaboliteSerializerClass = APIrcSerializer.ReactionComponentLiteSerializer if quickSearch else APIrcSerializer.MetaboliteSearchSerializer
-        GeneSerializerClass = APIrcSerializer.ReactionComponentBasicSerializer if quickSearch else APIrcSerializer.GeneSearchSerializer
-        ReactionSerializerClass = APIserializer.ReactionBasicSerializer if quickSearch else APIserializer.ReactionSearchSerializer
-        SubsystemSerializerClass = APIcsSerializer.SubsystemBasicSerializer if quickSearch else APIcsSerializer.SubsystemSearchSerializer
-        CompartmentSerializerClass = APIcsSerializer.CompartmentBasicSerializer if quickSearch else APIcsSerializer.CompartmentSerializer
+        MetaboliteSerializerClass = APIrcSerializer.ReactionComponentLiteSerializer if type != 'global' else APIrcSerializer.MetaboliteSearchSerializer
+        GeneSerializerClass = APIrcSerializer.ReactionComponentBasicSerializer if type != 'global' else APIrcSerializer.GeneSearchSerializer
 
         metaboliteSerializer = MetaboliteSerializerClass(metabolites, many=True)
         geneSerializer = GeneSerializerClass(genes, many=True)
-        compartmentSerializer = CompartmentSerializerClass(compartments, many=True)
-        subsystemSerializer = SubsystemSerializerClass(subsystems, many=True)
-        reactionSerializer = ReactionSerializerClass(reactions, many=True)
 
         results[model]['metabolite'] = metaboliteSerializer.data
         results[model]['gene'] = geneSerializer.data
-        results[model]['compartment'] = compartmentSerializer.data
-        results[model]['subsystem'] = subsystemSerializer.data
-        results[model]['reaction'] = reactionSerializer.data
+        results[model]['reaction'] = []
+        results[model]['subsystem'] = []
+        results[model]['compartment'] = []
         results[model]['name'] = model_short_name
 
-        response = JSONResponse(results)
+        if type != 'IP':
+            ReactionSerializerClass = APIserializer.ReactionBasicSerializer if type != 'global' else APIserializer.ReactionSearchSerializer
+            SubsystemSerializerClass = APIcsSerializer.SubsystemBasicSerializer if type != 'global' else APIcsSerializer.SubsystemSearchSerializer
+            CompartmentSerializerClass = APIcsSerializer.CompartmentBasicSerializer if type != 'global' else APIcsSerializer.CompartmentSerializer
+
+            reactionSerializer = ReactionSerializerClass(reactions, many=True)
+            subsystemSerializer = SubsystemSerializerClass(subsystems, many=True)
+            compartmentSerializer = CompartmentSerializerClass(compartments, many=True)
+
+            results[model]['reaction'] = reactionSerializer.data
+            results[model]['subsystem'] = subsystemSerializer.data
+            results[model]['compartment'] = compartmentSerializer.data
 
     if not match_found:
         term = term.lower()
@@ -947,38 +930,48 @@ def search(request, model, term):
         # search for similar results using levenshtein string distance function
         # allow a distance of 3 or less depending on the field
         # limit to 10 suggestions in total
-        for model in models:
-            compartment_name = APImodels.Compartment.objects.using(model).raw('SELECT id, name from compartment where levenshtein_less_equal(\'%s\', LOWER(name), %d) <= %d limit 10' % (term, mismatch_for_name, mismatch_for_name))
-
-            subsystem_name = APImodels.Subsystem.objects.using(model).raw('SELECT id, name from subsystem where levenshtein_less_equal(\'%s\', LOWER(name), %d) <= %d limit 10' % (term, mismatch_for_name, mismatch_for_name))
-            subsystem_eid = APImodels.SubsystemEID.objects.using(model).raw('SELECT id, external_id from subsystem_eid where levenshtein_less_equal(\'%s\', LOWER(external_id), 2) <= 2 limit 10' % term)
-
+        for modelData in models:
+            model = modelData.database_name
             reaction_component_id = APImodels.ReactionComponent.objects.using(model).raw(
-                'SELECT id, id from reaction_component where levenshtein_less_equal(\'%s\', LOWER(id), 1) <= 1' % term)
+                'SELECT * from (SELECT id, levenshtein_less_equal(\'%s\', LOWER(id), 1) as dist from reaction_component) q where dist <= 1 order by dist limit 10' % term)
             reaction_component_name = APImodels.ReactionComponent.objects.using(model).raw(
-                'SELECT id, name from reaction_component where levenshtein_less_equal(\'%s\', LOWER(name), %d) <= %d' % (term, mismatch_for_name, mismatch_for_name))
+                'SELECT * from (SELECT id, name, levenshtein_less_equal(\'%s\', LOWER(name), %d) as dist from reaction_component) q where dist <= %d order by dist limit 10' % (term, mismatch_for_name, mismatch_for_name))
             reaction_component_formula = APImodels.ReactionComponent.objects.using(model).raw(
-                'SELECT id, formula from reaction_component where levenshtein_less_equal(\'%s\', LOWER(formula), %d) <= %d' % (term, mismatch_for_name, mismatch_for_name))
+                'SELECT * from (SELECT id, formula, levenshtein_less_equal(\'%s\', LOWER(formula), %d) as dist from reaction_component) q where dist <= %d order by dist limit 10' % (term, mismatch_for_name, mismatch_for_name))
             reaction_component_eid = APImodels.ReactionComponentEID.objects.using(model).raw(
-                'SELECT id, external_id from rc_eid where levenshtein_less_equal(\'%s\', LOWER(external_id), 2) <= 2 limit 10' % term)
+                'SELECT * from (SELECT id, external_id, levenshtein_less_equal(\'%s\', LOWER(external_id), 2) as dist from rc_eid) q where dist <= 2 order by dist limit 10' % term)
 
-            reaction_id = APImodels.Reaction.objects.using(model).raw('SELECT id, id from reaction where levenshtein_less_equal(\'%s\', LOWER(id), 1) <= 1 limit 10' % term)
-            reaction_name = APImodels.Reaction.objects.using(model).raw('SELECT id, name from reaction where levenshtein_less_equal(\'%s\', LOWER(name), %d) <= %d limit 10' % (term, mismatch_for_name, mismatch_for_name))
-            reaction_eid = APImodels.ReactionEID.objects.using(model).raw('SELECT id, external_id from reaction_eid where levenshtein_less_equal(\'%s\', LOWER(external_id), 2) <= 2 limit 10' % term)
+            suggestions += [(rc.id, rc.dist) for rc in reaction_component_id] \
+                + [(rc.name, rc.dist) for rc in reaction_component_name] \
+                + [(rc.formula, rc.dist) for rc in reaction_component_formula] \
+                + [(rc.external_id, rc.dist) for rc in reaction_component_eid]
 
-            suggestions += [c.name for c in compartment_name] \
-                + [s.name for s in subsystem_name] \
-                + [rc.id for rc in reaction_component_id] \
-                + [rc.name for rc in reaction_component_name] \
-                + [rc.formula for rc in reaction_component_formula] \
-                + [rc.external_id for rc in reaction_component_eid] \
-                + [r.id for r in reaction_id] \
-                + [r.name for r in reaction_name] \
-                + [r.external_id for r in reaction_eid] \
-                + [s.external_id for s in subsystem_eid]
+            if type != 'IP':
+                compartment_name = APImodels.Compartment.objects.using(model).raw(
+                    'SELECT * from (SELECT id, name, levenshtein_less_equal(\'%s\', LOWER(name), %d) as dist from compartment) q where dist <= %d order by dist limit 10' % (term, mismatch_for_name, mismatch_for_name))
 
+                subsystem_name = APImodels.Subsystem.objects.using(model).raw(
+                    'SELECT * from (SELECT id, name, levenshtein_less_equal(\'%s\', LOWER(name), %d) as dist from subsystem) q where dist <= %d order by dist limit 10' % (term, mismatch_for_name, mismatch_for_name))
+                subsystem_eid = APImodels.SubsystemEID.objects.using(model).raw(
+                    'SELECT * from (SELECT id, external_id, levenshtein_less_equal(\'%s\', LOWER(external_id), 2) as dist from subsystem_eid) q where dist <= 2 order by dist limit 10' % term)
+
+                reaction_id = APImodels.Reaction.objects.using(model).raw(
+                    'SELECT * from (SELECT id, levenshtein_less_equal(\'%s\', LOWER(id), 1) as dist from reaction) q where dist <= 1 order by dist limit 10' % term)
+                reaction_name = APImodels.Reaction.objects.using(model).raw(
+                    'SELECT * from (SELECT id, name, levenshtein_less_equal(\'%s\', LOWER(name), %d) as dist from reaction) q where dist <= %d order by dist limit 10' % (term, mismatch_for_name, mismatch_for_name))
+                reaction_eid = APImodels.ReactionEID.objects.using(model).raw(
+                    'SELECT * from (SELECT id, external_id, levenshtein_less_equal(\'%s\', LOWER(external_id), 2) as dist from reaction_eid) q where dist <= 2 order by dist limit 10' % term)
+
+                suggestions += [(c.name, c.dist) for c in compartment_name] \
+                    + [(s.name, s.dist) for s in subsystem_name] \
+                    + [(s.external_id, s.dist) for s in subsystem_eid] \
+                    + [(r.id, r.dist) for r in reaction_id] \
+                    + [(r.name, r.dist) for r in reaction_name] \
+                    + [(r.external_id, r.dist) for r in reaction_eid]
+
+        suggestions = sorted(suggestions, key=itemgetter(1)) # sort by distance
         response = HttpResponse(status=404)
-        response['suggestions'] = json.dumps(list(set([s for s in suggestions if s]))[:10])
+        response['suggestions'] = json.dumps(list(OrderedDict((s[0], True) for s in suggestions if s[0]).keys())[:10])
         return response
 
-    return response
+    return JSONResponse(results)

@@ -23,12 +23,6 @@ from api import views
 
 schema_view_swagger = get_swagger_view(title='Metabolic Atlas API', urlconf='api.urls', url='/api')
 
-schema_view = get_schema_view(
-    title='Metabolic Atlas API',
-    # url='https://www.example.org/api/',
-    urlconf='api.urls'
-)
-
 urlpatterns = [
     url('^api/$', schema_view_swagger),
     url(r'^api/', include('api.private_urls', namespace="private_apis")),
