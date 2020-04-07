@@ -140,11 +140,9 @@ export default {
     /* eslint-disable-next-line quote-props */
     '$route': function watchSetup() {
       this.setup();
-      this.updateRoute();
     },
   },
   async created() {
-    this.setup();
     await this.getModelList();
 
     EventBus.$on('showMapViewer', () => {
@@ -163,7 +161,6 @@ export default {
         // do not redirect on url change unless the model is already loaded
         return;
       }
-      // but redirect even if the model url do not match the model loaded
       if (this.$route.params.model) {
         if (this.$route.params.model in this.models) {
           this.selectModel(this.models[this.$route.params.model]);
@@ -171,7 +168,12 @@ export default {
           this.modelNotFound = this.$route.params.model;
           return;
         }
+      } else if (this.$route.query.selected && this.$route.query.selected in this.models) {
+        this.selectModel(this.models[this.$route.query.selected]);
+      } else {
+        this.selectModel(this.model);
       }
+
       this.modelNotFound = null;
       if (['viewerRoot', 'viewer'].includes(this.$route.name)) {
         this.displayViewer();
@@ -214,10 +216,9 @@ export default {
       if (!this.model || model.database_name !== this.model.database_name) {
         this.$store.dispatch('models/selectModel', model);
       }
-      this.updateRoute(this.model.short_name);
-    },
-    updateRoute(modelName) {
-      if (this.$route.name === 'explorerRoot' && this.model && (!this.$route.query || !this.$route.query.selected || this.$route.query.selected !== modelName)) {
+      if (this.$route.name === 'explorerRoot'
+         && (!this.$route.query || !this.$route.query.selected
+          || this.$route.query.selected !== this.model.short_name)) {
         this.$router.replace({ name: 'explorerRoot', query: { selected: this.model.short_name } }).catch(() => {});
       }
     },
