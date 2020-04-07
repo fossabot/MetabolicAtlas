@@ -424,12 +424,8 @@ export default {
         this.searchedNodesOnMap = this.findElementsOnSVG(this.searchIDs);
         if (this.searchedNodesOnMap.length !== 0) {
           this.searchedElemsHL = this.highlight(this.searchedNodesOnMap, 'schhl');
-          if (this.coords) {
-            const coords = Object.values(this.coords);
-            this.restoreMapPosition(coords[0], coords[1], coords[2]);
-          } else {
-            this.centerElementOnSVG(this.searchedNodesOnMap[0]);
-          }
+          this.centerElementOnSVG(this.searchedNodesOnMap[0]);
+          this.selectElement(this.searchedNodesOnMap[0]);
         }
       }
     },
