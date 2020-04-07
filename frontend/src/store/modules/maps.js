@@ -189,7 +189,6 @@ const actions = {
   initFromQueryParams({ commit }, { dim, panel, coords, sel, search, g1, g2 }) {
     // TODO: handle errors
     commit('setShow2D', dim !== '3d');
-    console.log(panel);
     commit('setDataOverlayPanelVisible', !!(panel === '1' || g1 || g2));
     commit('setSelectedElementId', sel);
     commit('setSearchTerm', search);
