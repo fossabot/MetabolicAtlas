@@ -16,7 +16,6 @@ const data = {
 
 const categorizeResults = (results) => {
   const categorizedResults = data.categories.reduce((obj, category) => ({ ...obj, [category]: [] }), {});
-
   Object.keys(results).forEach((model) => {
     const resultsModel = results[model];
     data.categories.filter(resultType => resultsModel[resultType])
@@ -29,11 +28,12 @@ const categorizeResults = (results) => {
         );
       });
   });
-
   return categorizedResults;
 };
 
 const getters = {
+  globalResultsEmpty: state => Object.keys(state.globalResults).length === 0,
+
   categorizedGlobalResults: state => categorizeResults(state.globalResults),
 
   categorizedGlobalResultsCount: (state, _getters) => Object.fromEntries( // eslint-disable-line no-unused-vars
@@ -61,21 +61,16 @@ const actions = {
     const results = await searchApi.globalSearch(searchTerm);
     commit('setGlobalResults', results);
   },
-
-
   async search({ state, commit }, { model, metabolitesAndGenesOnly }) {
     const results = await searchApi.search(model, metabolitesAndGenesOnly, state.searchTermString);
     commit('setResults', results);
   },
-
   setSearchTermString({ commit }, searchTermString) {
     commit('setSearchTermString', searchTermString);
   },
-
   clearGlobalSearchResults({ commit }) {
     commit('setGlobalResults', {});
   },
-
   clearSearchResults({ commit }) {
     commit('setResults', {});
   },
@@ -85,11 +80,9 @@ const mutations = {
   setGlobalResults: (state, globalResults) => {
     state.globalResults = globalResults;
   },
-
   setResults: (state, results) => {
     state.results = results;
   },
-
   setSearchTermString: (state, searchTermString) => {
     state.searchTermString = searchTermString;
   },

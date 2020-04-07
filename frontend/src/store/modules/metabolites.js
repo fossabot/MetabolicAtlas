@@ -10,12 +10,10 @@ const actions = {
     const metabolite = await metabolitesApi.fetchMetaboliteData(model, id);
     commit('setMetabolite', metabolite);
   },
-
   async getRelatedMetabolites({ commit }, { model, id }) {
     const metabolites = await metabolitesApi.fetchRelatedMetabolites(model, id);
     commit('setRelatedMetabolites', metabolites);
   },
-
   clearRelatedMetabolites({ commit }) {
     commit('setRelatedMetabolites', []);
   },

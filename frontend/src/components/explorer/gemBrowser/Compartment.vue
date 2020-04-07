@@ -8,39 +8,42 @@
         <h3 class="title is-3"><span class="is-capitalized">{{ type }}</span> {{ compartment.name }}</h3>
       </div>
     </div>
-    <loader v-show="showLoader"></loader>
-    <div v-show="!showLoader" class="columns is-multiline is-variable is-8">
+    <loader v-if="showLoaderMessage" :message="showLoaderMessage" class="columns" />
+    <div v-else class="columns is-multiline is-variable is-8">
       <div class="subsystem-table column is-10-widescreen is-9-desktop is-full-tablet">
-        <table v-if="compartment && Object.keys(compartment).length != 0" class="table main-table is-fullwidth">
-          <tr>
-            <td class="td-key has-background-primary has-text-white-bis">Name</td>
-            <td> {{ compartment.name }}</td>
-          </tr>
-          <tr>
-            <td class="td-key has-background-primary has-text-white-bis">Subsystems</td>
-            <td>
-              <div v-html="subsystemListHtml"></div>
-              <div v-if="!showFullSubsystem && subsystems.length > limitSubsystem">
-                <br>
-                <button class="is-small button" @click="showFullSubsystem=true">
-                  ... and {{ subsystems.length - limitSubsystem }} more
-                </button>
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <td class="td-key has-background-primary has-text-white-bis">Reactions</td>
-            <td> {{ compartment.reaction_count }}</td>
-          </tr>
-          <tr>
-            <td class="td-key has-background-primary has-text-white-bis">Metabolites</td>
-            <td> {{ compartment.metabolite_count }}</td>
-          </tr>
-          <tr>
-            <td class="td-key has-background-primary has-text-white-bis">Genes</td>
-            <td> {{ compartment.gene_count }}</td>
-          </tr>
-        </table>
+        <div class="table-container">
+          <table v-if="compartment && Object.keys(compartment).length != 0"
+                class="table main-table is-fullwidth">
+            <tr>
+              <td class="td-key has-background-primary has-text-white-bis">Name</td>
+              <td> {{ compartment.name }}</td>
+            </tr>
+            <tr>
+              <td class="td-key has-background-primary has-text-white-bis">Subsystems</td>
+              <td>
+                <div v-html="subsystemListHtml"></div>
+                <div v-if="!showFullSubsystem && subsystems.length > limitSubsystem">
+                  <br>
+                  <button class="is-small button" @click="showFullSubsystem=true">
+                    ... and {{ subsystems.length - limitSubsystem }} more
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td class="td-key has-background-primary has-text-white-bis">Reactions</td>
+              <td> {{ compartment.reaction_count }}</td>
+            </tr>
+            <tr>
+              <td class="td-key has-background-primary has-text-white-bis">Metabolites</td>
+              <td> {{ compartment.metabolite_count }}</td>
+            </tr>
+            <tr>
+              <td class="td-key has-background-primary has-text-white-bis">Genes</td>
+              <td> {{ compartment.gene_count }}</td>
+            </tr>
+          </table>
+        </div>
         <p>The
           <a :href="`/api/${model.database_name}/compartment/${cName}/`"
              target="_blank">complete list in JSON format</a>
@@ -73,13 +76,13 @@ export default {
   },
   data() {
     return {
-      cName: this.$route.params.id,
+      cName: '',
       type: 'compartment',
-      showLoader: false,
       errorMessage: '',
       showFullSubsystem: false,
       limitSubsystem: 30,
       componentNotFound: false,
+      showLoaderMessage: 'Loading compartment data',
     };
   },
   computed: {
@@ -105,36 +108,17 @@ export default {
       return l.join('');
     },
   },
-  watch: {
-    /* eslint-disable quote-props */
-    '$route': async function watchSetup() {
-      if (this.$route.path.includes('/gem-browser/') && this.$route.path.includes('/compartment/')) {
-        if (this.cName !== this.$route.params.id) {
-          await this.setup();
-        }
-      }
-    },
-  },
   async beforeMount() {
-    await this.setup();
-  },
-  methods: {
-    async setup() {
-      this.cName = this.$route.params.id;
-      await this.load();
-    },
-    async load() {
-      this.showLoader = true;
-      try {
-        const payload = { model: this.model.database_name, id: this.cName };
-        await this.$store.dispatch('compartments/getCompartmentSummary', payload);
-        this.componentNotFound = false;
-        this.showLoader = false;
-      } catch {
-        this.componentNotFound = true;
-        document.getElementById('search').focus();
-      }
-    },
+    this.cName = this.$route.params.id;
+    try {
+      const payload = { model: this.model.database_name, id: this.cName };
+      await this.$store.dispatch('compartments/getCompartmentSummary', payload);
+      this.componentNotFound = false;
+      this.showLoaderMessage = '';
+    } catch {
+      this.componentNotFound = true;
+      document.getElementById('search').focus();
+    }
   },
 };
 </script>
