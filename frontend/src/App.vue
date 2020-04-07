@@ -357,6 +357,9 @@ m, .clickable {
     width: 150px;
   }
   font-size: 0.93em;
+  .tag {
+    font-size: 0.93em;
+  }
 }
 
 #cookies {

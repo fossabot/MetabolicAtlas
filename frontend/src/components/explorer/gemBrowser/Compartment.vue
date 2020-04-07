@@ -101,7 +101,7 @@ export default {
         if (!this.showFullSubsystem && i === this.limitSubsystem) {
           break;
         }
-        const customLink = buildCustomLink({ model: this.model.database_name, type: 'subsystem', id: s.id, title: s.name, cssClass: 'is-size-6' });
+        const customLink = buildCustomLink({ model: this.model.database_name, type: 'subsystem', id: s.id, title: s.name });
         l.push(`<span id="${s.id}" class="tag sub">${customLink}</span>`);
       }
       l.push('</span>');

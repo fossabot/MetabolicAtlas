@@ -174,7 +174,7 @@ export default {
             const suffix = e.slice(-1) === ')' ? ')' : '';
             const newE = e.replace(/^\(+|\)+$/g, '');
             const tag = newGRnameArr ? newGRnameArr[i] : newE;
-            const customLink = buildCustomLink({ model: this.model.database_name, type: 'gene', id: newE, title: tag, cssClass: 'is-size-6' });
+            const customLink = buildCustomLink({ model: this.model.database_name, type: 'gene', id: newE, title: tag });
             return `${prefix}<span class="tag">${customLink}</span>${suffix}`;
           });
         newGR = newGRArr.join(' ');
