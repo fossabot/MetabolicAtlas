@@ -1,6 +1,6 @@
 <template>
   <section class="section section-no-top extended-section">
-    <div class="container">
+    <div class="container is-fullhd">
       <h3 class="title is-size-3">GEM Comparison</h3>
       <template v-for="c in comparison">
         <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->

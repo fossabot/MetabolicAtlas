@@ -1,6 +1,6 @@
 <template>
   <div class="extended-section">
-    <section class="hero video container" style="max-width:100%; width:100%;">
+    <section class="hero video container is-fullhd" style="max-width:100%; width:100%;">
       <div class="hero-video is-transparent is-block-mobile">
         <video poster="@/assets/banner_video.jpg"
                playsinline autoplay
@@ -9,7 +9,7 @@
         </video>
       </div>
       <div class="hero-body">
-        <div class="container has-text-centered">
+        <div class="container is-fullhd has-text-centered">
           <p class="is-size-2 title has-text-primary">METABOLIC ATLAS</p>
           <h3 class="is-size-3 has-text-gray">
             THE ATLAS FOR EXPLORATION OF METABOLISM
@@ -18,7 +18,7 @@
       </div>
     </section>
     <section class="section">
-      <div id="home" class="container">
+      <div id="home" class="container is-fullhd">
         <div class="columns is-hidden-touch">
           <div class="column">
             <div class="card">

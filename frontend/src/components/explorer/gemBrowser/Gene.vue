@@ -4,7 +4,7 @@
       <notFound :type="type" :component-id="geneId"></notFound>
     </div>
     <div v-else>
-      <div class="container columns">
+      <div class="container is-fullhd columns">
         <div class="column">
           <h3 class="title is-3">
             <span class="is-capitalized">{{ type }}</span> {{ gene.geneName }}

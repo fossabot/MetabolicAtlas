@@ -1,7 +1,7 @@
 <template>
   <!-- eslint-disable max-len -->
   <section class="section extended-section">
-    <div class="container">
+    <div class="container is-fullhd">
       <h3 class="title is-3">Metabolic Atlas</h3>
       <div class="columns is-variable is-8">
         <div class="column is-half has-text-justified">

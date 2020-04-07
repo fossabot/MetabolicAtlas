@@ -1,6 +1,6 @@
 <template>
   <section :class="{ 'section extended-section' : !extendWindow }">
-    <div :class="{ 'container': !extendWindow }">
+    <div :class="{ 'container is-fullhd': !extendWindow }">
       <template v-if="modelNotFound">
         <div class="columns is-centered">
           <notFound type="model" :component-id="modelNotFound"></notFound>
