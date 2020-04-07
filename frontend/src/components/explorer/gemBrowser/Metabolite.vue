@@ -1,7 +1,7 @@
 <template>
   <div id="metabolite-page">
     <div v-if="componentNotFound" class="columns is-centered">
-      <notFound :type="type" :component-id="mId"></notFound>
+      <notFound :type="type" :component-id="metaboliteId"></notFound>
     </div>
     <div v-else>
       <div class="columns">
@@ -9,69 +9,75 @@
           <h3 class="title is-3">
             <span class="is-capitalized">{{ type }}</span> {{ metabolite.name }}
             <span v-if="metabolite && metabolite.compartment" class="has-text-weight-light has-text-grey-light">
-             in {{ metabolite.compartment.name }}
+              in {{ metabolite.compartment.name }}
             </span>
           </h3>
         </div>
       </div>
-      <div class="columns is-multiline metabolite-table is-variable is-8">
-        <div class="column is-10-widescreen is-9-desktop is-full-tablet">
-          <table v-if="metabolite" class="table main-table is-fullwidth">
-            <tr v-for="el in mainTableKey" :key="el.name">
-              <td v-if="el.display" class="td-key has-background-primary has-text-white-bis" v-html="el.display"></td>
-              <td v-else-if="el.name === 'id'"
-                  class="td-key has-background-primary has-text-white-bis">
-                {{ model.short_name }} ID
-              </td>
-              <td v-else class="td-key has-background-primary has-text-white-bis">{{ reformatTableKey(el.name) }}</td>
-              <td v-if="metabolite[el.name] !== null">
-                <span v-if="el.name === 'formula'" v-html="chemicalFormula(metabolite[el.name], metabolite.charge)">
-                </span>
-                <span v-else-if="el.modifier" v-html="el.modifier(metabolite[el.name])">
-                </span>
-                <span v-else-if="el.name === 'compartment' && metabolite[el.name]">
-                  <!-- eslint-disable-next-line max-len -->
-                  <router-link :to="{ name: 'browser', params: { model: model.database_name, type: 'compartment', id: metabolite[el.name].id } }"
-                  >{{ metabolite[el.name].id }}</router-link>
-                </span>
-                <span v-else>
-                  {{ metabolite[el.name] }}
-                </span>
-              </td>
-              <td v-else> - </td>
-            </tr>
-            <tr v-if="relatedMetabolites.length !== 0">
-              <td class="td-key has-background-primary has-text-white-bis">Related metabolite(s)</td>
-              <td>
-                <span v-for="(rm, i) in relatedMetabolites" :key="rm.id">
-                  <br v-if="i !== 0">
-                  <!-- eslint-disable-next-line max-len -->
-                  <router-link :to="{ name: 'browser', params: { model: model.database_name, type: 'metabolite', id: rm.id } }">
-                    {{ rm.full_name }}
-                  </router-link> in {{ rm.compartment_str }}
-                </span>
-              </td>
-            </tr>
-          </table>
-          <ExtIdTable :type="type" :external-dbs="metabolite.external_databases"></ExtIdTable>
+      <loader v-if="showLoaderMessage" :message="showLoaderMessage" class="columns" />
+      <template v-else>
+        <div class="columns is-multiline metabolite-table is-variable is-8">
+          <div class="column is-10-widescreen is-9-desktop is-full-tablet">
+            <div class="table-container">
+              <table v-if="metabolite" class="table main-table is-fullwidth">
+                <tr v-for="el in mainTableKey" :key="el.name">
+                  <td v-if="el.display"
+                      class="td-key has-background-primary has-text-white-bis" v-html="el.display">
+                  </td>
+                  <td v-else-if="el.name === 'id'"
+                      class="td-key has-background-primary has-text-white-bis">
+                    {{ model.short_name }} ID
+                  </td>
+                  <td v-else class="td-key has-background-primary has-text-white-bis">
+                      {{ reformatTableKey(el.name) }}
+                  </td>
+                  <td v-if="metabolite[el.name] !== null">
+                    <span v-if="el.name === 'formula'" v-html="chemicalFormula(metabolite[el.name], metabolite.charge)">
+                    </span>
+                    <span v-else-if="el.modifier" v-html="el.modifier(metabolite[el.name])">
+                    </span>
+                    <span v-else-if="el.name === 'compartment' && metabolite[el.name]">
+                      <!-- eslint-disable-next-line max-len -->
+                      <router-link :to="{ name: 'browser', params: { model: model.database_name, type: 'compartment', id: metabolite[el.name].id } }"
+                      >{{ metabolite[el.name].id }}</router-link>
+                    </span>
+                    <span v-else>
+                      {{ metabolite[el.name] }}
+                    </span>
+                  </td>
+                  <td v-else> - </td>
+                </tr>
+                <tr v-if="relatedMetabolites.length !== 0">
+                  <td class="td-key has-background-primary has-text-white-bis">Related metabolite(s)</td>
+                  <td>
+                    <span v-for="(rm, i) in relatedMetabolites" :key="rm.id">
+                      <br v-if="i !== 0">
+                      <!-- eslint-disable-next-line max-len -->
+                      <router-link :to="{ name: 'browser', params: { model: model.database_name, type: 'metabolite', id: rm.id } }">
+                        {{ rm.full_name }}
+                      </router-link> in {{ rm.compartment_str }}
+                    </span>
+                  </td>
+                </tr>
+              </table>
+            </div>
+            <ExtIdTable :type="type" :external-dbs="metabolite.external_databases"></ExtIdTable>
+          </div>
+          <div class="column is-2-widescreen is-3-desktop is-full-tablet has-text-centered">
+            <router-link class="button is-info is-fullwidth is-outlined"
+                        :to="{ name: 'interPartner', params: { model: model.database_name, id: metaboliteId } }">
+              <span class="icon"><i class="fa fa-connectdevelop fa-lg"></i></span>&nbsp;
+              <span>{{ messages.interPartName }}</span>
+            </router-link>
+            <br>
+            <!-- eslint-disable-next-line max-len -->
+            <maps-available :id="metaboliteId" :type="type" :viewer-selected-i-d="metabolite.id" />
+            <gem-contact :id="metaboliteId" :type="type" />
+          </div>
         </div>
-        <div class="column is-2-widescreen is-3-desktop is-full-tablet has-text-centered">
-          <router-link class="button is-info is-fullwidth is-outlined"
-                       :to="{ name: 'interPartner', params: { model: model.database_name, id: mId } }">
-            <span class="icon"><i class="fa fa-connectdevelop fa-lg"></i></span>&nbsp;
-            <span>{{ messages.interPartName }}</span>
-          </router-link>
-          <br>
-          <!-- eslint-disable-next-line max-len -->
-          <maps-available :id="mId" :type="'metabolite'" :viewer-selected-i-d="metabolite.id"></maps-available>
-          <gem-contact :type="type" :id="mId"/>
-        </div>
-      </div>
-      <div class="columns">
-        <reactome v-show="showReactome" id="metabolite-reactome" :metabolite-i-d="metaboliteID"
-                  :disable-but="relatedMetabolites.length === 0">
-        </reactome>
-      </div>
+        <reaction-table :selected-elm-id="metaboliteId" :source-name="metaboliteId" :type="type"
+                  :related-met-count="relatedMetabolites.length" />
+      </template>
     </div>
   </div>
 </template>
@@ -79,29 +85,30 @@
 <script>
 import { mapState } from 'vuex';
 import MapsAvailable from '@/components/explorer/gemBrowser/MapsAvailable';
-import Reactome from '@/components/explorer/gemBrowser/Reactome';
+import ReactionTable from '@/components/explorer/gemBrowser/ReactionTable';
 import GemContact from '@/components/shared/GemContact';
 import NotFound from '@/components/NotFound';
+import Loader from '@/components/Loader';
 import ExtIdTable from '@/components/explorer/gemBrowser/ExtIdTable';
-import { chemicalFormula } from '../../../helpers/chemical-formatters';
-import { reformatTableKey } from '../../../helpers/utils';
-import { default as messages } from '../../../helpers/messages';
+import { chemicalFormula } from '@/helpers/chemical-formatters';
+import { reformatTableKey } from '@/helpers/utils';
+import { default as messages } from '@/helpers/messages';
 
 export default {
   name: 'Metabolite',
   components: {
     NotFound,
+    Loader,
     ExtIdTable,
     MapsAvailable,
-    Reactome,
+    ReactionTable,
     GemContact,
   },
   data() {
     return {
       messages,
-      mId: this.$route.params.id,
       type: 'metabolite',
-      metaboliteID: '',
+      metaboliteId: '',
       mainTableKey: [
         { name: 'id' },
         { name: 'name' },
@@ -113,9 +120,9 @@ export default {
         { name: 'inchi', display: 'InChI' },
         { name: 'compartment' },
       ],
-      componentNotFound: false,
       activePanel: 'table',
-      showReactome: false,
+      componentNotFound: false,
+      showLoaderMessage: 'Loading metabolite data',
     };
   },
   computed: {
@@ -125,43 +132,23 @@ export default {
       relatedMetabolites: state => state.metabolites.relatedMetabolites,
     }),
   },
-  watch: {
-    /* eslint-disable quote-props */
-    '$route': function watchSetup() {
-      if (this.$route.path.includes('/metabolite/')) {
-        if (this.mId !== this.$route.params.id) {
-          this.setup();
-        }
-      }
-    },
-  },
-  beforeMount() {
-    this.setup();
+  async beforeMount() {
+    this.metaboliteId = this.$route.params.id;
+    try {
+      const payload = { model: this.model.database_name, id: this.metaboliteId };
+      await this.$store.dispatch('metabolites/getMetaboliteData', payload);
+      this.componentNotFound = false;
+      this.showLoaderMessage = '';
+      await this.getRelatedMetabolites();
+    } catch {
+      this.componentNotFound = true;
+      document.getElementById('search').focus();
+    }
   },
   methods: {
-    setup() {
-      this.mId = this.$route.params.id;
-      if (this.mId) {
-        this.load();
-      }
-    },
-    async load() {
-      try {
-        const payload = { model: this.model.database_name, id: this.mId };
-        await this.$store.dispatch('metabolites/getMetaboliteData', payload);
-        this.componentNotFound = false;
-        this.metaboliteID = this.mId;
-        this.showReactome = true;
-        await this.getRelatedMetabolites();
-      } catch {
-        this.componentNotFound = true;
-        this.showReactome = false;
-        document.getElementById('search').focus();
-      }
-    },
     async getRelatedMetabolites() {
       try {
-        const payload = { model: this.model.database_name, id: this.mId };
+        const payload = { model: this.model.database_name, id: this.metaboliteId };
         await this.$store.dispatch('metabolites/getRelatedMetabolites', payload);
       } catch {
         this.$store.dispatch('metabolites/clearRelatedMetabolites');

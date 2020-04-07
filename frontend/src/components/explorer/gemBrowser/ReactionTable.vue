@@ -1,73 +1,91 @@
 <template>
-  <div class="reaction-table">
-    <div class="columns">
-      <div class="column">
-        <span :class="reactions.length === limit ? 'tag is-medium is-warning' : ''"
-              :title="`The number of reactions displayed is limited to ${limit}`">
-          Showing {{ reactions.length }} reaction(s)
-          <template v-if="transportReactionCount !== 0">
-            including {{ transportReactionCount }} transport reaction(s)
-          </template>
-        </span>
-      </div>
-      <div class="column is-narrow">
-        <ExportTSV :filename="`reaction_${sourceName}.tsv`" :format-function="formatToTSV"/>
-      </div>
+  <div class="columns">
+    <div v-if="showReactionLoader">
+      <loader />
     </div>
-    <div class="table-container">
-      <table ref="table" class="table is-bordered is-striped is-narrow is-fullwidth">
-        <thead>
-          <tr class="has-background-white-ter">
-            <th v-for="f in fields" v-show="showCol(f.name)"
-                :key="f.name" class="is-unselectable clickable"
-                :title="`Sort by ${f.display}`"
-                @click="sortTable(f.name, null, null)">
-              {{ f.display.replace(' ', '&nbsp;') }}
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="r in sortedReactions" :key="r.id">
-            <td>
-              <a
-                :href="`/explore/gem-browser/${model.database_name}/reaction/${r.id}`"
-                @click="handleRouterClick">
-                {{ r.id }}
-              </a>
-            </td>
-            <td v-html="reformatChemicalReactionHTML(r, false, model.database_name, selectedElmId)"></td>
-            <td>
-              <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key max-len -->
-              <template v-for="(m, index) in r.genes">{{ index == 0 ? '' : ', ' }}<a :class="{'cms' : sourceName === m.name }" :href="`/explore/gem-browser/${model.database_name}/gene/${m.id}`" @click="handleRouterClick">{{ m.name || m.id }}</a>
-              </template>
-            </td>
-            <td v-show="showCP">{{ r.cp }}</td>
-            <td v-show="showSubsystem">
-              <template v-if="r.subsystem_str">
+    <div v-else class="column reaction-table">
+      <h4 class="title is-4">Reactions</h4>
+      <div v-if="errorMessage" class="notification is-danger">
+        {{ errorMessage }}
+      </div>
+      <p v-if="relatedMetCount" class="control field">
+        <button class="button" @click="toggleExpandAllCompartment">
+          {{ !expandAllCompartment ?
+            "See reactions with from all compartments" : "Restrict to current compartment" }}
+        </button>
+      </p>
+      <div class="field columns">
+        <div class="column"
+             :title="(reactions.length || -1) === limitReaction ?
+             `The number of reactions displayed is limited to ${limitReaction}` : ''"
+        >
+          <span v-show="(reactions.length || -1) === limitReaction" class="icon">
+            <i class="fa fa-exclamation-triangle has-text-danger"></i>
+          </span>
+           {{ reactions.length }} reactions
+          <template v-if="transportReactionCount !== 0">
+            including {{ transportReactionCount }} transport reactions
+          </template>
+        </div>
+        <div class="column is-narrow">
+          <ExportTSV :filename="`Reactions for ${type} ${sourceName}.tsv`" :format-function="formatToTSV">
+          </ExportTSV>
+        </div>
+      </div>
+      <div class="table-container">
+        <table ref="table" class="table is-bordered is-striped is-narrow is-fullwidth">
+          <thead>
+            <tr class="has-background-white-ter">
+              <th v-for="f in fields" v-show="showCol(f.name)"
+                  :key="f.name" class="is-unselectable clickable"
+                  :title="`Sort by ${f.display}`"
+                  @click="sortTable(f.name, null, null)">
+                {{ f.display.replace(' ', '&nbsp;') }}
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="r in sortedReactions" :key="r.id">
+              <td>
+                <a :href="`/explore/gem-browser/${model.database_name}/reaction/${r.id}`" @click="handleRouterClick">
+                  {{ r.id }}
+                </a>
+              </td>
+              <td v-html="reformatChemicalReactionHTML(r, false, model.database_name, selectedElmId)"></td>
+              <td>
                 <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key max-len -->
-                <template v-for="(s, index) in r.subsystem_str.split('; ')">{{ index == 0 ? '' : '; ' }}<a :href="`/explore/gem-browser/${model.database_name}/subsystem/${idfy(s)}`" @click="handleRouterClick">{{ s }}</a>
+                <template v-for="(m, index) in r.genes">{{ index == 0 ? '' : ', ' }}<a :class="{'cms' : sourceName === m.name }" :href="`/explore/gem-browser/${model.database_name}/gene/${m.id}`" @click="handleRouterClick">{{ m.name || m.id }}</a>
                 </template>
-              </template>
-            </td>
-            <td>
-              <template v-for="(RP, i) in r.compartment_str.split(' => ')">
-                <template v-if="i !== 0">{{ r.is_reversible ? ' &#8660; ' : ' &#8658; ' }}</template>
-                <template v-for="(compo, j) in RP.split(' + ')">
-                  <template v-if="j != 0"> + </template>
+              </td>
+              <td v-show="showCP">{{ r.cp }}</td>
+              <td v-show="showSubsystem">
+                <template v-if="r.subsystem_str">
                   <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key max-len -->
-                  <a :href="`/explore/gem-browser/${model.database_name}/compartment/${idfy(compo)}`" @click="handleRouterClick">{{ compo }}</a>
+                  <template v-for="(s, index) in r.subsystem_str.split('; ')">{{ index == 0 ? '' : '; ' }}<a :href="`/explore/gem-browser/${model.database_name}/subsystem/${idfy(s)}`" @click="handleRouterClick">{{ s }}</a>
+                  </template>
                 </template>
-              </template>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+              </td>
+              <td>
+                <template v-for="(RP, i) in r.compartment_str.split(' => ')">
+                  <template v-if="i !== 0">{{ r.is_reversible ? ' &#8660; ' : ' &#8658; ' }}</template>
+                  <template v-for="(compo, j) in RP.split(' + ')">
+                    <template v-if="j != 0"> + </template>
+                    <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key max-len -->
+                    <a :href="`/explore/gem-browser/${model.database_name}/compartment/${idfy(compo)}`" @click="handleRouterClick">{{ compo }}</a>
+                  </template>
+                </template>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
 import { mapState } from 'vuex';
+import Loader from '@/components/Loader';
 import { default as compare } from '@/helpers/compare';
 import ExportTSV from '@/components/shared/ExportTSV';
 import { idfy, reformatChemicalReactionHTML, getChemicalReaction } from '@/helpers/utils';
@@ -76,44 +94,37 @@ export default {
   name: 'ReactionTable',
   components: {
     ExportTSV,
+    Loader,
   },
   props: {
-    sourceName: String,
-    reactions: Array,
-    selectedElmId: String,
-    limit: Number,
-    showSubsystem: Boolean,
+    sourceName: { type: String, required: true },
+    type: { type: String, required: true },
+    selectedElmId: { type: String, required: false, default: null },
+    relatedMetCount: { type: Number, required: false, default: 0 },
   },
   data() {
     return {
-      fields: [{
-        display: 'Reaction ID',
-        name: 'id',
-      }, {
-        display: 'Equation',
-        name: 'equation',
-      }, {
-        display: 'Genes',
-        name: 'genes',
-      }, {
-        display: 'C/P',
-        name: 'cp',
-      }, {
-        display: 'Subsystem',
-        name: 'subsystem_str',
-      }, {
-        display: 'Compartment',
-        name: 'compartment_str',
-      }],
-      // sortedReactions: [],
+      fields: [
+        { display: 'Reaction ID', name: 'id' },
+        { display: 'Equation', name: 'equation' },
+        { display: 'Genes', name: 'genes' },
+        { display: 'C/P', name: 'cp' },
+        { display: 'Subsystem', name: 'subsystem_str' },
+        { display: 'Compartment', name: 'compartment_str' },
+      ],
       sortOrder: 'asc',
       sortBy: 'id',
       sortPattern: '',
+      expandAllCompartment: false,
+      showReactionLoader: true,
+      errorMessage: '',
     };
   },
   computed: {
     ...mapState({
       model: state => state.models.model,
+      reactions: state => state.reactions.relatedReactions,
+      limitReaction: state => state.reactions.relatedReactionsLimit,
     }),
     showCP() {
       return this.selectedElmId; // true or false
@@ -121,18 +132,18 @@ export default {
     transportReactionCount() {
       return this.reactions.filter(r => r.is_transport).length;
     },
+    showSubsystem() {
+      return this.type !== 'subsystem';
+    },
     sortedReactions() {
       let reactionsCopy = [...this.reactions];
-
       if (reactionsCopy.length === 0) {
         return [];
       }
-
       // create consume/produce column
       if (this.selectedElmId) {
         reactionsCopy = reactionsCopy.map((r) => {
           const rCopy = { ...r };
-
           if (rCopy.is_reversible) {
             rCopy.cp = 'consume/produce';
           } else {
@@ -156,7 +167,30 @@ export default {
         compare(this.sortBy, this.sortPattern, this.sortOrder));
     },
   },
+  async beforeMount() {
+    this.setup();
+  },
   methods: {
+    async setup() {
+      this.showReactionLoader = true;
+      this.$store.dispatch('reactions/clearRelatedReactions');
+      try {
+        const payload = {
+          model: this.model.database_name,
+          id: this.sourceName,
+          allCompartments: this.expandAllCompartment,
+        };
+        this.$store.dispatch(`reactions/getRelatedReactionsFor${this.type[0].toUpperCase()}${this.type.slice(1)}`, payload);
+        this.showReactionLoader = false;
+      } catch {
+        this.errorMessage = `Could not load reactions for ${this.type} ${this.selectedElmId}.`;
+        this.showReactionLoader = false;
+      }
+    },
+    async toggleExpandAllCompartment() {
+      this.expandAllCompartment = !this.expandAllCompartment;
+      await this.setup();
+    },
     sortTable(field, pattern, order) {
       if (order) {
         this.sortOrder = order;
@@ -205,14 +239,10 @@ export default {
 
 </script>
 
-<style lang="scss">
-
-.reaction-table {
-  a.cms {
-    color: rgb(54, 54, 54);
-    cursor: default;
-    font-weight: 600;
-  }
+<style lang="scss" scoped>
+a.cms {
+  color: rgb(54, 54, 54);
+  cursor: default;
+  font-weight: 600;
 }
-
 </style>

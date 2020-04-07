@@ -11,7 +11,6 @@ const getters = {
       ...model,
       email: model.authors[0].email,
     };
-
     return {
       ...models,
       [model.database_name]: modifiedModel,

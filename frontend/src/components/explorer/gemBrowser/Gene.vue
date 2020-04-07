@@ -1,7 +1,7 @@
 <template>
   <div class="connected-metabolites">
     <div v-if="componentNotFound" class="columns is-centered">
-      <notFound :type="type" :component-id="eId"></notFound>
+      <notFound :type="type" :component-id="geneId"></notFound>
     </div>
     <div v-else>
       <div class="container columns">
@@ -11,29 +11,32 @@
           </h3>
         </div>
       </div>
-      <div class="columns">
+      <loader v-if="showLoaderMessage" :message="showLoaderMessage" class="columns" />
+      <div v-else class="columns">
         <div class="column">
           <div class="columns is-multiline is-variable is-8">
             <div id="gene-details" class="reaction-table column is-10-widescreen is-9-desktop is-full-tablet">
-              <table v-if="gene && Object.keys(gene).length !== 0" class="table main-table is-fullwidth">
-                <tr v-for="el in mainTableKey" :key="el.name">
-                  <td v-if="'display' in el"
-                      class="td-key has-background-primary has-text-white-bis"
-                      v-html="el.display"></td>
-                  <td v-else-if="el.name === 'id'"
-                      class="td-key has-background-primary has-text-white-bis">{{ model.short_name }} ID</td>
-                  <td v-else
-                      class="td-key has-background-primary has-text-white-bis">{{ reformatTableKey(el.name) }}</td>
-                  <td v-if="gene[el.name]">
-                    <span v-if="'modifier' in el" v-html="el.modifier(gene)">
-                    </span>
-                    <span v-else>
-                      {{ gene[el.name] }}
-                    </span>
-                  </td>
-                  <td v-else> - </td>
-                </tr>
-              </table>
+              <div class="table-contaner">
+                <table v-if="gene && Object.keys(gene).length !== 0" class="table main-table is-fullwidth">
+                  <tr v-for="el in mainTableKey" :key="el.name">
+                    <td v-if="'display' in el"
+                        class="td-key has-background-primary has-text-white-bis"
+                        v-html="el.display"></td>
+                    <td v-else-if="el.name === 'id'"
+                        class="td-key has-background-primary has-text-white-bis">{{ model.short_name }} ID</td>
+                    <td v-else
+                        class="td-key has-background-primary has-text-white-bis">{{ reformatTableKey(el.name) }}</td>
+                    <td v-if="gene[el.name]">
+                      <span v-if="'modifier' in el" v-html="el.modifier(gene)">
+                      </span>
+                      <span v-else>
+                        {{ gene[el.name] }}
+                      </span>
+                    </td>
+                    <td v-else> - </td>
+                  </tr>
+                </table>
+              </div>
               <ExtIdTable :type="type" :external-dbs="gene.external_databases"></ExtIdTable>
             </div>
             <div class="column is-2-widescreen is-3-desktop is-full-tablet has-text-centered">
@@ -43,25 +46,11 @@
                 <span>{{ messages.interPartName }}</span>
               </router-link>
               <br>
-              <maps-available :id="eId" :type="'gene'" :viewer-selected-i-d="gene.id"></maps-available>
-              <gem-contact :type="type" :id="eId"/>
+              <maps-available :id="geneId" :type="type" :viewer-selected-i-d="gene.id" />
+              <gem-contact :id="geneId" :type="type" />
             </div>
           </div>
-          <template v-if="!showLoader">
-            <h4 class="title is-4">Reactions</h4>
-          </template>
-          <div class="columns">
-            <div class="column">
-              <template v-if="!showLoader && showReactionLoader">
-                <loader></loader>
-              </template>
-              <template v-else-if="!showReactionLoader">
-                <reaction-table :source-name="geneName" :reactions="reactions" :show-subsystem="true"
-                                :limit="limitReaction">
-                </reaction-table>
-              </template>
-            </div>
-          </div>
+          <reaction-table :source-name="geneId" :type="type" :selected-elm-id="geneName" />
         </div>
       </div>
     </div>
@@ -72,10 +61,10 @@
 import { mapGetters, mapState } from 'vuex';
 import GemContact from '@/components/shared/GemContact';
 import NotFound from '@/components/NotFound';
+import Loader from '@/components/Loader';
 import ExtIdTable from '@/components/explorer/gemBrowser/ExtIdTable';
 import MapsAvailable from '@/components/explorer/gemBrowser/MapsAvailable';
 import ReactionTable from '@/components/explorer/gemBrowser/ReactionTable';
-import Loader from '@/components/Loader';
 import { reformatTableKey } from '@/helpers/utils';
 import { default as messages } from '@/helpers/messages';
 
@@ -83,18 +72,17 @@ export default {
   name: 'Gene',
   components: {
     NotFound,
+    Loader,
     MapsAvailable,
     ReactionTable,
-    Loader,
     GemContact,
     ExtIdTable,
   },
   data() {
     return {
       messages,
-      showLoader: true,
       showReactionLoader: true,
-      eId: '',
+      geneId: '',
       type: 'gene',
       mainTableKey: [
         { name: 'id' },
@@ -105,66 +93,33 @@ export default {
       ],
       limitReaction: 200,
       componentNotFound: false,
+      showLoaderMessage: 'Loading gene data',
     };
   },
   computed: {
     ...mapState({
       model: state => state.models.model,
       gene: state => state.genes.gene,
-      reactions: state => state.reactions.relatedReactions,
     }),
     ...mapGetters({
       geneName: 'genes/geneName',
     }),
   },
-  watch: {
-    /* eslint-disable quote-props */
-    '$route': async function watchSetup() {
-      if (this.$route.path.includes('/gene/')) {
-        if (this.eId !== this.$route.params.id) {
-          await this.setup();
-        }
-      }
-    },
-  },
   async beforeMount() {
-    await this.setup();
+    this.geneId = this.$route.params.id;
+    try {
+      const payload = { model: this.model.database_name, id: this.geneId };
+      await this.$store.dispatch('genes/getGeneData', payload);
+      this.componentNotFound = false;
+      this.showLoaderMessage = '';
+    } catch {
+      this.reactions = [];
+      this.componentNotFound = true;
+      document.getElementById('search').focus();
+    }
   },
   methods: {
-    async setup() {
-      this.eId = this.$route.params.id;
-      if (this.eId) {
-        await this.load();
-        await this.loadReactions();
-      }
-    },
     reformatTableKey(k) { return reformatTableKey(k); },
-    async load() {
-      this.showLoader = true;
-
-      try {
-        const payload = { model: this.model.database_name, id: this.eId };
-        await this.$store.dispatch('genes/getGeneData', payload);
-        this.showLoader = false;
-        this.componentNotFound = false;
-      } catch {
-        this.showLoader = false;
-        this.reactions = [];
-        this.componentNotFound = true;
-        document.getElementById('search').focus();
-      }
-    },
-    async loadReactions() {
-      this.showReactionLoader = true;
-
-      try {
-        const payload = { model: this.model.database_name, id: this.eId };
-        await this.$store.dispatch('reactions/getRelatedReactionsForGene', payload);
-        this.showReactionLoader = false;
-      } catch {
-        this.$store.dispatch('reactions/clearRelatedReactions');
-      }
-    },
   },
 };
 

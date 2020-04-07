@@ -20,7 +20,6 @@ const getters = {
 const actions = {
   async getInteractionPartners({ commit }, { model, id }) {
     const interactionPartners = await interactionPartnersApi.fetchInteractionPartners(model, id);
-
     commit('setTooLargeNetworkGraph', !interactionPartners.reactions);
     commit('setInteractionPartners', interactionPartners);
   },
@@ -48,11 +47,9 @@ const mutations = {
   setInteractionPartners: (state, interactionPartners) => {
     state.interactionPartners = interactionPartners;
   },
-
   setTooLargeNetworkGraph: (state, tooLargeNetworkGraph) => {
     state.tooLargeNetworkGraph = tooLargeNetworkGraph;
   },
-
   setExpansion: (state, expansion) => {
     state.expansion = expansion;
   },

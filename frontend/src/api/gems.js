@@ -27,7 +27,7 @@ const fetchGemData = async (gemId) => {
     ...data.sample,
     ...data.gemodelset,
     description: data.description || data.gemodelset.description,
-    set_name: data.gemodelset.set_name,
+    set_name: data.gemodelset.name,
     ref: data.ref.length > 0 ? data.ref : data.gemodelset.reference,
   };
   // eslint-disable-next-line
