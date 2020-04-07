@@ -17,7 +17,7 @@
           <div v-show="model" class="navbar-start has-text-centered"
                title="Click to toggle between the GEM Browser and the Map Viewer">
             <router-link v-if="activeViewerBut || activeBrowserBut" :to="{ name: 'explorerRoot' }"
-                         class="navbar-item is-size-3 has-text-primary has-text-weight-bold is-unselectable"
+                         class="navbar-item is-size-4 has-text-primary has-text-weight-bold is-unselectable"
                          title="Current selected model, click to change your selection" exact>
               {{ model ? model.short_name : '' }}
             </router-link>
