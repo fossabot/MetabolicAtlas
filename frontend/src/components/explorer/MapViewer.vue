@@ -251,7 +251,7 @@ export default {
   },
   watch: {
     queryParams(newQuery, oldQuery) {
-      if (JSON.stringify(newQuery) === JSON.stringify(oldQuery)) {
+      if (!this.$route.params.map_id || JSON.stringify(newQuery) === JSON.stringify(oldQuery)) {
         return;
       }
 
