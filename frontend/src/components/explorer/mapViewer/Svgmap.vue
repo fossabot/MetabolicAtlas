@@ -100,7 +100,7 @@ export default {
       defaultGeneColor: '#feb',
       messages,
 
-      initialLoad: true,
+      initialLoadWithParams: true,
     };
   },
   computed: {
@@ -138,13 +138,14 @@ export default {
   watch: {
     async requestedMapName(newName, oldName) {
       if (oldName && oldName.length > 0 && newName !== oldName) {
-        this.initialLoad = false;
+        this.initialLoadWithParams = false;
       }
       await this.init();
     },
   },
   async mounted() {
     const self = this;
+    self.initialLoadWithParams = !self.$route.params.map_id;
     ['.met', '.enz', '.rea', '.subsystem'].forEach((aClass) => {
       $('#svg-wrapper').on('click', aClass, async function f() {
         await self.selectElement($(this));
@@ -283,7 +284,7 @@ export default {
       this.unHighlight(this.selectedElemsHL, 'selhl');
       if (this.searchTerm) {
         this.$refs.mapsearch.search(this.searchTerm);
-      } else if (this.coords && this.initialLoad) {
+      } else if (this.coords && this.initialLoadWithParams) {
         const coords = Object.values(this.coords);
         this.restoreMapPosition(coords[0], coords[1], coords[2]);
       }
