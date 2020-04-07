@@ -549,7 +549,7 @@ export default {
     },
     async loadExpansion() {
       try {
-        const payload = { model: this.model.database_name, id: this.mainNodeID };
+        const payload = { model: this.model.database_name, id: this.clickedElmId };
         await this.$store.dispatch('interactionPartners/loadExpansion', payload);
 
         this.reactionHL = null;
