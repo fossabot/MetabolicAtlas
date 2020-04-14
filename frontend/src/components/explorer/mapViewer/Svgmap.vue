@@ -446,12 +446,10 @@ export default {
             elmsOnMap.push($(v));
           });
         }
-        if (this.mapType !== 'subsystem') {
-          const subSelector = `#svg-wrapper .subsystem[id="${id}"]`;
-          if ($(subSelector).length) {
-            const firstText = $(subSelector).first().find('text')[0];
-            elmsOnMap.push($(firstText));
-          }
+        const subSelector = `#svg-wrapper .subsystem[id="${id}"]`;
+        if ($(subSelector).length) {
+          const firstText = $(subSelector).first().find('text')[0];
+          elmsOnMap.push($(firstText));
         }
       }
       return elmsOnMap;
