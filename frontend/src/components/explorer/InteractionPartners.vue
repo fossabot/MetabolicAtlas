@@ -183,7 +183,7 @@
             <div class="card ">
               <header class="card-header">
                 <p class="card-header-title">
-                  <a href="https://www.proteinatlas.org/" target="_blank">proteinAtlas.org</a>&nbsp;RNA levels
+                  RNA levels via&nbsp;<a href="https://www.proteinatlas.org/" target="_blank">proteinAtlas.org</a>
                 </p>
               </header>
               <div class="card-content card-content-compact">
@@ -507,7 +507,7 @@ export default {
 
         if (!this.disableExpLvlMessage
           && Object.values(this.rawElms).filter(e => e.type === 'gene').length === 0) {
-          this.disableExpLvlMessage = 'Unavailable, no genes on the graph';
+          this.disableExpLvlMessage = 'Unavailable, the graph contains only metabolites';
         }
 
         // The set time out wrapper enforces this happens last.
