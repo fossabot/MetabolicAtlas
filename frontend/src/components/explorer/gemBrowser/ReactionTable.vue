@@ -4,7 +4,7 @@
       <loader />
     </div>
     <div v-else class="column reaction-table">
-      <h4 class="title is-4">Reactions</h4>
+      <h4 class="subtitle is-4">Reactions</h4>
       <div v-if="errorMessage" class="notification is-danger">
         {{ errorMessage }}
       </div>
@@ -19,12 +19,12 @@
              :title="(reactions.length || -1) === limitReaction ?
              `The number of reactions displayed is limited to ${limitReaction}` : ''"
         >
-          <span v-show="(reactions.length || -1) === limitReaction" class="icon">
-            <i class="fa fa-exclamation-triangle has-text-danger"></i>
-          </span>
-           {{ reactions.length }} reactions
+          Showing {{ reactions.length }} reaction(s)
           <template v-if="transportReactionCount !== 0">
             including {{ transportReactionCount }} transport reactions
+          </template>
+          <template v-if="(reactions.length || -1) === limitReaction" class="icon">
+            <i class="fa fa-exclamation-triangle has-text-warning"></i> limited to {{limitReaction}}
           </template>
         </div>
         <div class="column is-narrow">
@@ -180,7 +180,7 @@ export default {
           id: this.sourceName,
           allCompartments: this.expandAllCompartment,
         };
-        this.$store.dispatch(`reactions/getRelatedReactionsFor${this.type[0].toUpperCase()}${this.type.slice(1)}`, payload);
+        await this.$store.dispatch(`reactions/getRelatedReactionsFor${this.type[0].toUpperCase()}${this.type.slice(1)}`, payload);
         this.showReactionLoader = false;
       } catch {
         this.errorMessage = `Could not load reactions for ${this.type} ${this.selectedElmId}.`;
@@ -239,7 +239,7 @@ export default {
 
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 a.cms {
   color: rgb(54, 54, 54);
   cursor: default;
