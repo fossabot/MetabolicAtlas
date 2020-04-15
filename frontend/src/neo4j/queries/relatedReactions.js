@@ -62,7 +62,7 @@ RETURN relatedS {
   id: related.id,
   compartments: COLLECT(DISTINCT(cs {id: c.id, .*})),
   subsystems: COLLECT(DISTINCT(ss {id: s.id, .*})),
-  metabolites: COLLECT(DISTINCT(ms {id: m.id, outgoing: startnode(metaboliteEdge)=m, .*})),
+  metabolites: COLLECT(DISTINCT(ms {id: m.id, stoichiometry: metaboliteEdge.stoichiometry, outgoing: startnode(metaboliteEdge)=m, .*})),
   genes: COLLECT(DISTINCT(gs {id: g.id, .*}))
 } as reactions
 `;
