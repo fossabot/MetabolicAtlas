@@ -31,14 +31,17 @@
                   </template>
                 </template>
                 <template v-else-if="el.name === 'compartment'">
-                  <template v-for="(v, i) in reaction[el.name]">
-                    <template v-if="i !== 0">; </template>
-                    <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key max-len -->
-                    <router-link :to="{ name: 'browser', params: { model: model.database_name, type: 'compartment', id: v.id } }"> {{ v.name }}</router-link>
-                  </template>
-                  <template v-if="reaction.is_transport">
-                    (transport reaction)
-                  </template>
+                  <div class="tags">
+                    <template v-for="c in reaction[el.name]">
+                      <span :key="c.id" class="tag">
+                        <!-- eslint-disable-next-line max-len -->
+                        <router-link :to="{ name: 'browser', params: { model: model.database_name, type: 'compartment', id: c.id } }">{{ c.name }}</router-link>
+                      </span>
+                    </template>
+                    <template v-if="reaction.is_transport">
+                      &nbsp;(transport reaction)
+                    </template>
+                  </div>
                 </template>
                 <template v-else-if="el.name === 'ec'">
                   <!-- eslint-disable-next-line max-len -->
