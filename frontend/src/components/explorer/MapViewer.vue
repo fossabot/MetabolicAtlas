@@ -326,7 +326,13 @@ export default {
   },
   methods: {
     handleQueryParamsWatch(newQuery, oldQuery) {
-      if (!this.$route.params.map_id || JSON.stringify(newQuery) === JSON.stringify(oldQuery)) {
+      if (!this.$route.params.map_id) {
+        const payload = [{}, null, `${this.$route.path}?dim=${newQuery.dim}`];
+        history.replaceState(...payload); // eslint-disable-line no-restricted-globals
+        return;
+      }
+
+      if (JSON.stringify(newQuery) === JSON.stringify(oldQuery)) {
         return;
       }
 
