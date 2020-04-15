@@ -430,6 +430,11 @@ export default {
       return this.requestedName in this.mapsData3D.subsystems;
     },
     showMap(compartmentOrSubsystemID, type, dim) {
+      if (compartmentOrSubsystemID === this.currentDisplayedName && type === this.currentDisplayedType) {
+        this.hideDropleftMenus();
+        return;
+      }
+
       this.selectionData.data = null;
       this.hideDropleftMenus();
 
