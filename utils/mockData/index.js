@@ -26,48 +26,59 @@ const shuffle = a => {
   return a;
 };
 
+const generateFieldValue = field => {
+  const fieldName = field[0];
+  const fieldType = field[1];
+  let fieldValue;
+
+  switch (fieldType) {
+    case fieldTypes.STRING:
+      fieldValue = getRandString();
+      break;
+    case fieldTypes.INT:
+      fieldValue = getRandInt();
+      break;
+    case fieldTypes.BOOL:
+      fieldValue = getRandBool();
+      break;
+    case fieldTypes.STRING_LIST:
+      fieldValue = [getRandString(), getRandString(), getRandString()];
+      break;
+  }
+
+  return fieldValue;
+};
+
 const makeHeader = fields =>
   fields.map(field => ({ id: field[0], title: field[0] }));
 
 const makeRecords = (fields, total) =>
   [...Array(total).keys()].map(() => {
     const record = {};
+
     for (let field of fields) {
       const fieldName = field[0];
-      const fieldType = field[1];
-      let fieldValue;
-
-      switch (fieldType) {
-        case fieldTypes.STRING:
-          fieldValue = getRandString();
-          break;
-        case fieldTypes.INT:
-          fieldValue = getRandInt();
-          break;
-        case fieldTypes.BOOL:
-          fieldValue = getRandBool();
-          break;
-        case fieldTypes.STRING_LIST:
-          fieldValue = [getRandString(), getRandString(), getRandString()];
-          break;
-      }
-
-      record[fieldName] = fieldValue;
+      record[fieldName] = generateFieldValue(field);
     }
+
     return record;
   });
 
 const getRecordIdForRel = (records, isUnique) =>
   isUnique ? records.shift() : records[getRandInt(records.length)];
 
-const makeRels = (fields, recordsA, recordsB, isUnique) => {
+const makeRels = (fields, recordsA, recordsB, isUnique, relFields) => {
   if (isUnique) {
     shuffle(recordsB);
   }
 
   return recordsA.map(rA => ({
     [fields[0][0]]: rA.id,
-    [fields[1][0]]: getRecordIdForRel(recordsB, isUnique).id
+    [fields[1][0]]: getRecordIdForRel(recordsB, isUnique).id,
+    ...relFields.reduce(
+      (obj, rf) => ({ ...obj, [rf[0]]: generateFieldValue(rf) }),
+      {}
+    )
   }));
 };
 
@@ -84,7 +95,7 @@ const createCsvFile = ({ header, records, filename }) => {
   });
 };
 
-const buildNodeFields = fields =>
+const buildFields = fields =>
   fields.reduce((res, field) => {
     const fieldName = field[0];
     const fieldType = field[1];
@@ -107,7 +118,7 @@ const buildCypherNodesWithStatesInstructions = ({ nodeType, fields }) => {
   const nodeFilename = `${nodeType}s`;
   const relId = `${nodeType}Id`;
 
-  const nodeFields = buildNodeFields(fields);
+  const nodeFields = buildFields(fields);
 
   let instructions = `
 CREATE INDEX FOR (n:${nodeLabel}) ON (n.id);
@@ -119,7 +130,7 @@ CREATE (n:${nodeLabel}${hasModelLabel ? ":" + MODEL : ""} ${JSON.stringify(
   if (!!stateFields) {
     const stateNodeLabel = `${nodeLabel}State`;
     const stateNodeFilename = `${nodeType}States`;
-    const stateNodeFields = buildNodeFields(stateFields.slice(1));
+    const stateNodeFields = buildFields(stateFields.slice(1));
 
     instructions += `
 LOAD CSV WITH HEADERS FROM "file:///${stateNodeFilename}.csv" AS csvLine
@@ -136,17 +147,23 @@ CREATE (n)-[:V1]->(ns);`;
   return instructions;
 };
 
-const buildCypherRelsInstructions = ({ nodeType1, nodeType2 }) => {
+const buildCypherRelsInstructions = ({ nodeType1, nodeType2, fields }) => {
   const nodeLabel1 = nodeType1.charAt(0).toUpperCase() + nodeType1.slice(1);
   const nodeLabel2 = nodeType2.charAt(0).toUpperCase() + nodeType2.slice(1);
   const relId1 = `${nodeType1}Id`;
   const relId2 = `${nodeType2}Id`;
   const fileName = `${nodeType1}${nodeLabel2}s`;
 
+  let fieldsInstructions = "";
+  if (fields) {
+    const relFields = buildFields(fields);
+    fieldsInstructions = ` ${JSON.stringify(relFields).replace(/['"]+/g, "")}`;
+  }
+
   return `
 LOAD CSV WITH HEADERS FROM "file:///${fileName}.csv" AS csvLine
 MATCH (n1:${nodeLabel1} {id: csvLine.${relId1}}),(n2:${nodeLabel2} {id: csvLine.${relId2}})
-CREATE (n1)-[:V1]->(n2);
+CREATE (n1)-[:V1${fieldsInstructions}]->(n2);
 `;
 };
 
@@ -238,18 +255,58 @@ const SCHEMA = {
     }
   },
   relationships: [
-    ["metabolite", "compartment"],
-    ["metabolite", "reaction"],
-    ["reaction", "metabolite"],
-    ["reaction", "gene"],
-    ["reaction", "pubmedReference"],
-    ["reaction", "subsystem"],
-    ["compartment", "svgMap", "isUnique"],
-    ["subsystem", "svgMap", "isUnique"],
-    ["metabolite", "externalDb"],
-    ["subsystem", "externalDb"],
-    ["reaction", "externalDb"],
-    ["gene", "externalDb"]
+    {
+      node1: "metabolite",
+      node2: "compartment"
+    },
+    {
+      node1: "metabolite",
+      node2: "reaction",
+      relFields: [["stoichiometry", fieldTypes.INT]]
+    },
+    {
+      node1: "reaction",
+      node2: "metabolite",
+      relFields: [["stoichiometry", fieldTypes.INT]]
+    },
+    {
+      node1: "reaction",
+      node2: "gene"
+    },
+    {
+      node1: "reaction",
+      node2: "pubmedReference"
+    },
+    {
+      node1: "reaction",
+      node2: "subsystem"
+    },
+    {
+      node1: "compartment",
+      node2: "svgMap",
+      isUnique: true
+    },
+    {
+      node1: "subsystem",
+      node2: "svgMap",
+      isUnique: true
+    },
+    {
+      node1: "metabolite",
+      node2: "externalDb"
+    },
+    {
+      node1: "subsystem",
+      node2: "externalDb"
+    },
+    {
+      node1: "reaction",
+      node2: "externalDb"
+    },
+    {
+      node1: "gene",
+      node2: "externalDb"
+    }
   ]
 };
 
@@ -289,18 +346,22 @@ const generateData = () => {
   }
 
   for (let rel of SCHEMA.relationships) {
-    const node1 = rel[0];
-    const node2 = rel[1];
-    const isUnique = !!rel[2];
+    const { node1, node2, isUnique, relFields = [] } = rel;
 
     const fields = [
       [`${node1}Id`, fieldTypes.STRING],
       [`${node2}Id`, fieldTypes.STRING]
     ];
 
-    const header = makeHeader(fields);
+    const header = makeHeader([...fields, ...relFields]);
 
-    const records = makeRels(fields, data[node1], data[node2], isUnique);
+    const records = makeRels(
+      fields,
+      data[node1],
+      data[node2],
+      isUnique,
+      relFields
+    );
 
     const filename = `${node1}${node2.charAt(0).toUpperCase()}${node2.slice(
       1
@@ -324,12 +385,12 @@ const generateData = () => {
     }
 
     for (let rel of SCHEMA.relationships) {
-      const nodeType1 = rel[0];
-      const nodeType2 = rel[1];
+      const { node1, node2, relFields } = rel;
 
       instructions += buildCypherRelsInstructions({
-        nodeType1,
-        nodeType2
+        nodeType1: node1,
+        nodeType2: node2,
+        fields: relFields
       });
     }
 
