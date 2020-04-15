@@ -145,7 +145,7 @@ export default {
   },
   async mounted() {
     const self = this;
-    self.initialLoadWithParams = !self.$route.params.map_id;
+    self.initialLoadWithParams = !!self.$route.query.coords;
     ['.met', '.enz', '.rea', '.subsystem'].forEach((aClass) => {
       $('#svg-wrapper').on('click', aClass, async function f() {
         await self.selectElement($(this));

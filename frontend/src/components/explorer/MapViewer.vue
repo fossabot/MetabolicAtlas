@@ -261,7 +261,9 @@ export default {
     },
   },
   created() {
-    this.handleQueryParamsWatch = debounce(this.handleQueryParamsWatch, 300);
+    this.handleQueryParamsWatch = debounce(this.handleQueryParamsWatch, 100);
+    window.onpopstate = this.handleQueryParamsWatch();
+
 
     EventBus.$off('loadRNAComplete');
 
@@ -339,7 +341,7 @@ export default {
       const queryString = Object.entries(newQuery).map(e => e.join('=')).join('&');
 
       const payload = [{}, null, `${this.$route.path}?${queryString}`];
-      if (newQuery.dim === this.$route.query.dim) {
+      if (newQuery.dim === this.$route.query.dim || (newQuery.dim && !this.$route.query.dim)) {
         history.replaceState(...payload); // eslint-disable-line no-restricted-globals
       } else {
         history.pushState(...payload); // eslint-disable-line no-restricted-globals
