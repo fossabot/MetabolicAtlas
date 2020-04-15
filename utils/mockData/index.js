@@ -4,12 +4,15 @@ const createCsvWriter = require("csv-writer").createObjectCsvWriter;
 const fieldTypes = {
   STRING: "string",
   INT: "int",
+  FLOAT: "float",
   BOOL: "bool",
   STRING_LIST: "string_list"
 };
 
 // UTIL
 const getRandInt = max => Math.floor(Math.random() * (max || 1000));
+
+const getRandFloat = () => (Math.random() * (10 - 0) + 0.0001).toFixed(3);
 
 const getRandString = () =>
   Math.random()
@@ -37,6 +40,9 @@ const generateFieldValue = field => {
       break;
     case fieldTypes.INT:
       fieldValue = getRandInt();
+      break;
+    case fieldTypes.FLOAT:
+      fieldValue = getRandFloat();
       break;
     case fieldTypes.BOOL:
       fieldValue = getRandBool();
@@ -105,6 +111,8 @@ const buildFields = fields =>
       val = `toInteger(${val})`;
     } else if (fieldType === fieldTypes.BOOL) {
       val = `toBoolean(${val})`;
+    } else if (fieldType === fieldTypes.FLOAT) {
+      val = `toFloat(${val})`;
     }
 
     return { ...res, [fieldName]: val };
@@ -262,12 +270,12 @@ const SCHEMA = {
     {
       node1: "metabolite",
       node2: "reaction",
-      relFields: [["stoichiometry", fieldTypes.INT]]
+      relFields: [["stoichiometry", fieldTypes.FLOAT]]
     },
     {
       node1: "reaction",
       node2: "metabolite",
-      relFields: [["stoichiometry", fieldTypes.INT]]
+      relFields: [["stoichiometry", fieldTypes.FLOAT]]
     },
     {
       node1: "reaction",
