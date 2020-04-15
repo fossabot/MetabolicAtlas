@@ -27,13 +27,14 @@
             <tr>
               <td class="td-key has-background-primary has-text-white-bis">Compartments</td>
               <td>
-                <template v-for="(c, i) in info['compartments']">
-                  <template v-if="i !== 0">, </template>
-                  <!-- eslint-disable-next-line vue/valid-v-for max-len -->
-                  <router-link :to="{ name: 'browser', params: { model: model.database_name, type: 'compartment', id: c.id } }">
-                    {{ c.name }}
-                  </router-link>
-                </template>
+                <div class="tags">
+                  <template v-for="c in info['compartments']">
+                    <span :key="c.id" class="tag">
+                      <!-- eslint-disable-next-line max-len -->
+                      <router-link :to="{ name: 'browser', params: { model: model.database_name, type: 'compartment', id: c.id } }">{{ c.name }}</router-link>
+                    </span>
+                  </template>
+                </div>
               </td>
             </tr>
             <tr>
