@@ -107,12 +107,8 @@ def get_id(request, model, term):
         return JSONResponse([])
 
     synonym_regex = r"(?:^" + re.escape(term) + r"(?:;|$)" + r")|(?:; " + re.escape(term) + r"(?:;|$))"
-    query = Q()
-    reaction_query = Q()
-    query |= Q(id__iexact=term)
-    reaction_query |= Q(id__iexact=term)
-    reaction_query |= Q(name__iexact=term)
-    reaction_query |= Q(external_databases__external_id__iexact=term)
+    words_regex = r"(?:^" + re.escape(term) + r"(?:\s+|$)" + r")|(?:\s+" + re.escape(term) + r"(?:\s+|$))"
+    query = Q(id__iexact=term)
     query |= Q(name__iexact=term)
     query |= Q(full_name__iexact=term)
     query |= Q(alt_name1__iexact=term)
@@ -120,17 +116,21 @@ def get_id(request, model, term):
     query |= Q(aliases__iregex=synonym_regex)
     query |= Q(external_databases__external_id__iexact=term)
     query |= Q(formula__iexact=term)
+    reaction_query = Q(id__iexact=term)
+    reaction_query |= Q(name__iexact=term)
+    reaction_query |= Q(external_databases__external_id__iexact=term)
+    subsystem_query = Q(id__iexact=term)
+    subsystem_query |= Q(name__iexact=term)
+    subsystem_query |= Q(name__iregex=words_regex)
 
-    # get the list of component id
     reaction_component_ids = APImodels.ReactionComponent.objects.using(model).prefetch_related('external_databases').filter(query).values_list('id', flat=True).distinct()
-
-    # get the list of reaction id
     reaction_ids = APImodels.Reaction.objects.using(model).prefetch_related('external_databases').filter(reaction_query).values_list('id', flat=True).distinct()
+    subsystem_ids = APImodels.Subsystem.objects.using(model).filter(subsystem_query).values_list('name', flat=True)
 
-    if len(reaction_component_ids) + len(reaction_ids) == 0:
+    if len(reaction_component_ids) + len(reaction_ids) + len(subsystem_ids) == 0:
         return HttpResponse(status=404)
 
-    results = list(chain(reaction_component_ids, reaction_ids))
+    results = list(chain(reaction_component_ids, reaction_ids, subsystem_ids))
     return JSONResponse(results)
 
 

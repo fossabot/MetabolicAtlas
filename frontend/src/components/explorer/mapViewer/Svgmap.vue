@@ -433,14 +433,20 @@ export default {
       const elmsOnMap = [];
       for (let i = 0; i < IDs.length; i += 1) {
         const id = IDs[i].trim();
-        const rselector = `#svg-wrapper .rea#${id}`;
-        let elms = $(rselector);
-        if (elms.length < 1) {
-          const selectors = `#svg-wrapper .met.${id}, #svg-wrapper .enz.${id}`;
-          elms = $(selectors);
+        const reaSelector = `#svg-wrapper .rea[id="${id}"]`;
+        if ($(reaSelector).length) {
+          elmsOnMap.push($(reaSelector).first());
         }
-        for (let j = 0; j < elms.length; j += 1) {
-          elmsOnMap.push($(elms[j]));
+        const metEnzSelector = `#svg-wrapper .met[class*=" ${id} "], #svg-wrapper .enz[class*=" ${id} "]`;
+        if ($(metEnzSelector).length) {
+          $(metEnzSelector).each((k, v) => { // eslint-disable-line no-unused-vars
+            elmsOnMap.push($(v));
+          });
+        }
+        const subSelector = `#svg-wrapper .subsystem[id="${id}"]`;
+        if ($(subSelector).length) {
+          const firstText = $(subSelector).first().find('text')[0];
+          elmsOnMap.push($(firstText));
         }
       }
       return elmsOnMap;
@@ -455,6 +461,7 @@ export default {
       if (!coords) {
         return;
       }
+      // const zoom = element.is('text') ? 0.8 : 1; zoom out a bit when centering a subsystem label
       this.panToCoords({ panX: coords[4], panY: coords[5], zoom: 1, center: true });
     },
     getSvgElemCoordinates(el) {
@@ -471,14 +478,16 @@ export default {
     highlight(nodes, className) {
       const elmsSelected = [];
       for (const el of nodes) { // eslint-disable-line no-restricted-syntax
-        $(el).addClass(className);
-        elmsSelected.push(el);
-        if (el.hasClass('rea') && className === 'selhl') {
-          const selectors = `#svg-wrapper .met.${el.attr('id')}`;
-          const elms = $(selectors);
-          for (const con of elms) { // eslint-disable-line no-restricted-syntax
-            $(con).addClass(className);
-            elmsSelected.push(con);
+        if (!el.is('text')) { // do not HL subsystem texts
+          $(el).addClass(className);
+          elmsSelected.push(el);
+          if (el.hasClass('rea') && className === 'selhl') {
+            const selectors = `#svg-wrapper .met.${el.attr('id')}`;
+            const elms = $(selectors);
+            for (const con of elms) { // eslint-disable-line no-restricted-syntax
+              $(con).addClass(className);
+              elmsSelected.push(con);
+            }
           }
         }
       }
