@@ -333,10 +333,10 @@ m, .clickable {
     a {
       font-weight: 400;
     }
-    margin-left: 0;
+    margin-left: 0.5rem;
   }
   .navbar-menu {
-    margin-right: 0;
+    margin-right: 0.5rem;
   }
   .navbar-burger{
     height: 4rem;
