@@ -322,6 +322,9 @@ m, .clickable {
     }
     margin-left: 0;
   }
+  .navbar-menu {
+    margin-right: 0;
+  }
   .navbar-burger{
     height: 4rem;
     padding-right: 0.5rem;
