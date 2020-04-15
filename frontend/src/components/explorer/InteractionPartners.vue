@@ -1,7 +1,7 @@
 <template>
   <div class="interaction-partners">
     <div v-if="!mainNodeID" class="columns">
-      <div class="column container has-text-centered">
+      <div class="column container is-fullhd has-text-centered">
         <h3 class="title is-3">Explore {{ model.short_name }} with the {{ messages.interPartName }}</h3>
         <h5 class="subtitle is-5 has-text-weight-normal">
           use the search field to find the component of interest
@@ -40,7 +40,7 @@
       <loader></loader>
     </template>
     <template v-else-if="mainNodeID && !componentNotFound">
-      <div class="container columns">
+      <div class="container is-fullhd columns">
         <div class="column is-8">
           <h3 class="title is-3 is-marginless" v-html="`${messages.interPartName} for ${title}`"></h3>
         </div>
@@ -69,7 +69,7 @@
           </template>
         </div>
       </div>
-      <div class="container columns is-multiline">
+      <div class="container is-fullhd columns is-multiline">
         <template v-if="tooLargeNetworkGraph">
           <div class="column is-8-desktop is-fullwidth-tablet">
             <div class="notification is-warning has-text-centered">

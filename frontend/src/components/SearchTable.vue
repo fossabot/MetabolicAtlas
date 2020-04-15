@@ -1,6 +1,6 @@
 <template>
   <section class="extended-section">
-    <div id="search-table" class="container">
+    <div id="search-table" class="container is-fullhd">
       <div class="columns">
         <div class="column has-text-centered content">
           <br>

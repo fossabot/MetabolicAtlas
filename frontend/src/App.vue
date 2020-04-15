@@ -2,7 +2,7 @@
   <div id="app">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
     <nav id="navbar" class="navbar has-background-primary-lighter" role="navigation" aria-label="main navigation">
-      <div class="container">
+      <div class="container is-fullhd">
         <div class="navbar-brand">
           <router-link class="navbar-item" :to="{ name: 'home' }" active-class="" @click.native="isMobileMenu = false">
             <img :src="require('./assets/logo.png')" />
@@ -333,6 +333,10 @@ m, .clickable {
     a {
       font-weight: 400;
     }
+    margin-left: 0.5rem;
+  }
+  .navbar-menu {
+    margin-right: 0.5rem;
   }
   .navbar-burger{
     height: 4rem;

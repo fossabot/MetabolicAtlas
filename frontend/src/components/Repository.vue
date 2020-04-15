@@ -1,6 +1,6 @@
 <template>
   <section class="section section-no-top extended-section">
-    <div class="container">
+    <div class="container is-fullhd">
       <div v-if="errorMessage">
         {{ errorMessage }}
       </div>
