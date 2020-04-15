@@ -252,7 +252,7 @@ export default {
   },
   watch: {
     $route(to) {
-      if (to.name === 'viewer' && to.query.dim !== this.queryParams.dim) {
+      if (to.name === 'viewer' && to.query.dim && to.query.dim !== this.queryParams.dim) {
         this.$store.dispatch('maps/setShow2D', to.query.dim !== '3d');
       }
     },
