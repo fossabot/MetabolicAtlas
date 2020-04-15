@@ -535,6 +535,7 @@ export default {
 
       if (this.selectedItemHistory[id]) {
         selectionData.data = this.selectedItemHistory[id];
+        this.$store.dispatch('maps/setSelectedElementId', id);
         this.$emit('updatePanelSelectionData', selectionData);
         return;
       }
