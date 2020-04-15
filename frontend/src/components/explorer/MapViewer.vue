@@ -170,6 +170,7 @@
 <script>
 import { mapGetters, mapState } from 'vuex';
 import $ from 'jquery';
+import { debounce } from 'vue-debounce';
 import SidebarDataPanels from '@/components/explorer/mapViewer/SidebarDataPanels';
 import DataOverlay from '@/components/explorer/mapViewer/DataOverlay.vue';
 import Svgmap from '@/components/explorer/mapViewer/Svgmap';
@@ -250,27 +251,17 @@ export default {
     },
   },
   watch: {
+    $route(to) {
+      if (to.name === 'viewer' && to.query.dim !== this.queryParams.dim) {
+        this.$store.dispatch('maps/setShow2D', to.query.dim !== '3d');
+      }
+    },
     queryParams(newQuery, oldQuery) {
-      if (JSON.stringify(newQuery) === JSON.stringify(oldQuery)) {
-        return;
-      }
-
-      const queryString = Object.entries(newQuery).map(e => e.join('=')).join('&');
-
-      const payload = [{}, null, `${this.$route.path}?${queryString}`];
-      if (newQuery.dim === oldQuery.dim) {
-        history.replaceState(...payload); // eslint-disable-line no-restricted-globals
-      } else {
-        history.pushState(...payload); // eslint-disable-line no-restricted-globals
-      }
+      this.handleQueryParamsWatch(newQuery, oldQuery);
     },
   },
   created() {
-    window.onpopstate = () => {
-      if (this.$route.query.dim !== this.queryParams.dim) {
-        this.$store.dispatch('maps/setShow2D', this.$route.query.dim !== '3d');
-      }
-    };
+    this.handleQueryParamsWatch = debounce(this.handleQueryParamsWatch, 300);
 
     EventBus.$off('loadRNAComplete');
 
@@ -334,6 +325,20 @@ export default {
     });
   },
   methods: {
+    handleQueryParamsWatch(newQuery, oldQuery) {
+      if (!this.$route.params.map_id || JSON.stringify(newQuery) === JSON.stringify(oldQuery)) {
+        return;
+      }
+
+      const queryString = Object.entries(newQuery).map(e => e.join('=')).join('&');
+
+      const payload = [{}, null, `${this.$route.path}?${queryString}`];
+      if (newQuery.dim === this.$route.query.dim) {
+        history.replaceState(...payload); // eslint-disable-line no-restricted-globals
+      } else {
+        history.pushState(...payload); // eslint-disable-line no-restricted-globals
+      }
+    },
     hideDropleftMenus() {
       $('#menu ul.l1, #menu ul.l2').hide();
     },

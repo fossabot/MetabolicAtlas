@@ -78,7 +78,7 @@
           <div class="modal-content column is-6-fullhd is-8-desktop is-10-tablet is-full-mobile has-background-white"
                tabindex="0" @keyup.esc="showModelId = ''">
             <div id="modal-info" class="model-table">
-              <h2 class="title">
+              <h4 class="title is-size-4">
                 <template v-if="selectedModel.database_name">
                   {{ selectedModel.full_name }}
                 </template>
@@ -87,7 +87,7 @@
                   {{ selectedModel.tag || selectedModel.tissue
                     || selectedModel.cell_type || selectedModel.cell_line || "" }}
                 </template>
-              </h2>
+              </h4>
               {{ selectedModel.description }}<br><br>
               <table class="table main-table is-fullwidth">
                 <tbody>
@@ -120,11 +120,13 @@
                 </tbody>
               </table>
               <references :reference-list="referenceList" />
+              <br>
               <template v-if="selectedModel.files">
-                <h4 class="title is-size-4">Files</h4>
+                <h4 class="subtitle is-size-4">Files</h4>
                 <template v-for="file in selectedModel.files">
                   <a :key="file.path" class="button" :href="`${filesURL}${file.path}`">{{ file.format }}</a>&nbsp;
                 </template>
+                <br><br>
               </template>
             </div>
           </div>

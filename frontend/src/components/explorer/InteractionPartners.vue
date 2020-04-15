@@ -124,7 +124,7 @@
                       @click="toggleGeneColorPicker()">
                   <compact-picker v-show="showColorPickerEnz"
                                   v-model="nodeDisplayParams.geneNodeColor"
-                                  @input="updateExpAndredrawGraph(false, 'gene')">
+                                  @input="applyOptionPanelColor('gene')">
                   </compact-picker>
                 </span>
               </div>
@@ -146,7 +146,7 @@
                       @click="toggleMetaboliteColorPicker()">
                   <compact-picker v-show="showColorPickerMeta"
                                   v-model="nodeDisplayParams.metaboliteNodeColor"
-                                  @input="updateExpAndredrawGraph(false, 'metabolite')">
+                                  @input="applyOptionPanelColor('metabolite')">
                   </compact-picker>
                 </span>
               </div>
@@ -183,38 +183,28 @@
             <div class="card ">
               <header class="card-header">
                 <p class="card-header-title">
-                  <label class="checkbox is-unselectable"
-                         :title="disableExpLvl ? 'Expression levels are not available' : `Click to ${toggleGeneExpLevel ? 'disable' : 'activate'} expression RNA levels`"> <!-- eslint-disable-line max-len -->
-                    <input v-model="toggleGeneExpLevel" type="checkbox"
-                           :disabled="disableExpLvl"
-                           @click="applyLevels('gene', 'HPA', 'RNA', selectedSample)">
-                    Enable <a href="https://www.proteinatlas.org/" target="_blank">proteinAtlas.org</a>&nbsp;RNA levels
-                  </label>
+                  RNA levels via&nbsp;<a href="https://www.proteinatlas.org/" target="_blank">proteinAtlas.org</a>
                 </p>
               </header>
-              <div v-show="toggleGeneExpLevel" class="card-content card-content-compact">
-                <RNALegend></RNALegend>
-                <br>
-                <div v-show="toggleGeneExpLevel && !disableExpLvl"
-                     class="select is-fullwidth"
-                     :class="{ 'is-loading' : loadingHPA && toggleGeneExpLevel}">
-                  <select id="enz-select" ref="enzHPAselect"
-                          v-if="tissues.HPA" v-model="selectedSample" :disabled="!toggleGeneExpLevel"
-                          title="Select a tissue type"
-                          @change.prevent="applyLevels('gene', 'HPA', 'RNA', selectedSample)">
-                    <optgroup label="HPA - RNA levels - Tissues">
-                      <!--  <option value="None">None</option> -->
+              <div class="card-content card-content-compact">
+                <template v-if="disableExpLvlMessage">
+                  {{ disableExpLvlMessage }}
+                </template>
+                <template v-else>
+                  <RNALegend />
+                  <br>
+                  <div class="select is-fullwidth"
+                       :class="{ 'is-loading' : loadingHPA }">
+                    <select v-if="tissues.HPA" id="enz-select" ref="enzHPAselect"
+                            v-model="selectedSample" title="Select a tissue type"
+                            @change.prevent="applyLevels('HPA', 'RNA', selectedSample)">
+                      <option value="">None</option>
                       <option v-for="tissue in tissues['HPA']" :key="tissue" :value="tissue">
                         {{ tissue }}
                       </option>
-                    </optgroup>
-                    <optgroup v-if="false" label="HPA - RNA levels - Cell-type">
-                      <option v-for="cellType in cellLines['HPA']" :key="cellType" :value="cellType">
-                        {{ cellType }}
-                      </option>
-                    </optgroup>
-                  </select>
-                </div>
+                    </select>
+                  </div>
+                </template>
               </div>
             </div>
             <br>
@@ -250,7 +240,7 @@
             </div>
             <br>
           </template>
-          <sidebar id="sidebar" :selected-elm="clickedElm" :showIPbutton="clickedElmId !== mainNodeID" />
+          <sidebar id="sidebar" :selected-elm="clickedElm" :show-ip-button="clickedElmId !== mainNodeID" />
         </div>
       </div>
       <cytoscape-table :reactions="reactions" :selected-elm-id="clickedElmId" :selected-reaction-id="reactionHL"
@@ -278,7 +268,7 @@ import RNALegend from '@/components/explorer/mapViewer/RNALegend.vue';
 import NotFound from '@/components/NotFound';
 
 import { default as transform } from '@/data-mappers/hmr-closest-interaction-partners';
-import { default as graph } from '@/graph-stylers/hmr-closest-interaction-partners';
+import { default as changeGraphStyle } from '@/graph-stylers/hmr-closest-interaction-partners';
 
 import { default as convertGraphML } from '@/helpers/graph-ml-converter';
 
@@ -312,6 +302,7 @@ export default {
 
       rawRels: {},
       rawElms: {},
+      expandedIds: [],
 
       mainNodeID: '',
       mainNode: null,
@@ -320,14 +311,8 @@ export default {
       clickedElm: null,
       selectedSample: '',
 
-      expandedIds: [],
-
-      cellLines: {},
-      legend: '',
-
-      expSource: '',
-      expType: '',
-      expSample: '',
+      overlay: {},
+      disableExpLvlMessage: '', // msg if not provided with the model or no gene
 
       reactionHL: null,
       compartmentHL: '',
@@ -336,19 +321,10 @@ export default {
       subsystemHL: '',
       subsystemList: [],
 
-      // keep track of exp lvl source already loaded
-      expSourceLoaded: {
-        gene: {},
-        metabolite: {},
-      },
-      disableExpLvl: false,
-
       cy: null,
 
       showMenuExport: false,
       showMenuExpression: false,
-      toggleGeneExpLevel: false,
-      toggleMetaboliteExpLevel: false,
 
       showGraphLegend: false,
       showGraphContextMenu: false,
@@ -389,9 +365,6 @@ export default {
           },
           a: 1,
         },
-        metaboliteExpSource: false,
-        metaboliteExpType: false,
-        metaboliteExpSample: false,
         metaboliteNodeShape: 'ellipse',
         metaboliteNodeColor: {
           hex: '#73D8FF',
@@ -466,7 +439,6 @@ export default {
       this.reactionHL = null;
       this.compartmentHL = '';
       this.subsystemHL = '';
-      await this.loadHPATissue();
       if (this.mainNodeID) {
         await this.load();
         jquery('#cy').height(jquery('#cy').width() / 1.5);
@@ -482,10 +454,10 @@ export default {
       try {
         await this.$store.dispatch('humanProteinAtlas/getTissues', this.model.database_name);
         if (this.tissues.HPA.length === 0) {
-          this.disableExpLvl = true;
+          this.disableExpLvlMessage = `Unavailable for ${this.model.short_name}`;
         }
       } catch {
-        this.disableExpLvl = true;
+        this.disableExpLvlMessage = 'Sorry, currently unavailable ';
       }
     },
     async load() {
@@ -518,6 +490,10 @@ export default {
         this.expandedIds = [];
         this.expandedIds.push(this.component.id);
 
+        this.disableExpLvlMessage = '';
+        this.resetGeneExpression();
+        await this.loadHPATissue();
+
         this.nodeCount = Object.keys(this.rawElms).length;
         if (this.nodeCount > this.warnNodeCount) {
           this.showNetworkGraph = false;
@@ -529,7 +505,10 @@ export default {
         this.showNetworkGraph = true;
         this.errorMessage = '';
 
-        this.resetGeneExpression();
+        if (!this.disableExpLvlMessage
+          && Object.values(this.rawElms).filter(e => e.type === 'gene').length === 0) {
+          this.disableExpLvlMessage = 'Unavailable, the graph contains only metabolites';
+        }
 
         // The set time out wrapper enforces this happens last.
         setTimeout(() => {
@@ -583,13 +562,16 @@ export default {
         if (this.nodeCount > this.warnNodeCount) {
           this.showNetworkGraph = false;
           this.largeNetworkGraph = true;
-          this.errorMessage = '';
           return;
         }
         this.showNetworkGraph = true;
         this.errorMessage = '';
 
-        this.resetGeneExpression();
+        if (this.disableExpLvlMessage === 'Unavailable, no genes on the graph'
+          && Object.values(this.rawElms).filter(e => e.type === 'gene').length !== 0) {
+          // genes have been added with the expanded network
+          this.disableExpLvlMessage = '';
+        }
 
         // The set time out wrapper enforces this happens last.
         setTimeout(() => {
@@ -635,28 +617,12 @@ export default {
       this.showColorPickerEnz = false;
       this.showColorPickerMeta = false;
     },
-    fixEnzSelectOption() {
-      const option = document.getElementById('enz-select')
-        .getElementsByTagName('optgroup')[0].childNodes[0];
-      if (option) {
-        option.selected = 'selected';
-        this.nodeDisplayParams.geneExpSample = option.label;
+    applyOptionPanelColor(nodeType) {
+      if (nodeType === 'gene' && this.nodeDisplayParams.geneExpSample) {
+        // expression lvl are active
+        return;
       }
-    },
-    updateExpAndredrawGraph(usingExpressionLevel, nodeType, expSource, expType, expSample) {
       setTimeout(() => {
-        if ((expSource && expType) && !expSample) {
-          // fix option selection! because of optgroup?
-          if (this.toggleGeneExpLevel) {
-            this.fixEnzSelectOption();
-          }
-        }
-        if (!usingExpressionLevel) {
-          if ((nodeType === 'gene' && this.toggleGeneExpLevel)
-            || (nodeType === 'metabolite' && this.toggleMetaboliteExpLevel)) {
-            return;
-          }
-        }
         this.redrawGraph();
       }, 0);
     },
@@ -682,7 +648,7 @@ export default {
       }
     },
     redrawGraph() {
-      const stylesheet = graph(this.mainNodeID,
+      const stylesheet = changeGraphStyle(this.mainNodeID,
         this.rawElms, this.rawRels, this.nodeDisplayParams,
         this.reactionHL, this.compartmentHL, this.subsystemHL)[1];
       const cyzoom = this.cy.zoom();
@@ -726,9 +692,8 @@ export default {
         this.constructGraph(this.rawElms, this.rawRels, callback);
       }, 0);
     },
-    // this.switchSVG(compartmentID,
     constructGraph: function constructGraph(elms, rels, callback) {
-      const [elements, stylesheet] = graph(this.mainNodeID,
+      const [elements, stylesheet] = changeGraphStyle(this.mainNodeID,
         elms, rels, this.nodeDisplayParams, this.reactionHL, this.compartmentHL, this.subsystemHL);
 
       const colaOptions = {
@@ -779,7 +744,6 @@ export default {
         elements,
         style: stylesheet,
         layout: {
-          // check 'cola' layout extension
           name: Object.keys(elms).length > 30 ? 'concentric' : 'cola',
           colaOptions,
           concentric(node) {
@@ -875,55 +839,42 @@ export default {
       a.click();
       document.body.removeChild(a);
     },
-    async applyLevels(componentType, expSource, expType, expSample) {
-      setTimeout(async () => { // wait this.toggleGeneExpLevel
-        if (this.disableExpLvl) {
+    async applyLevels(expSource, expType, expSample) {
+      setTimeout(async () => {
+        if (this.disableExpLvlMessage) {
           return;
         }
-        this.expSource = expSource;
-        this.expType = expType;
-        this.expSample = expSample;
-        if (componentType === 'gene') {
-          if (this.toggleGeneExpLevel) {
-            if (this.nodeDisplayParams.geneExpSource !== expSource) {
-              this.nodeDisplayParams.geneExpSource = expSource;
-              this.nodeDisplayParams.geneExpType = expType;
-              // check if this source for ths type of component have been already loaded
-              if (!Object.keys(this.expSourceLoaded[componentType]).length === 0
-                || !this.expSourceLoaded[componentType][expSource]) {
-                // sources that load all exp type
-                if (expSource === 'HPA') {
-                  await this.getHPAexpression(this.rawElms, expSample);
-                } else {
-                  // load expression data from another source here
-                }
+        if (expSample) { // '' if None selected
+          if (this.nodeDisplayParams.geneExpSource !== expSource) {
+            this.nodeDisplayParams.geneExpSource = expSource;
+            this.nodeDisplayParams.geneExpType = expType;
+            // if this source for this type of component have been already loaded
+            if (!this.overlay[expSource]) {
+              // sources that load all exp type
+              if (expSource === 'HPA') {
+                await this.getHPAexpression(this.rawElms, expSample);
               } else {
-                this.updateExpAndredrawGraph(true, componentType, expSource, expType, expSample);
+                // load expression data from another source here
               }
-            } else if (this.nodeDisplayParams.geneExpType !== expType) {
-              this.nodeDisplayParams.geneExpType = expType;
-              if (!this.expSourceLoaded.componentType.expSource.expType) {
-                // sources that load only one specific exp type
-                this.updateExpAndredrawGraph(true, componentType, expSource, expType, expSample);
-              }
-            } else if (this.nodeDisplayParams.geneExpSample !== expSample) {
-              this.updateExpAndredrawGraph(true, componentType, expSource, expType, expSample);
+            } else {
+              this.redrawGraph();
             }
-            this.nodeDisplayParams.geneExpSample = expSample;
-          } else {
-            // disable expression lvl for gene
-            this.nodeDisplayParams.geneExpSource = false;
-            this.nodeDisplayParams.geneExpType = false;
-            this.nodeDisplayParams.geneExpSample = false;
-            this.updateExpAndredrawGraph(true, componentType, expSource, expType, expSample);
+          } else if (this.nodeDisplayParams.geneExpType !== expType) {
+            this.nodeDisplayParams.geneExpType = expType;
+            if (!this.overlay.expSource.expType) {
+              // sources that load only one specific exp type
+              this.redrawGraph();
+            }
+          } else if (this.nodeDisplayParams.geneExpSample !== expSample) {
+            this.redrawGraph();
           }
-        } else if (this.toggleMetaboliteExpLevel) {
-          // load data for metabolite
+          this.nodeDisplayParams.geneExpSample = expSample;
         } else {
-          // disable lvl for metabolite
-          this.nodeDisplayParams.metaboliteExpSource = false;
-          this.nodeDisplayParams.metaboliteExpType = false;
-          this.nodeDisplayParams.metaboliteExpSample = false;
+          // disable expression lvl for gene
+          this.nodeDisplayParams.geneExpSource = false;
+          this.nodeDisplayParams.geneExpType = false;
+          this.nodeDisplayParams.geneExpSample = false;
+          this.redrawGraph();
         }
       }, 0);
     },
@@ -960,11 +911,11 @@ export default {
       );
     },
     resetGeneExpression() {
-      this.toggleGeneExpLevel = false;
+      this.selectedSample = '';
       this.nodeDisplayParams.geneExpSource = false;
       this.nodeDisplayParams.geneExpType = false;
       this.nodeDisplayParams.geneExpSample = false;
-      this.expSourceLoaded.gene = {};
+      this.overlay = {};
     },
     async getHPAexpression(rawElms) {
       this.loadingHPA = true;
@@ -974,6 +925,11 @@ export default {
       try {
         const payload = { model: this.model.database_name, geneIds };
         await this.$store.dispatch('humanProteinAtlas/getMatLevels', payload);
+
+        if (this.matLevels.length === 0) {
+          this.disableExpLvlMessage = 'Unavailable, no genes on the graph';
+          return;
+        }
 
         for (let i = 0; i < this.matLevels.length; i += 1) {
           const array = this.matLevels[i];
@@ -1000,23 +956,16 @@ export default {
             this.rawElms[enzID].expressionLvl.HPA.RNA[tissue] = getSingleRNAExpressionColor(level);
           }
         }
-        this.expSourceLoaded.gene.HPA = {};
-        this.expSourceLoaded.gene.HPA.RNA = true;
-        this.disableExpLvl = false;
+        this.overlay.HPA = {};
+        this.overlay.HPA.RNA = true;
+        this.disableExpLvlMessage = '';
         this.loadingHPA = false;
         setTimeout(() => {
-        // if ((expSource && expType) && !expSample) {
-          // fix option selection! because of optgroup?
-          // if (this.toggleGeneExpLevel) {
-          this.fixEnzSelectOption();
-          // }
-          //  }
-          this.redrawGraph(true);
+          this.redrawGraph();
         }, 0);
       } catch {
         this.loadingHPA = false;
-        this.toggleGeneExpLevel = false;
-        this.disableExpLvl = true;
+        this.disableExpLvlMessage = 'Sorry, currently unavailable';
         this.nodeDisplayParams.geneExpSource = false;
         this.nodeDisplayParams.geneExpType = false;
         this.nodeDisplayParams.geneExpSample = false;

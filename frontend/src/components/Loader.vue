@@ -1,5 +1,5 @@
 <template>
-  <div class="container is-fullhd is-centered">
+  <div class="container is-fullhd is-centered has-text-centered">
     <a class="button is-primary is-inverted is-outlined is-large is-loading"></a>
     <p class="is-size-5">{{ message }}</p>
   </div>
