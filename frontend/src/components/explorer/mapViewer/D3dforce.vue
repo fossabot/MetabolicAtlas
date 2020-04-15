@@ -117,6 +117,9 @@ export default {
   async mounted() {
     await this.init();
   },
+  beforeDestroy() {
+    this.$emit('destroy3Dnetwork');
+  },
   methods: {
     async init() {
       this.$refs.mapsearch.reset();
