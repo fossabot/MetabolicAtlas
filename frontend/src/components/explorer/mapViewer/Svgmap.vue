@@ -425,7 +425,6 @@ export default {
         if (this.searchedNodesOnMap.length !== 0) {
           this.searchedElemsHL = this.highlight(this.searchedNodesOnMap, 'schhl');
           this.centerElementOnSVG(this.searchedNodesOnMap[0]);
-          this.selectElement(this.searchedNodesOnMap[0]);
         }
       }
     },
