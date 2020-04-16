@@ -417,11 +417,9 @@ export default {
 </script>
 
 <style lang="scss">
-
 #graph3D {
  height: 100%;
  width: 100%;
  overflow: hidden;
 }
-
 </style>

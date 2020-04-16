@@ -117,7 +117,7 @@
                     <span v-html="reformatEqSign(props.formattedRow[props.column.field], false)"></span>
                   </template>
                   <template v-else-if="props.column.field === 'formula'">
-                    <span v-html="formulaFormater(props.row[props.column.field], props.row.charge)"></span>
+                    <span v-html="chemicalFormula(props.row[props.column.field], props.row.charge)"></span>
                   </template>
                   <template v-else-if="['name', 'id'].includes(props.column.field)">
                     <router-link :to="{ name: 'browser', params: { model: props.row.model.id, type: header, id: props.row.id } }">
@@ -483,9 +483,6 @@ export default {
     $('#search').focus();
   },
   methods: {
-    formulaFormater(formula, charge) {
-      return chemicalFormula(formula, charge);
-    },
     fillFilterFields() {
       const filterTypeDropdown = {
         metabolite: {
@@ -708,7 +705,6 @@ export default {
 </script>
 
 <style lang="scss">
-
 #search-table {
   .tabs li.is-disabled {
     cursor: not-allowed;
@@ -725,5 +721,4 @@ export default {
   }
 
 }
-
 </style>

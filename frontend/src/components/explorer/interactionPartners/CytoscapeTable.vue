@@ -259,7 +259,6 @@ export default {
 </script>
 
 <style lang="scss">
-
 .cytoscape-table {
   #unmachingTableBody {
     opacity: 0.3;
@@ -274,5 +273,4 @@ export default {
     }
   }
 }
-
 </style>
