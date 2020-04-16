@@ -144,16 +144,6 @@ export default {
   },
   async created() {
     await this.getModelList();
-
-    EventBus.$on('showMapViewer', () => {
-      this.displayViewer();
-    });
-    EventBus.$on('showGemBrowser', () => {
-      this.displayBrowser();
-    });
-    EventBus.$on('showInteractionPartner', () => {
-      this.displayInterPartner();
-    });
   },
   methods: {
     setup() {
