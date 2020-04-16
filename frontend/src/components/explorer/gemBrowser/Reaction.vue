@@ -118,7 +118,7 @@ export default {
         { name: 'subsystem', display: 'Subsystem(s)' },
       ],
       errorMessage: '',
-      showLoaderMessage: 'Loading reaction data',
+      showLoaderMessage: '',
       mapsAvailable: {},
       componentNotFound: false,
     };
@@ -131,20 +131,29 @@ export default {
       relatedReactions: state => state.reactions.relatedReactions,
     }),
   },
-  async beforeMount() {
-    this.rId = this.$route.params.id;
-    try {
-      const payload = { model: this.model.database_name, id: this.rId };
-      await this.$store.dispatch('reactions/getReactionData', payload);
-      this.componentNotFound = false;
-      this.showLoaderMessage = '';
-      await this.getRelatedReactions();
-    } catch {
-      this.componentNotFound = true;
-      document.getElementById('search').focus();
-    }
+  watch: {
+    $route() {
+      this.setup();
+    },
+  },
+  beforeMount() {
+    this.setup();
   },
   methods: {
+    async setup() {
+      this.showLoaderMessage = 'Loading reaction data';
+      this.rId = this.$route.params.id;
+      try {
+        const payload = { model: this.model.database_name, id: this.rId };
+        await this.$store.dispatch('reactions/getReactionData', payload);
+        this.componentNotFound = false;
+        this.showLoaderMessage = '';
+        await this.getRelatedReactions();
+      } catch {
+        this.componentNotFound = true;
+        document.getElementById('search').focus();
+      }
+    },
     async getRelatedReactions() {
       try {
         const payload = { model: this.model.database_name, id: this.rId };
