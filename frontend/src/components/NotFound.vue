@@ -6,7 +6,7 @@
           <span class="is-capitalized">{{ type }}&nbsp;</span> "&nbsp;{{ componentId }}&nbsp;" &nbsp;not found
         </p>
         <template v-if="type === 'model'">
-          <p>Visit the Explore page to select one of our integrated models</p>
+          <p>Visit the Explore page to select one of the integrated models</p>
         </template>
         <template v-else>
           <p>
