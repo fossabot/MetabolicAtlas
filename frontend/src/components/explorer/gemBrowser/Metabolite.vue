@@ -29,7 +29,7 @@
                     {{ model.short_name }} ID
                   </td>
                   <td v-else class="td-key has-background-primary has-text-white-bis">
-                      {{ reformatTableKey(el.name) }}
+                    {{ reformatTableKey(el.name) }}
                   </td>
                   <td v-if="metabolite[el.name] !== null">
                     <span v-if="el.name === 'formula'" v-html="chemicalFormula(metabolite[el.name], metabolite.charge)">
@@ -65,7 +65,7 @@
           </div>
           <div class="column is-2-widescreen is-3-desktop is-full-tablet has-text-centered">
             <router-link class="button is-info is-fullwidth is-outlined"
-                        :to="{ name: 'interPartner', params: { model: model.database_name, id: metaboliteId } }">
+                         :to="{ name: 'interPartner', params: { model: model.database_name, id: metaboliteId } }">
               <span class="icon"><i class="fa fa-connectdevelop fa-lg"></i></span>&nbsp;
               <span>{{ messages.interPartName }}</span>
             </router-link>
@@ -76,7 +76,7 @@
           </div>
         </div>
         <reaction-table :selected-elm-id="metaboliteId" :source-name="metaboliteId" :type="type"
-                  :related-met-count="relatedMetabolites.length" />
+                        :related-met-count="relatedMetabolites.length" />
       </template>
     </div>
   </div>

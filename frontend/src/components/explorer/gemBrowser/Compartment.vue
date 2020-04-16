@@ -13,7 +13,7 @@
       <div class="subsystem-table column is-10-widescreen is-9-desktop is-full-tablet">
         <div class="table-container">
           <table v-if="compartment && Object.keys(compartment).length != 0"
-                class="table main-table is-fullwidth">
+                 class="table main-table is-fullwidth">
             <tr>
               <td class="td-key has-background-primary has-text-white-bis">Name</td>
               <td> {{ compartment.name }}</td>

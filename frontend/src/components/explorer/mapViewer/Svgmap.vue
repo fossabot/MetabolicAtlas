@@ -126,6 +126,14 @@ export default {
       return true;
     },
   },
+  watch: {
+    async requestedMapName(newName, oldName) {
+      if (oldName && oldName.length > 0 && newName !== oldName) {
+        this.initialLoadWithParams = false;
+      }
+      await this.init();
+    },
+  },
   created() {
     EventBus.$off('apply2DHPARNAlevels');
 
@@ -134,14 +142,6 @@ export default {
     });
 
     this.updateURLCoord = debounce(this.updateURLCoord, 150);
-  },
-  watch: {
-    async requestedMapName(newName, oldName) {
-      if (oldName && oldName.length > 0 && newName !== oldName) {
-        this.initialLoadWithParams = false;
-      }
-      await this.init();
-    },
   },
   async mounted() {
     const self = this;

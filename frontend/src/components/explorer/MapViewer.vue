@@ -95,13 +95,15 @@
         </div>
         <div v-show="!showOverviewScreen" id="graphframe" class="column is-unselectable">
           <template v-if="showMapViewer">
-            <svgmap v-if="show2D" :maps-data="mapsData2D" @loadComplete="handleLoadComplete"
-                    :requestedMapType="requestedType" :requestedMapName="requestedName"
+            <svgmap v-if="show2D" :maps-data="mapsData2D"
+                    :requested-map-type="requestedType" :requested-map-name="requestedName"
+                    @loadComplete="handleLoadComplete"
                     @loading="showLoader=true" @startSelection="showSelectionLoader=true" @endSelection="endSelection"
                     @unSelect="unSelect" @updatePanelSelectionData="updatePanelSelectionData">
             </svgmap>
-            <d3dforce v-if="show3D" @loadComplete="handleLoadComplete"
-                      :requestedMapType="requestedType" :requestedMapName="requestedName"
+            <d3dforce v-if="show3D"
+                      :requested-map-type="requestedType" :requested-map-name="requestedName"
+                      @loadComplete="handleLoadComplete"
                       @loading="showLoader=true" @startSelection="showSelectionLoader=true"
                       @endSelection="endSelection" @unSelect="unSelect"
                       @updatePanelSelectionData="updatePanelSelectionData">

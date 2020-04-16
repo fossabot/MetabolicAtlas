@@ -708,7 +708,6 @@ export default {
 </script>
 
 <style lang="scss">
-
 #search-table {
   .tabs li.is-disabled {
     cursor: not-allowed;
@@ -725,5 +724,4 @@ export default {
   }
 
 }
-
 </style>
