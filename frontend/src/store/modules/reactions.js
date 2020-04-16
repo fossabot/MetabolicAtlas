@@ -11,9 +11,7 @@ const actions = {
   async getReactionData({ commit }, { model, id }) {
     const { reaction, pmids } = await reactionsApi.fetchReactionData(model, id);
     commit('setReaction', reaction);
-    if (pmids.length !== 0) {
-      commit('setReferenceList', pmids);
-    }
+    commit('setReferenceList', pmids);
   },
   async getRelatedReactionsForReaction({ commit }, { model, id }) {
     const reactions = await reactionsApi.fetchRelatedReactionsForReaction(model, id);

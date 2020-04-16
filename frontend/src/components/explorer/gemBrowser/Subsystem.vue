@@ -116,7 +116,7 @@ export default {
       displayedMetabolite: 40,
       displayedGene: 40,
       componentNotFound: false,
-      showLoaderMessage: 'Loading subsystem data',
+      showLoaderMessage: '',
     };
   },
   computed: {
@@ -163,19 +163,28 @@ export default {
       return l.join('');
     },
   },
-  async beforeMount() {
-    this.sName = this.$route.params.id;
-    try {
-      const payload = { model: this.model.database_name, id: this.sName };
-      this.$store.dispatch('subsystems/getSubsystemSummary', payload);
-      this.componentNotFound = false;
-      this.showLoaderMessage = '';
-    } catch {
-      this.componentNotFound = true;
-      document.getElementById('search').focus();
-    }
+  watch: {
+    $route() {
+      this.setup();
+    },
+  },
+  beforeMount() {
+    this.setup();
   },
   methods: {
+    async setup() {
+      this.showLoaderMessage = 'Loading subsystem data';
+      this.sName = this.$route.params.id;
+      try {
+        const payload = { model: this.model.database_name, id: this.sName };
+        await this.$store.dispatch('subsystems/getSubsystemSummary', payload);
+        this.componentNotFound = false;
+        this.showLoaderMessage = '';
+      } catch {
+        this.componentNotFound = true;
+        document.getElementById('search').focus();
+      }
+    },
     reformatKey(k) { return reformatTableKey(k); },
   },
 };

@@ -167,6 +167,11 @@ export default {
         compare(this.sortBy, this.sortPattern, this.sortOrder));
     },
   },
+  watch: {
+    sourceName() {
+      this.setup();
+    },
+  },
   async beforeMount() {
     this.setup();
   },
@@ -183,7 +188,7 @@ export default {
         await this.$store.dispatch(`reactions/getRelatedReactionsFor${this.type[0].toUpperCase()}${this.type.slice(1)}`, payload);
         this.showReactionLoader = false;
       } catch {
-        this.errorMessage = `Could not load reactions for ${this.type} ${this.selectedElmId}.`;
+        this.errorMessage = `Could not load reactions for ${this.type} ${this.sourceName}.`;
         this.showReactionLoader = false;
       }
     },

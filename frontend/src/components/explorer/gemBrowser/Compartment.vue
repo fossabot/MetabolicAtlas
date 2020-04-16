@@ -82,7 +82,7 @@ export default {
       showFullSubsystem: false,
       limitSubsystem: 30,
       componentNotFound: false,
-      showLoaderMessage: 'Loading compartment data',
+      showLoaderMessage: '',
     };
   },
   computed: {
@@ -108,17 +108,28 @@ export default {
       return l.join('');
     },
   },
-  async beforeMount() {
-    this.cName = this.$route.params.id;
-    try {
-      const payload = { model: this.model.database_name, id: this.cName };
-      await this.$store.dispatch('compartments/getCompartmentSummary', payload);
-      this.componentNotFound = false;
-      this.showLoaderMessage = '';
-    } catch {
-      this.componentNotFound = true;
-      document.getElementById('search').focus();
-    }
+  watch: {
+    $route() {
+      this.setup();
+    },
+  },
+  beforeMount() {
+    this.setup();
+  },
+  methods: {
+    async setup() {
+      this.showLoaderMessage = 'Loading compartment data';
+      this.cName = this.$route.params.id;
+      try {
+        const payload = { model: this.model.database_name, id: this.cName };
+        await this.$store.dispatch('compartments/getCompartmentSummary', payload);
+        this.componentNotFound = false;
+        this.showLoaderMessage = '';
+      } catch {
+        this.componentNotFound = true;
+        document.getElementById('search').focus();
+      }
+    },
   },
 };
 </script>
