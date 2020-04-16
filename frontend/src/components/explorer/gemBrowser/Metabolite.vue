@@ -122,7 +122,7 @@ export default {
       ],
       activePanel: 'table',
       componentNotFound: false,
-      showLoaderMessage: 'Loading metabolite data',
+      showLoaderMessage: '',
     };
   },
   computed: {
@@ -132,20 +132,29 @@ export default {
       relatedMetabolites: state => state.metabolites.relatedMetabolites,
     }),
   },
-  async beforeMount() {
-    this.metaboliteId = this.$route.params.id;
-    try {
-      const payload = { model: this.model.database_name, id: this.metaboliteId };
-      await this.$store.dispatch('metabolites/getMetaboliteData', payload);
-      this.componentNotFound = false;
-      this.showLoaderMessage = '';
-      await this.getRelatedMetabolites();
-    } catch {
-      this.componentNotFound = true;
-      document.getElementById('search').focus();
-    }
+  watch: {
+    $route() {
+      this.setup();
+    },
+  },
+  beforeMount() {
+    this.setup();
   },
   methods: {
+    async setup() {
+      this.showLoaderMessage = 'Loading metabolite data';
+      this.metaboliteId = this.$route.params.id;
+      try {
+        const payload = { model: this.model.database_name, id: this.metaboliteId };
+        await this.$store.dispatch('metabolites/getMetaboliteData', payload);
+        this.componentNotFound = false;
+        this.showLoaderMessage = '';
+        await this.getRelatedMetabolites();
+      } catch {
+        this.componentNotFound = true;
+        document.getElementById('search').focus();
+      }
+    },
     async getRelatedMetabolites() {
       try {
         const payload = { model: this.model.database_name, id: this.metaboliteId };
