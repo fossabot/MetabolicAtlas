@@ -595,57 +595,56 @@ export default {
 </script>
 
 <style lang="scss">
-  .met, .rea, .enz {
-    .shape, .lbl {
-      cursor: pointer;
-    }
-    &:hover {
-      .shape {
-        fill: salmon;
-      }
-      .lbl {
-        font-weight: 900;
-        text-shadow: 0 0 2px white;
-      }
-    }
+.met, .rea, .enz {
+  .shape, .lbl {
+    cursor: pointer;
   }
-
-  .svgbox {
-    position: relative;
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    height:100%;
-    &.fullscreen {
-      background: white;
-    }
-  }
-
-  svg .selhl {
-    display: inline;
+  &:hover {
     .shape {
-      fill: red;
-      display: inline;
+      fill: salmon;
+    }
+    .lbl {
+      font-weight: 900;
+      text-shadow: 0 0 2px white;
     }
   }
+}
 
-  svg .schhl {
+.svgbox {
+  position: relative;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height:100%;
+  &.fullscreen {
+    background: white;
+  }
+}
+
+svg .selhl {
+  display: inline;
+  .shape {
+    fill: red;
     display: inline;
-    .shape {
-      stroke: orange;
-      stroke-width: 5px;
-      display: inline;
-    }
   }
+}
 
-  #tooltip {
-    background: whitesmoke;
-    color: black;
-    border-radius: 3px;
-    border: 1px solid gray;
-    padding: 8px;
-    position: absolute;
-    display: none;
+svg .schhl {
+  display: inline;
+  .shape {
+    stroke: orange;
+    stroke-width: 5px;
+    display: inline;
   }
+}
 
+#tooltip {
+  background: whitesmoke;
+  color: black;
+  border-radius: 3px;
+  border: 1px solid gray;
+  padding: 8px;
+  position: absolute;
+  display: none;
+}
 </style>
