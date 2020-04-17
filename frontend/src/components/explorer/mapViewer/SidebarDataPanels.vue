@@ -11,7 +11,7 @@
       </header>
       <footer class="card-footer">
         <router-link class="is-paddingless is-info is-outlined card-footer-item has-text-centered"
-                     :to="{ name: 'browser', params: { model: model.database_name, type: mapType, id: mapsData.compartments[mapName] ? mapsData.compartments[mapName].id : mapsData.subsystems[mapName] ? mapsData.subsystems[mapName].id : '' } }">  <!-- eslint-disable-line max-len -->
+                     :to="{ name: 'browser', params: { model: model.database_name, type: mapType, id: getGemBrowserLinkId() } }">  <!-- eslint-disable-line max-len -->
           <span class="icon is-large"><i class="fa fa-table fa-lg"></i></span>
           <span>{{ messages.gemBrowserName }}</span>
         </router-link>
@@ -195,6 +195,12 @@ export default {
     }),
   },
   methods: {
+    getGemBrowserLinkId() {
+      if (this.mapType === 'compartment') {
+        return this.mapsData.compartments[this.mapName].compartment || this.mapsData.compartments[this.mapName].id;
+      }
+      return this.mapsData.subsystems[this.mapName].subsystem || this.mapsData.subsystems[this.mapName].id;
+    },
     selectionHasNoData() {
       if (!(this.selectionData.type
           in this.selectedElementDataKeys)) {

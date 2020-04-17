@@ -12,7 +12,7 @@
     </header>
     <footer class="card-footer has-text-centered">
       <router-link
-        v-if="showIPbutton && selectedElm.type !== 'reaction'"
+        v-if="showIpButton && selectedElm.type !== 'reaction'"
         class="card-footer-item is-paddingless"
         :to="{ name: 'interPartner', params: { model: model.database_name, id: selectedElm.real_id || selectedElm.id } }">  <!-- eslint-disable-line max-len -->
         <span class="icon is-large"><i class="fa fa-share-alt fa-lg"></i></span>
@@ -37,7 +37,7 @@ export default {
   name: 'Sidebar',
   props: {
     selectedElm: Object,
-    showIPbutton: Boolean,
+    showIpButton: Boolean,
   },
   data() {
     return {
@@ -52,5 +52,4 @@ export default {
 };
 </script>
 
-<style lang="scss">
-</style>
+<style lang="scss"></style>

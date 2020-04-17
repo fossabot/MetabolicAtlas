@@ -4,7 +4,7 @@
       <notFound :type="type" :component-id="geneId"></notFound>
     </div>
     <div v-else>
-      <div class="container columns">
+      <div class="container is-fullhd columns">
         <div class="column">
           <h3 class="title is-3">
             <span class="is-capitalized">{{ type }}</span> {{ gene.geneName }}
@@ -50,7 +50,7 @@
               <gem-contact :id="geneId" :type="type" />
             </div>
           </div>
-          <reaction-table :source-name="geneId" :type="type" :selected-elm-id="geneName" />
+          <reaction-table :source-name="geneName" :type="type" :selected-elm-id="geneName" />
         </div>
       </div>
     </div>
@@ -93,7 +93,7 @@ export default {
       ],
       limitReaction: 200,
       componentNotFound: false,
-      showLoaderMessage: 'Loading gene data',
+      showLoaderMessage: '',
     };
   },
   computed: {
@@ -105,20 +105,29 @@ export default {
       geneName: 'genes/geneName',
     }),
   },
-  async beforeMount() {
-    this.geneId = this.$route.params.id;
-    try {
-      const payload = { model: this.model.database_name, id: this.geneId };
-      await this.$store.dispatch('genes/getGeneData', payload);
-      this.componentNotFound = false;
-      this.showLoaderMessage = '';
-    } catch {
-      this.reactions = [];
-      this.componentNotFound = true;
-      document.getElementById('search').focus();
-    }
+  watch: {
+    $route() {
+      this.setup();
+    },
+  },
+  beforeMount() {
+    this.setup();
   },
   methods: {
+    async setup() {
+      this.showLoaderMessage = 'Loading gene data';
+      this.geneId = this.$route.params.id;
+      try {
+        const payload = { model: this.model.database_name, id: this.geneId };
+        await this.$store.dispatch('genes/getGeneData', payload);
+        this.componentNotFound = false;
+        this.showLoaderMessage = '';
+      } catch {
+        this.reactions = [];
+        this.componentNotFound = true;
+        document.getElementById('search').focus();
+      }
+    },
     reformatTableKey(k) { return reformatTableKey(k); },
   },
 };

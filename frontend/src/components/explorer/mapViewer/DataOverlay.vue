@@ -324,7 +324,6 @@ export default {
 </script>
 
 <style lang="scss">
-
 #dataOverlayPanel {
   z-index: 13;
   .select {
@@ -353,5 +352,4 @@ export default {
   }
   margin-bottom: 1rem;
 }
-
 </style>

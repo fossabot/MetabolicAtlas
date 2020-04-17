@@ -1,6 +1,6 @@
 <template>
   <div class="extended-section">
-    <section class="hero video container" style="max-width:100%; width:100%;">
+    <section class="hero video container is-fullhd" style="max-width:100%; width:100%;">
       <div class="hero-video is-transparent is-block-mobile">
         <video poster="@/assets/banner_video.jpg"
                playsinline autoplay
@@ -9,7 +9,7 @@
         </video>
       </div>
       <div class="hero-body">
-        <div class="container has-text-centered">
+        <div class="container is-fullhd has-text-centered">
           <p class="is-size-2 title has-text-primary">METABOLIC ATLAS</p>
           <h3 class="is-size-3 has-text-gray">
             THE ATLAS FOR EXPLORATION OF METABOLISM
@@ -18,7 +18,7 @@
       </div>
     </section>
     <section class="section">
-      <div id="home" class="container">
+      <div id="home" class="container is-fullhd">
         <div class="columns is-hidden-touch">
           <div class="column">
             <div class="card">
@@ -157,7 +157,7 @@ export default {
           text: 'For easy visualization, <b>Metabolic Atlas</b> handles both 2D and 3D maps. For each of the integrated models, the website automatically generates 3D graphs at both compartment and subsystem level.<br><br>Both compartment and subsystem 2D maps of the Human-GEM have been created by the contributors to Human-GEM and are manually curated. On these maps, one can search for reactions, metabolites or genes. Moreover, RNA expression data from Human Protein Atlas can be overlaid.<br><br>By clicking on an element on the map, more information of that element will be shown on the left sidebar. From there, one can navigate back to the <b>GEM Browser</b> for detailed information.',
           img: require('../assets/mapViewer.jpg'),
           cardLink: 'Explore the Golgi apparatus with the Map Viewer',
-          route: { name: 'viewerRoot', params: { model: 'human1' } },
+          route: { name: 'viewer', params: { model: 'human1', type: 'compartment', map_id: 'golgi_apparatus' }, query: { dim: '2d' } },
           icon: 'map-o' },
         { title: messages.interPartName,
           text: `The <b>Interaction Partners</b> graph shows connectivity between metabolites and genes based on their associated reactions.<br><br>The graph is dynamically generated and is customizable. One can interact with a restricted part of the metabolic network, or further expand the interaction partners of any element already on the graph. Moreover, RNA expression data from the Human Protein Atlas can be overlaid onto the graph. <br><br>This feature is available only for metabolites and genes, and is accessible via the <b>${messages.gemBrowserName}</b>.`,
@@ -186,7 +186,7 @@ export default {
           text: '<b>Metabolic Atlas</b> provides open access to the models and associated annotations. Most of the data provided on the website is convenient to export, for example via <b>Export to TSV</b> buttons.<br><br>For the ones interested in extracting data in JSON format, we have documented our API. When using images or files obtained from our website, use the following reference:<br><br><a href="https://doi.org/10.1126/scisignal.aaz1482" target="_blank">Robinson, J., et al, 2020. <i>An atlas of human metabolism</i>. Sci. Signal. 13, eaaz1482 </a>',
           img: require('../assets/export.jpg'),
           cardLink: 'Export TSV for glyoxolate metabolites',
-          routeName: '',
+          route: { name: 'search', query: { term: 'glyoxalate' } },
           icon: 'download' },
         { title: 'Resources',
           text: 'Working with metabolic models requires a set of tools and external databases, which we have collected together for one-click access.<br><br>Additionally, Metabolic Atlas is open to further integrations.',

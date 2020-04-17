@@ -13,7 +13,7 @@
       <div class="subsystem-table column is-10-widescreen is-9-desktop is-full-tablet">
         <div class="table-container">
           <table v-if="compartment && Object.keys(compartment).length != 0"
-                class="table main-table is-fullwidth">
+                 class="table main-table is-fullwidth">
             <tr>
               <td class="td-key has-background-primary has-text-white-bis">Name</td>
               <td> {{ compartment.name }}</td>
@@ -82,7 +82,7 @@ export default {
       showFullSubsystem: false,
       limitSubsystem: 30,
       componentNotFound: false,
-      showLoaderMessage: 'Loading compartment data',
+      showLoaderMessage: '',
     };
   },
   computed: {
@@ -101,24 +101,35 @@ export default {
         if (!this.showFullSubsystem && i === this.limitSubsystem) {
           break;
         }
-        const customLink = buildCustomLink({ model: this.model.database_name, type: 'subsystem', id: s.id, title: s.name, cssClass: 'is-size-6' });
+        const customLink = buildCustomLink({ model: this.model.database_name, type: 'subsystem', id: s.id, title: s.name });
         l.push(`<span id="${s.id}" class="tag sub">${customLink}</span>`);
       }
       l.push('</span>');
       return l.join('');
     },
   },
-  async beforeMount() {
-    this.cName = this.$route.params.id;
-    try {
-      const payload = { model: this.model.database_name, id: this.cName };
-      await this.$store.dispatch('compartments/getCompartmentSummary', payload);
-      this.componentNotFound = false;
-      this.showLoaderMessage = '';
-    } catch {
-      this.componentNotFound = true;
-      document.getElementById('search').focus();
-    }
+  watch: {
+    $route() {
+      this.setup();
+    },
+  },
+  beforeMount() {
+    this.setup();
+  },
+  methods: {
+    async setup() {
+      this.showLoaderMessage = 'Loading compartment data';
+      this.cName = this.$route.params.id;
+      try {
+        const payload = { model: this.model.database_name, id: this.cName };
+        await this.$store.dispatch('compartments/getCompartmentSummary', payload);
+        this.componentNotFound = false;
+        this.showLoaderMessage = '';
+      } catch {
+        this.componentNotFound = true;
+        document.getElementById('search').focus();
+      }
+    },
   },
 };
 </script>

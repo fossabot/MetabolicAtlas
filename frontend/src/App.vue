@@ -2,7 +2,7 @@
   <div id="app">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
     <nav id="navbar" class="navbar has-background-primary-lighter" role="navigation" aria-label="main navigation">
-      <div class="container">
+      <div class="container is-fullhd">
         <div class="navbar-brand">
           <router-link class="navbar-item" :to="{ name: 'home' }" active-class="" @click.native="isMobileMenu = false">
             <img :src="require('./assets/logo.png')" />
@@ -17,7 +17,7 @@
           <div v-show="model" class="navbar-start has-text-centered"
                title="Click to toggle between the GEM Browser and the Map Viewer">
             <router-link v-if="activeViewerBut || activeBrowserBut" :to="{ name: 'explorerRoot' }"
-                         class="navbar-item is-size-3 has-text-primary has-text-weight-bold is-unselectable"
+                         class="navbar-item is-size-4 has-text-primary has-text-weight-bold is-unselectable"
                          title="Current selected model, click to change your selection" exact>
               {{ model ? model.short_name : '' }}
             </router-link>
@@ -241,6 +241,19 @@ export default {
 @import '~bulma';
 @import '~bulma-timeline';
 
+
+html {
+  @include mobile {
+    font-size: 13px;
+  }
+  @include tablet {
+    font-size: 14px;
+  }
+  @include desktop {
+    font-size: 16px; // Bulma default
+  }
+}
+
 .extended-section {
   flex: 1;
 }
@@ -320,6 +333,10 @@ m, .clickable {
     a {
       font-weight: 400;
     }
+    margin-left: 0.5rem;
+  }
+  .navbar-menu {
+    margin-right: 0.5rem;
   }
   .navbar-burger{
     height: 4rem;
@@ -355,6 +372,10 @@ m, .clickable {
 .metabolite-table, .model-table, .reaction-table, .subsystem-table {
   .main-table tr td.td-key, #ed-table tr td.td-key {
     width: 150px;
+  }
+  font-size: 0.93em;
+  .tag {
+    font-size: 0.93em;
   }
 }
 

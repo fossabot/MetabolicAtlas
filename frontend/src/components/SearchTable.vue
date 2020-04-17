@@ -1,6 +1,6 @@
 <template>
   <section class="extended-section">
-    <div id="search-table" class="container">
+    <div id="search-table" class="container is-fullhd">
       <div class="columns">
         <div class="column has-text-centered content">
           <br>
@@ -12,10 +12,10 @@
       </div>
       <div class="columns is-centered">
         <div class="column is-three-fifths-desktop is-three-quarters-tablet is-fullwidth-mobile control">
-          <div id="input-wrapper is-size-3">
+          <div>
             <p class="control has-icons-right has-icons-left">
               <input id="search" v-model="searchTerm" data-hj-whitelist
-                     class="input is-medium" type="text"
+                     class="input" type="text"
                      placeholder="uracil, SULT1A3, ATP => cAMP + PPi, Acyl-CoA hydrolysis"
                      @keyup.enter="updateSearch()">
               <span v-show="showSearchCharAlert" class="has-text-info icon is-right" style="width: 220px">
@@ -30,7 +30,7 @@
       </div>
       <!-- eslint-disable-next-line max-len -->
       <div v-if="notFoundSuggestions.length !== 0 && searchResultsEmpty" class="columns is-centered">
-        <div class="column is-three-fifths-desktop is-three-quarters-tablet is-fullwidth-mobile control is-size-5">
+        <div class="column is-three-fifths-desktop is-three-quarters-tablet is-fullwidth-mobile control">
           Do you mean:&nbsp;
           <template v-for="v in notFoundSuggestions">
             <router-link :key="v" :to="{ name: 'search', query: { term: v }}">
@@ -60,7 +60,7 @@
           <div class="columns is-centered">
             <div v-if="searchResultsEmpty"
                  class="column is-three-fifths-desktop is-three-quarters-tablet is-fullwidth-mobile">
-              <div v-if="searchedTerm" class="has-text-centered notification is-size-5">
+              <div v-if="searchedTerm" class="has-text-centered notification">
                 {{ messages.searchNoResult }} for <b><i>{{ searchedTerm }}</i></b><br>
                 If this is an alias or external identifier, it means it is not present in any of the models.
               </div>
@@ -117,7 +117,7 @@
                     <span v-html="reformatEqSign(props.formattedRow[props.column.field], false)"></span>
                   </template>
                   <template v-else-if="props.column.field === 'formula'">
-                    <span v-html="formulaFormater(props.row[props.column.field], props.row.charge)"></span>
+                    <span v-html="chemicalFormula(props.row[props.column.field], props.row.charge)"></span>
                   </template>
                   <template v-else-if="['name', 'id'].includes(props.column.field)">
                     <router-link :to="{ name: 'browser', params: { model: props.row.model.id, type: header, id: props.row.id } }">
@@ -483,9 +483,6 @@ export default {
     $('#search').focus();
   },
   methods: {
-    formulaFormater(formula, charge) {
-      return chemicalFormula(formula, charge);
-    },
     fillFilterFields() {
       const filterTypeDropdown = {
         metabolite: {
@@ -708,7 +705,6 @@ export default {
 </script>
 
 <style lang="scss">
-
 #search-table {
   .tabs li.is-disabled {
     cursor: not-allowed;
@@ -725,5 +721,4 @@ export default {
   }
 
 }
-
 </style>
