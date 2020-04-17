@@ -346,7 +346,7 @@ export default {
       }
 
       if (!this.checkValidRequest(this.currentDisplayedType, this.currentDisplayedName)) {
-        this.showMessage(`Invalid map ID "${this.currentDisplayedName}"`, 'info');
+        this.showMessage(`Invalid map ID "${this.currentDisplayedName}"`, 'danger');
         return;
       }
 
