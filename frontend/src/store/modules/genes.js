@@ -14,6 +14,13 @@ const actions = {
 
     const gene = await getGene({ id, version: '1' });
     commit('setGene', gene);
+    commit('maps/setAvailableMaps', {
+      '2d': {
+        compartment: gene.compartmentSVGs,
+        subsystem: gene.subsystemSVGs,
+      },
+      '3d': { compartment: [], subsystem: [] },
+    }, { root: true });
   },
 };
 

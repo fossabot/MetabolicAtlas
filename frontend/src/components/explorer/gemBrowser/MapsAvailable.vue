@@ -18,11 +18,11 @@
                 <li :key="map[0]">
                   <!-- eslint-disable-next-line max-len -->
                   <router-link v-if="viewerSelectedID" :to="{ name: 'viewer', params: { model: model.database_name, type: mapType, map_id: map[0], reload: true }, query: { dim: mapKey, search: viewerSelectedID, sel: viewerSelectedID } }">
-                    {{ map[1] }}
+                    {{ map.name }}
                   </router-link>
                   <!-- eslint-disable-next-line max-len -->
                   <router-link v-else :to="{ name: 'viewer', params: { model: model.database_name, type: mapType, map_id: map[0]}, query: { dim: mapKey } }">
-                    {{ map[1] }}
+                    {{ map.name }}
                   </router-link>
                 </li>
               </template>
@@ -83,14 +83,6 @@ export default {
       });
       return limited;
     },
-  },
-  async beforeMount() {
-    try {
-      const payload = { model: this.model.database_name, mapType: this.type, id: this.id };
-      await this.$store.dispatch('maps/getAvailableMaps', payload);
-    } catch {
-      // TODO: handle exception
-    }
   },
 };
 </script>

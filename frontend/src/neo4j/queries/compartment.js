@@ -16,7 +16,7 @@ RETURN cs {
   reactions: COLLECT(DISTINCT(rs {id: r.id, .*})),
   metabolites: COLLECT(DISTINCT(ms {id: m.id, .*})),
   genes: COLLECT(DISTINCT(gs {id: g.id, .*})),
-  compartmentSVGs: COLLECT(DISTINCT(csvg {compartnmentName: cs.name, .*}))
+  compartmentSVGs: COLLECT(DISTINCT(csvg {name: cs.name, .*}))
 } AS compartment
 `;
   return querySingleResult(statement);

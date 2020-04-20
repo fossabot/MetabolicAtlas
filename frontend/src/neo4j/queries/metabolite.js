@@ -17,8 +17,8 @@ RETURN ms {
   compartments: COLLECT(DISTINCT(cs {id: c.id, .*})),
   subsystems: COLLECT(DISTINCT(ss {id: s.id, .*})),
   externalDbs: COLLECT(DISTINCT(e {.*})),
-  compartmentSVGs: COLLECT(DISTINCT(csvg {compartnmentName: cs.name, .*})),
-  subsystemSVGs: COLLECT(DISTINCT(ssvg {subsystemName: ss.name, .*}))
+  compartmentSVGs: COLLECT(DISTINCT(csvg {name: cs.name, .*})),
+  subsystemSVGs: COLLECT(DISTINCT(ssvg {name: ss.name, .*}))
 } AS metabolite
 `;
   const metabolite = await querySingleResult(statement);

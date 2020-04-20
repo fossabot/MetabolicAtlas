@@ -16,7 +16,7 @@ const actions = {
   async getReactionData({ commit }, { model, id }) {
     console.warn(`TODO: use real model: ${model} and id: ${id}`);
 
-    const { pubmedIds, ...reaction } = await getReaction({ id: 'meiup', version: '1' });
+    const { pubmedIds, ...reaction } = await getReaction({ id, version: '1' });
 
     commit('setReaction', {
       ...reaction,
@@ -24,6 +24,14 @@ const actions = {
       reactionreactant_set: reaction.metabolites.filter(m => m.outgoing),
       reactionproduct_set: reaction.metabolites.filter(m => !m.outgoing),
     });
+
+    commit('maps/setAvailableMaps', {
+      '2d': {
+        compartment: reaction.compartmentSVGs,
+        subsystem: reaction.subsystemSVGs,
+      },
+      '3d': { compartment: [], subsystem: [] },
+    }, { root: true });
 
     const pmids = pubmedIds.map(pm => pm.pubmedId);
     if (pmids.length !== 0) {

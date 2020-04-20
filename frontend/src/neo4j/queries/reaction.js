@@ -23,8 +23,8 @@ RETURN rs {
   externalDbs: COLLECT(DISTINCT(e {.*})),
   pubmedIds: COLLECT(DISTINCT(p {.*})),
   metabolites: COLLECT(DISTINCT(ms {id: m.id, stoichiometry: metaboliteEdge.stoichiometry, outgoing: startnode(metaboliteEdge)=m, .*})),
-  compartmentSVGs: COLLECT(DISTINCT(csvg {compartnmentName: cs.name, .*})),
-  subsystemSVGs: COLLECT(DISTINCT(ssvg {subsystemName: ss.name, .*}))
+  compartmentSVGs: COLLECT(DISTINCT(csvg {name: cs.name, .*})),
+  subsystemSVGs: COLLECT(DISTINCT(ssvg {name: ss.name, .*}))
 } AS reaction
 `;
 

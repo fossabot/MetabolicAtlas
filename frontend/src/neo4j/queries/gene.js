@@ -12,6 +12,8 @@ MATCH (r)-[:V${v}]-(rs:ReactionState)
 MATCH (m)-[:V${v}]-(ms:MetaboliteState)
 OPTIONAL MATCH (r)-[:V${v}]-(s:Subsystem)-[:V${v}]-(ss:SubsystemState)
 OPTIONAL MATCH (g)-[:V${v}]-(e:ExternalDb)
+OPTIONAL MATCH (c)-[:V${v}]-(csvg:SvgMap)
+OPTIONAL MATCH (s)-[:V${v}]-(ssvg:SvgMap)
 RETURN gs {
   id: g.id,
   .*,
@@ -19,7 +21,9 @@ RETURN gs {
   subsystems: COLLECT(DISTINCT(ss {id: s.id, .*})),
   externalDbs: COLLECT(DISTINCT(e {.*})),
   reactions: COLLECT(DISTINCT(rs {id: r.id, compartmentId: c.id, subsystemId: s.id, .*})),
-  metabolites: COLLECT(DISTINCT(ms {id: m.id, outgoing: startnode(metaboliteEdge)=m, .*}))
+  metabolites: COLLECT(DISTINCT(ms {id: m.id, outgoing: startnode(metaboliteEdge)=m, .*})),
+  compartmentSVGs: COLLECT(DISTINCT(csvg {name: cs.name, .*})),
+  subsystemSVGs: COLLECT(DISTINCT(ssvg {name: ss.name, .*}))
 } AS gene
 `;
 
