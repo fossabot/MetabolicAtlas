@@ -1,3 +1,4 @@
+import { getMetabolite } from '@/neo4j';
 import metabolitesApi from '@/api/metabolites';
 
 const data = {
@@ -7,7 +8,9 @@ const data = {
 
 const actions = {
   async getMetaboliteData({ commit }, { model, id }) {
-    const metabolite = await metabolitesApi.fetchMetaboliteData(model, id);
+    console.warn(`TODO: use model: ${model}`);
+
+    const metabolite = await getMetabolite({ id, version: '1' });
     commit('setMetabolite', metabolite);
   },
   async getRelatedMetabolites({ commit }, { model, id }) {

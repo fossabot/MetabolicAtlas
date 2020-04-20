@@ -3,6 +3,7 @@ import {
   getReaction,
   getRelatedReactionsForReaction,
   getRelatedReactionsForGene,
+  getRelatedReactionsForMetabolite,
 } from '@/neo4j';
 
 const data = {
@@ -68,11 +69,22 @@ const actions = {
     );
     // commit('setRelatedReactionsLimit', limit);
   },
-  async getRelatedReactionsForMetabolite({ commit }, { model, id, allCompartments }) {
-    const { reactions, limit } = await reactionsApi.fetchRelatedReactionsForMetabolite(model, id, allCompartments);
+  async getRelatedReactionsForMetabolite({ commit }, { model, id }) {
+    console.warn(`TODO: use real model: ${model} and id: ${id}`);
 
-    commit('setRelatedReactions', reactions);
-    commit('setRelatedReactionsLimit', limit);
+    const reactions = await getRelatedReactionsForMetabolite({ id, version: '1' });
+
+    commit(
+      'setRelatedReactions',
+      reactions.map(r => ({
+        ...r,
+        compartment_str: r.compartments.map(c => c.name).join(', '),
+        subsystem_str: r.subsystems.map(s => s.name).join(', '),
+        reactionreactant_set: r.metabolites.filter(m => m.outgoing),
+        reactionproduct_set: r.metabolites.filter(m => !m.outgoing),
+      }))
+    );
+    // commit('setRelatedReactionsLimit', limit);
   },
   async getRelatedReactionsForSubsystem({ commit }, { model, id }) {
     const { reactions, limit } = await reactionsApi.fetchRelatedReactionsForSubsystem(model, id);

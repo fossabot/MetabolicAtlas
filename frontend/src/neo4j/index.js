@@ -1,5 +1,6 @@
 import getReaction from './queries/reaction';
 import getGene from './queries/gene';
+import getMetabolite from './queries/metabolite';
 import {
   getRelatedReactionsForReaction,
   getRelatedReactionsForGene,
@@ -11,6 +12,7 @@ import {
 export {
   getReaction,
   getGene,
+  getMetabolite,
   getRelatedReactionsForReaction,
   getRelatedReactionsForGene,
   getRelatedReactionsForMetabolite,
