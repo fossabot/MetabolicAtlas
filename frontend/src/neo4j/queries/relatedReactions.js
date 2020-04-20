@@ -54,7 +54,7 @@ MATCH (m)-[:V${v}]-(ms:MetaboliteState)`;
   }
 
   statement += `
-OPTIONAL MATCH (related)-[:V${v}]-(c:Compartment)-[:V${v}]-(cs:CompartmentState)
+OPTIONAL MATCH (m)-[:V${v}]-(c:Compartment)-[:V${v}]-(cs:CompartmentState)
 OPTIONAL MATCH (related)-[:V${v}]-(s:Subsystem)-[:V${v}]-(ss:SubsystemState)
 OPTIONAL MATCH (related)-[:V${v}]-(g:Gene)-[:V${v}]-(gs:GeneState)
 RETURN relatedS {
