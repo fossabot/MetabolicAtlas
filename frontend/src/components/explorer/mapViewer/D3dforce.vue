@@ -117,6 +117,9 @@ export default {
   async mounted() {
     await this.init();
   },
+  beforeDestroy() {
+    this.$emit('destroy3Dnetwork');
+  },
   methods: {
     async init() {
       this.$refs.mapsearch.reset();
@@ -271,6 +274,9 @@ export default {
         }
       }, 0);
     },
+    calculateCoordsChange(newCoords) {
+      return Object.keys(newCoords).reduce((total, k) => total + Math.abs(newCoords[k] - this.coords[k]), 0);
+    },
     updateURLCoord(ev) {
       if (this.disableControlsListener) {
         this.disableControlsListener = false;
@@ -279,8 +285,12 @@ export default {
       const pos = ev.target.object.position; // eslint-disable-line no-unused-vars
       const { lookAt } = this.graph.cameraPosition(); // eslint-disable-line no-unused-vars
       // FIXME invalid coor, lookAt seems correct but the camera rotation point is not
+
       const payload = { x: pos.x, y: pos.y, z: pos.z, lx: lookAt.x, ly: lookAt.y, lz: lookAt.z };
-      this.$store.dispatch('maps/setCoords', payload);
+      // avoid updating the coords if the change is too little, prevents consecutive updates
+      if (this.calculateCoordsChange(payload) > 0.1) {
+        this.$store.dispatch('maps/setCoords', payload);
+      }
     },
     downloadPNG() {
       window.requestAnimationFrame(() => {

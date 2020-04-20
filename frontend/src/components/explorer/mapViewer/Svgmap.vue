@@ -145,7 +145,7 @@ export default {
   },
   async mounted() {
     const self = this;
-    self.initialLoadWithParams = !self.$route.params.map_id;
+    self.initialLoadWithParams = !!self.$route.query.coords;
     ['.met', '.enz', '.rea', '.subsystem'].forEach((aClass) => {
       $('#svg-wrapper').on('click', aClass, async function f() {
         await self.selectElement($(this));
@@ -425,7 +425,6 @@ export default {
         if (this.searchedNodesOnMap.length !== 0) {
           this.searchedElemsHL = this.highlight(this.searchedNodesOnMap, 'schhl');
           this.centerElementOnSVG(this.searchedNodesOnMap[0]);
-          this.selectElement(this.searchedNodesOnMap[0]);
         }
       }
     },
@@ -535,6 +534,7 @@ export default {
 
       if (this.selectedItemHistory[id]) {
         selectionData.data = this.selectedItemHistory[id];
+        this.$store.dispatch('maps/setSelectedElementId', id);
         this.$emit('updatePanelSelectionData', selectionData);
         return;
       }

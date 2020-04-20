@@ -254,7 +254,7 @@ export default {
   },
   watch: {
     $route(to) {
-      if (to.name === 'viewer' && to.query.dim !== this.queryParams.dim) {
+      if (to.name === 'viewer' && to.query.dim && to.query.dim !== this.queryParams.dim) {
         this.$store.dispatch('maps/setShow2D', to.query.dim !== '3d');
       }
     },
@@ -263,7 +263,9 @@ export default {
     },
   },
   created() {
-    this.handleQueryParamsWatch = debounce(this.handleQueryParamsWatch, 300);
+    this.handleQueryParamsWatch = debounce(this.handleQueryParamsWatch, 100);
+    window.onpopstate = this.handleQueryParamsWatch();
+
 
     EventBus.$off('loadRNAComplete');
 
@@ -328,14 +330,20 @@ export default {
   },
   methods: {
     handleQueryParamsWatch(newQuery, oldQuery) {
-      if (!this.$route.params.map_id || JSON.stringify(newQuery) === JSON.stringify(oldQuery)) {
+      if (!this.$route.params.map_id) {
+        const payload = [{}, null, `${this.$route.path}?dim=${newQuery.dim}`];
+        history.replaceState(...payload); // eslint-disable-line no-restricted-globals
+        return;
+      }
+
+      if (JSON.stringify(newQuery) === JSON.stringify(oldQuery)) {
         return;
       }
 
       const queryString = Object.entries(newQuery).map(e => e.join('=')).join('&');
 
       const payload = [{}, null, `${this.$route.path}?${queryString}`];
-      if (newQuery.dim === this.$route.query.dim) {
+      if (newQuery.dim === this.$route.query.dim || (newQuery.dim && !this.$route.query.dim)) {
         history.replaceState(...payload); // eslint-disable-line no-restricted-globals
       } else {
         history.pushState(...payload); // eslint-disable-line no-restricted-globals
@@ -426,6 +434,11 @@ export default {
       return this.requestedName in this.mapsData3D.subsystems;
     },
     showMap(compartmentOrSubsystemID, type, dim) {
+      if (compartmentOrSubsystemID === this.currentDisplayedName && type === this.currentDisplayedType) {
+        this.hideDropleftMenus();
+        return;
+      }
+
       this.selectionData.data = null;
       this.hideDropleftMenus();
 

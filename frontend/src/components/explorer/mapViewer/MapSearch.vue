@@ -3,9 +3,10 @@
     <div class="control" :class="{ 'is-loading' : isSearching }">
       <input id="searchInput" data-hj-whitelist
              title="Exact search by id, name, alias. Press Enter for results" class="input"
-             type="text" :class="searchInputClass"
+             type="text" @input="e => handleChange(e.target.value)" :class="searchInputClass"
              :value="searchTerm"
              :disabled="!ready" placeholder="Exact search by id, name, alias"
+
              @keyup.enter="e => search(e.target.value)" />
     </div>
     <template v-if="searchTerm && matches && matches.length !== 0 && totalSearchMatch !== 0">
@@ -62,17 +63,6 @@ export default {
     }),
   },
   watch: {
-    searchTerm() {
-      if (!this.searchTerm) {
-        this.$emit('unHighlightAll', this.matches, 'schhl');
-        this.totalSearchMatch = 0;
-        this.currentSearchMatch = 0;
-        this.searchInputClass = 'is-info';
-        this.prevSearchTerm = null;
-        this.$store.dispatch('maps/clearSearchTerm');
-      }
-      this.haveSearched = false;
-    },
     matches() {
       if (!this.matches || this.matches.length === 0) {
         this.searchInputClass = this.haveSearched ? 'is-danger' : 'is-info';
@@ -88,6 +78,17 @@ export default {
     this.search = debounce(this.search, 300);
   },
   methods: {
+    handleChange(term) {
+      if (!term) {
+        this.$emit('unHighlightAll', this.matches, 'schhl');
+        this.totalSearchMatch = 0;
+        this.currentSearchMatch = 0;
+        this.searchInputClass = 'is-info';
+        this.prevSearchTerm = null;
+        this.$store.dispatch('maps/clearSearchTerm');
+      }
+      this.haveSearched = false;
+    },
     reset() {
       // reset
       this.prevSearchTerm = null;
@@ -96,6 +97,8 @@ export default {
       this.searchInputClass = 'is-info';
     },
     async search(term) {
+      this.$store.dispatch('maps/setIdsFound', []);
+
       if (!term) {
         this.searchInputClass = 'is-warning';
         return;
@@ -104,6 +107,7 @@ export default {
         this.centerViewOn(1);
         return;
       }
+
       // get the IDs from the backend, then search in the SVG
       this.isSearching = true;
       try {

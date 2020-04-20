@@ -82,7 +82,7 @@ const getters = {
     panel: +state.dataOverlayPanelVisible,
     sel: state.selectedElementId,
     search: state.searchTerm,
-    coords: Object.values(state.coords).join(','),
+    coords: Object.values(state.coords).map(c => Math.round((c + Number.EPSILON) * 100) / 100).join(','),
     g1: state.tissue1,
     g2: state.tissue2,
   }),
