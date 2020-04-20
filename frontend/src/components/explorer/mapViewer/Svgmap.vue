@@ -338,13 +338,13 @@ export default {
       if (!mapInfo) {
         this.mapType = null;
         this.mapName = null;
-        this.$emit('loadComplete', false, 'Invalid map ID', 'danger');
+        this.$emit('loadComplete', false, `Invalid map ID "${name}"`);
         return;
       }
 
       const newSvgName = mapInfo.filename;
       if (!newSvgName) {
-        this.$emit('loadComplete', false, messages.mapNotFound, 'danger');
+        this.$emit('loadComplete', false, messages.mapNotFound);
         return;
       }
 
@@ -370,7 +370,7 @@ export default {
               this.loadSvgPanZoom();
             }, 0);
           } catch {
-            this.$emit('loadComplete', false, messages.mapNotFound, 'danger');
+            this.$emit('loadComplete', false, messages.mapNotFound);
           }
         }
       } else {

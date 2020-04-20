@@ -173,7 +173,7 @@ export default {
           this.emptyNetwork = false;
         }, 0);
       } catch (error) {
-        this.$emit('loadComplete', false, error, 'danger');
+        this.$emit('loadComplete', false, error);
       }
     },
     async constructGraph() {
