@@ -1,5 +1,4 @@
-import postStatement from '../http';
-import handleSingleResponse from '../responseHandlers/single';
+import querySingleResult from '../queryHandlers/single';
 import reformatExternalDbs from '../shared/formatter';
 
 const getSubsystem = async ({ id, version }) => {
@@ -18,15 +17,14 @@ RETURN ss {
   .*,
   compartments: COLLECT(DISTINCT(cs {id: c.id, .*})),
   genes: COLLECT(DISTINCT(gs {id: g.id, .*})),
-  externalDbs: COLLECT(DISTINCT(e)),
+  externalDbs: COLLECT(DISTINCT(e {.*})),
   metabolites: COLLECT(DISTINCT(ms {id: m.id, .*})),
   compartmentSVGs: COLLECT(DISTINCT(csvg {compartnmentName: cs.name, .*})),
   subsystemSVGs: COLLECT(DISTINCT(ssvg {subsystemName: ss.name, .*}))
 } AS subsystem
 `;
-  const response = await postStatement(statement);
-  const subsystem = handleSingleResponse(response);
-  return { ...subsystem, externalDbs: reformatExternalDbs(subsystem.externalDbs) };
+  const result = await querySingleResult(statement);
+  return { ...result, externalDbs: reformatExternalDbs(result.externalDbs) };
 };
 
 

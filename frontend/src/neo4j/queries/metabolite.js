@@ -1,5 +1,4 @@
-import postStatement from '../http';
-import handleSingleResponse from '../responseHandlers/single';
+import querySingleResult from '../queryHandlers/single';
 import reformatExternalDbs from '../shared/formatter';
 
 const getMetabolite = async ({ id, version }) => {
@@ -17,13 +16,12 @@ RETURN ms {
   .*,
   compartments: COLLECT(DISTINCT(cs {id: c.id, .*})),
   subsystems: COLLECT(DISTINCT(ss {id: s.id, .*})),
-  externalDbs: COLLECT(DISTINCT(e)),
+  externalDbs: COLLECT(DISTINCT(e {.*})),
   compartmentSVGs: COLLECT(DISTINCT(csvg {compartnmentName: cs.name, .*})),
   subsystemSVGs: COLLECT(DISTINCT(ssvg {subsystemName: ss.name, .*}))
 } AS metabolite
 `;
-  const response = await postStatement(statement);
-  const metabolite = handleSingleResponse(response);
+  const metabolite = await querySingleResult(statement);
   return { ...metabolite, externalDbs: reformatExternalDbs(metabolite.externalDbs) };
 };
 

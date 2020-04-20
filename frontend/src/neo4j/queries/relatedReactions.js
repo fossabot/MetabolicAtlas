@@ -1,5 +1,4 @@
-import postStatement from '../http';
-import handleListResponse from '../responseHandlers/list';
+import queryListResult from '../queryHandlers/list';
 
 const NODE_TYPES = {
   reaction: 'Reaction',
@@ -67,9 +66,7 @@ RETURN relatedS {
 } as reactions
 `;
 
-  const response = await postStatement(statement);
-  const reactions = handleListResponse(response);
-  return reactions;
+  return queryListResult(statement);
 };
 
 const getRelatedReactionsForReaction = ({ id, version }) => getRelatedReactions({

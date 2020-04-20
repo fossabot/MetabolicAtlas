@@ -22,6 +22,7 @@
     "jquery": "3.3.1",
     "jquery-mousewheel": "3.1.13",
     "jquery.panzoom": "3.2.2",
+    "neo4j-driver": "^4.0.2",
     "vue": "^2.6.10",
     "vue-color": "2.0.9",
     "vue-cookie": "^1.1.4",

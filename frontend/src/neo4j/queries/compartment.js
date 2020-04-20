@@ -1,5 +1,4 @@
-import postStatement from '../http';
-import handleSingleResponse from '../responseHandlers/single';
+import querySingleResult from '../queryHandlers/single';
 
 const getCompartment = async ({ id, version }) => {
   const v = version;
@@ -20,9 +19,7 @@ RETURN cs {
   compartmentSVGs: COLLECT(DISTINCT(csvg {compartnmentName: cs.name, .*}))
 } AS compartment
 `;
-  const response = await postStatement(statement);
-  const compartment = handleSingleResponse(response);
-  return compartment;
+  return querySingleResult(statement);
 };
 
 

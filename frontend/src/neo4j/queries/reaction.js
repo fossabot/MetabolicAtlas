@@ -1,5 +1,4 @@
-import postStatement from '../http';
-import handleSingleResponse from '../responseHandlers/single';
+import querySingleResult from '../queryHandlers/single';
 import reformatExternalDbs from '../shared/formatter';
 
 const getReaction = async ({ id, version }) => {
@@ -21,15 +20,15 @@ RETURN rs {
   compartments: COLLECT(DISTINCT(cs {id: c.id, .*})),
   subsystems: COLLECT(DISTINCT(ss {id: s.id, .*})),
   genes: COLLECT(DISTINCT(gs {id: g.id, .*})),
-  externalDbs: COLLECT(DISTINCT(e)),
-  pubmedIds: COLLECT(DISTINCT(p)),
+  externalDbs: COLLECT(DISTINCT(e {.*})),
+  pubmedIds: COLLECT(DISTINCT(p {.*})),
   metabolites: COLLECT(DISTINCT(ms {id: m.id, stoichiometry: metaboliteEdge.stoichiometry, outgoing: startnode(metaboliteEdge)=m, .*})),
   compartmentSVGs: COLLECT(DISTINCT(csvg {compartnmentName: cs.name, .*})),
   subsystemSVGs: COLLECT(DISTINCT(ssvg {subsystemName: ss.name, .*}))
 } AS reaction
 `;
-  const response = await postStatement(statement);
-  const reaction = handleSingleResponse(response);
+
+  const reaction = await querySingleResult(statement);
   return { ...reaction, externalDbs: reformatExternalDbs(reaction.externalDbs) };
 };
 
