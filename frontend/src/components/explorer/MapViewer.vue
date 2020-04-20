@@ -130,7 +130,7 @@
             </span>
           </div>
           <transition name="slide-fade">
-            <article v-if="loadMapErrorMessage" id="errorPanel" :class="`message is-${loadMapErrorType}`">
+            <article v-if="loadMapErrorMessage" id="errorPanel" class="message is-danger">
               <div class="message-header">
                 <b>Oops!..</b>
               </div>
@@ -187,7 +187,6 @@ export default {
     return {
       errorMessage: '',
       loadMapErrorMessage: '',
-      loadMapErrorType: 'danger', // or 'info'
       showOverviewScreen: true,
       requestedType: '',
       requestedName: '',
@@ -264,7 +263,7 @@ export default {
 
     EventBus.$on('loadRNAComplete', (isSuccess, errorMessage) => {
       if (!isSuccess) {
-        this.showMessage(errorMessage, 'danger');
+        this.showMessage(errorMessage);
         EventBus.$emit('unselectFirstTissue');
         EventBus.$emit('unselectSecondTissue');
       } else {
@@ -278,7 +277,7 @@ export default {
   },
   beforeUpdate() {
     if (!this.checkValidRequest(this.$route.params.type, this.$route.params.map_id) && this.showMapViewer) {
-      this.handleLoadComplete(false, `Invalid map ID "${this.$route.params.map_id}"`, 'danger');
+      this.handleLoadComplete(false, `Invalid map ID "${this.$route.params.map_id}"`);
     } else {
       this.loadMapErrorMessage = '';
     }
@@ -346,16 +345,16 @@ export default {
       }
 
       if (!this.checkValidRequest(this.currentDisplayedType, this.currentDisplayedName)) {
-        this.showMessage(`Invalid map ID "${this.currentDisplayedName}"`, 'danger');
+        this.showMessage(`Invalid map ID "${this.currentDisplayedName}"`);
         return;
       }
 
       this.$store.dispatch('maps/toggleShow2D');
     },
-    handleLoadComplete(isSuccess, errorMessage, messageType) {
+    handleLoadComplete(isSuccess, errorMessage) {
       if (!isSuccess) {
         this.selectionData.data = null;
-        this.showMessage(errorMessage, messageType);
+        this.showMessage(errorMessage);
         this.currentDisplayedType = '';
         this.currentDisplayedName = '';
         return;
@@ -368,9 +367,8 @@ export default {
         EventBus.$emit('reloadGeneExpressionData');
       });
     },
-    showMessage(errorMessage, messageType) {
+    showMessage(errorMessage) {
       this.loadMapErrorMessage = errorMessage;
-      this.loadMapErrorType = messageType;
       if (!this.loadMapErrorMessage) {
         this.loadMapErrorMessage = messages.unknownError;
       }
