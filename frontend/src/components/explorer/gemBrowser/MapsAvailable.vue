@@ -64,23 +64,27 @@ export default {
       mapsAvailable: state => state.maps.availableMaps,
     }),
     mapAvailableLimited() {
+      /* eslint-disable vue/no-side-effects-in-computed-properties */
       // TODO: move this into vuex
       if (Object.keys(this.mapsAvailable).length === 0) {
-        return '';
+        return null;
       }
       const limited = JSON.parse(JSON.stringify(this.mapsAvailable)); // copy
       ['2d', '3d'].forEach((d) => {
-        let remainingEntries = this.mapLimitPerDim;
-        ['compartment', 'subsystem'].forEach((t) => {
-          if (limited[d][t].length > remainingEntries) {
-            this.limitedMapsDim[d] = true; // eslint-disable-line vue/no-side-effects-in-computed-properties
-            limited[d][t] = limited[d][t].slice(0, remainingEntries);
-          } else {
-            this.limitedMapsDim[d] = false; // eslint-disable-line vue/no-side-effects-in-computed-properties
+        this.limitedMapsDim[d] = false;
+        if (limited[d].compartment.length > this.mapLimitPerDim) {
+          this.limitedMapsDim[d] = true;
+          limited[d].compartment = limited[d].compartment.slice(0, this.mapLimitPerDim);
+          limited[d].subsystem = [];
+        } else {
+          const remainingEntries = this.mapLimitPerDim - limited[d].compartment.length;
+          if (limited[d].subsystem.length > remainingEntries) {
+            limited[d].subsystem = limited[d].subsystem.slice(0, remainingEntries);
+            this.limitedMapsDim[d] = true;
           }
-          remainingEntries -= limited[d][t].length;
-        });
+        }
       });
+      /* eslint-enable vue/no-side-effects-in-computed-properties */
       return limited;
     },
   },
