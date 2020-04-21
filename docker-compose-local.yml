@@ -57,7 +57,7 @@ services:
     build: ./api
     volumes:
       - ./api/src:/project/src
-    command: npm run start
+    command: npm run develop
     networks:
       - net-tier
 
