@@ -18,17 +18,17 @@ def insert_model_metadata(database, metadata, metadata_only=False, overwrite=Fal
 
     metadata_dict = metadata[1]
     # add missing keys if needed
-    if "condition" not in metadata_dict:
+    if "condition" not in metadata_dict or not metadata_dict["condition"]:
         metadata_dict["condition"] = "Generic metabolism"
-    if "organ_system" not in metadata_dict:
-        metadata_dict["organ_system"] = ""
-    if "tissue" not in metadata_dict:
-        metadata_dict["tissue"] = ""
-    if "cell_type" not in metadata_dict:
-        metadata_dict["cell_type"] = ""
-    if "cell_line" not in metadata_dict:
-        metadata_dict["cell_line"] = ""
-    if "reference" not in metadata_dict:
+    if "organ_system" not in metadata_dict or not metadata_dict["organ_system"]:
+        metadata_dict["organ_system"] = None
+    if "tissue" not in metadata_dict or not metadata_dict["tissue"]:
+        metadata_dict["tissue"] = None
+    if "cell_type" not in metadata_dict or not metadata_dict["cell_type"]:
+        metadata_dict["cell_type"] = None
+    if "cell_line" not in metadata_dict or not metadata_dict["cell_line"]:
+        metadata_dict["cell_line"] = None
+    if "reference" not in metadata_dict or not metadata_dict["reference"]:
         metadata_dict["reference"] = []
 
     if "version" not in metadata_dict or not metadata_dict["version"]:
