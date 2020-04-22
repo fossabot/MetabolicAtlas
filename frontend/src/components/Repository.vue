@@ -321,6 +321,7 @@ export default {
     showIntegratedModelData(model) {
       this.selectedModel = model;
       this.showModelId = model.short_name;
+      this.referenceList = model.ref;
     },
     async getModels() {
       this.showLoader = true;
