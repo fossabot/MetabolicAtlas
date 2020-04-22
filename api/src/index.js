@@ -1,8 +1,8 @@
-const express = require('express')
+import express from 'express'
+import router from './endpoints/index.js'
+
 const app = express()
- 
-app.get('/new_api/', function (req, res) {
-  res.send('Hello World')
-})
- 
+
+app.use('/new_api', router)
+
 app.listen(8081)
