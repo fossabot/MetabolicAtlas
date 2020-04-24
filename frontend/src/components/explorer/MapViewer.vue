@@ -30,7 +30,7 @@
                     </li>
                   </div>
                   <div v-else>
-                    <li v-for="cKey in Object.keys(mapsData2D.compartments).sort()" :key="cKey"
+                    <li v-for="cKey in sorted2DCompartmentsByMapName" :key="cKey"
                         class="clickable"
                         :class="{ 'disable' : !mapsData2D.compartments[cKey].sha,
                                   'has-text-warning': cKey === currentDisplayedName }"
@@ -57,7 +57,7 @@
                     </li>
                   </div>
                   <div v-else>
-                    <template v-for="sKey in Object.keys(mapsData2D.subsystems).sort()">
+                    <template v-for="sKey in sorted2DSubsystemsByMapName">
                       <template v-if="mapsData2D.subsystems[sKey].id && mapsData2D.subsystems[sKey].sha">
                         <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
                         <li class="clickable" :class="{'has-text-warning': sKey === currentDisplayedName }"
@@ -244,6 +244,14 @@ export default {
     },
     showMapViewer() {
       return this.$route.name === 'viewer';
+    },
+    sorted2DCompartmentsByMapName() {
+      return Object.keys(this.mapsData2D.compartments).sort(
+        (a, b) => this.mapsData2D.compartments[a].name.localeCompare(this.mapsData2D.compartments[b].name));
+    },
+    sorted2DSubsystemsByMapName() {
+      return Object.keys(this.mapsData2D.subsystems).sort(
+        (a, b) => this.mapsData2D.subsystems[a].name.localeCompare(this.mapsData2D.subsystems[b].name));
     },
   },
   watch: {
