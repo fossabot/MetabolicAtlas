@@ -477,7 +477,7 @@ export default {
     background: $primary;
     color: $white;
     position: relative;
-    font-size: 16px;
+    font-size: 15px;
     ul {
       list-style: none;
       &.vhs, &.l2 {
