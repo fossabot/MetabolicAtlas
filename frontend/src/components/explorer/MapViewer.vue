@@ -15,7 +15,9 @@
         is-one-quarter-tablet is-half-mobile has-background-lightgray">
           <div id="menu">
             <ul class="l0">
-              <li :title="`Select a ${dim.toUpperCase()} compartment network to show`">
+              <!-- eslint-disable-next-line max-len -->
+              <li :title="`Select a ${!has2DCompartmentMaps || show3D ? '3D' : dim.toUpperCase()} compartment network to show`">
+                <span class="tag dim">{{ !has2DCompartmentMaps || show3D ? '3D' : '2D' }}</span>
                 Compartments<span>&nbsp;&#9656;</span>
                 <ul class="vhs l1" title="">
                   <li class="has-background-grey-dark clickable" @click="showMap()"><i>Clear selection</i></li>
@@ -42,7 +44,9 @@
                   </div>
                 </ul>
               </li>
-              <li :title="`Select a ${dim.toUpperCase()} subsystem network to show`">
+              <!-- eslint-disable-next-line max-len -->
+              <li :title="`Select a ${!has2DSubsystemMaps || show3D ? '3D' : dim.toUpperCase()} subsystem network to show`">
+                <span class="tag dim">{{ !has2DSubsystemMaps || show3D ? '3D' : '2D' }}</span>
                 Subsystems<span>&nbsp;&#9656;</span>
                 <ul class="vhs l1" title="">
                   <li class="has-background-grey-dark clickable" @click="showMap()"><i>Clear selection</i></li>
@@ -502,8 +506,10 @@ export default {
         background: $primary-light;
       }
       span {
-        position: absolute;
-        right: 10px;
+        &:not(:first-child) {
+          position: absolute;
+          right: 10px;
+        }
       }
       &.disable {
         cursor: not-allowed;
