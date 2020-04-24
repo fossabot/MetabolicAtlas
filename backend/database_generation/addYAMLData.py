@@ -75,16 +75,13 @@ def insert_model_metadata(database, metadata, metadata_only=False, overwrite=Fal
 
     # get the reference from the db or create new reference
     ref_list = []
-    for ref_data in metadata_dict["reference"]:
+    for ref_data in [e for e in metadata_dict["reference"] if e['pmid']]: # consider only pmids
         try:
-            if ref_data['pmid']:
-                gr = GEModelReference.objects.get(pmid=ref_data['pmid'])
-            else:
-                gr = GEModelReference.objects.get(link=ref_data['url'])
+            gr = GEModelReference.objects.get(pmid=ref_data['pmid'])
         except GEModelReference.DoesNotExist:
-            gr = GEModelReference(title=ref_data['title'], link=ref_data['url'], pmid=ref_data['pmid'], year=ref_data['year'])
+            gr = GEModelReference(pmid=ref_data['pmid'])
             gr.save(using="gems")
-            print("New reference created, %s | %s | %s | %s " % (ref_data['title'], ref_data['url'], ref_data['pmid'], ref_data['year']))
+            print("New reference created, %s " % ref_data['pmid'])
         ref_list.append(gr)
 
     # insert the model
