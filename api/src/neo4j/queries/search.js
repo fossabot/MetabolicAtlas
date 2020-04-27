@@ -1,4 +1,4 @@
-import queryListResult from '../queryHandlers/list';
+import queryListResult from '../queryHandlers/list.js';
 
 const search = async ({ searchTerm, model, version }) => {
   const v = version ? `V${version}` : '';
