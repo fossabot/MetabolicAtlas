@@ -9,102 +9,27 @@ from django.db import models
 from api.models import *
 from django.db.models import Q
 
-import api.management.commands.getGithubModels as github_model_parser
-
 import re
 import collections
 
 def insert_model_metadata(database, metadata, metadata_only=False, overwrite=False, content_only=False):
-    # YAML metadata expected structure:
-    # - metadata:
-    #     id         : "Human-GEM"
-    #     short_name : "human"
-    #     full_name  : "Human metabolic model v1"
-    #     description: "1-3 lines description"
-    #     version    : "1.0.0"
-    #     author:
-    #       - first_name  : "fn"
-    #         last_name   : "ln"
-    #         email       : "email"
-    #         organization: "org"
-    #       - first_name  : "fn2"
-    #         last_name   : "ln2"
-    #         email       : "email2"
-    #         organization: "org2"
-    #     date         : "YYYY-MM-DD"
-    #     organism     : ""
-    #     organ_system : ""
-    #     tissue       : ""
-    #     cell_type    : ""
-    #     cell_line    : ""
-    #     condition    : "Generic metabolism"
-    #     reference         : (optional)
-    #       - title: ""
-    #         url: ""
-    #         pmid: ""
-    #         year: ""
-    #     link     : "https://github.com/SysBioChalmers/human-GEM"
-    #     gitter: https://gitter.im/SysBioChalmers/Human-GEM
-
-    # currently in the yaml
-    # - metaData:
-        # short_name  : "humanGEM"
-        # full_name   : "Generic genome-scale metabolic model of Homo sapiens"
-        # version     : "1.0.2"
-        # date        : "2019-04-19"
-        # authors     : "Jonathan Robinson, Hao Wang, Pierre-Etienne Cholley, Pınar Kocabaş"
-        # email       : "nielsenj@chalmers.se"
-        # organization: "Chalmers University of Technology"
-        # taxonomy    : "9606"
-        # github      : "https://github.com/SysBioChalmers/Human-GEM"
-        # description : "Human genome-scale metabolic models are important tools for the study of human health and diseases, by providing a scaffold upon which different types of data can be analyzed. This is the latest version of human-GEM, which is a genome-scale model of the generic human cell. The objective of human-GEM is to serve as a community model for enabling integrative and mechanistic studies of human metabolism."
-
     if content_only:
         return None
 
     metadata_dict = metadata[1]
-    # fix missing keys
-    if "condition" not in metadata_dict:
+    # add missing keys if needed
+    if "condition" not in metadata_dict or not metadata_dict["condition"]:
         metadata_dict["condition"] = "Generic metabolism"
-    if "organ_system" not in metadata_dict:
-        metadata_dict["organ_system"] = ""
-    if "tissue" not in metadata_dict:
-        metadata_dict["tissue"] = ""
-    if "cell_type" not in metadata_dict:
-        metadata_dict["cell_type"] = ""
-    if "cell_line" not in metadata_dict:
-        metadata_dict["cell_line"] = ""
-    if "pmid" not in metadata_dict:
-        metadata_dict["pmid"] = []
-
-    #fix metadata dict
-    if database == "human1":
-        metadata_dict["organism"] = "Homo sapiens"
+    if "organ_system" not in metadata_dict or not metadata_dict["organ_system"]:
         metadata_dict["organ_system"] = None
+    if "tissue" not in metadata_dict or not metadata_dict["tissue"]:
         metadata_dict["tissue"] = None
-        metadata_dict["cell_type"] = "Generic cell"
+    if "cell_type" not in metadata_dict or not metadata_dict["cell_type"]:
+        metadata_dict["cell_type"] = None
+    if "cell_line" not in metadata_dict or not metadata_dict["cell_line"]:
         metadata_dict["cell_line"] = None
-        metadata_dict["link"] = "https://github.com/SysBioChalmers/Human-GEM"
-        metadata_dict["pmid"] = []
-        metadata_dict["chat_link"]: "https://gitter.im/SysBioChalmers/Human-GEM"
-        metadata_dict["author"] = [
-            {
-                "first_name": "Jonathan",
-                "last_name": "Robinson",
-                "email": "jonrob@chalmers.se",
-                "organization": "",
-            },{
-                "first_name": "Hao",
-                "last_name": "Wang",
-                "email": "hao.wang@chalmers.se ",
-                "organization": "",
-            },{
-                "first_name": "Pınar",
-                "last_name": " Kocabaş",
-                "email": "kocabas@@chalmers.se ",
-                "organization": "",
-            },
-        ]
+    if "reference" not in metadata_dict or not metadata_dict["reference"]:
+        metadata_dict["reference"] = []
 
     if "version" not in metadata_dict or not metadata_dict["version"]:
         print("Error: missing version of the model")
@@ -157,21 +82,9 @@ def insert_model_metadata(database, metadata, metadata_only=False, overwrite=Fal
             else:
                 gr = GEModelReference.objects.get(link=ref_data['url'])
         except GEModelReference.DoesNotExist:
-            if ref_data['pmid']:
-                res = github_model_parser.check_PMID(ref_data['pmid'])
-                if res:
-                    DOI, PMID = res
-                    title, year = github_model_parser.get_info_from_pmid(PMID)
-                    gr = GEModelReference(title=title, link='https://www.ncbi.nlm.nih.gov/pubmed/%s' % PMID, pmid=PMID, year=year)
-                    gr.save(using="gems")
-                    print("New reference created, %s" % PMID)
-                else:
-                    print("Error: PMID '%s' is invalid" % ref_data['pmid'])
-                    exit(1)
-            else:
-                gr = GEModelReference(title=ref_data['title'], link=ref_data['url'], year=ref_data['year'])
-                gr.save(using="gems")
-                print("New reference created, %s | %s | %s " % (ref_data['title'], ref_data['url'], ref_data['year']))
+            gr = GEModelReference(title=ref_data['title'], link=ref_data['url'], pmid=ref_data['pmid'], year=ref_data['year'])
+            gr.save(using="gems")
+            print("New reference created, %s | %s | %s | %s " % (ref_data['title'], ref_data['url'], ref_data['pmid'], ref_data['year']))
         ref_list.append(gr)
 
     # insert the model

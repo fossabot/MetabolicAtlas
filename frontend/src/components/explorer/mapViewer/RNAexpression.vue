@@ -12,7 +12,7 @@
 </template>
 
 <script>
-import axios from 'axios';
+import { mapGetters, mapState } from 'vuex';
 import { default as EventBus } from '@/event-bus';
 import RNALegend from '@/components/explorer/mapViewer/RNALegend.vue';
 import { getSingleRNAExpressionColor, getComparisonRNAExpressionColor, multipleColors } from '@/expression-sources/hpa';
@@ -24,7 +24,6 @@ export default {
     RNALegend,
   },
   props: {
-    model: Object,
     mapType: String,
     mapName: String,
   },
@@ -37,7 +36,6 @@ export default {
       tissue2Source: '',
       dim: null,
 
-      HPATissues: [],
       customTissues: [],
 
       HPARNAlevelsHistory: {},
@@ -51,6 +49,13 @@ export default {
     };
   },
   computed: {
+    ...mapState({
+      model: state => state.models.model,
+      mapRnaLevels: state => state.humanProteinAtlas.mapRnaLevels,
+    }),
+    ...mapGetters({
+      HPATissues: 'humanProteinAtlas/HPATissues',
+    }),
     mode() {
       if (this.tissue1 !== 'None' && this.tissue2 !== 'None') {
         return 'comparison';
@@ -60,7 +65,7 @@ export default {
       return 'inactive';
     },
   },
-  created() {
+  async created() {
     EventBus.$off('selectTissues');
     EventBus.$off('selectFirstTissue');
     EventBus.$off('selectSecondTissue');
@@ -68,7 +73,7 @@ export default {
     EventBus.$off('unselectSecondTissue');
     EventBus.$off('loadCustomGeneExpData');
 
-    EventBus.$on('selectTissues', (tissue1, tissue1Source, tissue2, tissue2Source, dim) => {
+    EventBus.$on('selectTissues', async (tissue1, tissue1Source, tissue2, tissue2Source, dim) => {
       if (!tissue1) {
         EventBus.$emit('unselectFirstTissue', true);
         if (tissue2) {
@@ -80,19 +85,17 @@ export default {
         EventBus.$emit('unselectSecondTissue', true);
         EventBus.$emit('selectFirstTissue', tissue1, tissue1Source, dim);
       } else {
-        // EventBus.$emit('selectFirstTissue', tissue1, tissue1Source, dim, true);
-        // EventBus.$emit('selectSecondTissue', tissue2, tissue2Source, dim);
-        this.selectFirstTissue(tissue1, tissue1Source, dim, true);
-        this.selectSecondTissue(tissue2, tissue2Source, dim);
+        await this.selectFirstTissue(tissue1, tissue1Source, dim, true);
+        await this.selectSecondTissue(tissue2, tissue2Source, dim);
       }
     });
 
-    EventBus.$on('selectFirstTissue', (tissue, tissueSource, dim, skipCompute = false) => {
-      this.selectFirstTissue(tissue, tissueSource, dim, skipCompute);
+    EventBus.$on('selectFirstTissue', async (tissue, tissueSource, dim, skipCompute = false) => {
+      await this.selectFirstTissue(tissue, tissueSource, dim, skipCompute);
     });
 
-    EventBus.$on('selectSecondTissue', (tissue, tissueSource, dim, skipCompute = false) => {
-      this.selectSecondTissue(tissue, tissueSource, dim, skipCompute);
+    EventBus.$on('selectSecondTissue', async (tissue, tissueSource, dim, skipCompute = false) => {
+      await this.selectSecondTissue(tissue, tissueSource, dim, skipCompute);
     });
 
     EventBus.$on('unselectFirstTissue', (skipCompute) => {
@@ -116,67 +119,65 @@ export default {
     EventBus.$on('loadCustomGeneExpData', (file) => {
       this.loadCustomRNAlevels(file);
     });
-    this.getHPATissues();
+    await this.getHPATissues();
   },
   methods: {
-    selectFirstTissue(tissue, tissueSource, dim, skipCompute = false) {
+    async selectFirstTissue(tissue, tissueSource, dim, skipCompute = false) {
       this.dim = dim;
       this.tissue1 = tissue;
       this.tissue1Source = tissueSource;
       if (tissueSource === 'HPA') {
-        this.loadHPAlevels(tissue, dim, 0, skipCompute ? null : this.computeRNAlevels);
+        await this.loadHPAlevels(tissue, dim, 0, skipCompute ? null : this.computeRNAlevels);
       } else {
         this.parseCustomRNAlevels(tissue, 0, skipCompute ? null : this.computeRNAlevels);
       }
       this.$emit('firstTissueSelected', tissue);
     },
-    selectSecondTissue(tissue, tissueSource, dim, skipCompute = false) {
+    async selectSecondTissue(tissue, tissueSource, dim, skipCompute = false) {
       this.dim = dim;
       this.tissue2 = tissue;
       this.tissue2Dource = tissueSource;
       if (tissueSource === 'HPA') {
-        this.loadHPAlevels(tissue, dim, 1, skipCompute ? null : this.computeRNAlevels);
+        await this.loadHPAlevels(tissue, dim, 1, skipCompute ? null : this.computeRNAlevels);
       } else {
         this.parseCustomRNAlevels(tissue, 1, skipCompute ? null : this.computeRNAlevels);
       }
       this.$emit('secondTissueSelected', tissue);
     },
-    getHPATissues() {
-      axios.get(`${this.model.database_name}/gene/hpa_tissue/`)
-        .then((response) => {
-          this.HPATissues = response.data;
-          this.$emit('loadedHPARNAtissue', this.HPATissues);
-        })
-        .catch((error) => {
-          switch (error.response.status) {
-            default:
-              this.loadErrorMesssage = messages.unknownError;
-          }
-        });
+    async getHPATissues() {
+      try {
+        await this.$store.dispatch('humanProteinAtlas/getTissues', this.model.database_name);
+        this.$emit('loadedHPARNAtissue', this.HPATissues);
+      } catch {
+        this.loadErrorMesssage = messages.unknownError;
+      }
     },
-    loadHPAlevels(tissue, dim, index, callback) {
-      // todo : not fetch when tissue is none?
+    async loadHPAlevels(tissue, dim, index, callback) {
       if (this.mapName in this.HPARNAlevelsHistory && dim in this.HPARNAlevelsHistory[this.mapName]) {
         this.parseHPARNAlevels(tissue, dim, index, callback);
         return;
       }
-      axios.get(`${this.model.database_name}/gene/hpa_rna_levels/${this.mapType}/${dim}/${this.mapName}`)
-        .then((response) => {
-          if (!(this.mapName in this.HPARNAlevelsHistory)) {
-            this.HPARNAlevelsHistory[this.mapName] = {};
-          }
-          this.HPARNAlevelsHistory[this.mapName][dim] = response.data;
-          setTimeout(() => {
-            this.parseHPARNAlevels(tissue, dim, index, callback);
-          }, 0);
-        })
-        .catch(() => {
-          EventBus.$emit('loadRNAComplete', false, '');
-        });
+
+      try {
+        const payload = { model: this.model.database_name, mapType: this.mapType, dim, mapName: this.mapName };
+        await this.$store.dispatch('humanProteinAtlas/getRnaLevelsForMap', payload);
+
+        if (!(this.mapName in this.HPARNAlevelsHistory)) {
+          this.HPARNAlevelsHistory[this.mapName] = {};
+        }
+        this.HPARNAlevelsHistory[this.mapName][dim] = this.mapRnaLevels;
+        setTimeout(() => {
+          this.parseHPARNAlevels(tissue, dim, index, callback);
+        }, 0);
+      } catch {
+        EventBus.$emit('loadRNAComplete', false, '');
+      }
     },
     parseHPARNAlevels(tissue, dim, index, callback) {
       const RNAlevels = {};
       const tissueIndex = this.HPARNAlevelsHistory[this.mapName][dim].tissues.indexOf(tissue);
+      this.$store.dispatch(`maps/setTissue${index + 1}`, tissue);
+
       const { levels } = this.HPARNAlevelsHistory[this.mapName][dim];
       levels.forEach((array) => {
         const enzID = array[0];

@@ -1,9 +1,9 @@
 <template>
   <router-link class="tile is-parent" :class="size"
-               :to="{ path: `/explore/gem-browser/${model.database_name}/${type}/${data.id}`}">
-    <div class="tile is-child clickable box hoverable is-size-5-mobile"
+               :to="{ name: 'browser', params: { model: model.database_name, type: type, id: data.id } }">
+    <div class="tile is-child clickable box hoverable"
          :title="`Click to view ${data.name || data.id}`">
-      <p class="is-capitalized subtitle is-size-2-widescreen is-size-3-desktop is-size-4-tablet is-size-5-mobile
+      <p class="is-capitalized subtitle is-size-4-desktop is-size-5-tablet
          has-text-weight-light has-text-grey-light">{{ type }}</p>
       <template v-if="type === 'metabolite'">
         <span class="is-capitalized"><b>{{ data.name }}</b></span>
@@ -60,13 +60,19 @@
 </template>
 
 <script>
+import { mapState } from 'vuex';
+
 export default {
   name: 'Tile',
   props: {
     type: String,
     data: Object,
     size: String,
-    model: Object,
+  },
+  computed: {
+    ...mapState({
+      model: state => state.models.model,
+    }),
   },
 };
 </script>
