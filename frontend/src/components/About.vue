@@ -105,6 +105,8 @@ export default {
     return {
       news: {
         2020: [
+          { date: '27 April 2020',
+            text: '<b>Metabolic Atlas v1.7</b> is out. This release links the genes and metabolites directly to the maps, and improves the Map Viewer links to be more share-friendly. The overall appearance of the website has been tweaked in numberous ways. More details can be found <a href="https://github.com/SysBioChalmers/MetabolicAtlas/releases/tag/v1.7" target="_blank">on GitHub</a>.' },
           { date: '23 March 2020',
             text: '<b>Metabolic Atlas v1.6</b> is out. This release contains many user interface improvements, documentation updates and correction of typos. More details can be found <a href="https://github.com/SysBioChalmers/MetabolicAtlas/releases/tag/v1.6" target="_blank">on GitHub</a>.' },
           { date: '7 February 2020',
