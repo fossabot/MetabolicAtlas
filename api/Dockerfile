@@ -1,4 +1,4 @@
-FROM node:13-slim
+FROM node:lts-slim
 
 WORKDIR /project/
 COPY . .
