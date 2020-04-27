@@ -1,4 +1,4 @@
-import { getGene } from '@/neo4j';
+import genesApi from '@/api/genes';
 
 const data = {
   gene: {},
@@ -12,7 +12,7 @@ const actions = {
   async getGeneData({ commit }, { model, id }) {
     console.warn(`TODO: use model: ${model}`);
 
-    const gene = await getGene({ id, version: '1' });
+    const gene = await genesApi.fetchGeneData({ id, version: '1' });
     commit('setGene', gene);
     commit('maps/setAvailableMaps', {
       '2d': {
