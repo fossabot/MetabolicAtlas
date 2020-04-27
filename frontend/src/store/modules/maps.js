@@ -82,7 +82,7 @@ const getters = {
     panel: +state.dataOverlayPanelVisible,
     sel: state.selectedElementId,
     search: state.searchTerm,
-    coords: Object.values(state.coords).join(','),
+    coords: Object.values(state.coords).map(c => Math.round((c + Number.EPSILON) * 100) / 100).join(','),
     g1: state.tissue1,
     g2: state.tissue2,
   }),
@@ -189,7 +189,6 @@ const actions = {
   initFromQueryParams({ commit }, { dim, panel, coords, sel, search, g1, g2 }) {
     // TODO: handle errors
     commit('setShow2D', dim !== '3d');
-    console.log(panel);
     commit('setDataOverlayPanelVisible', !!(panel === '1' || g1 || g2));
     commit('setSelectedElementId', sel);
     commit('setSearchTerm', search);

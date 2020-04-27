@@ -11,32 +11,27 @@ const actions = {
   async getReactionData({ commit }, { model, id }) {
     const { reaction, pmids } = await reactionsApi.fetchReactionData(model, id);
     commit('setReaction', reaction);
-    if (pmids.length !== 0) {
-      commit('setReferenceList', pmids);
-    }
+    commit('setReferenceList', pmids);
   },
-
   async getRelatedReactionsForReaction({ commit }, { model, id }) {
     const reactions = await reactionsApi.fetchRelatedReactionsForReaction(model, id);
     commit('setRelatedReactions', reactions);
   },
-
   async getRelatedReactionsForGene({ commit }, { model, id }) {
-    const reactions = await reactionsApi.fetchRelatedReactionsForGene(model, id);
+    const { reactions, limit } = await reactionsApi.fetchRelatedReactionsForGene(model, id);
     commit('setRelatedReactions', reactions);
+    commit('setRelatedReactionsLimit', limit);
   },
-
   async getRelatedReactionsForMetabolite({ commit }, { model, id, allCompartments }) {
-    const reactions = await reactionsApi.fetchRelatedReactionsForMetabolite(model, id, allCompartments);
+    const { reactions, limit } = await reactionsApi.fetchRelatedReactionsForMetabolite(model, id, allCompartments);
     commit('setRelatedReactions', reactions);
+    commit('setRelatedReactionsLimit', limit);
   },
-
   async getRelatedReactionsForSubsystem({ commit }, { model, id }) {
     const { reactions, limit } = await reactionsApi.fetchRelatedReactionsForSubsystem(model, id);
     commit('setRelatedReactions', reactions);
     commit('setRelatedReactionsLimit', limit);
   },
-
   clearRelatedReactions({ commit }) {
     commit('setRelatedReactions', []);
   },

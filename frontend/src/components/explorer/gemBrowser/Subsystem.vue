@@ -5,67 +5,71 @@
   <div v-else>
     <div class="columns">
       <div class="column">
-        <h3 class="title is-3"><span class="is-capitalized">{{ type }}</span> {{ !showLoader ? info.name : '' }}</h3>
+        <h3 class="title is-3"><span class="is-capitalized">{{ type }}</span> {{ info.name }}</h3>
       </div>
     </div>
-    <loader v-show="showLoader"></loader>
-    <div v-show="!showLoader" class="columns is-multiline is-variable is-8">
+    <loader v-if="showLoaderMessage" :message="showLoaderMessage" class="columns" />
+    <div v-else class="columns is-multiline is-variable is-8">
       <div class="subsystem-table column is-10-widescreen is-9-desktop is-full-tablet">
-        <table v-if="info && Object.keys(info).length !== 0" class="table main-table is-fullwidth">
-          <tr v-for="el in mainTableKey" :key="el.name" class="m-row">
-            <template v-if="info[el.name]">
-              <td v-if="el.display" class="td-key has-background-primary has-text-white-bis">{{ el.display }}</td>
-              <td v-else class="td-key has-background-primary has-text-white-bis">{{ reformatKey(el.name) }}</td>
-              <td v-if="info[el.name]">
-                <span v-if="el.modifier" v-html="el.modifier(info[el.name])"></span>
-                <span v-else>{{ info[el.name] }}</span>
-              </td>
-              <td v-else> - </td>
-            </template>
-          </tr>
-          <tr>
-            <td class="td-key has-background-primary has-text-white-bis">Compartments</td>
-            <td>
-              <template v-for="(c, i) in info['compartments']">
-                <template v-if="i !== 0">, </template>
-                <!-- eslint-disable-next-line vue/valid-v-for max-len -->
-                <router-link
-                  :to="{ name: 'browser', params: { model: model.database_name, type: 'compartment', id: c.id } }"
-                >{{ c.name }}</router-link>
+        <div class="table-container">
+          <table v-if="info && Object.keys(info).length !== 0" class="table main-table is-fullwidth">
+            <tr v-for="el in mainTableKey" :key="el.name" class="m-row">
+              <template v-if="info[el.name]">
+                <td v-if="el.display" class="td-key has-background-primary has-text-white-bis">{{ el.display }}</td>
+                <td v-else class="td-key has-background-primary has-text-white-bis">{{ reformatKey(el.name) }}</td>
+                <td v-if="info[el.name]">
+                  <span v-if="el.modifier" v-html="el.modifier(info[el.name])"></span>
+                  <span v-else>{{ info[el.name] }}</span>
+                </td>
+                <td v-else> - </td>
               </template>
-            </td>
-          </tr>
-          <tr>
-            <td class="td-key has-background-primary has-text-white-bis">Metabolites</td>
-            <td>
-              <div v-html="metabolitesListHtml"></div>
-              <div v-if="!showFullMetabolite && metabolites.length > displayedMetabolite">
-                <br>
-                <button class="is-small button" @click="showFullMetabolite=true">
-                  ... and {{ metabolites.length - displayedMetabolite }} more
-                </button>
-                <span v-show="metabolites.length === limitMetabolite" class="tag is-medium is-warning is-pulled-right">
-                  The number of metabolites displayed is limited to {{ limitMetabolite }}.
-                </span>
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <td class="td-key has-background-primary has-text-white-bis">Genes</td>
-            <td>
-              <div v-html="genesListHtml"></div>
-              <div v-if="!showFullGene && genes.length > displayedGene">
-                <br>
-                <button class="is-small button" @click="showFullGene=true">
-                  ... and {{ genes.length - displayedGene }} more
-                </button>
-                <span v-show="genes.length === limitGene" class="tag is-medium is-warning is-pulled-right">
-                  The number of genes displayed is limited to {{ limitGene }}.
-                </span>
-              </div>
-            </td>
-          </tr>
-        </table>
+            </tr>
+            <tr>
+              <td class="td-key has-background-primary has-text-white-bis">Compartments</td>
+              <td>
+                <div class="tags">
+                  <template v-for="c in info['compartments']">
+                    <span :key="c.id" class="tag">
+                      <!-- eslint-disable-next-line max-len -->
+                      <router-link :to="{ name: 'browser', params: { model: model.database_name, type: 'compartment', id: c.id } }">{{ c.name }}</router-link>
+                    </span>
+                  </template>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td class="td-key has-background-primary has-text-white-bis">Metabolites</td>
+              <td>
+                <div v-html="metabolitesListHtml"></div>
+                <div v-if="!showFullMetabolite && metabolites.length > displayedMetabolite">
+                  <br>
+                  <button class="is-small button" @click="showFullMetabolite=true">
+                    ... and {{ metabolites.length - displayedMetabolite }} more
+                  </button>
+                  <span v-show="metabolites.length === limitMetabolite"
+                        class="tag is-medium is-warning is-pulled-right">
+                    The number of metabolites displayed is limited to {{ limitMetabolite }}.
+                  </span>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td class="td-key has-background-primary has-text-white-bis">Genes</td>
+              <td>
+                <div v-html="genesListHtml"></div>
+                <div v-if="!showFullGene && genes.length > displayedGene">
+                  <br>
+                  <button class="is-small button" @click="showFullGene=true">
+                    ... and {{ genes.length - displayedGene }} more
+                  </button>
+                  <span v-show="genes.length === limitGene" class="tag is-medium is-warning is-pulled-right">
+                    The number of genes displayed is limited to {{ limitGene }}.
+                  </span>
+                </div>
+              </td>
+            </tr>
+          </table>
+        </div>
         <ExtIdTable :type="type" :external-dbs="info.external_databases"></ExtIdTable>
       </div>
       <div class="column is-2-widescreen is-3-desktop is-half-tablet has-text-centered">
@@ -73,21 +77,7 @@
         <gem-contact :id="sName" :type="type" />
       </div>
     </div>
-    <template v-if="!showLoader">
-      <h4 class="title is-4">Reactions</h4>
-    </template>
-    <div class="columns">
-      <div class="column">
-        <template v-if="!showLoader && showReactionLoader">
-          <loader></loader>
-        </template>
-        <template v-else-if="!showReactionLoader">
-          <reaction-table :source-name="sName" :reactions="reactions" :show-subsystem="false"
-                          :limit="1000">
-          </reaction-table>
-        </template>
-      </div>
-    </div>
+    <reaction-table :source-name="sName" :type="type" />
   </div>
 </template>
 
@@ -95,30 +85,28 @@
 <script>
 
 import { mapGetters, mapState } from 'vuex';
-import Loader from '@/components/Loader';
 import NotFound from '@/components/NotFound';
+import Loader from '@/components/Loader';
 import MapsAvailable from '@/components/explorer/gemBrowser/MapsAvailable';
 import ExtIdTable from '@/components/explorer/gemBrowser/ExtIdTable';
 import ReactionTable from '@/components/explorer/gemBrowser/ReactionTable';
 import GemContact from '@/components/shared/GemContact';
-import { buildCustomLink, reformatTableKey } from '../../../helpers/utils';
+import { buildCustomLink, reformatTableKey } from '@/helpers/utils';
 
 export default {
   name: 'Subsystem',
   components: {
     NotFound,
+    Loader,
     MapsAvailable,
     ReactionTable,
     ExtIdTable,
-    Loader,
     GemContact,
   },
   data() {
     return {
       sName: this.$route.params.id,
       type: 'subsystem',
-      showLoader: true,
-      showReactionLoader: true,
       errorMessage: '',
       mainTableKey: [
         { name: 'name', display: 'Name' },
@@ -128,13 +116,12 @@ export default {
       displayedMetabolite: 40,
       displayedGene: 40,
       componentNotFound: false,
+      showLoaderMessage: '',
     };
   },
   computed: {
     ...mapState({
       model: state => state.models.model,
-      reactions: state => state.reactions.relatedReactions,
-      limitReaction: state => state.reactions.relatedReactionsLimit,
     }),
     ...mapGetters({
       info: 'subsystems/info',
@@ -152,7 +139,7 @@ export default {
           || i === this.limitMetabolite) {
           break;
         }
-        const customLink = buildCustomLink({ model: this.model.database_name, type: 'metabolite', id: m.id, title: m.full_name || m.id, cssClass: 'is-size-6' });
+        const customLink = buildCustomLink({ model: this.model.database_name, type: 'metabolite', id: m.id, title: m.full_name || m.id });
         l.push(
           `<span id="${m.id}" class="tag">${customLink}</span>`
         );
@@ -169,7 +156,7 @@ export default {
           || i === this.limitGene) {
           break;
         }
-        const customLink = buildCustomLink({ model: this.model.database_name, type: 'gene', id: e.id, title: e.name || e.id, cssClass: 'is-size-6' });
+        const customLink = buildCustomLink({ model: this.model.database_name, type: 'gene', id: e.id, title: e.name || e.id });
         l.push(`<span id="${e.id}" class="tag">${customLink}</span>`);
       }
       l.push('</span>');
@@ -177,45 +164,25 @@ export default {
     },
   },
   watch: {
-    /* eslint-disable quote-props */
-    '$route': async function watchSetup() {
-      if (this.$route.path.includes('/gem-browser/') && this.$route.path.includes('/subsystem/')) {
-        if (this.sName !== this.$route.params.id) {
-          await this.setup();
-        }
-      }
+    $route() {
+      this.setup();
     },
   },
-  async beforeMount() {
-    await this.setup();
+  beforeMount() {
+    this.setup();
   },
   methods: {
     async setup() {
+      this.showLoaderMessage = 'Loading subsystem data';
       this.sName = this.$route.params.id;
-      await this.load();
-      await this.getReactions();
-    },
-    async load() {
-      this.showLoader = true;
-
       try {
         const payload = { model: this.model.database_name, id: this.sName };
-        this.$store.dispatch('subsystems/getSubsystemSummary', payload);
+        await this.$store.dispatch('subsystems/getSubsystemSummary', payload);
         this.componentNotFound = false;
-        this.showLoader = false;
+        this.showLoaderMessage = '';
       } catch {
         this.componentNotFound = true;
         document.getElementById('search').focus();
-      }
-    },
-    async getReactions() {
-      this.showReactionLoader = true;
-      try {
-        const payload = { model: this.model.database_name, id: this.sName };
-        this.$store.dispatch('reactions/getRelatedReactionsForSubsystem', payload);
-        this.showReactionLoader = false;
-      } catch {
-        // TODO: handle exception
       }
     },
     reformatKey(k) { return reformatTableKey(k); },
@@ -223,5 +190,4 @@ export default {
 };
 </script>
 
-<style lang="scss">
-</style>
+<style lang="scss"></style>

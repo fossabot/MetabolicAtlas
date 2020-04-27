@@ -7,7 +7,7 @@
     </template>
     <template v-else>
       <div v-if="!selectedType" class="columns">
-        <div class="column container has-text-centered">
+        <div class="column container is-fullhd has-text-centered">
           <h3 class="title is-3">Explore {{ model.short_name }} with the {{ messages.gemBrowserName }}</h3>
           <h5 class="subtitle is-5 has-text-weight-normal">
             use the search field to find the component of interest
@@ -15,13 +15,13 @@
         </div>
       </div>
       <div class="columns is-centered">
-        <gem-search ref="gemSearch"></gem-search>
+        <gem-search ref="gemSearch" />
       </div>
       <div v-if="showTiles && !selectedType">
         <div class="columns is-centered">
-          <div class="column is-10 is-size-5 has-text-centered">
+          <div class="column is-10 has-text-centered">
             <br><br>
-            <a id="randomButton" class="button is-rounded is-outlined is-size-5 is-success"
+            <a id="randomButton" class="button is-rounded is-outlined is-success"
                title="Fetch another random set of components" @click="getTilesData()">
               <span class="icon">
                 <i class="fa fa-random"></i>
@@ -31,7 +31,7 @@
             <br>
           </div>
         </div>
-        <div v-if="tileComponents" id="gem-browser-tiles" class="tile is-ancestor is-size-5">
+        <div v-if="tileComponents" id="gem-browser-tiles" class="tile is-ancestor">
           <div class="tile">
             <div class="tile is-vertical is-9">
               <div class="tile">
@@ -79,11 +79,11 @@
         </div>
       </div>
       <div v-show="selectedType">
-        <gene v-if="selectedType==='gene'"></gene>
-        <metabolite v-if="selectedType==='metabolite'"></metabolite>
-        <reaction v-if="selectedType==='reaction'"></reaction>
-        <subsystem v-if="selectedType==='subsystem'"></subsystem>
-        <compartment v-if="selectedType==='compartment'"></compartment>
+        <gene v-if="selectedType==='gene'" />
+        <metabolite v-if="selectedType==='metabolite'" />
+        <reaction v-if="selectedType==='reaction'" />
+        <subsystem v-if="selectedType==='subsystem'" />
+        <compartment v-if="selectedType==='compartment'" />
       </div>
     </template>
   </div>

@@ -1,6 +1,6 @@
 <template>
   <section :class="{ 'section extended-section' : !extendWindow }">
-    <div :class="{ 'container': !extendWindow }">
+    <div :class="{ 'container is-fullhd': !extendWindow }">
       <template v-if="modelNotFound">
         <div class="columns is-centered">
           <notFound type="model" :component-id="modelNotFound"></notFound>
@@ -8,7 +8,7 @@
       </template>
       <template v-else-if="currentShowComponent">
         <keep-alive>
-          <component :is="currentShowComponent"></component>
+          <component :is="currentShowComponent" />
         </keep-alive>
       </template>
       <template v-else>
@@ -17,66 +17,68 @@
             <h3 class="title is-size-3">Explore the integrated models</h3>
           </div>
         </div>
+        <br>
         <div class="columns">
-          <div class="column has-text-centered-tablet">
+          <div class="column has-text-centered">
             <p class="has-text-weight-bold is-size-5">1. Select a model:</p>
           </div>
         </div>
-        <div v-if="model" class="columns is-centered">
-          <div class="column is-8-widescreen is-10-desktop is-fullwidth-tablet is-size-5">
-            <div v-for="cmodel in Object.values(models).sort((a, b) =>
-                   (a.short_name.toLowerCase() < b.short_name.toLowerCase() ? -1 : 1))"
-                 id="selectedModel" :key="cmodel.database_name"
+        <div v-if="model" class="columns is-multiline is-centered">
+          <div v-for="cmodel in Object.values(models).sort((a, b) =>
+                 (a.short_name.toLowerCase() < b.short_name.toLowerCase() ? -1 : 1))"
+               :key="cmodel.database_name" class="column is-5-desktop is-half-tablet">
+            <div id="selectedModel" style="height: 100%"
                  class="box has-text-centered clickable hoverable"
                  :class="cmodel.database_name === model.database_name ? 'selectedBox' : ''"
                  :title="`Select ${cmodel.short_name} as the model to explore`"
                  @mousedown.prevent="selectModel(cmodel)">
-              <div>
-                <span :class="cmodel.database_name === model.database_name ?
-                  'has-text-primary has-text-weight-bold' : ''">
-                  <span v-if="cmodel.database_name === model.database_name"
-                        class="icon"><i class="fa fa-check-square-o"></i></span>
-                  <span v-else><i class="fa fa-square-o"></i></span>
-                  {{ cmodel.short_name }} v{{ cmodel.version }}
-                </span> - {{ cmodel.full_name }}
-              </div>
-              <div class="has-text-grey">
+              <p class="title is-5"
+                 :class="cmodel.database_name === model.database_name ? 'has-text-primary' : ''">
+                <span v-if="cmodel.database_name === model.database_name"
+                      class="icon"><i class="fa fa-check-square-o"></i></span>
+                <span v-else><i class="fa fa-square-o">&nbsp;</i></span>
+                &nbsp;{{ cmodel.short_name }} {{ cmodel.version }}
+              </p>
+              <p>{{ cmodel.full_name }}</p>
+              <p class="has-text-grey is-touch-hidden">
                 {{ cmodel.reaction_count }} reactions -
                 {{ cmodel.metabolite_count }} metabolites -
                 {{ cmodel.gene_count }} genes
-              </div>
+              </p>
             </div>
           </div>
         </div>
-        <br>
+        <br><br><br>
         <div class="columns">
           <div class="column has-text-centered">
             <p class="has-text-weight-bold is-size-5">2. Select a tool:</p>
           </div>
         </div>
         <div v-if="model" class="columns is-multiline is-centered">
-          <template v-for="tool in explorerTools">
-            <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
-            <div class="column is-3-widescreen is-4-desktop is-6-tablet is-full-mobile is-size-5">
-              <router-link :to="{ name: tool.routeName, params: { model: model.database_name } }"
-                           :title="`Click to access the ${tool.name} for ${model.short_name} model`">
-                <div class="card card-fullheight hoverable">
-                  <header class="card-header">
-                    <p class="card-header-title is-centered">
-                      <span class="icon is-medium"><i :class="`fa fa-${tool.icon}`"></i></span>
-                      &nbsp;{{ tool.name }}&nbsp;&nbsp;
-                      <span class="has-text-grey-light">{{ model.short_name }}</span>
-                    </p>
-                  </header>
-                  <div class="card-content">
-                    <div class="content">
-                      <img :src="tool.img" />
-                    </div>
+          <div v-for="tool in explorerTools" :key="tool.name"
+               class="column is-one-fifth-widescreen is-4-desktop is-4-tablet">
+            <router-link :to="{ name: tool.routeName, params: { model: model.database_name } }"
+                         :title="`Click to access the ${tool.name} for ${model.short_name} model`">
+              <div class="card card-fullheight hoverable">
+                <header class="card-header">
+                  <p class="card-header-title is-block has-text-centered is-size-5">
+                    <span class="icon is-medium" style="width: 100%">
+                      <i :class="`fa fa-${tool.icon}`"></i>
+                      &nbsp;&nbsp;{{ tool.name }}
+                    </span>
+                    <span class="is-visible-desktop has-text-grey-light" style="width: 100%">
+                      {{ model.short_name }}
+                    </span>
+                  </p>
+                </header>
+                <div class="card-content">
+                  <div class="content">
+                    <img :src="tool.img" />
                   </div>
                 </div>
-              </router-link>
-            </div>
-          </template>
+              </div>
+            </router-link>
+          </div>
         </div>
       </template>
     </div>
@@ -89,8 +91,8 @@ import GemBrowser from '@/components/explorer/GemBrowser';
 import MapViewer from '@/components/explorer/MapViewer';
 import InteractionPartners from '@/components/explorer/InteractionPartners';
 import NotFound from '@/components/NotFound';
+import { default as messages } from '@/helpers/messages';
 import { default as EventBus } from '../event-bus';
-import { default as messages } from '../helpers/messages';
 
 export default {
   name: 'Explorer',
@@ -137,22 +139,10 @@ export default {
     /* eslint-disable-next-line quote-props */
     '$route': function watchSetup() {
       this.setup();
-      this.updateRoute();
     },
   },
   async created() {
-    this.setup();
     await this.getModelList();
-
-    EventBus.$on('showMapViewer', () => {
-      this.displayViewer();
-    });
-    EventBus.$on('showGemBrowser', () => {
-      this.displayBrowser();
-    });
-    EventBus.$on('showInteractionPartner', () => {
-      this.displayInterPartner();
-    });
   },
   methods: {
     setup() {
@@ -160,7 +150,6 @@ export default {
         // do not redirect on url change unless the model is already loaded
         return;
       }
-      // but redirect even if the model url do not match the model loaded
       if (this.$route.params.model) {
         if (this.$route.params.model in this.models) {
           this.selectModel(this.models[this.$route.params.model]);
@@ -168,7 +157,12 @@ export default {
           this.modelNotFound = this.$route.params.model;
           return;
         }
+      } else if (this.$route.query.selected && this.$route.query.selected in this.models) {
+        this.selectModel(this.models[this.$route.query.selected]);
+      } else {
+        this.selectModel(this.model);
       }
+
       this.modelNotFound = null;
       if (['viewerRoot', 'viewer'].includes(this.$route.name)) {
         this.displayViewer();
@@ -189,7 +183,6 @@ export default {
 
         const defaultModelKey = Object.keys(this.models).sort(
           (a, b) => (a.toLowerCase() < b.toLowerCase() ? -1 : 1))[0];
-        console.log(defaultModelKey);
         let defaultModel = this.models[defaultModelKey];
         if (this.$route.params.model && this.$route.params.model in this.models) {
           // if a model DB is provide in the URL, use it to select the model
@@ -212,10 +205,9 @@ export default {
       if (!this.model || model.database_name !== this.model.database_name) {
         this.$store.dispatch('models/selectModel', model);
       }
-      this.updateRoute(this.model.short_name);
-    },
-    updateRoute(modelName) {
-      if (this.$route.name === 'explorerRoot' && this.model && (!this.$route.query || !this.$route.query.selected || this.$route.query.selected !== modelName)) {
+      if (this.$route.name === 'explorerRoot'
+         && (!this.$route.query || !this.$route.query.selected
+          || this.$route.query.selected !== this.model.short_name)) {
         this.$router.replace({ name: 'explorerRoot', query: { selected: this.model.short_name } }).catch(() => {});
       }
     },

@@ -1,6 +1,6 @@
 <template>
   <section class="extended-section">
-    <div id="search-table" class="container">
+    <div id="search-table" class="container is-fullhd">
       <div class="columns">
         <div class="column has-text-centered content">
           <br>
@@ -12,10 +12,10 @@
       </div>
       <div class="columns is-centered">
         <div class="column is-three-fifths-desktop is-three-quarters-tablet is-fullwidth-mobile control">
-          <div id="input-wrapper is-size-3">
+          <div>
             <p class="control has-icons-right has-icons-left">
               <input id="search" v-model="searchTerm" data-hj-whitelist
-                     class="input is-medium" type="text"
+                     class="input" type="text"
                      placeholder="uracil, SULT1A3, ATP => cAMP + PPi, Acyl-CoA hydrolysis"
                      @keyup.enter="updateSearch()">
               <span v-show="showSearchCharAlert" class="has-text-info icon is-right" style="width: 220px">
@@ -29,8 +29,8 @@
         </div>
       </div>
       <!-- eslint-disable-next-line max-len -->
-      <div v-if="notFoundSuggestions.length !== 0 && searchResults.length === 0" class="columns is-centered">
-        <div class="column is-three-fifths-desktop is-three-quarters-tablet is-fullwidth-mobile control is-size-5">
+      <div v-if="notFoundSuggestions.length !== 0 && searchResultsEmpty" class="columns is-centered">
+        <div class="column is-three-fifths-desktop is-three-quarters-tablet is-fullwidth-mobile control">
           Do you mean:&nbsp;
           <template v-for="v in notFoundSuggestions">
             <router-link :key="v" :to="{ name: 'search', query: { term: v }}">
@@ -58,9 +58,9 @@
         <loader v-show="loading && searchTerm !== ''"></loader>
         <div v-show="!loading">
           <div class="columns is-centered">
-            <div v-if="Object.keys(searchResults).length === 0"
+            <div v-if="searchResultsEmpty"
                  class="column is-three-fifths-desktop is-three-quarters-tablet is-fullwidth-mobile">
-              <div v-if="searchedTerm" class="has-text-centered notification is-size-5">
+              <div v-if="searchedTerm" class="has-text-centered notification">
                 {{ messages.searchNoResult }} for <b><i>{{ searchedTerm }}</i></b><br>
                 If this is an alias or external identifier, it means it is not present in any of the models.
               </div>
@@ -117,7 +117,7 @@
                     <span v-html="reformatEqSign(props.formattedRow[props.column.field], false)"></span>
                   </template>
                   <template v-else-if="props.column.field === 'formula'">
-                    <span v-html="formulaFormater(props.row[props.column.field], props.row.charge)"></span>
+                    <span v-html="chemicalFormula(props.row[props.column.field], props.row.charge)"></span>
                   </template>
                   <template v-else-if="['name', 'id'].includes(props.column.field)">
                     <router-link :to="{ name: 'browser', params: { model: props.row.model.id, type: header, id: props.row.id } }">
@@ -175,7 +175,7 @@ import { mapGetters, mapState } from 'vuex';
 import $ from 'jquery';
 import { VueGoodTable } from 'vue-good-table';
 import Loader from '@/components/Loader';
-import ExportTSV from '@/components/explorer/gemBrowser/ExportTSV';
+import ExportTSV from '@/components/shared/ExportTSV';
 import 'vue-good-table/dist/vue-good-table.css';
 import { chemicalFormula } from '../helpers/chemical-formatters';
 import { reformatEqSign, sortResults } from '../helpers/utils';
@@ -233,7 +233,7 @@ export default {
             field: 'subsystem',
             filterOptions: {
               enabled: true,
-              filterDropdownItems: [],
+              filterFn: (e, s) => e.filter(v => v.name.toLowerCase().includes(s.toLowerCase())).length !== 0,
             },
             sortable: true,
           }, {
@@ -242,6 +242,7 @@ export default {
             filterOptions: {
               enabled: true,
               filterDropdownItems: [],
+              filterFn: (e, s) => e.name === s,
             },
             sortable: true,
           },
@@ -267,7 +268,7 @@ export default {
             field: 'subsystem',
             filterOptions: {
               enabled: true,
-              filterDropdownItems: [],
+              filterFn: (e, s) => e.filter(v => v.name.toLowerCase().includes(s.toLowerCase())).length !== 0,
             },
             sortable: true,
           }, {
@@ -276,6 +277,7 @@ export default {
             filterOptions: {
               enabled: true,
               filterDropdownItems: [],
+              filterFn: (e, s) => e.filter(v => v.name === s).length !== 0,
             },
             sortable: true,
           },
@@ -309,7 +311,7 @@ export default {
             field: 'subsystem',
             filterOptions: {
               enabled: true,
-              filterDropdownItems: [],
+              filterFn: (e, s) => e.filter(v => v.name.toLowerCase().includes(s.toLowerCase())).length !== 0,
             },
             sortable: true,
           }, {
@@ -318,6 +320,7 @@ export default {
             filterOptions: {
               enabled: true,
               filterDropdownItems: [],
+              filterFn: (e, s) => e.filter(v => v.name === s).length !== 0,
             },
             sortable: true,
           }, {
@@ -353,6 +356,7 @@ export default {
             filterOptions: {
               enabled: true,
               filterDropdownItems: [],
+              filterFn: (e, s) => e.filter(v => v.name === s).length !== 0,
             },
             sortable: true,
           }, {
@@ -453,6 +457,7 @@ export default {
     }),
     ...mapGetters({
       searchResults: 'search/categorizedGlobalResults',
+      searchResultsEmpty: 'search/globalResultsEmpty',
       resultsCount: 'search/categorizedGlobalResultsCount',
     }),
   },
@@ -478,9 +483,6 @@ export default {
     $('#search').focus();
   },
   methods: {
-    formulaFormater(formula, charge) {
-      return chemicalFormula(formula, charge);
-    },
     fillFilterFields() {
       const filterTypeDropdown = {
         metabolite: {
@@ -523,14 +525,8 @@ export default {
             Object.keys(filterTypeDropdown[componentType]).forEach((field) => {
               if (field === 'model') {
                 filterTypeDropdown[componentType][field][el[field].id] = el[field].name;
-              } else if (field === 'subsystem') {
-                el[field]
-                  .filter(v => !(v.id in filterTypeDropdown[componentType][field]))
-                  .forEach((v) => {
-                    filterTypeDropdown[componentType][field][v.id] = 1;
-                  });
-              } else if (!(el[field] in filterTypeDropdown[componentType][field])) {
-                filterTypeDropdown[componentType][field][el[field]] = 1;
+              } else if (field === 'compartment') {
+                filterTypeDropdown[componentType][field][el[field].name] = 1;
               }
             });
             rows[componentType].push(el);
@@ -538,24 +534,22 @@ export default {
             Object.keys(filterTypeDropdown[componentType]).forEach((field) => {
               if (field === 'model') {
                 filterTypeDropdown[componentType][field][el[field].id] = el[field].name;
-              } else if (['compartment', 'subsystem'].includes(field)) {
+              } else if (field === 'compartment') {
                 el[field]
                   .filter(v => !(v.id in filterTypeDropdown[componentType][field]))
                   .forEach((v) => {
-                    filterTypeDropdown[componentType][field][v.id] = 1;
+                    filterTypeDropdown[componentType][field][v.name] = 1;
                   });
-              } else if (!(el[field] in filterTypeDropdown[componentType][field])) {
-                filterTypeDropdown[componentType][field][el[field]] = 1;
               }
             });
             rows[componentType].push(el);
           } else if (componentType === 'reaction') {
             Object.keys(filterTypeDropdown[componentType]).forEach((field) => {
-              if (['compartment', 'subsystem'].includes(field) && el[field]) {
+              if (field === 'compartment') {
                 el[field]
                   .filter(v => !(v in filterTypeDropdown[componentType][field]))
                   .forEach((v) => {
-                    filterTypeDropdown[componentType][field][v] = 1;
+                    filterTypeDropdown[componentType][field][v.name] = 1;
                   });
               } else if (field === 'model') {
                 filterTypeDropdown[componentType][field][el[field].id] = el[field].name;
@@ -577,22 +571,17 @@ export default {
                 el[field]
                   .filter(compartment => !(compartment.id in filterTypeDropdown[componentType][field]))
                   .forEach((compartment) => {
-                    filterTypeDropdown[componentType][field][compartment.id] = 1;
+                    filterTypeDropdown[componentType][field][compartment.name] = 1;
                   });
               } else if (field === 'model') {
                 filterTypeDropdown[componentType][field][el[field].id] = el[field].name;
-              } else if (!(el[field] in filterTypeDropdown[componentType][field])) {
-                filterTypeDropdown[componentType][field][el[field]] = 1;
               }
             });
             rows[componentType].push(el);
           } else if (componentType === 'compartment') {
             Object.keys(filterTypeDropdown[componentType]).forEach((field) => {
-              if (field === 'model') {
-                filterTypeDropdown[componentType][field][el[field].id] = el[field].name;
-              } else if (!(el[field] in filterTypeDropdown[componentType][field])) {
-                filterTypeDropdown[componentType][field][el[field]] = 1;
-              }
+              // 'model' field
+              filterTypeDropdown[componentType][field][el[field].id] = el[field].name;
             });
             rows[componentType].push(el);
           }
@@ -619,7 +608,6 @@ export default {
       });
       // assign filter choices lists to the columns
       this.columns.metabolite[0].filterOptions.filterDropdownItems = filterTypeDropdown.metabolite.model;
-      this.columns.metabolite[3].filterOptions.filterDropdownItems = filterTypeDropdown.metabolite.subsystem;
       this.columns.metabolite[4].filterOptions.filterDropdownItems = filterTypeDropdown.metabolite.compartment;
 
       this.columns.gene[0].filterOptions.filterDropdownItems = filterTypeDropdown.gene.model;
@@ -630,8 +618,7 @@ export default {
       this.columns.reaction[5].filterOptions.filterDropdownItems = filterTypeDropdown.reaction.is_transport;
 
       this.columns.subsystem[0].filterOptions.filterDropdownItems = filterTypeDropdown.subsystem.model;
-      this.columns.subsystem[2].filterOptions.filterDropdownItems = filterTypeDropdown.subsystem.system;
-      this.columns.subsystem[3].filterOptions.filterDropdownItems = filterTypeDropdown.subsystem.compartment;
+      this.columns.subsystem[2].filterOptions.filterDropdownItems = filterTypeDropdown.subsystem.compartments;
 
       this.columns.compartment[0].filterOptions.filterDropdownItems = filterTypeDropdown.subsystem.model;
       this.rows = rows;
@@ -661,23 +648,10 @@ export default {
         this.showSearchCharAlert = true;
       }
     },
-    postProcessSearch() {
-      this.loading = false;
-      // get filters
-      this.fillFilterFields();
-      // select the active tab
-      Object.keys(this.resultsCount)
-        .filter(key => this.resultsCount[key] !== 0)
-        .every((key) => {
-          this.showTabType = key;
-          return false;
-        });
-    },
     async search() {
       this.loading = true;
       try {
         await this.$store.dispatch('search/globalSearch', this.searchTerm);
-        this.postProcessSearch();
       } catch (error) {
         if (error.response.headers.suggestions) {
           this.notFoundSuggestions = JSON.parse(error.response.headers.suggestions);
@@ -685,7 +659,17 @@ export default {
           this.notFoundSuggestions = [];
         }
         this.$store.dispatch('search/clearGlobalSearchResults');
-        this.postProcessSearch();
+      } finally {
+        this.loading = false;
+        // get filters
+        this.fillFilterFields();
+        // select the active tab
+        Object.keys(this.resultsCount)
+          .filter(key => this.resultsCount[key] !== 0)
+          .every((key) => {
+            this.showTabType = key;
+            return false;
+          });
       }
     },
     formatToTSV(index) {
@@ -721,7 +705,6 @@ export default {
 </script>
 
 <style lang="scss">
-
 #search-table {
   .tabs li.is-disabled {
     cursor: not-allowed;
@@ -738,5 +721,4 @@ export default {
   }
 
 }
-
 </style>

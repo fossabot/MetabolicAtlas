@@ -8,44 +8,47 @@
         <h3 class="title is-3"><span class="is-capitalized">{{ type }}</span> {{ compartment.name }}</h3>
       </div>
     </div>
-    <loader v-show="showLoader"></loader>
-    <div v-show="!showLoader" class="columns is-multiline is-variable is-8">
+    <loader v-if="showLoaderMessage" :message="showLoaderMessage" class="columns" />
+    <div v-else class="columns is-multiline is-variable is-8">
       <div class="subsystem-table column is-10-widescreen is-9-desktop is-full-tablet">
-        <table v-if="compartment && Object.keys(compartment).length != 0" class="table main-table is-fullwidth">
-          <tr>
-            <td class="td-key has-background-primary has-text-white-bis">Name</td>
-            <td> {{ compartment.name }}</td>
-          </tr>
-          <tr>
-            <td class="td-key has-background-primary has-text-white-bis">Subsystems</td>
-            <td>
-              <div v-html="subsystemListHtml"></div>
-              <div v-if="!showFullSubsystem && subsystems.length > limitSubsystem">
-                <br>
-                <button class="is-small button" @click="showFullSubsystem=true">
-                  ... and {{ subsystems.length - limitSubsystem }} more
-                </button>
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <td class="td-key has-background-primary has-text-white-bis">Reactions</td>
-            <td> {{ compartment.reaction_count }}</td>
-          </tr>
-          <tr>
-            <td class="td-key has-background-primary has-text-white-bis">Metabolites</td>
-            <td> {{ compartment.metabolite_count }}</td>
-          </tr>
-          <tr>
-            <td class="td-key has-background-primary has-text-white-bis">Genes</td>
-            <td> {{ compartment.gene_count }}</td>
-          </tr>
-        </table>
-        <span class="is-size-5">The
+        <div class="table-container">
+          <table v-if="compartment && Object.keys(compartment).length != 0"
+                 class="table main-table is-fullwidth">
+            <tr>
+              <td class="td-key has-background-primary has-text-white-bis">Name</td>
+              <td> {{ compartment.name }}</td>
+            </tr>
+            <tr>
+              <td class="td-key has-background-primary has-text-white-bis">Subsystems</td>
+              <td>
+                <div v-html="subsystemListHtml"></div>
+                <div v-if="!showFullSubsystem && subsystems.length > limitSubsystem">
+                  <br>
+                  <button class="is-small button" @click="showFullSubsystem=true">
+                    ... and {{ subsystems.length - limitSubsystem }} more
+                  </button>
+                </div>
+              </td>
+            </tr>
+            <tr>
+              <td class="td-key has-background-primary has-text-white-bis">Reactions</td>
+              <td> {{ compartment.reaction_count }}</td>
+            </tr>
+            <tr>
+              <td class="td-key has-background-primary has-text-white-bis">Metabolites</td>
+              <td> {{ compartment.metabolite_count }}</td>
+            </tr>
+            <tr>
+              <td class="td-key has-background-primary has-text-white-bis">Genes</td>
+              <td> {{ compartment.gene_count }}</td>
+            </tr>
+          </table>
+        </div>
+        <p>The
           <a :href="`/api/${model.database_name}/compartment/${cName}/`"
              target="_blank">complete list in JSON format</a>
           of reactions / metabolites / genes is available using our
-          <a href="/api/" target="_blank">API</a></span>
+          <a href="/api/" target="_blank">API</a></p>
       </div>
       <div class="column is-2-widescreen is-3-desktop is-half-tablet has-text-centered">
         <maps-available :id="cName" :type="type" :element-i-d="''" />
@@ -73,13 +76,13 @@ export default {
   },
   data() {
     return {
-      cName: this.$route.params.id,
+      cName: '',
       type: 'compartment',
-      showLoader: false,
       errorMessage: '',
       showFullSubsystem: false,
       limitSubsystem: 30,
       componentNotFound: false,
+      showLoaderMessage: '',
     };
   },
   computed: {
@@ -98,7 +101,7 @@ export default {
         if (!this.showFullSubsystem && i === this.limitSubsystem) {
           break;
         }
-        const customLink = buildCustomLink({ model: this.model.database_name, type: 'subsystem', id: s.id, title: s.name, cssClass: 'is-size-6' });
+        const customLink = buildCustomLink({ model: this.model.database_name, type: 'subsystem', id: s.id, title: s.name });
         l.push(`<span id="${s.id}" class="tag sub">${customLink}</span>`);
       }
       l.push('</span>');
@@ -106,30 +109,22 @@ export default {
     },
   },
   watch: {
-    /* eslint-disable quote-props */
-    '$route': async function watchSetup() {
-      if (this.$route.path.includes('/gem-browser/') && this.$route.path.includes('/compartment/')) {
-        if (this.cName !== this.$route.params.id) {
-          await this.setup();
-        }
-      }
+    $route() {
+      this.setup();
     },
   },
-  async beforeMount() {
-    await this.setup();
+  beforeMount() {
+    this.setup();
   },
   methods: {
     async setup() {
+      this.showLoaderMessage = 'Loading compartment data';
       this.cName = this.$route.params.id;
-      await this.load();
-    },
-    async load() {
-      this.showLoader = true;
       try {
         const payload = { model: this.model.database_name, id: this.cName };
         await this.$store.dispatch('compartments/getCompartmentSummary', payload);
         this.componentNotFound = false;
-        this.showLoader = false;
+        this.showLoaderMessage = '';
       } catch {
         this.componentNotFound = true;
         document.getElementById('search').focus();

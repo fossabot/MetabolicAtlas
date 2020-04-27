@@ -17,7 +17,6 @@ import { default as EventBus } from '@/event-bus';
 import RNALegend from '@/components/explorer/mapViewer/RNALegend.vue';
 import { getSingleRNAExpressionColor, getComparisonRNAExpressionColor, multipleColors } from '@/expression-sources/hpa';
 import { default as messages } from '@/helpers/messages';
-import { setRouteForGeneExp1, setRouteForGeneExp2 } from '@/helpers/url';
 
 export default {
   name: 'RNAexpression',
@@ -177,11 +176,8 @@ export default {
     parseHPARNAlevels(tissue, dim, index, callback) {
       const RNAlevels = {};
       const tissueIndex = this.HPARNAlevelsHistory[this.mapName][dim].tissues.indexOf(tissue);
-      if (index === 0) {
-        this.$router.replace(setRouteForGeneExp1({ route: this.$route, tissue })).catch(() => {});
-      } else {
-        this.$router.replace(setRouteForGeneExp2({ route: this.$route, tissue })).catch(() => {});
-      }
+      this.$store.dispatch(`maps/setTissue${index + 1}`, tissue);
+
       const { levels } = this.HPARNAlevelsHistory[this.mapName][dim];
       levels.forEach((array) => {
         const enzID = array[0];

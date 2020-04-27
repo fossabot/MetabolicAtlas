@@ -1,6 +1,6 @@
 <template>
   <div class="extended-section">
-    <section class="hero video container" style="max-width:100%; width:100%;">
+    <section class="hero video container is-fullhd" style="max-width:100%; width:100%;">
       <div class="hero-video is-transparent is-block-mobile">
         <video poster="@/assets/banner_video.jpg"
                playsinline autoplay
@@ -9,16 +9,16 @@
         </video>
       </div>
       <div class="hero-body">
-        <div class="container has-text-centered">
-          <h1 class="is-size-1 title has-text-primary">METABOLIC ATLAS</h1>
-          <h2 class="is-size-2 has-text-gray">
+        <div class="container is-fullhd has-text-centered">
+          <p class="is-size-2 title has-text-primary">METABOLIC ATLAS</p>
+          <h3 class="is-size-3 has-text-gray">
             THE ATLAS FOR EXPLORATION OF METABOLISM
-          </h2>
+          </h3>
         </div>
       </div>
     </section>
     <section class="section">
-      <div id="home" class="container">
+      <div id="home" class="container is-fullhd">
         <div class="columns is-hidden-touch">
           <div class="column">
             <div class="card">
@@ -26,7 +26,7 @@
                 <div id="menu-desktop"
                      class="column is-narrow has-background-primary has-text-weight-bold is-paddingless">
                   <aside class="menu">
-                    <ul class="menu-list is-size-5 is-unselectable">
+                    <ul class="menu-list is-unselectable">
                       <li v-for="menuItem in menu" :key="menuItem.title">
                         <a :class="[ {'is-active' : menuItem.title === currentMenu.title}]"
                            @click="currentMenu = menuItem">
@@ -40,15 +40,15 @@
                   </aside>
                 </div>
                 <div class="column more-padding is-v-aligned">
-                  <p class="is-size-5 has-text-justified" v-html="currentMenu.text"></p>
+                  <p class="has-text-justified" v-html="currentMenu.text"></p>
                 </div>
                 <div class="column more-padding is-v-aligned">
-                  <router-link :to="currentMenu.routerName">
+                  <router-link :to="currentMenu.route">
                     <div class="card" :class="{ 'hoverable': currentMenu.cardLink}">
                       <img :src="currentMenu.img" :alt="currentMenu.title" />
                       <template v-if="currentMenu.cardLink">
                         <footer class="card-footer has-text-centered has-background-primary-lighter">
-                          <a class="card-footer-item is-size-5 has-text-weight-bold">{{ currentMenu.cardLink }}</a>
+                          <a class="card-footer-item has-text-weight-bold">{{ currentMenu.cardLink }}</a>
                         </footer>
                       </template>
                     </div>
@@ -60,10 +60,10 @@
         </div>
         <div class="columns is-hidden-desktop">
           <div class="column">
-            <div class="card is-size-5">
+            <div class="card">
               <header class="card-header has-background-primary">
                 <div class="card-header-title is-centered">
-                  <div class="tabs is-centered">
+                  <div class="tabs is-medium is-centered">
                     <ul id="menu-mobile">
                       <li v-for="menuItem in menu" :key="menuItem.title">
                         <a :class="[ {'is-active' : menuItem.title === currentMenu.title}]"
@@ -82,12 +82,12 @@
                     <p class="has-text-justified" v-html="currentMenu.text"></p>
                   </div>
                   <div class="column is-half-tablet is-full-mobile more-padding is-v-aligned">
-                    <router-link :to="currentMenu.routerName">
+                    <router-link :to="currentMenu.route">
                       <div class="card" :class="{ 'card-selectable': currentMenu.cardLink}">
                         <img :src="currentMenu.img" :alt="currentMenu.title" />
                         <template v-if="currentMenu.cardLink">
                           <footer class="card-footer has-text-centered has-background-primary-lighter">
-                            <a class="card-footer-item is-size-5 has-text-weight-bold">{{ currentMenu.cardLink }}</a>
+                            <a class="card-footer-item has-text-weight-bold">{{ currentMenu.cardLink }}</a>
                           </footer>
                         </template>
                       </div>
@@ -101,8 +101,8 @@
         <br>
         <div id="newsandcommunity" class="columns is-variable is-6">
           <div v-for="card in cards" :key="card.title" class="column is-half">
-            <div class="card card-fullheight is-size-5">
-              <header class="card-header has-background-success">
+            <div class="card card-fullheight">
+              <header class="card-header has-background-success ">
                 <p class="card-content has-text-weight-bold has-text-white">{{ card.title }}</p>
               </header>
               <div class="card-content has-text-justified">
@@ -145,53 +145,54 @@ export default {
           text: '<b>Metabolic Atlas</b> integrates open source genome-scale metabolic models (GEMs) of human and yeast for easy browsing and analysis. It also contains many more GEMs constructed by our organization.<br><br>Detailed biochemical information is provided for individual model components, such as reactions, metabolites, and genes. These components are also associated with standard identifiers, facilitating integration with external databases, such as the Human Protein Atlas. <br><br><a href="https://doi.org/10.1126/scisignal.aaz1482" target="_blank">Robinson, J., et al, 2020. <i>An atlas of human metabolism</i>. Sci. Signal. 13, eaaz1482 </a>',
           img: require('../assets/explorer.jpg'),
           cardLink: 'Explore a GEM',
-          routerName: { name: 'explorerRoot' },
+          route: { name: 'explorerRoot' },
           icon: 'home' },
         { title: messages.gemBrowserName,
           text: 'The <b>GEM Browser</b> enables powerful query and exploration of model content in tabular format.<br><br>A wide range of attributes, including reaction equations, metabolite formulas, gene rules and subsystem contents, are presented as a detailed network of individual model components. They are highly interconnected and rationally associated to easily navigate and switch between them.<br><br>Visit the documentation to learn about the different functionalities provided by the GEM Browser.',
           img: require('../assets/gemBrowser.jpg'),
           cardLink: 'Explore Human-GEM with the GEM Browser',
-          routerName: { name: 'browserRoot', params: { model: 'human1' } },
+          route: { name: 'browserRoot', params: { model: 'human1' } },
           icon: 'table' },
         { title: messages.mapViewerName,
           text: 'For easy visualization, <b>Metabolic Atlas</b> handles both 2D and 3D maps. For each of the integrated models, the website automatically generates 3D graphs at both compartment and subsystem level.<br><br>Both compartment and subsystem 2D maps of the Human-GEM have been created by the contributors to Human-GEM and are manually curated. On these maps, one can search for reactions, metabolites or genes. Moreover, RNA expression data from Human Protein Atlas can be overlaid.<br><br>By clicking on an element on the map, more information of that element will be shown on the left sidebar. From there, one can navigate back to the <b>GEM Browser</b> for detailed information.',
           img: require('../assets/mapViewer.jpg'),
           cardLink: 'Explore the Golgi apparatus with the Map Viewer',
-          routerName: { name: 'viewerRoot', params: { model: 'human1' } },
+          route: { name: 'viewer', params: { model: 'human1', type: 'compartment', map_id: 'golgi_apparatus' }, query: { dim: '2d' } },
           icon: 'map-o' },
         { title: messages.interPartName,
           text: `The <b>Interaction Partners</b> graph shows connectivity between metabolites and genes based on their associated reactions.<br><br>The graph is dynamically generated and is customizable. One can interact with a restricted part of the metabolic network, or further expand the interaction partners of any element already on the graph. Moreover, RNA expression data from the Human Protein Atlas can be overlaid onto the graph. <br><br>This feature is available only for metabolites and genes, and is accessible via the <b>${messages.gemBrowserName}</b>.`,
           img: require('../assets/interaction.jpg'),
           cardLink: 'View glyoxalate[p] in Interaction Partners',
-          routerName: { name: 'interPartner', params: { model: 'human1', id: 'm02007p' } },
+          route: { name: 'interPartner', params: { model: 'human1', id: 'm02007p' } },
           icon: 'connectdevelop' },
         { title: 'Search',
           text: 'The menu bar contains a shortcut to the <b>Global search</b> function, which enables users to easily search cellular components across all the integrated models. Further filtering is also available, based on result type (e.g. metabolite) and its parameters (e.g. compartment).<br><br>For retrieving larger subsets of the model, we recommend experienced users to use our the API. Alternatively, models can be downloaded from the <b>GEM Repository</b> page or from their original repository on GitHub.<br><br>',
           img: require('../assets/search.jpg'),
           cardLink: 'Search within all integrated GEMs',
-          routerName: { name: 'search', query: { term: '' } },
+          route: { name: 'search', query: { term: '' } },
           icon: 'search' },
         { title: 'Analyze',
           text: 'Gene expression data from the Human Protein Atlas can be viewed in the 2D and 3D maps and Interaction Partners. User data can also be overlaid onto the maps, with the option of comparing datasets, for example against normal tissue.<br><br>Additional types of omics integrations are under development.',
           img: require('../assets/analyze.jpg'),
-          routerName: '',
+          route: '',
           icon: 'tasks' },
         { title: 'GEM Repository',
           text: 'Over 350 GEMs can be downloaded from the <b>GEM Repository</b> or directly from the <b>Metabolic Atlas FTP server</b>. The tabular view enables customized selection.<br><br>Clicking on each of the models brings up more information about the model, including a text description and, if available, references. For support, the original authors should be contacted.',
           img: require('../assets/gems.jpg'),
           cardLink: 'GEM Repository',
-          routerName: { name: 'gems' },
+          route: { name: 'gems' },
           icon: 'files-o' },
         { title: 'Export',
           text: '<b>Metabolic Atlas</b> provides open access to the models and associated annotations. Most of the data provided on the website is convenient to export, for example via <b>Export to TSV</b> buttons.<br><br>For the ones interested in extracting data in JSON format, we have documented our API. When using images or files obtained from our website, use the following reference:<br><br><a href="https://doi.org/10.1126/scisignal.aaz1482" target="_blank">Robinson, J., et al, 2020. <i>An atlas of human metabolism</i>. Sci. Signal. 13, eaaz1482 </a>',
           img: require('../assets/export.jpg'),
           cardLink: 'Export TSV for glyoxolate metabolites',
+          route: { name: 'search', query: { term: 'glyoxalate' } },
           icon: 'download' },
         { title: 'Resources',
           text: 'Working with metabolic models requires a set of tools and external databases, which we have collected together for one-click access.<br><br>Additionally, Metabolic Atlas is open to further integrations.',
           img: require('../assets/resources.jpg'),
           cardLink: 'Resources',
-          routerName: { name: 'resources' },
+          route: { name: 'resources' },
           icon: 'gears' },
       ],
       currentMenu: {},
@@ -276,6 +277,7 @@ export default {
     max-width: 480px;
   }
   #menu-mobile li {
+    padding-top: 10px;
     a {
       color: $white-bis;
     }
@@ -305,6 +307,11 @@ export default {
     display: flex;
     align-items: center;
     justify-content: center;
+  }
+  .tabs ul {
+    flex-shrink: 1;
+    flex-wrap: wrap;
+    border-bottom-color: transparent;
   }
 }
 

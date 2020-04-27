@@ -1,13 +1,14 @@
 <template>
   <div class="column is-three-fifths-desktop is-three-quarters-tablet is-fullwidth-mobile">
     <div class="control">
-      <div id="input-wrapper">
+      <div>
         <p class="control has-icons-right has-icons-left">
           <!-- eslint-disable max-len -->
           <input id="search" ref="searchInput"
                  v-debounce:700="searchDebounce" data-hj-whitelist
-                 type="text" class="input is-medium"
+                 type="text" class="input"
                  :placeholder="placeholder"
+                 :value="searchTermString"
                  @keyup.esc="showResults = false"
                  @focus="showResults = true"
                  @blur="blur()">
@@ -15,14 +16,16 @@
             Type at least 2 characters
           </span>
           <span class="icon is-medium is-left">
-            <i class="fa fa-search"></i>
-          </span>
-          <span class="icon is-small is-right">
             <i class="fa" :class="metabolitesAndGenesOnly ? 'fa-connectdevelop' : 'fa-table'"></i>
           </span>
         </p>
-        <router-link class="is-pulled-right is-size-5" :to="{ name: 'search', query: { term: searchTermString } }">
-          Global search
+        <router-link v-if="$route.name === 'browser'"
+                     class="is-pulled-left has-text-grey-light"
+                     :to="{ name: 'browserRoot', params: { model: model.database_name } }">
+          &larr; back to tiles
+        </router-link>
+        <router-link class="is-pulled-right" :to="{ name: 'search', query: { term: searchTermString } }">
+          Global Search
         </router-link>
       </div>
       <div v-show="showResults && searchTermString.length > 1" id="searchResults" ref="searchResults">
@@ -53,7 +56,7 @@
           <div v-if="notFoundSuggestions.length !== 0">
             Do you mean:&nbsp;
             <template v-for="v in notFoundSuggestions">
-              <a :key="v" class="suggestions has-text-link" @click.prevent="search(v)">{{ v }}</a>&nbsp;
+              <a :key="v" class="suggestions has-text-link" @click.prevent="searchDebounce(v)">{{ v }}</a>&nbsp;
             </template>?
           </div>
         </div>
@@ -194,10 +197,6 @@ export default {
 </script>
 
 <style lang="scss">
-
-#input-wrapper {
-  position: relative; /* for absolute child element */
-}
 
 #searchResults {
   background: white;
