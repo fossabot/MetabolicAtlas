@@ -1013,7 +1013,7 @@ def processData(database, map_type, map_directory, svg_map_metadata_file):
                     exit(1)
 
                 if not re.match('[0-9a-zA-Z_]+[.]svg$', ci[3]):
-                    print("invalid file name %s, expected to match [0-9a-zA-Z_]+[.]svg$")
+                    print("invalid file name '%s', expected to match [0-9a-zA-Z_]+[.]svg$" % ci[3])
                     exit(1)
 
                 inDB = False
@@ -1057,7 +1057,7 @@ def processData(database, map_type, map_directory, svg_map_metadata_file):
                     exit(1)
 
                 if not re.match('[0-9a-zA-Z_]+[.]svg$', si[3]):
-                    print("invalid file name %s, expected to match [0-9a-zA-Z_]+[.]svg$")
+                    print("invalid file name '%s', expected to match [0-9a-zA-Z_]+[.]svg$" % si[3])
                     exit(1)
 
                 inDB = False
