@@ -199,6 +199,9 @@ export default {
       cards: [
         { title: 'Latest news',
           text: [
+            { date: '2020.04.27',
+              hash: '27-April-2020',
+              text: 'Metabolic Atlas v1.7 brings Map Viewer improvements' },
             { date: '2020.03.23',
               hash: '23-March-2020',
               text: 'Metabolic Atlas v1.6' },
