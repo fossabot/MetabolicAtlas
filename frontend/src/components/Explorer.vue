@@ -1,6 +1,6 @@
 <template>
   <section :class="{ 'section extended-section' : !extendWindow }">
-    <div :class="{ 'container': !extendWindow }">
+    <div :class="{ 'container is-fullhd': !extendWindow }">
       <template v-if="modelNotFound">
         <div class="columns is-centered">
           <notFound type="model" :component-id="modelNotFound"></notFound>
@@ -25,9 +25,8 @@
         </div>
         <div v-if="model" class="columns is-multiline is-centered">
           <div v-for="cmodel in Object.values(models).sort((a, b) =>
-               (a.short_name.toLowerCase() < b.short_name.toLowerCase() ? -1 : 1))"
-               class="column is-5-desktop is-half-tablet"
-               :key="cmodel.database_name">
+                 (a.short_name.toLowerCase() < b.short_name.toLowerCase() ? -1 : 1))"
+               :key="cmodel.database_name" class="column is-5-desktop is-half-tablet">
             <div id="selectedModel" style="height: 100%"
                  class="box has-text-centered clickable hoverable"
                  :class="cmodel.database_name === model.database_name ? 'selectedBox' : ''"
@@ -57,12 +56,12 @@
         </div>
         <div v-if="model" class="columns is-multiline is-centered">
           <div v-for="tool in explorerTools" :key="tool.name"
-                class="column is-one-fifth-widescreen is-4-desktop is-4-tablet">
+               class="column is-one-fifth-widescreen is-4-desktop is-4-tablet">
             <router-link :to="{ name: tool.routeName, params: { model: model.database_name } }"
-                           :title="`Click to access the ${tool.name} for ${model.short_name} model`">
+                         :title="`Click to access the ${tool.name} for ${model.short_name} model`">
               <div class="card card-fullheight hoverable">
                 <header class="card-header">
-                  <p class="card-header-title is-block has-text-centered is-size-5" >
+                  <p class="card-header-title is-block has-text-centered is-size-5">
                     <span class="icon is-medium" style="width: 100%">
                       <i :class="`fa fa-${tool.icon}`"></i>
                       &nbsp;&nbsp;{{ tool.name }}
@@ -144,16 +143,6 @@ export default {
   },
   async created() {
     await this.getModelList();
-
-    EventBus.$on('showMapViewer', () => {
-      this.displayViewer();
-    });
-    EventBus.$on('showGemBrowser', () => {
-      this.displayBrowser();
-    });
-    EventBus.$on('showInteractionPartner', () => {
-      this.displayInterPartner();
-    });
   },
   methods: {
     setup() {

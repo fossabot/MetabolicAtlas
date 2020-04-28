@@ -2,7 +2,7 @@
   <div id="app">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
     <nav id="navbar" class="navbar has-background-primary-lighter" role="navigation" aria-label="main navigation">
-      <div class="container">
+      <div class="container is-fullhd">
         <div class="navbar-brand">
           <router-link class="navbar-item" :to="{ name: 'home' }" active-class="" @click.native="isMobileMenu = false">
             <img :src="require('./assets/logo.png')" />
@@ -14,21 +14,12 @@
           </div>
         </div>
         <div id="#nav-menu" class="navbar-menu" :class="{ 'is-active': isMobileMenu }">
-          <div v-show="model" class="navbar-start has-text-centered"
-               title="Click to toggle between the GEM Browser and the Map Viewer">
-            <router-link v-if="activeViewerBut || activeBrowserBut" :to="{ name: 'explorerRoot' }"
-                         class="navbar-item is-size-4 has-text-primary has-text-weight-bold is-unselectable"
-                         title="Current selected model, click to change your selection" exact>
+          <div v-show="model" class="navbar-start has-text-centered" title="Click to change model or tool">
+            <router-link v-if="$route.path.includes('/explore')"
+                         :to="{ name: 'explorerRoot' }"
+                         class="navbar-item is-size-4 has-text-primary has-text-weight-bold is-unselectable" exact>
               {{ model ? model.short_name : '' }}
             </router-link>
-            <a v-if="activeViewerBut || activeBrowserBut" class="navbar-item is-unselectable is-active-underline"
-               :class="{ 'router-link-active': activeBrowserBut }" @click="goToGemBrowser()">
-              GEM Browser
-            </a>
-            <a v-if="activeViewerBut || activeBrowserBut" class="navbar-item is-unselectable is-active-underline"
-               :class="{ 'router-link-active': activeViewerBut }" @click="goToMapViewer()">
-              Map Viewer
-            </a>
           </div>
           <div class="navbar-end has-background-primary-lighter">
             <template v-for="(menuElem) in menuElems">
@@ -165,8 +156,6 @@ export default {
           routeName: 'about',
         },
       ],
-      activeBrowserBut: false,
-      activeViewerBut: false,
       showCookieMsg: navigator.doNotTrack !== '1' && !isCookiePolicyAccepted(),
       acceptCookiePolicy,
       activeDropMenu: '',
@@ -179,59 +168,6 @@ export default {
     ...mapState({
       model: state => state.models.model,
     }),
-  },
-  watch: {
-    $route: function watchSetup() {
-      this.setupButons();
-    },
-  },
-  created() {
-    this.setupButons();
-  },
-  methods: {
-    setupButons() {
-      if (['browserRoot', 'browser'].includes(this.$route.name)) {
-        this.activeBrowserBut = true;
-        this.activeViewerBut = false;
-        this.saveRoute();
-      } else if (['viewerRoot', 'viewer'].includes(this.$route.name)) {
-        this.activeBrowserBut = false;
-        this.activeViewerBut = true;
-        this.saveRoute();
-      } else {
-        this.activeBrowserBut = false;
-        this.activeViewerBut = false;
-      }
-    },
-    goToGemBrowser() {
-      if (Object.keys(this.browserLastRoute).length !== 0) {
-        if (this.$route.path !== this.browserLastRoute.path) {
-          this.$router.push(this.browserLastRoute);
-        }
-      } else {
-        this.$router.push({ name: 'browserRoot', params: { model: this.$route.params.model } });
-      }
-    },
-    goToMapViewer() {
-      if (Object.keys(this.viewerLastRoute).length !== 0) {
-        if (this.$route.path !== this.viewerLastRoute.path) {
-          this.$router.push(this.viewerLastRoute);
-        }
-      } else {
-        this.$router.push({ name: 'viewerRoot', params: { model: this.$route.params.model } });
-      }
-    },
-    saveRoute() {
-      if (this.$route.name === 'browser') {
-        this.browserLastRoute = Object.assign(this.$route);
-      } else if (this.$route.name === 'browserRoot') {
-        this.browserLastRoute = {};
-      } else if (this.$route.name === 'viewer') {
-        this.viewerLastRoute = Object.assign(this.$route);
-      } else if (this.$route.name === 'viewerRoot') {
-        this.viewerLastRoute = {};
-      }
-    },
   },
 };
 </script>
@@ -333,6 +269,10 @@ m, .clickable {
     a {
       font-weight: 400;
     }
+    margin-left: 0.5rem;
+  }
+  .navbar-menu {
+    margin-right: 0.5rem;
   }
   .navbar-burger{
     height: 4rem;

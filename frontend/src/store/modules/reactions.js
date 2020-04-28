@@ -29,9 +29,7 @@ const actions = {
     }, { root: true });
 
     const pmids = pubmedIds.map(pm => pm.pubmedId);
-    if (pmids.length !== 0) {
-      commit('setReferenceList', pmids);
-    }
+    commit('setReferenceList', pmids);
   },
   async getRelatedReactionsForReaction({ commit }, { model, id }) {
     console.warn(`TODO: use real model: ${model} and id: ${id}`);

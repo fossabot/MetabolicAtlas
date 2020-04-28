@@ -17,14 +17,14 @@
       <div class="field columns">
         <div class="column"
              :title="(reactions.length || -1) === limitReaction ?
-             `The number of reactions displayed is limited to ${limitReaction}` : ''"
+               `The number of reactions displayed is limited to ${limitReaction}` : ''"
         >
           Showing {{ reactions.length }} reaction(s)
           <template v-if="transportReactionCount !== 0">
             including {{ transportReactionCount }} transport reactions
           </template>
           <template v-if="(reactions.length || -1) === limitReaction" class="icon">
-            <i class="fa fa-exclamation-triangle has-text-warning"></i> limited to {{limitReaction}}
+            <i class="fa fa-exclamation-triangle has-text-warning"></i> limited to {{ limitReaction }}
           </template>
         </div>
         <div class="column is-narrow">
@@ -167,6 +167,11 @@ export default {
         compare(this.sortBy, this.sortPattern, this.sortOrder));
     },
   },
+  watch: {
+    sourceName() {
+      this.setup();
+    },
+  },
   async beforeMount() {
     this.setup();
   },
@@ -183,7 +188,7 @@ export default {
         await this.$store.dispatch(`reactions/getRelatedReactionsFor${this.type[0].toUpperCase()}${this.type.slice(1)}`, payload);
         this.showReactionLoader = false;
       } catch {
-        this.errorMessage = `Could not load reactions for ${this.type} ${this.selectedElmId}.`;
+        this.errorMessage = `Could not load reactions for ${this.type} ${this.sourceName}.`;
         this.showReactionLoader = false;
       }
     },
