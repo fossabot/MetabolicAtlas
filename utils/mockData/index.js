@@ -181,7 +181,7 @@ const SCHEMA = {
   nodeTypes: {
     metabolite: {
       hasModelLabel: true,
-      quantity: 6000,
+      quantity: 2000,
       fields: [["id", fieldTypes.STRING]],
       stateFields: [
         ["metaboliteId", fieldTypes.STRING],
@@ -203,6 +203,11 @@ const SCHEMA = {
         ["name", fieldTypes.STRING],
         ["letterCode", fieldTypes.STRING]
       ]
+    },
+    compartmentalizedMetabolite: {
+      hasModelLabel: true,
+      quantity: 6000,
+      fields: [["id", fieldTypes.STRING]]
     },
     reaction: {
       quantity: 15000,
@@ -264,17 +269,21 @@ const SCHEMA = {
   },
   relationships: [
     {
-      node1: "metabolite",
+      node1: "compartmentalizedMetabolite",
+      node2: "metabolite"
+    },
+    {
+      node1: "compartmentalizedMetabolite",
       node2: "compartment"
     },
     {
-      node1: "metabolite",
+      node1: "compartmentalizedMetabolite",
       node2: "reaction",
       relFields: [["stoichiometry", fieldTypes.FLOAT]]
     },
     {
       node1: "reaction",
-      node2: "metabolite",
+      node2: "compartmentalizedMetabolite",
       relFields: [["stoichiometry", fieldTypes.FLOAT]]
     },
     {
