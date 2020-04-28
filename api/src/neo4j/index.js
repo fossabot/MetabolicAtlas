@@ -1,16 +1,16 @@
-import getCompartment from './queries/compartment.js';
-import getGene from './queries/gene.js';
-import getReaction from './queries/reaction.js';
-import getSubsystem from './queries/subsystem.js';
-import getMetabolite from './queries/metabolite.js';
-import search from './queries/search.js';
+import getCompartment from './queries/compartment';
+import getGene from './queries/gene';
+import getReaction from './queries/reaction';
+import getSubsystem from './queries/subsystem';
+import getMetabolite from './queries/metabolite';
+import search from './queries/search';
 import {
   getRelatedReactionsForReaction,
   getRelatedReactionsForGene,
   getRelatedReactionsForMetabolite,
   getRelatedReactionsForSubsystem,
   getRelatedReactionsForCompartment,
-} from './queries/relatedReactions.js';
+} from './queries/relatedReactions';
 
 export {
   getCompartment,

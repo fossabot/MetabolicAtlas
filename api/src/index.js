@@ -1,8 +1,8 @@
-import express from 'express'
-import router from './endpoints/index.js'
+import express from 'express';
+import router from './endpoints/index';
 
-const app = express()
+const app = express();
 
-app.use('/new_api', router)
+app.use('/new_api', router);
 
-app.listen(8081)
+app.listen(8081);

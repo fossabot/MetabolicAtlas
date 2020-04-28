@@ -1,4 +1,4 @@
-import driver from '../driver.js';
+import driver from '../driver';
 
 const queryListResult = async (statement) => {
   const session = driver.session();
@@ -8,7 +8,7 @@ const queryListResult = async (statement) => {
 
   try {
     const response = await session.run(statement);
-    result = response.records.map(r => r.get(0));
+    result = response.records.map((r) => r.get(0));
   } catch (e) {
     error = e;
   } finally {

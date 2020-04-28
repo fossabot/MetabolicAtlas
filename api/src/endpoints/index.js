@@ -1,8 +1,8 @@
-import express from 'express'
-import neo4jRoutes from './neo4j.js'
+import express from 'express';
+import neo4jRoutes from './neo4j';
 
-const router  = express.Router();
+const router = express.Router();
 
-router.use('/integrated', neo4jRoutes)
+router.use('/integrated', neo4jRoutes);
 
-export default router
+export default router;

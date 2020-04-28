@@ -1,17 +1,17 @@
-import querySingleResult from '../queryHandlers/single.js';
-import reformatExternalDbs from '../shared/formatter.js';
+import querySingleResult from '../queryHandlers/single';
+import reformatExternalDbs from '../shared/formatter';
 
 const getSubsystem = async ({ id, version }) => {
   const v = version;
   const statement = `
-MATCH (s:Subsystem)-[:V${1}]-(r:Reaction)-[:V${1}]-(m:Metabolite)-[:V${1}]-(c:Compartment)-[:V${1}]-(cs:CompartmentState)
+MATCH (s:Subsystem)-[:V${v}]-(r:Reaction)-[:V${v}]-(m:Metabolite)-[:V${v}]-(c:Compartment)-[:V${v}]-(cs:CompartmentState)
 WHERE s.id="${id}"
-MATCH (s)-[:V${1}]-(ss:SubsystemState)
-MATCH (m)-[:V${1}]-(ms:MetaboliteState)
-OPTIONAL MATCH (r)-[:V${1}]-(g:Gene)-[:V${1}]-(gs:GeneState)
-OPTIONAL MATCH (s)-[:V${1}]-(e:ExternalDb)
-OPTIONAL MATCH (c)-[:V${1}]-(csvg:SvgMap)
-OPTIONAL MATCH (s)-[:V${1}]-(ssvg:SvgMap)
+MATCH (s)-[:V${v}]-(ss:SubsystemState)
+MATCH (m)-[:V${v}]-(ms:MetaboliteState)
+OPTIONAL MATCH (r)-[:V${v}]-(g:Gene)-[:V${v}]-(gs:GeneState)
+OPTIONAL MATCH (s)-[:V${v}]-(e:ExternalDb)
+OPTIONAL MATCH (c)-[:V${v}]-(csvg:SvgMap)
+OPTIONAL MATCH (s)-[:V${v}]-(ssvg:SvgMap)
 RETURN ss {
   id: s.id,
   .*,
