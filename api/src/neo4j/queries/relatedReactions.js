@@ -29,8 +29,6 @@ RETURN rrs {
 } as reactions
 `;
 
-  console.log(statement);
-
   return queryListResult(statement);
 };
 
