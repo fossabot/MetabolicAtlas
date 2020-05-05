@@ -11,6 +11,7 @@ import {
   getRelatedReactionsForSubsystem,
   getRelatedReactionsForCompartment,
 } from './queries/relatedReactions';
+import getRelatedMetabolites from './queries/relatedMetabolites';
 
 export {
   getCompartment,
@@ -24,4 +25,5 @@ export {
   getRelatedReactionsForMetabolite,
   getRelatedReactionsForSubsystem,
   getRelatedReactionsForCompartment,
+  getRelatedMetabolites,
 };

@@ -44,7 +44,7 @@ MATCH (related)-[:V${v}]-(relatedS:ReactionState)`;
       break;
     case NODE_TYPES.metabolite:
       statement = `
-MATCH (x:Metabolite)-[:V${v}]-(:CompartmentalizedMetabolite)-[:V${v}]-(related:Reaction)-[:V${v}]-(relatedS:ReactionState)
+MATCH (x:CompartmentalizedMetabolite)-[:V${v}]-(related:Reaction)-[:V${v}]-(relatedS:ReactionState)
 WHERE x.id="${id}"
 MATCH (related)-[metaboliteEdge:V${v}]-(cm:CompartmentalizedMetabolite)-[:V${v}]-(:Metabolite)-[:V${v}]-(ms:MetaboliteState)`;
       break;
