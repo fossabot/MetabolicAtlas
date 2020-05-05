@@ -7,7 +7,7 @@ const getReaction = async ({ id, version }) => {
 MATCH (r:Reaction)-[cmE:V${v}]-(cm:CompartmentalizedMetabolite)-[:V${v}]-(c:Compartment)-[:V${v}]-(cs:CompartmentState)
 WHERE r.id="${id}"
 MATCH (r:Reaction)-[:V${v}]-(rs:ReactionState)
-MATCH (cm)-[:V${v}]-(m:Metabolite)-[:V${v}]-(ms:MetaboliteState)
+MATCH (cm)-[:V${v}]-(:Metabolite)-[:V${v}]-(ms:MetaboliteState)
 OPTIONAL MATCH (r)-[:V${v}]-(s:Subsystem)-[:V${v}]-(ss:SubsystemState)
 OPTIONAL MATCH (r)-[:V${v}]-(g:Gene)-[:V${v}]-(gs:GeneState)
 OPTIONAL MATCH (r)-[:V${v}]-(e:ExternalDb)
@@ -22,7 +22,7 @@ RETURN rs {
   genes: COLLECT(DISTINCT(gs {id: g.id, .*})),
   externalDbs: COLLECT(DISTINCT(e {.*})),
   pubmedIds: COLLECT(DISTINCT(p {.*})),
-  metabolites: COLLECT(DISTINCT(ms {id: m.id, stoichiometry: cmE.stoichiometry, outgoing: startnode(cmE)=cm, .*})),
+  metabolites: COLLECT(DISTINCT(ms {id: cm.id, stoichiometry: cmE.stoichiometry, outgoing: startnode(cmE)=cm, .*})),
   compartmentSVGs: COLLECT(DISTINCT(csvg {name: cs.name, .*})),
   subsystemSVGs: COLLECT(DISTINCT(ssvg {name: ss.name, .*}))
 } AS reaction

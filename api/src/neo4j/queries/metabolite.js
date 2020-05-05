@@ -5,13 +5,13 @@ const getMetabolite = async ({ id, version }) => {
   const v = version;
   const statement = `
 MATCH (ms:MetaboliteState)-[:V${v}]-(m:Metabolite)-[:V${v}]-(cm:CompartmentalizedMetabolite)-[:V${v}]-(c:Compartment)-[:V${v}]-(cs:CompartmentState)
-WHERE m.id="${id}"
+WHERE cm.id="${id}"
 OPTIONAL MATCH (m)-[:V${v}]-(s:Subsystem)-[:V${v}]-(ss:SubsystemState)
 OPTIONAL MATCH (m)-[:V${v}]-(e:ExternalDb)
 OPTIONAL MATCH (c)-[:V${v}]-(csvg:SvgMap)
 OPTIONAL MATCH (s)-[:V${v}]-(ssvg:SvgMap)
 RETURN ms {
-  id: m.id,
+  id: cm.id,
   .*,
   compartments: COLLECT(DISTINCT(cs {id: c.id, .*})),
   subsystems: COLLECT(DISTINCT(ss {id: s.id, .*})),

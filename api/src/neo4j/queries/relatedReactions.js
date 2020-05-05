@@ -23,7 +23,7 @@ RETURN rrs {
   id: rr.id,
   compartments: COLLECT(DISTINCT(cs {id: c.id, .*})),
   subsystems: COLLECT(DISTINCT(ss {id: s.id, .*})),
-  metabolites: COLLECT(DISTINCT(ms {id: m.id, stoichiometry: rcmE.stoichiometry, outgoing: startnode(rcmE)=m, .*})),
+  metabolites: COLLECT(DISTINCT(ms {id: rcm.id, stoichiometry: rcmE.stoichiometry, outgoing: startnode(rcmE)=rcm, .*})),
   genes: COLLECT(DISTINCT(gs {id: g.id, .*}))
 } as reactions
 `;
@@ -38,19 +38,19 @@ const getRelatedReactions = async ({ nodeType, id, version }) => {
   switch (nodeType) {
     case NODE_TYPES.gene:
       statement = `
-MATCH (x:Gene)-[:V${v}]-(related:Reaction)-[metaboliteEdge:V${v}]-(CompartmentalizedMetabolite)-[:V${v}]-(m:Metabolite)-[:V${v}]-(ms:MetaboliteState)
+MATCH (x:Gene)-[:V${v}]-(related:Reaction)-[metaboliteEdge:V${v}]-(cm:CompartmentalizedMetabolite)-[:V${v}]-(:Metabolite)-[:V${v}]-(ms:MetaboliteState)
 WHERE x.id="${id}"
 MATCH (related)-[:V${v}]-(relatedS:ReactionState)`;
       break;
     case NODE_TYPES.metabolite:
       statement = `
-MATCH (x:Metabolite)-[:V${v}]-(CompartmentalizedMetabolite)-[:V${v}]-(related:Reaction)-[:V${v}]-(relatedS:ReactionState)
+MATCH (x:Metabolite)-[:V${v}]-(:CompartmentalizedMetabolite)-[:V${v}]-(related:Reaction)-[:V${v}]-(relatedS:ReactionState)
 WHERE x.id="${id}"
-MATCH (related)-[metaboliteEdge:V${v}]-(CompartmentalizedMetabolite)-[:V${v}]-(m:Metabolite)-[:V${v}]-(ms:MetaboliteState)`;
+MATCH (related)-[metaboliteEdge:V${v}]-(cm:CompartmentalizedMetabolite)-[:V${v}]-(:Metabolite)-[:V${v}]-(ms:MetaboliteState)`;
       break;
     case NODE_TYPES.subsystem:
       statement = `
-MATCH (x:Subsystem)-[:V${v}]-(related:Reaction)-[metaboliteEdge:V${v}]-(CompartmentalizedMetabolite)-[:V${v}]-(m:Metabolite)-[:V${v}]-(ms:MetaboliteState)
+MATCH (x:Subsystem)-[:V${v}]-(related:Reaction)-[metaboliteEdge:V${v}]-(cm:CompartmentalizedMetabolite)-[:V${v}]-(:Metabolite)-[:V${v}]-(ms:MetaboliteState)
 WHERE x.id="${id}"
 MATCH (related)-[:V${v}]-(relatedS:ReactionState)`;
       break;
@@ -58,24 +58,25 @@ MATCH (related)-[:V${v}]-(relatedS:ReactionState)`;
       statement = `
 MATCH (x:Compartment)-[:V${v}]-(cm:CompartmentalizedMetabolite)-[metaboliteEdge:V${v}]-(related:Reaction)-[:V${v}]-(relatedS:ReactionState)
 WHERE x.id="${id}"
-MATCH (cm)-[:V${v}]-(m:Metabolite)-[:V${v}]-(ms:MetaboliteState)`;
+MATCH (cm)-[:V${v}]-(:Metabolite)-[:V${v}]-(ms:MetaboliteState)`;
       break;
     default:
       throw new Error(`Unrecognized node type: ${nodeType}`);
   }
 
   statement += `
-OPTIONAL MATCH (m)-[:V${v}]-(c:Compartment)-[:V${v}]-(cs:CompartmentState)
+OPTIONAL MATCH (cm)-[:V${v}]-(c:Compartment)-[:V${v}]-(cs:CompartmentState)
 OPTIONAL MATCH (related)-[:V${v}]-(s:Subsystem)-[:V${v}]-(ss:SubsystemState)
 OPTIONAL MATCH (related)-[:V${v}]-(g:Gene)-[:V${v}]-(gs:GeneState)
 RETURN relatedS {
   id: related.id,
   compartments: COLLECT(DISTINCT(cs {id: c.id, .*})),
   subsystems: COLLECT(DISTINCT(ss {id: s.id, .*})),
-  metabolites: COLLECT(DISTINCT(ms {id: m.id, stoichiometry: metaboliteEdge.stoichiometry, outgoing: startnode(metaboliteEdge)=m, .*})),
+  metabolites: COLLECT(DISTINCT(ms {id: cm.id, stoichiometry: metaboliteEdge.stoichiometry, outgoing: startnode(metaboliteEdge)=cm, .*})),
   genes: COLLECT(DISTINCT(gs {id: g.id, .*}))
 } as reactions
 `;
+
 
   return queryListResult(statement);
 };
