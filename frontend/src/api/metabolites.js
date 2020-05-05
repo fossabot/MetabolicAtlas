@@ -5,8 +5,8 @@ const fetchMetaboliteData = async ({ id, version }) => {
   return data;
 };
 
-const fetchRelatedMetabolites = async (model, id) => {
-  const { data } = await axios.get(`${model}/metabolite/${id}/related`);
+const fetchRelatedMetabolites = async ({ id, version }) => {
+  const { data } = await axios({ url: `${version}/metabolites/${id}/related-metabolites`, baseURL: '/new_api/integrated' });
   return data.sort((a, b) => (a.compartment_str < b.compartment_str ? -1 : 1));
 };
 

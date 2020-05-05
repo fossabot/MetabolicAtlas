@@ -34,7 +34,7 @@ const actions = {
   async getRelatedReactionsForReaction({ commit }, { model, id }) {
     console.warn(`TODO: use real model: ${model} and id: ${id}`);
 
-    const reactions = await reactionsApi.fetchRelatedReactionsForReaction({ id: 'meiup', version: '1' });
+    const reactions = await reactionsApi.fetchRelatedReactionsForReaction({ id, version: '1' });
     commit(
       'setRelatedReactions',
       reactions.map(r => ({

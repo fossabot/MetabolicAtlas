@@ -13,7 +13,9 @@ const actions = {
     commit('setMetabolite', metabolite);
   },
   async getRelatedMetabolites({ commit }, { model, id }) {
-    const metabolites = await metabolitesApi.fetchRelatedMetabolites(model, id);
+    console.warn(`TODO: use model: ${model}`);
+
+    const metabolites = await metabolitesApi.fetchRelatedMetabolites({ id, version: '1' });
     commit('setRelatedMetabolites', metabolites);
   },
   clearRelatedMetabolites({ commit }) {

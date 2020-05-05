@@ -54,8 +54,8 @@
                       <br v-if="i !== 0">
                       <!-- eslint-disable-next-line max-len -->
                       <router-link :to="{ name: 'browser', params: { model: model.database_name, type: 'metabolite', id: rm.id } }">
-                        {{ rm.full_name }}
-                      </router-link> in {{ rm.compartment_str }}
+                        {{ rm.id }}
+                      </router-link> in {{ rm.compartment.name }}
                     </span>
                   </td>
                 </tr>
@@ -112,7 +112,7 @@ export default {
       mainTableKey: [
         { name: 'id' },
         { name: 'name' },
-        { name: 'alternate_name', display: 'Alternate name' },
+        { name: 'alternateName', display: 'Alternate name' },
         { name: 'synonyms' },
         { name: 'description' },
         { name: 'formula' },
