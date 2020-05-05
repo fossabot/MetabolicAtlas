@@ -5,11 +5,11 @@ const getGene = async ({ id, version }) => {
   const v = version;
 
   const statement = `
-MATCH (g:Gene)-[:V${v}]-(gs:GeneState)
+MATCH (gs:GeneState)-[:V${v}]-(g:Gene)-[:V${v}]-(r:Reaction)-[cmE:V${v}]-(cm:CompartmentalizedMetabolite)-[:V${v}]-(c:Compartment)-[:V${v}]-(cs:CompartmentState)
 WHERE g.id="${id}"
-MATCH (g)-[:V${v}]-(r:Reaction)-[metaboliteEdge:V${v}]-(m:Metabolite)-[:V${v}]-(c:Compartment)-[:V${v}]-(cs:CompartmentState)
+MATCH (cm)-[:V${v}]-(m:Metabolite)-[:V${v}]-(ms:MetaboliteState)
+MATCH (g)-[:V${v}]-(r:Reaction)-[cmE:V${v}]-(cm:CompartmentalizedMetabolite)-[:V${v}]-(c:Compartment)-[:V${v}]-(cs:CompartmentState)
 MATCH (r)-[:V${v}]-(rs:ReactionState)
-MATCH (m)-[:V${v}]-(ms:MetaboliteState)
 OPTIONAL MATCH (r)-[:V${v}]-(s:Subsystem)-[:V${v}]-(ss:SubsystemState)
 OPTIONAL MATCH (g)-[:V${v}]-(e:ExternalDb)
 OPTIONAL MATCH (c)-[:V${v}]-(csvg:SvgMap)
@@ -20,8 +20,7 @@ RETURN gs {
   compartments: COLLECT(DISTINCT(cs {id: c.id, .*})),
   subsystems: COLLECT(DISTINCT(ss {id: s.id, .*})),
   externalDbs: COLLECT(DISTINCT(e {.*})),
-  reactions: COLLECT(DISTINCT(rs {id: r.id, compartmentId: c.id, subsystemId: s.id, .*})),
-  metabolites: COLLECT(DISTINCT(ms {id: m.id, outgoing: startnode(metaboliteEdge)=m, .*})),
+  metabolites: COLLECT(DISTINCT(ms {id: m.id, stoichiometry: cmE.stoichiometry, outgoing: startnode(cmE)=cm, .*})),
   compartmentSVGs: COLLECT(DISTINCT(csvg {name: cs.name, .*})),
   subsystemSVGs: COLLECT(DISTINCT(ssvg {name: ss.name, .*}))
 } AS gene

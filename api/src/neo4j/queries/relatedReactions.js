@@ -12,9 +12,8 @@ const getRelatedReactionsForReaction = ({ id, version }) => {
   const v = version;
 
   const statement = `
-MATCH (rr:Reaction)-[rcmE:V${v}]-(rcm:CompartmentalizedMetabolite)-[:V${v}]-(m:Metabolite)-[:V${v}]-(xcm:CompartmentalizedMetabolite)-[:V${v}]-(x:Reaction)-[:V${v}]-(:CompartmentalizedMetabolite)-[:V${v}]-(:Metabolite)-[:V${v}]-(:CompartmentalizedMetabolite)-[:V${v}]-(rr)
+MATCH (rrs:ReactionState)-[:V${v}]-(rr:Reaction)-[rcmE:V${v}]-(rcm:CompartmentalizedMetabolite)-[:V${v}]-(m:Metabolite)-[:V${v}]-(xcm:CompartmentalizedMetabolite)-[:V${v}]-(x:Reaction)-[:V${v}]-(:CompartmentalizedMetabolite)-[:V${v}]-(:Metabolite)-[:V${v}]-(:CompartmentalizedMetabolite)-[:V${v}]-(rr)
 WHERE x.id="${id}"
-MATCH (rr)-[:V${v}]-(rrs:ReactionState)
 MATCH (m)-[:V${v}]-(ms:MetaboliteState)
 OPTIONAL MATCH (rcm)-[:V${v}]-(c:Compartment)-[:V${v}]-(cs:CompartmentState)
 OPTIONAL MATCH (rr)-[:V${v}]-(s:Subsystem)-[:V${v}]-(ss:SubsystemState)
@@ -39,31 +38,27 @@ const getRelatedReactions = async ({ nodeType, id, version }) => {
   switch (nodeType) {
     case NODE_TYPES.gene:
       statement = `
-MATCH (x:Gene)-[:V${v}]-(related:Reaction)-[metaboliteEdge:V${v}]-(m:Metabolite)
+MATCH (x:Gene)-[:V${v}]-(related:Reaction)-[metaboliteEdge:V${v}]-(CompartmentalizedMetabolite)-[:V${v}]-(m:Metabolite)-[:V${v}]-(ms:MetaboliteState)
 WHERE x.id="${id}"
-MATCH (related)-[:V${v}]-(relatedS:ReactionState)
-MATCH (m)-[:V${v}]-(ms:MetaboliteState)`;
+MATCH (related)-[:V${v}]-(relatedS:ReactionState)`;
       break;
     case NODE_TYPES.metabolite:
       statement = `
-MATCH (x:Metabolite)-[:V${v}]-(related:Reaction)
+MATCH (x:Metabolite)-[:V${v}]-(CompartmentalizedMetabolite)-[:V${v}]-(related:Reaction)-[:V${v}]-(relatedS:ReactionState)
 WHERE x.id="${id}"
-MATCH (related)-[:V${v}]-(relatedS:ReactionState)
-MATCH (related)-[metaboliteEdge:V${v}]-(m:Metabolite)-[:V${v}]-(ms:MetaboliteState)`;
+MATCH (related)-[metaboliteEdge:V${v}]-(CompartmentalizedMetabolite)-[:V${v}]-(m:Metabolite)-[:V${v}]-(ms:MetaboliteState)`;
       break;
     case NODE_TYPES.subsystem:
       statement = `
-MATCH (x:Subsystem)-[:V${v}]-(related:Reaction)-[metaboliteEdge:V${v}]-(m:Metabolite)
+MATCH (x:Subsystem)-[:V${v}]-(related:Reaction)-[metaboliteEdge:V${v}]-(CompartmentalizedMetabolite)-[:V${v}]-(m:Metabolite)-[:V${v}]-(ms:MetaboliteState)
 WHERE x.id="${id}"
-MATCH (related)-[:V${v}]-(relatedS:ReactionState)
-MATCH (m)-[:V${v}]-(ms:MetaboliteState)`;
+MATCH (related)-[:V${v}]-(relatedS:ReactionState)`;
       break;
     case NODE_TYPES.compartment:
       statement = `
-MATCH (x:Compartment)-[:V${v}]-(m:Metabolite)-[metaboliteEdge:V${v}]-(related:Reaction)
+MATCH (x:Compartment)-[:V${v}]-(cm:CompartmentalizedMetabolite)-[metaboliteEdge:V${v}]-(related:Reaction)-[:V${v}]-(relatedS:ReactionState)
 WHERE x.id="${id}"
-MATCH (related)-[:V${v}]-(relatedS:ReactionState)
-MATCH (m)-[:V${v}]-(ms:MetaboliteState)`;
+MATCH (cm)-[:V${v}]-(m:Metabolite)-[:V${v}]-(ms:MetaboliteState)`;
       break;
     default:
       throw new Error(`Unrecognized node type: ${nodeType}`);

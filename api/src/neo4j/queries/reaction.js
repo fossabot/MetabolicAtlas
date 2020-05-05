@@ -32,5 +32,4 @@ RETURN rs {
   return { ...reaction, externalDbs: reformatExternalDbs(reaction.externalDbs) };
 };
 
-
 export default getReaction;

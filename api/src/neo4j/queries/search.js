@@ -5,9 +5,17 @@ const search = async ({ searchTerm, model, version }) => {
   const m = model ? `:${model}` : '';
 
   const statement = `
-CALL db.index.fulltext.queryNodes("fulltext", "${searchTerm}~") YIELD node as stateNode, score
-MATCH (stateNode)-[:${v}]-(parentNode${m})
-RETURN stateNode, LABELS(parentNode) as labels, parentNode.id as parentNodeId, score
+CALL db.index.fulltext.queryNodes("fulltext", "${searchTerm}~") YIELD node, score
+WITH node, score, LABELS(node) as labelList
+UNWIND labelList as labels
+WITH node, score, labelList, COUNT(labels) as labelsCount
+OPTIONAL MATCH (node)-[:${v}]-(parentNode${m})
+RETURN DISTINCT({ node: node, labels: labelList, score: score, labelsCount: labelsCount,
+	parentNode: CASE
+		WHEN labelsCount > 1 THEN null
+		ELSE parentNode
+	END
+})
 `;
 
   return queryListResult(statement);
