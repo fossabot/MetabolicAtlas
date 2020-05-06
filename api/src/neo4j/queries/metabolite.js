@@ -13,7 +13,7 @@ OPTIONAL MATCH (s)-[:V${v}]-(ssvg:SvgMap)
 RETURN ms {
   id: cm.id,
   .*,
-  compartments: COLLECT(DISTINCT(cs {id: c.id, .*})),
+  compartment: cs {id: c.id, .*},
   subsystems: COLLECT(DISTINCT(ss {id: s.id, .*})),
   externalDbs: COLLECT(DISTINCT(e {.*})),
   compartmentSVGs: COLLECT(DISTINCT(csvg {name: cs.name, .*})),
