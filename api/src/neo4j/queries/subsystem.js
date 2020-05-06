@@ -23,7 +23,6 @@ RETURN ss {
 } AS subsystem
 `;
 
-  console.log(statement);
   const result = await querySingleResult(statement);
   return { ...result, externalDbs: reformatExternalDbs(result.externalDbs) };
 };
