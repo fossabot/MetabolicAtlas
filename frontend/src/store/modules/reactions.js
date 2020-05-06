@@ -79,9 +79,21 @@ const actions = {
     // commit('setRelatedReactionsLimit', limit);
   },
   async getRelatedReactionsForSubsystem({ commit }, { model, id }) {
-    const { reactions, limit } = await reactionsApi.fetchRelatedReactionsForSubsystem(model, id);
-    commit('setRelatedReactions', reactions);
-    commit('setRelatedReactionsLimit', limit);
+    console.warn(`TODO: use real model: ${model}`);
+
+    const reactions = await reactionsApi.fetchRelatedReactionsForSubsystem({ id, version: '1' });
+
+    commit(
+      'setRelatedReactions',
+      reactions.map(r => ({
+        ...r,
+        compartment_str: r.compartments.map(c => c.name).join(', '),
+        subsystem_str: r.subsystems.map(s => s.name).join(', '),
+        reactionreactant_set: r.metabolites.filter(m => m.outgoing),
+        reactionproduct_set: r.metabolites.filter(m => !m.outgoing),
+      }))
+    );
+    // commit('setRelatedReactionsLimit', limit);
   },
   clearRelatedReactions({ commit }) {
     commit('setRelatedReactions', []);

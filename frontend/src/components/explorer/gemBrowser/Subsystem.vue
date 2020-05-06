@@ -70,7 +70,7 @@
             </tr>
           </table>
         </div>
-        <ExtIdTable :type="type" :external-dbs="info.external_databases"></ExtIdTable>
+        <ExtIdTable :type="type" :external-dbs="info.externalDbs"></ExtIdTable>
       </div>
       <div class="column is-2-widescreen is-3-desktop is-half-tablet has-text-centered">
         <maps-available :id="sName" :type="type" :element-i-d="''"></maps-available>
@@ -132,14 +132,17 @@ export default {
     }),
     metabolitesListHtml() {
       const l = ['<span class="tags">'];
-      const metsSorted = this.metabolites.concat().sort((a, b) => (a.name < b.name ? -1 : 1));
+      const metsSorted = [...this.metabolites].sort((a, b) => (a.name < b.name ? -1 : 1));
+
+
       for (let i = 0; i < metsSorted.length; i += 1) {
         const m = metsSorted[i];
+
         if ((!this.showFullMetabolite && i === this.displayedMetabolite)
           || i === this.limitMetabolite) {
           break;
         }
-        const customLink = buildCustomLink({ model: this.model.database_name, type: 'metabolite', id: m.id, title: m.full_name || m.id });
+        const customLink = buildCustomLink({ model: this.model.database_name, type: 'metabolite', id: m.id, title: m.name || m.id });
         l.push(
           `<span id="${m.id}" class="tag">${customLink}</span>`
         );
@@ -149,7 +152,7 @@ export default {
     },
     genesListHtml() {
       const l = ['<span class="tags">'];
-      const genesSorted = this.genes.concat().sort((a, b) => (a.name < b.name ? -1 : 1));
+      const genesSorted = [...this.genes].sort((a, b) => (a.name < b.name ? -1 : 1));
       for (let i = 0; i < genesSorted.length; i += 1) {
         const e = genesSorted[i];
         if ((!this.showFullGene && i === this.displayedGene)
