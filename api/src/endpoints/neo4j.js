@@ -11,6 +11,7 @@ import {
   getRelatedReactionsForReaction,
   getRelatedReactionsForSubsystem,
   getRelatedMetabolites,
+  getRandomComponents,
   search,
 } from '../neo4j/index';
 
@@ -42,12 +43,24 @@ neo4jRoutes.get('/:version/reactions/:id/related-reactions', async (req, res) =>
 neo4jRoutes.get('/:version/subsystems/:id', async (req, res) => fetchWith(req, res, getSubsystem));
 neo4jRoutes.get('/:version/subsystems/:id/related-reactions', async (req, res) => fetchWith(req, res, getRelatedReactionsForSubsystem));
 
-neo4jRoutes.get('/:version/search', async (req, res) => {
+neo4jRoutes.get('/:version/random-components', async (req, res) => {
   const { version } = req.params;
-  const { model, searchTerm } = req.query;
+  const { model } = req.query;
 
   try {
-    const result = await search({ searchTerm, model, version });
+    const result = await getRandomComponents({ model, version });
+    res.json(result);
+  } catch (e) {
+    res.status(400).send(e);
+  }
+});
+
+neo4jRoutes.get('/:version/search', async (req, res) => {
+  const { version } = req.params;
+  const { model, searchTerm, limit } = req.query;
+
+  try {
+    const result = await search({ searchTerm, model, version, limit });
     res.json(result);
   } catch (e) {
     res.status(400).send(e);

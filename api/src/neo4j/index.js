@@ -12,6 +12,7 @@ import {
   getRelatedReactionsForCompartment,
 } from './queries/relatedReactions';
 import getRelatedMetabolites from './queries/relatedMetabolites';
+import getRandomComponents from './queries/randomComponents';
 
 export {
   getCompartment,
@@ -26,4 +27,5 @@ export {
   getRelatedReactionsForSubsystem,
   getRelatedReactionsForCompartment,
   getRelatedMetabolites,
+  getRandomComponents,
 };
