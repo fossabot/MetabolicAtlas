@@ -9,7 +9,8 @@ try {
 
 const createCsvWriter = require("csv-writer").createObjectCsvWriter;
 
-const idfyString = s => s.toLowerCase().replace(/[^a-z0-9]/g, '_').replace(/_+/, '_').replace(/^_|_$/, '');
+const idfyString = s => s.toLowerCase().replace(/[^a-z0-9]/g, '_').replace(/_+/g, '_').replace(/^_|_$/, '');
+const idfyString2 = s => s.toLowerCase().replace(/[^a-z0-9]/g, '_').replace(/_+/g, '_');
 
 const toLabelCase = (modelName) =>
   modelName.replace('-', ' ').split(/\s/g).map(word => `${word[0].toUpperCase()}${word.slice(1).toLowerCase()}`).join('');
@@ -44,11 +45,11 @@ const reformatGeneObjets = (data) => {
   } );
 };
 
-const reformatMetaboliteObjets = (data) => {
+const reformatCompartmentalizedMetaboliteObjets = (data) => {
   return data.map((m) => {
     m = mergedObjects(m);
     return {
-      metaboliteId: m.id,
+      compartmentalizedMetaboliteId: m.id,
       name: m.name,
       alternateName: '',
       synonyms: '',
@@ -92,7 +93,7 @@ try {
   const version = `V${metadata.metaData.version.replace(/\./g, '_')}`;
 
   content = { // reformat object as proper key:value objects, rename/add/remove keys
-    metabolite: reformatMetaboliteObjets(metabolites.metabolites),
+    compartmentalizedMetabolite: reformatCompartmentalizedMetaboliteObjets(metabolites.metabolites),
     reaction: reformatReactionObjets(reactions.reactions),
     gene: reformatGeneObjets(genes.genes),
     compartment: reformatCompartmentObjets(compartments.compartments),
@@ -122,27 +123,96 @@ try {
   }, {});
 
   let csvWriter = createCsvWriter({
-    path: `${path}metaboliteCompartments.csv`,
-    header: [{ id: 'metaboliteId', title: 'metaboliteId' }, { id: 'compartmentId', title: 'compartmentId' }],
+    path: `${path}compartmentalizedMetaboliteCompartments.csv`,
+    header: [{ id: 'compartmentalizedMetaboliteId', title: 'compartmentalizedMetaboliteId' }, { id: 'compartmentId', title: 'compartmentId' }],
   });
 
-  csvWriter.writeRecords(content.metabolite.map(
-    (e) => { return { metaboliteId: e.metaboliteId, compartmentId: compartmentLetterToIdMap[e.compartment] }; }
+  csvWriter.writeRecords(content.compartmentalizedMetabolite.map(
+    (e) => { return { compartmentalizedMetaboliteId: e.compartmentalizedMetaboliteId, compartmentId: compartmentLetterToIdMap[e.compartment] }; }
   )).then(() => {
-    console.log('metaboliteCompartments file generated.');
+    console.log('compartmentalizedMetaboliteCompartments file generated.');
   });
+
+  // write metabolite-compartmentalizedMetabolite relationships
+  // generate unique metabolite
+  // keep only distinct metabolite (non-compartmentalize) and use the name to generate IDs
+  let hm = {}
+  const uniqueCompartmentalizedMap = {}
+  content.compartmentalizedMetabolite.forEach((m) => {
+    const newID = idfyString2(m.name);
+    if (!(newID in hm)) {
+      hm[newID] = m.name;
+      uniqueCompartmentalizedMap[m.compartmentalizedMetaboliteId] = newID;
+    } else {
+      if (hm[newID] !== m.name) {
+        // console.log('Error duplicated ID:' + newID + '(' + m.name + ') collision with ' + hm[newID]);
+        uniqueCompartmentalizedMap[m.compartmentalizedMetaboliteId] = newID + '_';
+      } else {
+        uniqueCompartmentalizedMap[m.compartmentalizedMetaboliteId] = newID;
+      }
+    }
+  })
+
+  const nameSet = new Set();
+  const uniqueMetabolites = [];
+  content.compartmentalizedMetabolite.forEach((m) => {
+    const newID = uniqueCompartmentalizedMap[m.compartmentalizedMetaboliteId];
+    if (!(nameSet.has(m.name))) {
+      uniqueMetabolites.push({
+        metaboliteId: newID,
+        name: m.name,
+        alternateName: m.alternateName,
+        synonyms: m.synonyms,
+        description: m.description,
+        formula: m.formula,
+        charge: m.charge,
+        isCurrency: m.isCurrency,
+      });
+      nameSet.add(m.name);
+    }
+  })
+
+  // create compartmentalizedMetabolite file
+  csvWriter = createCsvWriter({
+    path: `${path}compartmentalizedMetabolites.csv`,
+    header: [{ id: 'id', title: 'id' }],
+  });
+
+  csvWriter.writeRecords(content.compartmentalizedMetabolite.map(
+    (e) => { return { id: e.compartmentalizedMetaboliteId }; }
+  )).then(() => {
+    console.log('compartmentalizedMetabolites file generated.');
+  });
+
+  // CM-M relationships
+  csvWriter = createCsvWriter({
+    path: `${path}compartmentalizedMetaboliteMetabolites.csv`,
+    header: [{ id: 'compartmentalizedMetaboliteId', title: 'compartmentalizedMetaboliteId' }, { id: 'metaboliteId', title: 'metaboliteId' }],
+  });
+
+  csvWriter.writeRecords(content.compartmentalizedMetabolite.map(
+    (e) => { 
+      return { compartmentalizedMetaboliteId: e.compartmentalizedMetaboliteId,
+               metaboliteId: uniqueCompartmentalizedMap[e.compartmentalizedMetaboliteId] }; }
+  )).then(() => {
+    console.log('compartmentalizedMetaboliteMetabolites file generated.');
+  });
+
+  // delete compartmentlizedMetabolites, add unique metabolites
+  content.metabolite = uniqueMetabolites;
+  delete content.compartmentalizedMetabolite;
 
   // write reactants-reaction, reaction-products, reaction-genes, reaction-susbsystems relationships files
   csvWriterRR = createCsvWriter({
-    path: `${path}metaboliteReactions.csv`,
-    header: [{ id: 'metaboliteId', title: 'metaboliteId' },
+    path: `${path}compartmentalizedMetaboliteReactions.csv`,
+    header: [{ id: 'compartmentalizedMetaboliteId', title: 'compartmentalizedMetaboliteId' },
              { id: 'reactionId', title: 'reactionId' },
              { id: 'stoichiometry', title: 'stoichiometry' }],
   });
   csvWriterRP = createCsvWriter({
-    path: `${path}reactionMetabolites.csv`,
+    path: `${path}reactionCompartmentalizedMetabolites.csv`,
     header: [{ id: 'reactionId', title: 'reactionId' },
-             { id: 'metaboliteId', title: 'metaboliteId' },
+             { id: 'compartmentalizedMetaboliteId', title: 'compartmentalizedMetaboliteId' },
              { id: 'stoichiometry', title: 'stoichiometry' }],
   });
   csvWriterRG = createCsvWriter({
@@ -162,11 +232,11 @@ try {
   const reactionSubsystemRecords = [];
   content.reaction.forEach((r) => {
     Object.entries(r.metabolites).forEach((e) => {
-      const [ metaboliteId, stoichiometry ] = e;
+      const [ compartmentalizedMetaboliteId, stoichiometry ] = e;
       if (stoichiometry < 0) {
-        reactionReactantRecords.push({ metaboliteId, reactionId: r.reactionId, stoichiometry });
+        reactionReactantRecords.push({ compartmentalizedMetaboliteId, reactionId: r.reactionId, stoichiometry });
       } else {
-        reactionProductRecords.push({ reactionId: r.reactionId, metaboliteId, stoichiometry });
+        reactionProductRecords.push({ reactionId: r.reactionId, compartmentalizedMetaboliteId, stoichiometry });
       }
     });
     getGeneIdsFromGeneRule(r.geneRule).forEach((geneId) => {
@@ -178,10 +248,10 @@ try {
   });
 
   csvWriterRR.writeRecords(reactionReactantRecords).then(() => {
-    console.log('metaboliteReations file generated.');
+    console.log('compartmentalizedMetaboliteReactions file generated.');
   });
   csvWriterRP.writeRecords(reactionProductRecords).then(() => {
-    console.log('reactionMetabolites file generated.');
+    console.log('reactionCompartmentalizedMetabolites file generated.');
   });
   csvWriterRG.writeRecords(reactionGeneRecords).then(() => {
     console.log('reactionGenes file generated.');
@@ -203,8 +273,8 @@ try {
     csvWriter = createCsvWriter({
       path: `${path}${k}States.csv`,
       header: Object.keys(elements[0]).
-        // ignore some keys 'metabolites', 'subsystems' are in reactions, compartment are in metabolite
-        filter(k => !['metabolites', 'subsystems', 'compartment'].includes(k)). 
+        // ignore some keys 'metabolites', 'subsystems' are in reactions, 'compartment' is in metabolite
+        filter(k => !['metabolites', 'subsystems', 'compartment'].includes(k)).
         map(k => Object({ id: k, title: k })),
     });
     // destructure object to remove the keys
@@ -234,6 +304,10 @@ LOAD CSV WITH HEADERS FROM "file:///metaboliteStates.csv" AS csvLine
 MATCH (n:Metabolite {id: csvLine.metaboliteId})
 CREATE (ns:MetaboliteState {name:csvLine.name,alternateName:csvLine.alternateName,synonyms:csvLine.synonyms,description:csvLine.description,formula:csvLine.formula,charge:toInteger(csvLine.charge),isCurrency:toBoolean(csvLine.isCurrency)})
 CREATE (n)-[:${version}]->(ns);
+
+CREATE INDEX FOR (n:CompartmentalizedMetabolite) ON (n.id);
+LOAD CSV WITH HEADERS FROM "file:///compartmentalizedMetabolites.csv" AS csvLine
+CREATE (n:CompartmentalizedMetabolite:${model} {id:csvLine.id});
 
 CREATE INDEX FOR (n:Compartment) ON (n.id);
 LOAD CSV WITH HEADERS FROM "file:///compartments.csv" AS csvLine
@@ -267,16 +341,20 @@ MATCH (n:Subsystem {id: csvLine.subsystemId})
 CREATE (ns:SubsystemState {name:csvLine.name})
 CREATE (n)-[:${version}]->(ns);
 
-LOAD CSV WITH HEADERS FROM "file:///metaboliteCompartments.csv" AS csvLine
-MATCH (n1:Metabolite {id: csvLine.metaboliteId}),(n2:Compartment {id: csvLine.compartmentId})
+LOAD CSV WITH HEADERS FROM "file:///compartmentalizedMetaboliteMetabolites.csv" AS csvLine
+MATCH (n1:CompartmentalizedMetabolite {id: csvLine.compartmentalizedMetaboliteId}),(n2:Metabolite {id: csvLine.metaboliteId})
 CREATE (n1)-[:${version}]->(n2);
 
-LOAD CSV WITH HEADERS FROM "file:///metaboliteReactions.csv" AS csvLine
-MATCH (n1:Metabolite {id: csvLine.metaboliteId}),(n2:Reaction {id: csvLine.reactionId})
+LOAD CSV WITH HEADERS FROM "file:///compartmentalizedMetaboliteCompartments.csv" AS csvLine
+MATCH (n1:CompartmentalizedMetabolite {id: csvLine.compartmentalizedMetaboliteId}),(n2:Compartment {id: csvLine.compartmentId})
+CREATE (n1)-[:${version}]->(n2);
+
+LOAD CSV WITH HEADERS FROM "file:///compartmentalizedMetaboliteReactions.csv" AS csvLine
+MATCH (n1:CompartmentalizedMetabolite {id: csvLine.compartmentalizedMetaboliteId}),(n2:Reaction {id: csvLine.reactionId})
 CREATE (n1)-[:${version} {stoichiometry:toFloat(csvLine.stoichiometry)}]->(n2);
 
-LOAD CSV WITH HEADERS FROM "file:///reactionMetabolites.csv" AS csvLine
-MATCH (n1:Reaction {id: csvLine.reactionId}),(n2:Metabolite {id: csvLine.metaboliteId})
+LOAD CSV WITH HEADERS FROM "file:///reactionCompartmentalizedMetabolites.csv" AS csvLine
+MATCH (n1:Reaction {id: csvLine.reactionId}),(n2:CompartmentalizedMetabolite {id: csvLine.compartmentalizedMetaboliteId})
 CREATE (n1)-[:${version} {stoichiometry:toFloat(csvLine.stoichiometry)}]->(n2);
 
 LOAD CSV WITH HEADERS FROM "file:///reactionGenes.csv" AS csvLine
