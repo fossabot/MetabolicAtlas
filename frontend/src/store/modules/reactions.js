@@ -11,7 +11,7 @@ const actions = {
   async getReactionData({ commit }, { model, id }) {
     console.warn(`TODO: use real model: ${model} and id: ${id}`);
 
-    const { pubmedIds, ...reaction } = await reactionsApi.fetchReactionData({ id, version: '1' });
+    const { pubmedIds, ...reaction } = await reactionsApi.fetchReactionData({ id, version: '1_3_0' });
 
     commit('setReaction', {
       ...reaction,
@@ -34,7 +34,7 @@ const actions = {
   async getRelatedReactionsForReaction({ commit }, { model, id }) {
     console.warn(`TODO: use real model: ${model} and id: ${id}`);
 
-    const reactions = await reactionsApi.fetchRelatedReactionsForReaction({ id, version: '1' });
+    const reactions = await reactionsApi.fetchRelatedReactionsForReaction({ id, version: '1_3_0' });
     commit(
       'setRelatedReactions',
       reactions.map(r => ({
@@ -48,7 +48,7 @@ const actions = {
   async getRelatedReactionsForGene({ commit }, { model, id }) {
     console.warn(`TODO: use real model: ${model} and id: ${id}`);
 
-    const reactions = await reactionsApi.fetchRelatedReactionsForGene({ id, version: '1' });
+    const reactions = await reactionsApi.fetchRelatedReactionsForGene({ id, version: '1_3_0' });
     commit(
       'setRelatedReactions',
       reactions.map(r => ({
@@ -64,7 +64,7 @@ const actions = {
   async getRelatedReactionsForMetabolite({ commit }, { model, id }) {
     console.warn(`TODO: use real model: ${model} and id: ${id}`);
 
-    const reactions = await reactionsApi.fetchRelatedReactionsForMetabolite({ id, version: '1' });
+    const reactions = await reactionsApi.fetchRelatedReactionsForMetabolite({ id, version: '1_3_0' });
 
     commit(
       'setRelatedReactions',
@@ -81,7 +81,7 @@ const actions = {
   async getRelatedReactionsForSubsystem({ commit }, { model, id }) {
     console.warn(`TODO: use real model: ${model}`);
 
-    const reactions = await reactionsApi.fetchRelatedReactionsForSubsystem({ id, version: '1' });
+    const reactions = await reactionsApi.fetchRelatedReactionsForSubsystem({ id, version: '1_3_0' });
 
     commit(
       'setRelatedReactions',

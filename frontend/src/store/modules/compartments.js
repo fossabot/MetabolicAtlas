@@ -13,7 +13,7 @@ const actions = {
   async getCompartmentSummary({ commit }, { model, id }) {
     console.warn(`TODO: use model: ${model}`);
 
-    const compartmentSummary = await compartmentsApi.fetchCompartmentSummary({ id, version: '1' });
+    const compartmentSummary = await compartmentsApi.fetchCompartmentSummary({ id, version: '1_3_0' });
     commit('setCompartmentSummary', compartmentSummary);
   },
 };
