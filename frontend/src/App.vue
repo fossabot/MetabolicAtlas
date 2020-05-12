@@ -2,9 +2,9 @@
   <div id="app">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
     <nav id="navbar" class="navbar has-background-primary-lighter" role="navigation" aria-label="main navigation">
-      <div class="container">
+      <div class="container is-fullhd">
         <div class="navbar-brand">
-          <router-link class="navbar-item" :to="{ path: '/' }" active-class="" @click.native="isMobileMenu = false">
+          <router-link class="navbar-item" :to="{ name: 'home' }" active-class="" @click.native="isMobileMenu = false">
             <img :src="require('./assets/logo.png')" />
           </router-link>
           <div class="navbar-burger" :class="{ 'is-active': isMobileMenu }" @click="isMobileMenu = !isMobileMenu">
@@ -14,21 +14,12 @@
           </div>
         </div>
         <div id="#nav-menu" class="navbar-menu" :class="{ 'is-active': isMobileMenu }">
-          <div v-show="model" class="navbar-start has-text-centered"
-               title="Click to toggle between the GEM Browser and the Map Viewer">
-            <router-link v-if="activeViewerBut || activeBrowserBut" :to="{ path: '/explore'}"
-                         class="navbar-item is-size-3 has-text-primary has-text-weight-bold is-unselectable"
-                         title="Current selected model, click to change your selection" exact>
+          <div v-show="model" class="navbar-start has-text-centered" title="Click to change model or tool">
+            <router-link v-if="$route.path.includes('/explore')"
+                         :to="{ name: 'explorerRoot' }"
+                         class="navbar-item is-size-4 has-text-primary has-text-weight-bold is-unselectable" exact>
               {{ model ? model.short_name : '' }}
             </router-link>
-            <a v-if="activeViewerBut || activeBrowserBut" class="navbar-item is-unselectable is-active-underline"
-               :class="{ 'router-link-active': activeBrowserBut }" @click="goToGemBrowser()">
-              GEM Browser
-            </a>
-            <a v-if="activeViewerBut || activeBrowserBut" class="navbar-item is-unselectable is-active-underline"
-               :class="{ 'router-link-active': activeViewerBut }" @click="goToMapViewer()">
-              Map Viewer
-            </a>
           </div>
           <div class="navbar-end has-background-primary-lighter">
             <template v-for="(menuElem) in menuElems">
@@ -72,7 +63,7 @@
     <footer id="footer" class="footer has-background-primary-lighter is-size-6">
       <div class="columns is-gapless">
         <div class="column is-7">
-          <p>2019 © Department of Biology and Biological Engineering | Chalmers University of Technology</p>
+          <p>2020 © Department of Biology and Biological Engineering | Chalmers University of Technology</p>
         </div>
         <div class="column">
           <div class="content has-text-right">
@@ -106,7 +97,7 @@
           We use cookies to enhance the usability of our website.
           By continuing you are agreeing to our
           <router-link class="has-text-white has-text-weight-bold"
-                       :to="{path: '/about', hash: 'privacy'}">
+                       :to="{ name: 'about', hash: '#privacy' }">
             Privacy Notice and Terms of Use
           </router-link>&emsp;
           <p class="button is-small is-rounded has-background-danger has-text-white has-text-weight-bold"
@@ -122,7 +113,7 @@
 
 <script>
 
-import { default as EventBus } from './event-bus';
+import { mapState } from 'vuex';
 import { isCookiePolicyAccepted, acceptCookiePolicy } from './helpers/store';
 
 export default {
@@ -165,66 +156,18 @@ export default {
           routeName: 'about',
         },
       ],
-      activeBrowserBut: false,
-      activeViewerBut: false,
       showCookieMsg: navigator.doNotTrack !== '1' && !isCookiePolicyAccepted(),
       acceptCookiePolicy,
       activeDropMenu: '',
-      model: null,
-      browserLastPath: '',
-      viewerLastPath: '',
+      browserLastRoute: {},
+      viewerLastRoute: {},
       isMobileMenu: false,
     };
   },
-  watch: {
-    $route: function watchSetup() {
-      this.setupButons();
-    },
-  },
-  beforeMount() {
-    EventBus.$on('modelSelected', (model) => {
-      if (this.model) {
-        this.viewerLastPath = '';
-        this.browserLastPath = '';
-      }
-      this.model = model;
-    });
-  },
-  created() {
-    this.setupButons();
-  },
-  methods: {
-    setupButons() {
-      if (this.$route.name === 'browser' || this.$route.name === 'browserRoot') {
-        this.activeBrowserBut = true;
-        this.activeViewerBut = false;
-        this.savePath();
-      } else if (['viewer', 'viewerCompartment', 'viewerCompartmentRea', 'viewerSubsystem', 'viewerSubsystemRea'].includes(this.$route.name)) {
-        this.activeBrowserBut = false;
-        this.activeViewerBut = true;
-        this.savePath();
-      } else {
-        this.activeBrowserBut = false;
-        this.activeViewerBut = false;
-      }
-    },
-    goToGemBrowser() {
-      this.$router.push(this.browserLastPath || `/explore/gem-browser/${this.$route.params.model}`);
-    },
-    savePath() {
-      if (this.$route.name === 'browser') {
-        this.browserLastPath = this.$route.path;
-      } else if (this.$route.name === 'browserRoot') {
-        this.browserLastPath = '';
-      } else if (['viewerCompartment', 'viewerCompartmentRea', 'viewerSubsystem', 'viewerSubsystemRea'].includes(this.$route.name)) {
-        this.viewerLastPath = this.$route.fullPath;
-      } else if (this.$route.name === 'viewer') {
-        this.viewerLastPath = '';
-      }
-    },
-    goToMapViewer() {
-      this.$router.push(this.viewerLastPath || `/explore/map-viewer/${this.$route.params.model}`);
-    },
+  computed: {
+    ...mapState({
+      model: state => state.models.model,
+    }),
   },
 };
 </script>
@@ -233,6 +176,19 @@ export default {
 
 @import '~bulma';
 @import '~bulma-timeline';
+
+
+html {
+  @include mobile {
+    font-size: 13px;
+  }
+  @include tablet {
+    font-size: 14px;
+  }
+  @include desktop {
+    font-size: 16px; // Bulma default
+  }
+}
 
 .extended-section {
   flex: 1;
@@ -313,6 +269,10 @@ m, .clickable {
     a {
       font-weight: 400;
     }
+    margin-left: 0.5rem;
+  }
+  .navbar-menu {
+    margin-right: 0.5rem;
   }
   .navbar-burger{
     height: 4rem;
@@ -348,6 +308,10 @@ m, .clickable {
 .metabolite-table, .model-table, .reaction-table, .subsystem-table {
   .main-table tr td.td-key, #ed-table tr td.td-key {
     width: 150px;
+  }
+  font-size: 0.93em;
+  .tag {
+    font-size: 0.93em;
   }
 }
 

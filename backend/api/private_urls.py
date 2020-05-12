@@ -41,5 +41,7 @@ urlpatterns = [
     url(r'^(?P<model>[^/]+)/subsystem/(?P<id>[^/]+)/summary/?$', views.get_subsystem, {'api': False}),
     url(r'^(?P<model>[^/]+)/subsystem/(?P<id>[^/]+)/get_reactions/?$', views.get_subsystem_reactions, {'api': False}),
 
+    url(r'^(?P<model>[^/]+)/search_gb/(?P<term>[^/]+)/?$', private_views.search, {'type': 'GB'}),
+    url(r'^(?P<model>[^/]+)/search_ip/(?P<term>[^/]+)/?$', private_views.search, {'type': 'IP'}),
     url(r'^(?P<model>[^/]+)/search/(?P<term>[^/]+)/?$', private_views.search),
 ]

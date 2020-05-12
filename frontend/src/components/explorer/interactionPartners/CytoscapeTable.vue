@@ -1,13 +1,13 @@
 <template>
-  <div class="container cytoscape-table">
+  <div class="container is-fullhd cytoscape-table">
     <div class="columns">
-      <div class="column is-half">
+      <div class="column is-half is-8-tablet">
         <input v-model="tableSearch" class="input" type="text" placeholder="Search in table"
                data-hj-whitelist @keyup.prevent="updateTable">
       </div>
       <div class="column"></div>
-      <div class="column is-2">
-        <ExportTSV class="is-pulled-right" :filename="`${filename}.tsv`" :format-function="formatToTSV" />
+      <div class="column is-narrow">
+        <ExportTSV :filename="`${filename}.tsv`" :format-function="formatToTSV" />
       </div>
     </div>
     <div class="columns">
@@ -24,8 +24,8 @@
           <span v-show="geneCount" class="tag">
             # Unique Gene(s): {{ geneCount }}
           </span>
-          <span v-show="isGraphVisible" class="is-pulled-right">
-            Click on a <span class="tag is-rounded"><span class="is-size-6">label</span></span>
+          <span v-show="isGraphVisible">
+            &nbsp; Click on a <span class="tag is-rounded"><span class="is-size-6">label</span></span>
             to highlight the corresponding element on the graph
           </span>
         </div>
@@ -103,10 +103,9 @@
 
 <script>
 
-import ExportTSV from '@/components/explorer/gemBrowser/ExportTSV';
-import { default as compare } from '../../../helpers/compare';
-import { default as EventBus } from '../../../event-bus';
-import { reformatEqSign } from '../../../helpers/utils';
+import ExportTSV from '@/components/shared/ExportTSV';
+import { default as compare } from '@/helpers/compare';
+import { reformatEqSign } from '@/helpers/utils';
 
 
 export default {
@@ -128,7 +127,7 @@ export default {
         { field: 'reactants', display: 'Reactants' },
         { field: 'products', display: 'Products' },
         { field: 'genes', display: 'Genes' },
-        { field: 'compartment', display: 'Compartment', modifier: this.reformatEqSign },
+        { field: 'compartment', display: 'Compartment', modifier: reformatEqSign },
       ],
       matchingReactions: [],
       unMatchingReactions: [],
@@ -177,7 +176,6 @@ export default {
   },
   methods: {
     applyModifier(s, elm) { return s.modifier(elm[s.field], elm.link); },
-    viewReactionComponent(type, id) { EventBus.$emit('GBnavigateTo', type, id); },
     isSelected(elmId) {
       return this.hlID === elmId || this.selectedReactionId === elmId;
     },
@@ -255,14 +253,12 @@ export default {
       ).join('\n');
       return tsvContent;
     },
-    reformatEqSign,
   },
 };
 
 </script>
 
 <style lang="scss">
-
 .cytoscape-table {
   #unmachingTableBody {
     opacity: 0.3;
@@ -277,5 +273,4 @@ export default {
     }
   }
 }
-
 </style>

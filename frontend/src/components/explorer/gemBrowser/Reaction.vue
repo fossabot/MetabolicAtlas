@@ -8,89 +8,91 @@
         <h3 class="title is-size-3"><span class="is-capitalized">{{ type }}</span> {{ reaction.id }}</h3>
       </div>
     </div>
-    <div v-if="showLoader" class="columns">
-      <loader></loader>
-    </div>
+    <loader v-if="showLoaderMessage" :message="showLoaderMessage" class="columns" />
     <div v-else class="columns is-multiline is-variable is-8">
       <div class="reaction-table column is-10-widescreen is-9-desktop is-full-tablet">
-        <table v-if="reaction && Object.keys(reaction).length !== 0" class="table main-table is-fullwidth">
-          <tr v-for="el in mainTableKey" :key="el.name">
-            <td v-if="'display' in el"
-                class="td-key has-background-primary has-text-white-bis"
-                v-html="el.display"></td>
-            <td v-else-if="el.name === 'id'"
-                class="td-key has-background-primary has-text-white-bis">
-              {{ model.short_name }} ID</td>
-            <td v-else class="td-key has-background-primary has-text-white-bis">{{ reformatTableKey(el.name) }}</td>
-            <td v-if="reaction[el.name]">
-              <template v-if="'modifier' in el"><span v-html="el.modifier()"></span></template>
-              <template v-else-if="el.name === 'subsystem'">
-                <template v-for="(v, i) in reaction[el.name]">
-                  <template v-if="i !== 0">; </template>
-                  <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key max-len -->
-                  <router-link :to="{ name: 'browser', params: { model: model.database_name, type: 'subsystem', id: v.id } }"> {{ v.name }}</router-link>
+        <div class="table-container">
+          <table v-if="reaction && Object.keys(reaction).length !== 0" class="table main-table is-fullwidth">
+            <tr v-for="el in mainTableKey" :key="el.name">
+              <td v-if="'display' in el"
+                  class="td-key has-background-primary has-text-white-bis"
+                  v-html="el.display"></td>
+              <td v-else-if="el.name === 'id'"
+                  class="td-key has-background-primary has-text-white-bis">
+                {{ model.short_name }} ID</td>
+              <td v-else class="td-key has-background-primary has-text-white-bis">{{ reformatTableKey(el.name) }}</td>
+              <td v-if="reaction[el.name]">
+                <template v-if="'modifier' in el"><span v-html="el.modifier()"></span></template>
+                <template v-else-if="el.name === 'subsystem'">
+                  <template v-for="(v, i) in reaction[el.name]">
+                    <template v-if="i !== 0">; </template>
+                    <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key max-len -->
+                    <router-link :to="{ name: 'browser', params: { model: model.database_name, type: 'subsystem', id: v.id } }"> {{ v.name }}</router-link>
+                  </template>
                 </template>
-              </template>
-              <template v-else-if="el.name === 'compartment'">
-                <template v-for="(v, i) in reaction[el.name]">
-                  <template v-if="i !== 0">; </template>
-                  <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key max-len -->
-                  <router-link :to="{ name: 'browser', params: { model: model.database_name, type: 'compartment', id: v.id } }"> {{ v.name }}</router-link>
+                <template v-else-if="el.name === 'compartment'">
+                  <div class="tags">
+                    <template v-for="c in reaction[el.name]">
+                      <span :key="c.id" class="tag">
+                        <!-- eslint-disable-next-line max-len -->
+                        <router-link :to="{ name: 'browser', params: { model: model.database_name, type: 'compartment', id: c.id } }">{{ c.name }}</router-link>
+                      </span>
+                    </template>
+                    <template v-if="reaction.is_transport">
+                      &nbsp;(transport reaction)
+                    </template>
+                  </div>
                 </template>
-                <template v-if="reaction.is_transport">
-                  (transport reaction)
+                <template v-else-if="el.name === 'ec'">
+                  <!-- eslint-disable-next-line max-len -->
+                  <router-link v-for="eccode in reaction[el.name].split('; ')" :key="eccode" :to="{ name: 'search', query: { term: eccode }}">
+                    {{ eccode }}
+                  </router-link>
                 </template>
-              </template>
-              <template v-else-if="el.name === 'ec'">
-                <!-- eslint-disable-next-line max-len -->
-                <router-link v-for="eccode in reaction[el.name].split('; ')" :key="eccode" :to="{ name: 'search', query: { term: eccode }}">
-                  {{ eccode }}
-                </router-link>
-              </template>
-              <template v-else>{{ reaction[el.name] }}</template>
-            </td>
-            <td v-else-if="'modifier' in el"><span v-html="el.modifier()"></span></td>
-            <td v-else> - </td>
-          </tr>
-          <tr v-if="relatedReactions.length !== 0">
-            <td class="td-key has-background-primary has-text-white-bis">Related reaction(s)</td>
-            <td>
-              <span v-for="rr in relatedReactions" :key="rr.id">
-                <router-link :to="{ path: `/explore/gem-browser/${model.database_name}/reaction/${rr.id}`}">
-                  {{ rr.id }}
-                </router-link>
-                <div style="margin-left: 30px">
-                  <span v-html="reformatChemicalReactionHTML(rr, true)"></span>
-                  (<span v-html="reformatEqSign(rr.compartment_str, rr.is_reversible)">
-                  </span>)
-                </div>
-              </span>
-            </td>
-          </tr>
-        </table>
+                <template v-else>{{ reaction[el.name] }}</template>
+              </td>
+              <td v-else-if="'modifier' in el"><span v-html="el.modifier()"></span></td>
+              <td v-else> - </td>
+            </tr>
+            <tr v-if="relatedReactions.length !== 0">
+              <td class="td-key has-background-primary has-text-white-bis">Related reaction(s)</td>
+              <td>
+                <span v-for="rr in relatedReactions" :key="rr.id">
+                  <!-- eslint-disable-next-line max-len -->
+                  <router-link :to="{ name: 'browser', params: { model: model.database_name, type: 'reaction', id: rr.id } }">
+                    {{ rr.id }}
+                  </router-link>
+                  <div style="margin-left: 30px">
+                    <span v-html="reformatChemicalReactionHTML(rr, true, model.database_name)"></span>
+                    (<span v-html="reformatEqSign(rr.compartment_str, rr.is_reversible)">
+                    </span>)
+                  </div>
+                </span>
+              </td>
+            </tr>
+          </table>
+        </div>
         <ExtIdTable :type="type" :external-dbs="reaction.external_databases"></ExtIdTable>
         <br>
         <references :reference-list="referenceList" />
       </div>
       <div class="column is-2-widescreen is-3-desktop is-half-tablet has-text-centered">
-        <maps-available :id="rId" :model="model" :type="type" :element-i-d="rId"></maps-available>
-        <gem-contact :id="rId" :model="model" :type="type" />
+        <maps-available :id="rId" :type="type" :viewer-selected-i-d="reaction.id" />
+        <gem-contact :id="rId" :type="type" />
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import axios from 'axios';
-import $ from 'jquery';
+import { mapState } from 'vuex';
 import Loader from '@/components/Loader';
 import NotFound from '@/components/NotFound';
 import MapsAvailable from '@/components/explorer/gemBrowser/MapsAvailable';
 import ExtIdTable from '@/components/explorer/gemBrowser/ExtIdTable';
 import GemContact from '@/components/shared/GemContact';
 import References from '@/components/shared/References';
-import { default as EventBus } from '@/event-bus';
-import { reformatTableKey, addMassUnit, reformatCompEqString, reformatChemicalReactionHTML, reformatEqSign } from '@/helpers/utils';
+import { buildCustomLink, reformatTableKey, addMassUnit, reformatChemicalReactionHTML, reformatEqSign } from '@/helpers/utils';
 
 export default {
   name: 'Reaction',
@@ -101,9 +103,6 @@ export default {
     GemContact,
     ExtIdTable,
     References,
-  },
-  props: {
-    model: Object,
   },
   data() {
     return {
@@ -119,68 +118,52 @@ export default {
         { name: 'compartment', display: 'Compartment(s)' },
         { name: 'subsystem', display: 'Subsystem(s)' },
       ],
-      reaction: {},
-      relatedReactions: [],
       errorMessage: '',
-      showLoader: true,
+      showLoaderMessage: '',
       mapsAvailable: {},
-      referenceList: [],
       componentNotFound: false,
     };
   },
-  watch: {
-    /* eslint-disable quote-props */
-    '$route': function watchSetup() {
-      if (this.$route.path.includes('/reaction/')) {
-        if (this.rId !== this.$route.params.id) {
-          this.setup();
-        }
-      }
-    },
+  computed: {
+    ...mapState({
+      model: state => state.models.model,
+      reaction: state => state.reactions.reaction,
+      referenceList: state => state.reactions.referenceList,
+      relatedReactions: state => state.reactions.relatedReactions,
+    }),
   },
-  created() {
-    $('body').on('click', 'a.e', function f() {
-      EventBus.$emit('GBnavigateTo', 'gene', $(this).attr('name'));
-    });
-    $('body').on('click', 'a.s', function f() {
-      EventBus.$emit('GBnavigateTo', 'subsystem', $(this).attr('name'));
-    });
+  watch: {
+    $route() {
+      this.setup();
+    },
   },
   beforeMount() {
     this.setup();
   },
   methods: {
-    setup() {
+    async setup() {
+      this.showLoaderMessage = 'Loading reaction data';
       this.rId = this.$route.params.id;
-      this.load();
+      try {
+        const payload = { model: this.model.database_name, id: this.rId };
+        await this.$store.dispatch('reactions/getReactionData', payload);
+        this.componentNotFound = false;
+        this.showLoaderMessage = '';
+        await this.getRelatedReactions();
+      } catch {
+        this.componentNotFound = true;
+        document.getElementById('search').focus();
+      }
     },
-    load() {
-      axios.get(`${this.model.database_name}/get_reaction/${this.rId}/`)
-        .then((response) => {
-          this.componentNotFound = false;
-          this.showLoader = false;
-          this.reaction = response.data.reaction;
-          if (response.data.pmids.length !== 0) {
-            this.referenceList = response.data.pmids;
-          }
-          this.getRelatedReactions();
-        })
-        .catch(() => {
-          this.componentNotFound = true;
-          document.getElementById('search').focus();
-        });
+    async getRelatedReactions() {
+      try {
+        const payload = { model: this.model.database_name, id: this.rId };
+        await this.$store.dispatch('reactions/getRelatedReactionsForReaction', payload);
+      } catch {
+        this.$store.dispatch('reactions/clearRelatedReactions');
+      }
     },
-    getRelatedReactions() {
-      axios.get(`${this.model.database_name}/get_reaction/${this.rId}/related`)
-        .then((response) => {
-          this.relatedReactions = response.data;
-          this.relatedReactions.sort((a, b) => (a.compartment_str < b.compartment_str ? -1 : 1));
-        })
-        .catch(() => {
-          this.relatedReactions = [];
-        });
-    },
-    reformatEquation() { return reformatChemicalReactionHTML(this.reaction); },
+    reformatEquation() { return reformatChemicalReactionHTML(this.reaction, false, this.model.database_name); },
     reformatGenes() {
       if (!this.reaction.gene_rule) {
         return '-';
@@ -204,7 +187,8 @@ export default {
             const suffix = e.slice(-1) === ')' ? ')' : '';
             const newE = e.replace(/^\(+|\)+$/g, '');
             const tag = newGRnameArr ? newGRnameArr[i] : newE;
-            return `${prefix}<span class="tag"><a class="e is-size-6" name="${newE}">${tag}</a></span>${suffix}`;
+            const customLink = buildCustomLink({ model: this.model.database_name, type: 'gene', id: newE, title: tag });
+            return `${prefix}<span class="tag">${customLink}</span>${suffix}`;
           });
         newGR = newGRArr.join(' ');
       }
@@ -232,7 +216,6 @@ export default {
     },
     reformatReversible() { return this.reaction.is_reversible ? 'Yes' : 'No'; },
     reformatTableKey,
-    reformatCompEqString,
     reformatChemicalReactionHTML,
     reformatEqSign,
   },

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h4 class="title is-size-4">References</h4>
+    <h4 class="subtitle is-size-4">References</h4>
     <p>Reference details are fetched dynamically from
       <a href="https://europepmc.org" target="_blank">Europe PMC</a>
       based on their PMID.
@@ -34,7 +34,7 @@
 
 <script>
 
-import axios from 'axios';
+import { mapState } from 'vuex';
 
 export default {
   name: 'References',
@@ -44,44 +44,15 @@ export default {
       required: true,
     },
   },
-  data() {
-    return {
-      formattedRefs: {},
-    };
+  computed: {
+    ...mapState({
+      formattedRefs: state => state.europepmc.formattedRefs,
+    }),
   },
-  beforeMount() {
+  async beforeMount() {
     if (this.referenceList.length > 0) {
-      const queryIDs = `(EXT_ID:"${this.referenceList.map(e => e.pmid).join('"+OR+EXT_ID:"')}")`;
-      axios.get(`https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=${queryIDs}&resultType=core&format=json`)
-        .then((response) => {
-          response.data.resultList.result.forEach((details) => {
-            try {
-              const refDetails = {};
-              if (!details.fullTextUrlList) {
-                refDetails.link = null;
-              } else {
-                refDetails.link = details.fullTextUrlList.fullTextUrl
-                  .filter(e => e.documentStyle === 'html' && e.site === 'Europe_PMC');
-                if (refDetails.link.length === 0) {
-                  refDetails.link = details.fullTextUrlList.fullTextUrl.filter(
-                    e => e.documentStyle === 'doi' || e.documentStyle === 'abs')[0].url;
-                } else {
-                  refDetails.link = refDetails.link[0].url;
-                }
-              }
-              if (details.pubYear) {
-                refDetails.year = details.pubYear;
-              }
-              refDetails.authors = details.authorList.author.map(e => e.fullName);
-              refDetails.journal = details.journalInfo.journal.title;
-              refDetails.title = details.title;
-              refDetails.formattedString = `${refDetails.authors.join(', ')}, ${refDetails.year}. <i>${refDetails.title}</i> ${refDetails.journal}`;
-              this.$set(this.formattedRefs, details.id, refDetails);
-            } catch {
-              // nothing
-            }
-          });
-        });
+      const queryIds = `(EXT_ID:"${this.referenceList.map(e => e.pmid).join('"+OR+EXT_ID:"')}")`;
+      await this.$store.dispatch('europepmc/searchReferences', queryIds);
     }
   },
 };

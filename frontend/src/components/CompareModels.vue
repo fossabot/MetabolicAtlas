@@ -1,8 +1,10 @@
 <template>
   <section class="section section-no-top extended-section">
-    <div class="container">
+    <div class="container is-fullhd">
       <h3 class="title is-size-3">GEM Comparison</h3>
       <template v-for="c in comparison">
+        <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
+        <br>
         <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
         <h4 class="title is-size-4">{{ c.models.A.modelId }} vs. {{ c.models.B.modelId }}</h4>
         <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
@@ -33,7 +35,7 @@
         <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
         <div class="columns is-variable is-8">
           <div class="column">
-            <h5 class="title is-size-5">Exclusive reactions by compartment</h5>
+            <h5 class="subtitle is-size-5">Exclusive reactions by compartment</h5>
             <div class="table-container">
               <table class="table is-fullwidth is-striped is-hoverable">
                 <thead>
@@ -58,7 +60,7 @@
           </div>
 
           <div class="column">
-            <h5 class="title is-size-5">Exclusive reactions by subsystem</h5>
+            <h5 class="subtitle is-size-5">Exclusive reactions by subsystem</h5>
             <div class="table-container">
               <table class="table is-fullwidth is-striped is-hoverable">
                 <thead>
@@ -82,7 +84,7 @@
           </div>
         </div>
         <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key -->
-        <br>
+        <br><br>
       </template>
     </div>
   </section>
