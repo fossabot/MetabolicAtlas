@@ -9,30 +9,91 @@ const data = {
 
 const actions = {
   async getReactionData({ commit }, { model, id }) {
-    const { reaction, pmids } = await reactionsApi.fetchReactionData(model, id);
-    commit('setReaction', reaction);
-    if (pmids.length !== 0) {
-      commit('setReferenceList', pmids);
-    }
+    console.warn(`TODO: use real model: ${model} and id: ${id}`);
+
+    const { pubmedIds, ...reaction } = await reactionsApi.fetchReactionData({ id, version: '1_3_0' });
+
+    commit('setReaction', {
+      ...reaction,
+      compartment_str: reaction.compartments.map(c => c.name).join(', '),
+      reactionreactant_set: reaction.metabolites.filter(m => m.outgoing),
+      reactionproduct_set: reaction.metabolites.filter(m => !m.outgoing),
+    });
+
+    commit('maps/setAvailableMaps', {
+      '2d': {
+        compartment: reaction.compartmentSVGs,
+        subsystem: reaction.subsystemSVGs,
+      },
+      '3d': { compartment: [], subsystem: [] },
+    }, { root: true });
+
+    const pmids = pubmedIds.map(pm => pm.pubmedId);
+    commit('setReferenceList', pmids);
   },
   async getRelatedReactionsForReaction({ commit }, { model, id }) {
-    const reactions = await reactionsApi.fetchRelatedReactionsForReaction(model, id);
-    commit('setRelatedReactions', reactions);
+    console.warn(`TODO: use real model: ${model} and id: ${id}`);
+
+    const reactions = await reactionsApi.fetchRelatedReactionsForReaction({ id, version: '1_3_0' });
+    commit(
+      'setRelatedReactions',
+      reactions.map(r => ({
+        ...r,
+        compartment_str: r.compartments.map(c => c.name).join(', '),
+        reactionreactant_set: r.metabolites.filter(m => m.outgoing),
+        reactionproduct_set: r.metabolites.filter(m => !m.outgoing),
+      }))
+    );
   },
   async getRelatedReactionsForGene({ commit }, { model, id }) {
-    const { reactions, limit } = await reactionsApi.fetchRelatedReactionsForGene(model, id);
-    commit('setRelatedReactions', reactions);
-    commit('setRelatedReactionsLimit', limit);
+    console.warn(`TODO: use real model: ${model} and id: ${id}`);
+
+    const reactions = await reactionsApi.fetchRelatedReactionsForGene({ id, version: '1_3_0' });
+    commit(
+      'setRelatedReactions',
+      reactions.map(r => ({
+        ...r,
+        compartment_str: r.compartments.map(c => c.name).join(', '),
+        subsystem_str: r.subsystems.map(s => s.name).join(', '),
+        reactionreactant_set: r.metabolites.filter(m => m.outgoing),
+        reactionproduct_set: r.metabolites.filter(m => !m.outgoing),
+      }))
+    );
+    // commit('setRelatedReactionsLimit', limit);
   },
-  async getRelatedReactionsForMetabolite({ commit }, { model, id, allCompartments }) {
-    const { reactions, limit } = await reactionsApi.fetchRelatedReactionsForMetabolite(model, id, allCompartments);
-    commit('setRelatedReactions', reactions);
-    commit('setRelatedReactionsLimit', limit);
+  async getRelatedReactionsForMetabolite({ commit }, { model, id }) {
+    console.warn(`TODO: use real model: ${model} and id: ${id}`);
+
+    const reactions = await reactionsApi.fetchRelatedReactionsForMetabolite({ id, version: '1_3_0' });
+
+    commit(
+      'setRelatedReactions',
+      reactions.map(r => ({
+        ...r,
+        compartment_str: r.compartments.map(c => c.name).join(', '),
+        subsystem_str: r.subsystems.map(s => s.name).join(', '),
+        reactionreactant_set: r.metabolites.filter(m => m.outgoing),
+        reactionproduct_set: r.metabolites.filter(m => !m.outgoing),
+      }))
+    );
+    // commit('setRelatedReactionsLimit', limit);
   },
   async getRelatedReactionsForSubsystem({ commit }, { model, id }) {
-    const { reactions, limit } = await reactionsApi.fetchRelatedReactionsForSubsystem(model, id);
-    commit('setRelatedReactions', reactions);
-    commit('setRelatedReactionsLimit', limit);
+    console.warn(`TODO: use real model: ${model}`);
+
+    const reactions = await reactionsApi.fetchRelatedReactionsForSubsystem({ id, version: '1_3_0' });
+
+    commit(
+      'setRelatedReactions',
+      reactions.map(r => ({
+        ...r,
+        compartment_str: r.compartments.map(c => c.name).join(', '),
+        subsystem_str: r.subsystems.map(s => s.name).join(', '),
+        reactionreactant_set: r.metabolites.filter(m => m.outgoing),
+        reactionproduct_set: r.metabolites.filter(m => !m.outgoing),
+      }))
+    );
+    // commit('setRelatedReactionsLimit', limit);
   },
   clearRelatedReactions({ commit }) {
     commit('setRelatedReactions', []);

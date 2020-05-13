@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-const fetchCompartmentSummary = async (model, compartmentId) => {
-  const { data } = await axios.get(`${model}/compartment/${compartmentId}/summary/`);
+const fetchCompartmentSummary = async ({ id, version }) => {
+  const { data } = await axios({ url: `${version}/compartments/${id}/`, baseURL: '/new_api/integrated' });
   return data;
 };
 

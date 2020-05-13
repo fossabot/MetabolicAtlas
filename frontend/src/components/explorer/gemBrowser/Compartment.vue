@@ -13,7 +13,7 @@
       <div class="subsystem-table column is-10-widescreen is-9-desktop is-full-tablet">
         <div class="table-container">
           <table v-if="compartment && Object.keys(compartment).length != 0"
-                class="table main-table is-fullwidth">
+                 class="table main-table is-fullwidth">
             <tr>
               <td class="td-key has-background-primary has-text-white-bis">Name</td>
               <td> {{ compartment.name }}</td>
@@ -32,15 +32,15 @@
             </tr>
             <tr>
               <td class="td-key has-background-primary has-text-white-bis">Reactions</td>
-              <td> {{ compartment.reaction_count }}</td>
+              <td> {{ compartment.reactions.length }}</td>
             </tr>
             <tr>
               <td class="td-key has-background-primary has-text-white-bis">Metabolites</td>
-              <td> {{ compartment.metabolite_count }}</td>
+              <td> {{ compartment.metabolites.length }}</td>
             </tr>
             <tr>
               <td class="td-key has-background-primary has-text-white-bis">Genes</td>
-              <td> {{ compartment.gene_count }}</td>
+              <td> {{ compartment.genes.length }}</td>
             </tr>
           </table>
         </div>
@@ -82,7 +82,7 @@ export default {
       showFullSubsystem: false,
       limitSubsystem: 30,
       componentNotFound: false,
-      showLoaderMessage: 'Loading compartment data',
+      showLoaderMessage: '',
     };
   },
   computed: {
@@ -108,17 +108,28 @@ export default {
       return l.join('');
     },
   },
-  async beforeMount() {
-    this.cName = this.$route.params.id;
-    try {
-      const payload = { model: this.model.database_name, id: this.cName };
-      await this.$store.dispatch('compartments/getCompartmentSummary', payload);
-      this.componentNotFound = false;
-      this.showLoaderMessage = '';
-    } catch {
-      this.componentNotFound = true;
-      document.getElementById('search').focus();
-    }
+  watch: {
+    $route() {
+      this.setup();
+    },
+  },
+  beforeMount() {
+    this.setup();
+  },
+  methods: {
+    async setup() {
+      this.showLoaderMessage = 'Loading compartment data';
+      this.cName = this.$route.params.id;
+      try {
+        const payload = { model: this.model.database_name, id: this.cName };
+        await this.$store.dispatch('compartments/getCompartmentSummary', payload);
+        this.componentNotFound = false;
+        this.showLoaderMessage = '';
+      } catch {
+        this.componentNotFound = true;
+        document.getElementById('search').focus();
+      }
+    },
   },
 };
 </script>

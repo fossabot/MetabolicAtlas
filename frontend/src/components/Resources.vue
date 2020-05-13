@@ -1,6 +1,6 @@
 <template>
   <section class="section section-no-top extended-section">
-    <div class="container">
+    <div class="container is-fullhd">
       <template v-for="(elems, category) in resources">
         <!-- eslint-disable-next-line vue/require-v-for-key -->
         <div class="columns">

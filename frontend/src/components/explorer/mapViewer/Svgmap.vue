@@ -126,6 +126,14 @@ export default {
       return true;
     },
   },
+  watch: {
+    async requestedMapName(newName, oldName) {
+      if (oldName && oldName.length > 0 && newName !== oldName) {
+        this.initialLoadWithParams = false;
+      }
+      await this.init();
+    },
+  },
   created() {
     EventBus.$off('apply2DHPARNAlevels');
 
@@ -135,17 +143,9 @@ export default {
 
     this.updateURLCoord = debounce(this.updateURLCoord, 150);
   },
-  watch: {
-    async requestedMapName(newName, oldName) {
-      if (oldName && oldName.length > 0 && newName !== oldName) {
-        this.initialLoadWithParams = false;
-      }
-      await this.init();
-    },
-  },
   async mounted() {
     const self = this;
-    self.initialLoadWithParams = !self.$route.params.map_id;
+    self.initialLoadWithParams = !!self.$route.query.coords;
     ['.met', '.enz', '.rea', '.subsystem'].forEach((aClass) => {
       $('#svg-wrapper').on('click', aClass, async function f() {
         await self.selectElement($(this));
@@ -338,13 +338,13 @@ export default {
       if (!mapInfo) {
         this.mapType = null;
         this.mapName = null;
-        this.$emit('loadComplete', false, 'Invalid map ID', 'danger');
+        this.$emit('loadComplete', false, `Invalid map ID "${name}"`);
         return;
       }
 
       const newSvgName = mapInfo.filename;
       if (!newSvgName) {
-        this.$emit('loadComplete', false, messages.mapNotFound, 'danger');
+        this.$emit('loadComplete', false, messages.mapNotFound);
         return;
       }
 
@@ -370,7 +370,7 @@ export default {
               this.loadSvgPanZoom();
             }, 0);
           } catch {
-            this.$emit('loadComplete', false, messages.mapNotFound, 'danger');
+            this.$emit('loadComplete', false, messages.mapNotFound);
           }
         }
       } else {
@@ -425,7 +425,6 @@ export default {
         if (this.searchedNodesOnMap.length !== 0) {
           this.searchedElemsHL = this.highlight(this.searchedNodesOnMap, 'schhl');
           this.centerElementOnSVG(this.searchedNodesOnMap[0]);
-          this.selectElement(this.searchedNodesOnMap[0]);
         }
       }
     },
@@ -535,6 +534,7 @@ export default {
 
       if (this.selectedItemHistory[id]) {
         selectionData.data = this.selectedItemHistory[id];
+        this.$store.dispatch('maps/setSelectedElementId', id);
         this.$emit('updatePanelSelectionData', selectionData);
         return;
       }
@@ -595,57 +595,56 @@ export default {
 </script>
 
 <style lang="scss">
-  .met, .rea, .enz {
-    .shape, .lbl {
-      cursor: pointer;
-    }
-    &:hover {
-      .shape {
-        fill: salmon;
-      }
-      .lbl {
-        font-weight: 900;
-        text-shadow: 0 0 2px white;
-      }
-    }
+.met, .rea, .enz {
+  .shape, .lbl {
+    cursor: pointer;
   }
-
-  .svgbox {
-    position: relative;
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    height:100%;
-    &.fullscreen {
-      background: white;
-    }
-  }
-
-  svg .selhl {
-    display: inline;
+  &:hover {
     .shape {
-      fill: red;
-      display: inline;
+      fill: salmon;
+    }
+    .lbl {
+      font-weight: 900;
+      text-shadow: 0 0 2px white;
     }
   }
+}
 
-  svg .schhl {
+.svgbox {
+  position: relative;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height:100%;
+  &.fullscreen {
+    background: white;
+  }
+}
+
+svg .selhl {
+  display: inline;
+  .shape {
+    fill: red;
     display: inline;
-    .shape {
-      stroke: orange;
-      stroke-width: 5px;
-      display: inline;
-    }
   }
+}
 
-  #tooltip {
-    background: whitesmoke;
-    color: black;
-    border-radius: 3px;
-    border: 1px solid gray;
-    padding: 8px;
-    position: absolute;
-    display: none;
+svg .schhl {
+  display: inline;
+  .shape {
+    stroke: orange;
+    stroke-width: 5px;
+    display: inline;
   }
+}
 
+#tooltip {
+  background: whitesmoke;
+  color: black;
+  border-radius: 3px;
+  border: 1px solid gray;
+  padding: 8px;
+  position: absolute;
+  display: none;
+}
 </style>

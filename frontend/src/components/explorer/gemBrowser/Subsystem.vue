@@ -27,13 +27,14 @@
             <tr>
               <td class="td-key has-background-primary has-text-white-bis">Compartments</td>
               <td>
-                <template v-for="(c, i) in info['compartments']">
-                  <template v-if="i !== 0">, </template>
-                  <!-- eslint-disable-next-line vue/valid-v-for max-len -->
-                  <router-link :to="{ name: 'browser', params: { model: model.database_name, type: 'compartment', id: c.id } }">
-                    {{ c.name }}
-                  </router-link>
-                </template>
+                <div class="tags">
+                  <template v-for="c in info['compartments']">
+                    <span :key="c.id" class="tag">
+                      <!-- eslint-disable-next-line max-len -->
+                      <router-link :to="{ name: 'browser', params: { model: model.database_name, type: 'compartment', id: c.id } }">{{ c.name }}</router-link>
+                    </span>
+                  </template>
+                </div>
               </td>
             </tr>
             <tr>
@@ -69,7 +70,7 @@
             </tr>
           </table>
         </div>
-        <ExtIdTable :type="type" :external-dbs="info.external_databases"></ExtIdTable>
+        <ExtIdTable :type="type" :external-dbs="info.externalDbs"></ExtIdTable>
       </div>
       <div class="column is-2-widescreen is-3-desktop is-half-tablet has-text-centered">
         <maps-available :id="sName" :type="type" :element-i-d="''"></maps-available>
@@ -115,7 +116,7 @@ export default {
       displayedMetabolite: 40,
       displayedGene: 40,
       componentNotFound: false,
-      showLoaderMessage: 'Loading subsystem data',
+      showLoaderMessage: '',
     };
   },
   computed: {
@@ -131,14 +132,17 @@ export default {
     }),
     metabolitesListHtml() {
       const l = ['<span class="tags">'];
-      const metsSorted = this.metabolites.concat().sort((a, b) => (a.name < b.name ? -1 : 1));
+      const metsSorted = [...this.metabolites].sort((a, b) => (a.name < b.name ? -1 : 1));
+
+
       for (let i = 0; i < metsSorted.length; i += 1) {
         const m = metsSorted[i];
+
         if ((!this.showFullMetabolite && i === this.displayedMetabolite)
           || i === this.limitMetabolite) {
           break;
         }
-        const customLink = buildCustomLink({ model: this.model.database_name, type: 'metabolite', id: m.id, title: m.full_name || m.id });
+        const customLink = buildCustomLink({ model: this.model.database_name, type: 'metabolite', id: m.id, title: m.name || m.id });
         l.push(
           `<span id="${m.id}" class="tag">${customLink}</span>`
         );
@@ -148,7 +152,7 @@ export default {
     },
     genesListHtml() {
       const l = ['<span class="tags">'];
-      const genesSorted = this.genes.concat().sort((a, b) => (a.name < b.name ? -1 : 1));
+      const genesSorted = [...this.genes].sort((a, b) => (a.name < b.name ? -1 : 1));
       for (let i = 0; i < genesSorted.length; i += 1) {
         const e = genesSorted[i];
         if ((!this.showFullGene && i === this.displayedGene)
@@ -162,19 +166,28 @@ export default {
       return l.join('');
     },
   },
-  async beforeMount() {
-    this.sName = this.$route.params.id;
-    try {
-      const payload = { model: this.model.database_name, id: this.sName };
-      this.$store.dispatch('subsystems/getSubsystemSummary', payload);
-      this.componentNotFound = false;
-      this.showLoaderMessage = '';
-    } catch {
-      this.componentNotFound = true;
-      document.getElementById('search').focus();
-    }
+  watch: {
+    $route() {
+      this.setup();
+    },
+  },
+  beforeMount() {
+    this.setup();
   },
   methods: {
+    async setup() {
+      this.showLoaderMessage = 'Loading subsystem data';
+      this.sName = this.$route.params.id;
+      try {
+        const payload = { model: this.model.database_name, id: this.sName };
+        await this.$store.dispatch('subsystems/getSubsystemSummary', payload);
+        this.componentNotFound = false;
+        this.showLoaderMessage = '';
+      } catch {
+        this.componentNotFound = true;
+        document.getElementById('search').focus();
+      }
+    },
     reformatKey(k) { return reformatTableKey(k); },
   },
 };

@@ -1,5 +1,5 @@
 <template>
-  <div class="container cytoscape-table">
+  <div class="container is-fullhd cytoscape-table">
     <div class="columns">
       <div class="column is-half is-8-tablet">
         <input v-model="tableSearch" class="input" type="text" placeholder="Search in table"
@@ -259,7 +259,6 @@ export default {
 </script>
 
 <style lang="scss">
-
 .cytoscape-table {
   #unmachingTableBody {
     opacity: 0.3;
@@ -274,5 +273,4 @@ export default {
     }
   }
 }
-
 </style>

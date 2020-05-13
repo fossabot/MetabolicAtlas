@@ -31,14 +31,17 @@
                   </template>
                 </template>
                 <template v-else-if="el.name === 'compartment'">
-                  <template v-for="(v, i) in reaction[el.name]">
-                    <template v-if="i !== 0">; </template>
-                    <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key max-len -->
-                    <router-link :to="{ name: 'browser', params: { model: model.database_name, type: 'compartment', id: v.id } }"> {{ v.name }}</router-link>
-                  </template>
-                  <template v-if="reaction.is_transport">
-                    (transport reaction)
-                  </template>
+                  <div class="tags">
+                    <template v-for="c in reaction[el.name]">
+                      <span :key="c.id" class="tag">
+                        <!-- eslint-disable-next-line max-len -->
+                        <router-link :to="{ name: 'browser', params: { model: model.database_name, type: 'compartment', id: c.id } }">{{ c.name }}</router-link>
+                      </span>
+                    </template>
+                    <template v-if="reaction.is_transport">
+                      &nbsp;(transport reaction)
+                    </template>
+                  </div>
                 </template>
                 <template v-else-if="el.name === 'ec'">
                   <!-- eslint-disable-next-line max-len -->
@@ -61,7 +64,7 @@
                   </router-link>
                   <div style="margin-left: 30px">
                     <span v-html="reformatChemicalReactionHTML(rr, true, model.database_name)"></span>
-                    (<span v-html="reformatEqSign(rr.compartment_str, rr.is_reversible)">
+                    (<span v-html="reformatEqSign(rr.compartment_str, rr.reversible)">
                     </span>)
                   </div>
                 </span>
@@ -69,7 +72,7 @@
             </tr>
           </table>
         </div>
-        <ExtIdTable :type="type" :external-dbs="reaction.external_databases"></ExtIdTable>
+        <ExtIdTable :type="type" :external-dbs="reaction.externalDbs"></ExtIdTable>
         <references :reference-list="referenceList" />
       </div>
       <div class="column is-2-widescreen is-3-desktop is-half-tablet has-text-centered">
@@ -100,6 +103,7 @@ export default {
     ExtIdTable,
     References,
   },
+
   data() {
     return {
       rId: this.$route.params.id,
@@ -107,15 +111,15 @@ export default {
       mainTableKey: [
         { name: 'id' },
         { name: 'equation', modifier: this.reformatEquation },
-        { name: 'is_reversible', display: 'Reversible', modifier: this.reformatReversible },
+        { name: 'isReversible', display: 'Reversible', modifier: this.reformatReversible },
         { name: 'quantitative', modifier: this.reformatQuant },
-        { name: 'gene_rule', display: 'Gene rule', modifier: this.reformatGenes },
+        { name: 'geneRule', display: 'Gene rule', modifier: this.reformatGenes },
         { name: 'ec', display: 'EC' },
-        { name: 'compartment', display: 'Compartment(s)' },
-        { name: 'subsystem', display: 'Subsystem(s)' },
+        { name: 'compartments', display: 'Compartment(s)' },
+        { name: 'subsystems', display: 'Subsystem(s)' },
       ],
       errorMessage: '',
-      showLoaderMessage: 'Loading reaction data',
+      showLoaderMessage: '',
       mapsAvailable: {},
       componentNotFound: false,
     };
@@ -128,20 +132,29 @@ export default {
       relatedReactions: state => state.reactions.relatedReactions,
     }),
   },
-  async beforeMount() {
-    this.rId = this.$route.params.id;
-    try {
-      const payload = { model: this.model.database_name, id: this.rId };
-      await this.$store.dispatch('reactions/getReactionData', payload);
-      this.componentNotFound = false;
-      this.showLoaderMessage = '';
-      await this.getRelatedReactions();
-    } catch {
-      this.componentNotFound = true;
-      document.getElementById('search').focus();
-    }
+  watch: {
+    $route() {
+      this.setup();
+    },
+  },
+  beforeMount() {
+    this.setup();
   },
   methods: {
+    async setup() {
+      this.showLoaderMessage = 'Loading reaction data';
+      this.rId = this.$route.params.id;
+      try {
+        const payload = { model: this.model.database_name, id: this.rId };
+        await this.$store.dispatch('reactions/getReactionData', payload);
+        this.componentNotFound = false;
+        this.showLoaderMessage = '';
+        await this.getRelatedReactions();
+      } catch {
+        this.componentNotFound = true;
+        document.getElementById('search').focus();
+      }
+    },
     async getRelatedReactions() {
       try {
         const payload = { model: this.model.database_name, id: this.rId };
@@ -152,16 +165,16 @@ export default {
     },
     reformatEquation() { return reformatChemicalReactionHTML(this.reaction, false, this.model.database_name); },
     reformatGenes() {
-      if (!this.reaction.gene_rule) {
+      if (!this.reaction.geneRule) {
         return '-';
       }
       let newGRnameArr = null;
-      if (this.reaction.gene_rule_wname) {
-        newGRnameArr = this.reaction.gene_rule_wname.split(/ +/).map(
+      if (this.reaction.geneRule_wname) {
+        newGRnameArr = this.reaction.geneRule_wname.split(/ +/).map(
           e => e.replace(/^\(+|\)+$/g, '')
         );
       }
-      let newGR = this.reaction.gene_rule;
+      let newGR = this.reaction.geneRule;
       if (newGR) {
         let i = -1;
         const newGRArr = newGR.split(/ +/).map(
@@ -184,7 +197,7 @@ export default {
     formatQuantFieldName(name) { return `${name}:&nbsp;`; },
     reformatQuant() {
       const data = [];
-      ['lower_bound', 'upper_bound', 'objective_coefficient'].forEach((key) => {
+      ['lowerBound', 'upperBound', 'objective_coefficient'].forEach((key) => {
         if (this.reaction[key] != null) {
           data.push(this.formatQuantFieldName(this.reformatTableKey(key)));
           if (key === 'objective_coefficient') {
@@ -201,7 +214,7 @@ export default {
       }
       return s;
     },
-    reformatReversible() { return this.reaction.is_reversible ? 'Yes' : 'No'; },
+    reformatReversible() { return this.reaction.reversible ? 'Yes' : 'No'; },
     reformatTableKey,
     reformatChemicalReactionHTML,
     reformatEqSign,

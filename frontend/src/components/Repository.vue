@@ -1,6 +1,6 @@
 <template>
   <section class="section section-no-top extended-section">
-    <div class="container">
+    <div class="container is-fullhd">
       <div v-if="errorMessage">
         {{ errorMessage }}
       </div>
@@ -321,6 +321,7 @@ export default {
     showIntegratedModelData(model) {
       this.selectedModel = model;
       this.showModelId = model.short_name;
+      this.referenceList = model.ref;
     },
     async getModels() {
       this.showLoader = true;
