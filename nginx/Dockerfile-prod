@@ -1,8 +1,8 @@
-FROM node:lts-slim AS frontend
+FROM node:lts-alpine AS frontend
 WORKDIR /project
 COPY frontend .
 
-RUN npm install && npm run build
+RUN yarn && yarn build
 
 
 FROM python:3.6-slim-stretch AS backend
