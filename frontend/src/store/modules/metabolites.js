@@ -7,7 +7,9 @@ const data = {
 
 const actions = {
   async getMetaboliteData({ commit }, { model, id }) {
-    const metabolite = await metabolitesApi.fetchMetaboliteData(model, id);
+    console.warn(`TODO: use model: ${model}`);
+
+    const metabolite = await metabolitesApi.fetchMetaboliteData({ id, version: '1' });
     commit('setMetabolite', metabolite);
   },
   async getRelatedMetabolites({ commit }, { model, id }) {

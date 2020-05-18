@@ -86,8 +86,8 @@ export default {
       type: 'gene',
       mainTableKey: [
         { name: 'id' },
-        { name: 'geneName', display: 'Gene&nbsp;name' },
-        { name: 'alternate_name', display: 'Alternate&nbsp;name' },
+        { name: 'name', display: 'Gene&nbsp;name' },
+        { name: 'alternateName', display: 'Alternate&nbsp;name' },
         { name: 'synonyms' },
         { name: 'function' },
       ],

@@ -1,29 +1,27 @@
 import axios from 'axios';
 
-const fetchReactionData = async (model, id) => {
-  const { data } = await axios.get(`${model}/get_reaction/${id}/`);
+const fetchReactionData = async ({ id, version }) => {
+  const { data } = await axios({ url: `${version}/reactions/${id}/`, baseURL: '/new_api/integrated' });
   return data;
 };
 
-const fetchRelatedReactionsForReaction = async (model, id) => {
-  const { data } = await axios.get(`${model}/get_reaction/${id}/related`);
+const fetchRelatedReactionsForReaction = async ({ id, version }) => {
+  const { data } = await axios({ url: `${version}/reactions/${id}/related-reactions`, baseURL: '/new_api/integrated' });
   return data.sort((a, b) => (a.compartment_str < b.compartment_str ? -1 : 1));
 };
 
-const fetchRelatedReactions = async (model, resourceType, id, allCompartments = false) => {
-  let url = `${model}/${resourceType}/${id}/get_reactions/`;
-  if (allCompartments) {
-    url += 'all_compartments/';
-  }
-  const { data } = await axios.get(url);
+const fetchRelatedReactions = async (resourceType, id, version, allCompartments = false) => {
+  console.warn(`handle allCompartments: ${allCompartments}`);
+
+  const { data } = await axios({ url: `${version}/${resourceType}s/${id}/related-reactions`, baseURL: '/new_api/integrated' });
   return data;
 };
 
-const fetchRelatedReactionsForGene = async (model, id) => fetchRelatedReactions(model, 'gene', id);
+const fetchRelatedReactionsForGene = async ({ id, version }) => fetchRelatedReactions('gene', id, version);
 
-const fetchRelatedReactionsForMetabolite = async (model, id, allCompartments) => fetchRelatedReactions(model, 'metabolite', id, allCompartments);
+const fetchRelatedReactionsForMetabolite = async ({ id, version }, allCompartments) => fetchRelatedReactions('metabolite', id, version, allCompartments);
 
-const fetchRelatedReactionsForSubsystem = async (model, id) => fetchRelatedReactions(model, 'subsystem', id);
+const fetchRelatedReactionsForSubsystem = async ({ id, version }) => fetchRelatedReactions('subsystem', id, version);
 
 export default {
   fetchReactionData,

@@ -14,6 +14,7 @@ services:
       dockerfile: Dockerfile
     depends_on:
       - backend
+      - api
       - frontend
     ports:
       - "127.0.0.1:80:80"
@@ -30,6 +31,7 @@ services:
     container_name: frontend
     depends_on:
       - backend
+      - api
     build: ./frontend
     command: npm run serve
     volumes:
@@ -39,6 +41,27 @@ services:
       - net-tier
     ports:
       - "127.0.0.1:81:81"
+
+  neo4j:
+    image: neo4j:latest
+    environment:
+      - NEO4J_AUTH=none
+    volumes:
+      - ./utils/mockData/data:/var/lib/neo4j/import/
+    networks:
+      - net-tier
+    ports:
+      - "127.0.0.1:7474:7474"
+      - "127.0.0.1:7687:7687"
+
+  api:
+    container_name: api
+    build: ./api
+    volumes:
+      - ./api/src:/project/src
+    command: npm run develop
+    networks:
+      - net-tier
 
 volumes:
   voldb:
