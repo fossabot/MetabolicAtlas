@@ -1,8 +1,8 @@
-FROM node:lts-slim AS frontend
+FROM node:lts-alpine AS frontend
 WORKDIR /project
 COPY frontend .
 
-RUN npm install && npm run build
+RUN yarn && yarn build
 
 
 FROM python:3.6-slim-stretch AS backend
@@ -16,9 +16,13 @@ RUN pip install -r requirements.txt && \
 
 
 FROM nginx:stable-alpine
-ARG NGINXCONF=nginx-prod.conf
+ARG SERVER_NAME=metabolicatlas.org
+ARG USE_IP_FILTER=false
 
-COPY nginx/$NGINXCONF /etc/nginx/nginx.conf
+COPY nginx/nginx-prod.conf /etc/nginx/nginx.temp
+RUN if [ "${USE_IP_FILTER}" = true ] ; \
+    then export IP_FILTER="allow 129.16.0.0/16; deny all;" ; fi && \
+    envsubst '${SERVER_NAME} ${IP_FILTER}' < /etc/nginx/nginx.temp > /etc/nginx/nginx.conf
 
 COPY --from=frontend /project/dist            /content
 COPY --from=backend  /project/static          /content/static
