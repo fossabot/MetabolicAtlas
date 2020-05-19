@@ -43,11 +43,17 @@ services:
       - "127.0.0.1:81:81"
 
   neo4j:
+    container_name: neo4j
     image: neo4j:latest
     environment:
       - NEO4J_AUTH=none
+      - NEO4J_apoc_export_file_enabled=true
+      - NEO4J_apoc_import_file_enabled=true
+      - NEO4J_apoc_import_file_use__neo4j__config=true
+      - NEO4JLABS_PLUGINS=["apoc"] 
     volumes:
       - ./utils/mockData/data:/var/lib/neo4j/import/
+      - ./neo4j/plugins:/plugins
     networks:
       - net-tier
     ports:
