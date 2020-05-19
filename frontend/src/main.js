@@ -17,8 +17,6 @@ axios.defaults.onDownloadProgress = function onDownloadProgress(progressEvent) {
 
 Vue.use(vueDebounce);
 
-Vue.prototype.$metAtlasViewer = MetAtlasViewer; // eslint-disable-line no-undef
-
 if (navigator.doNotTrack !== '1') {
   Vue.use(VueMatomo, {
     host: 'https://sysbiowiki.se:4433/',

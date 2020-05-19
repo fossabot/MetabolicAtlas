@@ -58,7 +58,7 @@
           <div v-for="tool in explorerTools" :key="tool.name"
                class="column is-one-fifth-widescreen is-4-desktop is-4-tablet">
             <router-link :to="{ name: tool.routeName, params: { model: model.database_name } }"
-                         :title="`Click to access the ${tool.name} for ${model.short_name} model`">
+                         :title="`Click to access the ${tool.name} for ${model.short_name}`">
               <div class="card card-fullheight hoverable">
                 <header class="card-header">
                   <p class="card-header-title is-block has-text-centered is-size-5">
@@ -120,10 +120,10 @@ export default {
           img: require('../assets/interaction.jpg'),
           routeName: 'interPartnerRoot',
           icon: 'share-alt' },
-        { name: '3D Viewer',
+        { name: 'New 3D Viewer',
           img: '',
-          url: '/explore/threeDviewer',
-          icon: '' },
+          routeName: 'threeDviewerRoot',
+          icon: 'spinner' },
       ],
       modelNotFound: null,
       extendWindow: false,

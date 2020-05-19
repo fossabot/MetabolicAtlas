@@ -24,7 +24,7 @@ const routes = [
   { path: '/explore/map-viewer/:model/:type(subsystem|compartment)/:map_id', name: 'viewer', component: Explorer },
   { path: '/explore/interaction/:model/', name: 'interPartnerRoot', component: Explorer },
   { path: '/explore/interaction/:model/:id/', name: 'interPartner', component: Explorer },
-  { path: '/explore/threeDviewer/:model/', name: 'threeDviewerRoot', component: Explorer, props: true },
+  { path: '/explore/threeDviewer/:model/', name: 'threeDviewerRoot', component: Explorer },
   { path: '/about', name: 'about', component: About },
   { path: '/gems/repository', name: 'gems', component: Repository },
   { path: '/gems/repository/:model_id', name: 'gemsModal', component: Repository },
