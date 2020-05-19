@@ -41,14 +41,15 @@ export default {
   },
   mounted() {
     this.controller = MetAtlasViewer('viewer');
-    axios.get('http://localhost/data-colors.js')
+    const frontenPublic = axios.create({ baseURL: '/' });
+    frontenPublic.get('/data-colors.js')
       .then((response) => {
         this.data = response.data;
         this.controller.setData(
           this.data,
-          [{ group: 'e', sprite: 'http://localhost/sprite_round.png' },
-            { group: 'r', sprite: 'http://localhost/sprite_square.png' },
-            { group: 'm', sprite: 'http://localhost/sprite_triangle.png' }],
+          [{ group: 'e', sprite: '/sprite_round.png' },
+            { group: 'r', sprite: '/sprite_square.png' },
+            { group: 'm', sprite: '/sprite_triangle.png' }],
           15);
       });
     // console.log('controller:', controller);

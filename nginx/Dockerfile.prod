@@ -21,7 +21,7 @@ ARG USE_IP_FILTER=false
 
 COPY nginx/nginx-prod.conf /etc/nginx/nginx.temp
 RUN if [ "${USE_IP_FILTER}" = true ] ; \
-  then export IP_FILTER="allow 129.16.0.0/16; deny all;" ; fi && \
+  then export IP_FILTER="allow 129.16.0.0/16; allow 130.238.0.0/16; deny all;" ; fi && \
   envsubst '${SERVER_NAME} ${IP_FILTER}' < /etc/nginx/nginx.temp > /etc/nginx/nginx.conf
 
 COPY --from=frontend /project/dist            /content
