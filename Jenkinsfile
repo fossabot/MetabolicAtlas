@@ -8,14 +8,15 @@ pipeline {
           echo "VUE_APP_MATOMOID=14" >> frontend/.env.production
         '''
         echo 'Copied PostgreSQL and Django environments. Configured Vue environment.'
-        withCredentials([string(credentialsId: 'f8066a74-2a9c-4510-8bd5-7edb569fff14', variable: 'human1db'), string(credentialsId: '7650c2ee-c69d-4499-a180-b089acfd1afc', variable: 'yeast8db'), string(credentialsId: '	5013ec59-acd1-4b13-a0c2-90904f2aceb1', variable: 'gemsdb')]) {
+        withCredentials([string(credentialsId: 'f8066a74-2a9c-4510-8bd5-7edb569fff14', variable: 'human1db'), string(credentialsId: '7650c2ee-c69d-4499-a180-b089acfd1afc', variable: 'yeast8db'), string(credentialsId: '	5013ec59-acd1-4b13-a0c2-90904f2aceb1', variable: 'gemsdb'), string(credentialsId: 'AUTH_TOKEN', variable: 'gprauth')]) {
           sh '''
             wget $human1db -O human1.db
             wget $gemsdb -O gems.db
             wget $yeast8db -O yeast8.db
+            echo $gprauth >> frontend/.npmrc
           '''
         }
-        echo 'Downloaded source databases.'
+        echo 'Downloaded source databases, configured .npmrc'
       }
     }
     stage('Build') {

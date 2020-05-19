@@ -102,6 +102,3 @@ pids
 *.pid
 *.seed
 *.pid.lock
-
-# Keep GH token private
-.npmrc
