@@ -12,7 +12,7 @@ services:
     restart: always
     build:
       context: .
-      dockerfile: nginx/Dockerfile-prod
+      dockerfile: nginx/Dockerfile.prod
     ports:
       - "80:80"
       - "443:443"

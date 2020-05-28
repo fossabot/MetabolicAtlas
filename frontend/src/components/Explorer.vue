@@ -58,7 +58,7 @@
           <div v-for="tool in explorerTools" :key="tool.name"
                class="column is-one-fifth-widescreen is-4-desktop is-4-tablet">
             <router-link :to="{ name: tool.routeName, params: { model: model.database_name } }"
-                         :title="`Click to access the ${tool.name} for ${model.short_name} model`">
+                         :title="`Click to access the ${tool.name} for ${model.short_name}`">
               <div class="card card-fullheight hoverable">
                 <header class="card-header">
                   <p class="card-header-title is-block has-text-centered is-size-5">
@@ -90,6 +90,7 @@ import { mapGetters, mapState } from 'vuex';
 import GemBrowser from '@/components/explorer/GemBrowser';
 import MapViewer from '@/components/explorer/MapViewer';
 import InteractionPartners from '@/components/explorer/InteractionPartners';
+import ThreeDviewer from '@/components/explorer/ThreeDviewer';
 import NotFound from '@/components/NotFound';
 import { default as messages } from '@/helpers/messages';
 import { default as EventBus } from '../event-bus';
@@ -100,6 +101,7 @@ export default {
     GemBrowser,
     MapViewer,
     InteractionPartners,
+    ThreeDviewer,
     NotFound,
   },
   data() {
@@ -118,6 +120,10 @@ export default {
           img: require('../assets/interaction.jpg'),
           routeName: 'interPartnerRoot',
           icon: 'share-alt' },
+        { name: 'New 3D Viewer',
+          img: '',
+          routeName: 'threeDviewerRoot',
+          icon: 'spinner' },
       ],
       modelNotFound: null,
       extendWindow: false,
@@ -170,6 +176,8 @@ export default {
         this.displayBrowser();
       } else if (['interPartnerRoot', 'interPartner'].includes(this.$route.name)) {
         this.displayInterPartner();
+      } else if (['threeDviewerRoot'].includes(this.$route.name)) {
+        this.displayThreeDViewer();
       } else {
         EventBus.$emit('destroy3Dnetwork');
         this.extendWindow = false;
@@ -222,6 +230,10 @@ export default {
     displayInterPartner() {
       this.extendWindow = false;
       this.currentShowComponent = 'InteractionPartners';
+    },
+    displayThreeDViewer() {
+      this.extendWindow = true;
+      this.currentShowComponent = 'threeDviewer';
     },
   },
 };
