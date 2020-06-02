@@ -5,25 +5,40 @@ const getGene = async ({ id, version }) => {
   const v = version;
 
   const statement = `
-MATCH (gs:GeneState)-[:V${v}]-(g:Gene)-[:V${v}]-(r:Reaction)-[cmE:V${v}]-(cm:CompartmentalizedMetabolite)-[:V${v}]-(c:Compartment)-[:V${v}]-(cs:CompartmentState)
-WHERE g.id="${id}"
-MATCH (cm)-[:V${v}]-(:Metabolite)-[:V${v}]-(ms:MetaboliteState)
-MATCH (g)-[:V${v}]-(r:Reaction)-[cmE:V${v}]-(cm:CompartmentalizedMetabolite)-[:V${v}]-(c:Compartment)-[:V${v}]-(cs:CompartmentState)
-MATCH (r)-[:V${v}]-(rs:ReactionState)
-OPTIONAL MATCH (r)-[:V${v}]-(s:Subsystem)-[:V${v}]-(ss:SubsystemState)
-OPTIONAL MATCH (g)-[:V${v}]-(e:ExternalDb)
-OPTIONAL MATCH (c)-[:V${v}]-(csvg:SvgMap)
-OPTIONAL MATCH (s)-[:V${v}]-(ssvg:SvgMap)
-RETURN gs {
-  id: g.id,
-  .*,
-  compartments: COLLECT(DISTINCT(cs {id: c.id, .*})),
-  subsystems: COLLECT(DISTINCT(ss {id: s.id, .*})),
-  externalDbs: COLLECT(DISTINCT(e {.*})),
-  metabolites: COLLECT(DISTINCT(ms {id: cm.id, stoichiometry: cmE.stoichiometry, outgoing: startnode(cmE)=cm, .*})),
-  compartmentSVGs: COLLECT(DISTINCT(csvg {name: cs.name, .*})),
-  subsystemSVGs: COLLECT(DISTINCT(ssvg {name: ss.name, .*}))
-} AS gene
+CALL apoc.cypher.run("
+  MATCH (gs:GeneState)-[:V${v}]-(g:Gene {id: '${id}'})
+  RETURN gs { id: g.id, .* } as data
+  
+  UNION
+  
+  MATCH (:Gene {id: '${id}'})-[:V${v}]-(:Reaction)-[:V${v}]-(cm:CompartmentalizedMetabolite)
+  WITH DISTINCT cm
+  MATCH (cm)-[:V${v}]-(c:Compartment)-[:V${v}]-(cs:CompartmentState)
+  RETURN { compartments: COLLECT(DISTINCT({id: c.id, name: cs.name})) } as data
+  
+  UNION
+  
+  MATCH (:Gene {id: '${id}'})-[:V${v}]-(:Reaction)-[:V${v}]-(s:Subsystem)-[:V${v}]-(ss:SubsystemState)
+  RETURN { subsystems: COLLECT(DISTINCT({id: s.id, name: ss.name})) } as data
+  
+  UNION
+  
+  MATCH (:Gene {id: '${id}'})-[:V${v}]-(e:ExternalDb)
+  RETURN { externalDbs: COLLECT(DISTINCT(e {.*})) } as data
+  
+  UNION
+  
+  MATCH (:Gene {id: '${id}'})-[:V${v}]-(:Reaction)-[:V${v}]-(cm:CompartmentalizedMetabolite)
+  WITH DISTINCT cm
+  MATCH (cm)-[:V${v}]-(:Compartment)-[:V${v}]-(csvg:SvgMap)
+  RETURN { compartmentSVGs: COLLECT(DISTINCT(csvg {.*})) } as data
+  
+  UNION
+  
+  MATCH (:Gene {id: '${id}'})-[:V${v}]-(:Reaction)-[:V${v}]-(:Subsystem)-[:V${v}]-(ssvg:SvgMap)
+  RETURN { subsystemSVGs: COLLECT(DISTINCT(ssvg {.*})) } as data
+", {}) yield value
+RETURN apoc.map.mergeList(COLLECT(value.data)) as gene
 `;
 
   const gene = await querySingleResult(statement);
