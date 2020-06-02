@@ -10,48 +10,50 @@
         with {{ model.short_name }} ID <b>{{ data.id }}</b> is in
         the <b>{{ data.compartment }}</b> compartment.
         <p v-if="data.formula">Its formula is <b>{{ data.formula }}</b>.</p>
-        <p v-if="data.reaction_count">This compound is involved in
-          <b>{{ data.reaction_count }}</b> reaction(s) across the model.
+        <p v-if="data.reactionCount">This compound is involved in
+          <b>{{ data.reactionCount }}</b> reaction(s) across the model.
         </p>
       </template>
       <template v-else-if="type === 'reaction'">
-        <b>{{ data.id }}</b> is <b>{{ data.is_reversible ? 'reversible' : 'irreversible' }}</b>
+        <b>{{ data.id }}</b> is <b>{{ data.isReversible ? 'reversible' : 'irreversible' }}</b>
         and has the following equation:
         <br>
-        <b>{{ data.equation_wname.replace('=>', data.is_reversible ? '&#8660;' : '&#8658;') }}</b>.
+        <b v-if="data.equationWname">
+          {{ data.equationWname.replace('=>', data.isReversible ? '&#8660;' : '&#8658;') }}
+        </b>.
         <br><br>
-        This reaction is part of <b>{{ data.subsystem_count }}</b> subsystem(s)
-        and <b>{{ data.compartment_count }}</b> compartment(s) and is associated
-        with <b>{{ data.gene_count }}</b> gene(s).
+        This reaction is part of <b>{{ data.subsystemCount }}</b> subsystem(s)
+        and <b>{{ data.compartmentCount }}</b> compartment(s) and is associated
+        with <b>{{ data.geneCount }}</b> gene(s).
       </template>
       <template v-else-if="type === 'compartment'">
         <span class="is-capitalized"><b>{{ data.name }}</b></span> has
-        <b>{{ data.reaction_count }}</b> reactions,
-        <b>{{ data.metabolite_count }}</b> metabolite(s) and
-        <b>{{ data.gene_count }}</b> gene(s).
+        <b>{{ data.reactionCount }}</b> reactions,
+        <b>{{ data.metaboliteCount }}</b> metabolite(s) and
+        <b>{{ data.geneCount }}</b> gene(s).
         <br><br>
         <b>Major subsystems</b>:
         <br>
-        <p><ul><li v-for="sub in data.subsystems" :key="sub">{{ sub }}</li></ul></p>
+        <p><ul><li v-for="sub in data.majorSubsystems" :key="sub">{{ sub }}</li></ul></p>
       </template>
       <template v-else-if="type === 'subsystem'">
-        <b>{{ data.name }}</b> has <b>{{ data.reaction_count }}</b> reaction(s),
-        <b>{{ data.metabolite_count }}</b> metabolite(s) and
-        <b>{{ data.gene_count }}</b> gene(s).
-        This subsystem spans across <b>{{ data.compartment_count }}</b> compartment(s).
+        <b>{{ data.name }}</b> has <b>{{ data.reactionCount }}</b> reaction(s),
+        <b>{{ data.metaboliteCount }}</b> metabolite(s) and
+        <b>{{ data.geneCount }}</b> gene(s).
+        This subsystem spans across <b>{{ data.compartmentCount }}</b> compartment(s).
       </template>
       <template v-else>
         <template v-if="data.name">
           <b>{{ data.name }}</b> with {{ model.short_name }} ID <b>{{ data.id }}</b>
-          is associated with <b>{{ data.reaction_count }}</b> reaction(s) across
-          <b>{{ data.subsystem_count }}</b> subsystem(s) and
-          <b>{{ data.compartment_count }}</b> compartment(s).
+          is associated with <b>{{ data.reactionCount }}</b> reaction(s) across
+          <b>{{ data.subsystemCount }}</b> subsystem(s) and
+          <b>{{ data.compartmentCount }}</b> compartment(s).
         </template>
         <template v-else>
           <b>{{ data.id }}</b> is associated with
-          <b>{{ data.reaction_count }}</b> reaction(s) across
-          <b>{{ data.subsystem_count }}</b> subsystem(s) and
-          <b>{{ data.compartment_count }}</b> compartment(s).
+          <b>{{ data.reactionCount }}</b> reaction(s) across
+          <b>{{ data.subsystemCount }}</b> subsystem(s) and
+          <b>{{ data.compartmentCount }}</b> compartment(s).
         </template>
       </template>
       <slot></slot>
