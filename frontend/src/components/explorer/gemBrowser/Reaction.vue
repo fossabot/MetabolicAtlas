@@ -23,14 +23,14 @@
               <td v-else class="td-key has-background-primary has-text-white-bis">{{ reformatTableKey(el.name) }}</td>
               <td v-if="reaction[el.name]">
                 <template v-if="'modifier' in el"><span v-html="el.modifier()"></span></template>
-                <template v-else-if="el.name === 'subsystem'">
+                <template v-else-if="el.name === 'subsystems'">
                   <template v-for="(v, i) in reaction[el.name]">
                     <template v-if="i !== 0">; </template>
                     <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key max-len -->
                     <router-link :to="{ name: 'browser', params: { model: model.database_name, type: 'subsystem', id: v.id } }"> {{ v.name }}</router-link>
                   </template>
                 </template>
-                <template v-else-if="el.name === 'compartment'">
+                <template v-else-if="el.name === 'compartments'">
                   <div class="tags">
                     <template v-for="c in reaction[el.name]">
                       <span :key="c.id" class="tag">

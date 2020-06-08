@@ -78,6 +78,8 @@ export function getChemicalReaction(reaction) {
   return `${reactants} => ${products}`;
 }
 
+const sortByName = metabolites => [...metabolites].sort((a, b) => ((a.name > b.name) ? 1 : -1));
+
 // TODO: consider using an object as param
 export function reformatChemicalReactionHTML(reaction, noLink = false, model = 'human1', sourceMet = '') {
   if (reaction === null) {
@@ -87,15 +89,15 @@ export function reformatChemicalReactionHTML(reaction, noLink = false, model = '
   const type = 'metabolite';
   function formatReactionElement(x) {
     if (!addComp) {
-      return `${x.stoichiometry !== 1 ? x.stoichiometry : ''} ${noLink ? x.name : buildCustomLink({ model, type, id: x.id, cssClass: x.id === sourceMet ? 'cms' : undefined, title: x.name })}`;
+      return `${Math.abs(x.stoichiometry) !== 1 ? x.stoichiometry : ''} ${noLink ? x.name : buildCustomLink({ model, type, id: x.id, cssClass: x.id === sourceMet ? 'cms' : undefined, title: x.name })}`;
     }
     const regex = /.+\[([a-z]{1,3})\]$/;
     const match = regex.exec(x.full_name);
-    return `${x.stoichiometry !== 1 ? x.stoichiometry : ''} ${noLink ? x.name : buildCustomLink({ model, type, id: x.id, cssClass: x.id === sourceMet ? 'cms' : undefined, title: x.name })}<span class="sc" title="${x.compartment}">${match[1]}</span>`;
+    return `${Math.abs(x.stoichiometry !== 1) ? x.stoichiometry : ''} ${noLink ? x.name : buildCustomLink({ model, type, id: x.id, cssClass: x.id === sourceMet ? 'cms' : undefined, title: x.name })}<span class="sc" title="${x.compartment}">${match[1]}</span>`;
   }
 
-  const reactants = reaction.reactionreactant_set.map(formatReactionElement).join(' + ');
-  const products = reaction.reactionproduct_set.map(formatReactionElement).join(' + ');
+  const reactants = sortByName(reaction.reactionreactant_set).map(formatReactionElement).join(' + ');
+  const products = sortByName(reaction.reactionproduct_set).map(formatReactionElement).join(' + ');
 
   if (reaction.is_reversible) {
     return `${reactants} &#8660; ${products}`;
