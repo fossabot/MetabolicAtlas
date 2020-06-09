@@ -66,7 +66,11 @@ CALL apoc.cypher.run("
   
   UNION
   
-  MATCH (:Gene {id: $gid})-[:${v}]-(:Reaction)-[:${v}]-(s:Subsystem)-[:${v}]-(ss:SubsystemState)
+  MATCH (:Gene {id: $gid})-[:${v}]-(r:Reaction)
+  WITH DISTINCT r
+  MATCH (r)-[:${v}]-(s:Subsystem)
+  WITH DISTINCT s
+  MATCH (s)-[:${v}]-(ss:SubsystemState)
   RETURN { id: $gid, subsystems: COLLECT(DISTINCT({ id: s.id, name: ss.name })) } as data
   
   UNION
@@ -147,12 +151,16 @@ CALL apoc.cypher.run("
   
   UNION
   
-  MATCH (:Subsystem {id: $sid})-[:${v}]-(:Reaction)-[:${v}]-(cm:CompartmentalizedMetabolite)
+  MATCH (:Subsystem {id: $sid})-[:${v}]-(r:Reaction)
+  WITH DISTINCT r
+  MATCH (r)-[:${v}]-(cm:CompartmentalizedMetabolite)
   RETURN { id: $sid, compartmentalizedMetaboliteCount: COUNT(DISTINCT cm) } as data
   
   UNION
   
-  MATCH (:Subsystem {id: $sid})-[:${v}]-(:Reaction)-[:${v}]-(g:Gene)
+  MATCH (:Subsystem {id: $sid})-[:${v}]-(r:Reaction)
+  WITH DISTINCT r
+  MATCH (r)-[:${v}]-(g:Gene)
   RETURN { id: $sid, geneCount: COUNT(DISTINCT g) } as data
   
   UNION
@@ -200,12 +208,16 @@ CALL apoc.cypher.run("
   
   UNION
   
-  MATCH (:Compartment {id: $cid})-[:${v}]-(:CompartmentalizedMetabolite)-[:${v}]-(:Reaction)-[:${v}]-(g:Gene)
+  MATCH (:Compartment {id: $cid})-[:${v}]-(:CompartmentalizedMetabolite)-[:${v}]-(r:Reaction)
+  WITH DISTINCT r
+  MATCH (r)-[:${v}]-(g:Gene)
   RETURN { id: $cid, geneCount: COUNT(DISTINCT g) } as data
   
   UNION
   
-  MATCH (:Compartment {id: $cid})-[:${v}]-(:CompartmentalizedMetabolite)-[:${v}]-(:Reaction)-[:${v}]-(s:Subsystem)
+  MATCH (:Compartment {id: $cid})-[:${v}]-(:CompartmentalizedMetabolite)-[:${v}]-(r:Reaction)
+  WITH DISTINCT r
+  MATCH (r)-[:${v}]-(s:Subsystem)
   RETURN { id: $cid, subsystemCount: COUNT(DISTINCT s) } as data
 ", {cid:cid}) yield value
 RETURN { compartment: apoc.map.mergeList(apoc.coll.flatten(
