@@ -12,8 +12,10 @@ CALL apoc.cypher.run("
   
   MATCH (:Subsystem {id: '${id}'})-[:V${v}]-(:Reaction)-[:V${v}]-(cm:CompartmentalizedMetabolite)
   WITH DISTINCT cm
-  MATCH (cm)-[:V${v}]-(c:Compartment)-[:V${v}]-(cs:CompartmentState)
-  RETURN { compartments: COLLECT(DISTINCT({id: c.id, name: cs.name})) } as data
+  MATCH (cm)-[:V${v}]-(c:Compartment)
+  WITH DISTINCT c
+  MATCH (c)-[:V${v}]-(cs:CompartmentState)
+  RETURN { compartments: COLLECT({id: c.id, name: cs.name}) } as data
   
   UNION
   
