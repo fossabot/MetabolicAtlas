@@ -17,8 +17,10 @@ CALL apoc.cypher.run("
   
   UNION
   
-  MATCH (:Subsystem {id: '${id}'})-[:V${v}]-(:Reaction)-[:V${v}]-(g:Gene)-[:V${v}]-(gs:GeneState)
-  RETURN { genes: COLLECT(DISTINCT({id: g.id, name: gs.name}))[..1000] } as data
+  MATCH (:Subsystem {id: '${id}'})-[:V${v}]-(:Reaction)-[:V${v}]-(g:Gene)
+  WITH DISTINCT g
+  MATCH (g)-[:V${v}]-(gs:GeneState)
+  RETURN { genes: COLLECT({id: g.id, name: gs.name})[..1000] } as data
   
   UNION
   
