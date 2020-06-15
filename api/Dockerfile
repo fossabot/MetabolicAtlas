@@ -1,5 +1,5 @@
-FROM node:lts-slim
+FROM node:lts-alpine
 
 WORKDIR /project/
 COPY . .
-RUN npm install
+RUN yarn

@@ -5,7 +5,7 @@ const data = {
 };
 
 const getters = {
-  info: state => state.compartmentSummary || {},
+  info: state => state.compartmentSummary.info || {},
   subsystems: state => state.compartmentSummary.subsystems || [],
 };
 

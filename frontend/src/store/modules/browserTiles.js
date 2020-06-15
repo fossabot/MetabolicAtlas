@@ -5,9 +5,11 @@ const data = {
 };
 
 const actions = {
-  async getBrowserTiles({ commit, rootState }) {
-    const model = rootState.models.model.database_name;
-    const tileComponents = await browserTilesApi.fetchBrowserTiles(model);
+  async getBrowserTiles({ commit }) {
+    const tileComponents = await browserTilesApi.fetchBrowserTiles({
+      model: 'HumanGem',
+      version: '1_3_0',
+    });
     commit('setTileComponents', tileComponents);
   },
 };

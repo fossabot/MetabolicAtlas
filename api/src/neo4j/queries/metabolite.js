@@ -4,21 +4,42 @@ import reformatExternalDbs from '../shared/formatter';
 const getMetabolite = async ({ id, version }) => {
   const v = version;
   const statement = `
-MATCH (ms:MetaboliteState)-[:V${v}]-(m:Metabolite)-[:V${v}]-(cm:CompartmentalizedMetabolite)-[:V${v}]-(c:Compartment)-[:V${v}]-(cs:CompartmentState)
-WHERE cm.id="${id}"
-OPTIONAL MATCH (m)-[:V${v}]-(s:Subsystem)-[:V${v}]-(ss:SubsystemState)
-OPTIONAL MATCH (m)-[:V${v}]-(e:ExternalDb)
-OPTIONAL MATCH (c)-[:V${v}]-(csvg:SvgMap)
-OPTIONAL MATCH (s)-[:V${v}]-(ssvg:SvgMap)
-RETURN ms {
-  id: cm.id,
-  .*,
-  compartment: cs {id: c.id, .*},
-  subsystems: COLLECT(DISTINCT(ss {id: s.id, .*})),
-  externalDbs: COLLECT(DISTINCT(e {.*})),
-  compartmentSVGs: COLLECT(DISTINCT(csvg {name: cs.name, .*})),
-  subsystemSVGs: COLLECT(DISTINCT(ssvg {name: ss.name, .*}))
-} AS metabolite
+CALL apoc.cypher.run('
+  MATCH (ms:MetaboliteState)-[:V${v}]-(:Metabolite)-[:V${v}]-(cm:CompartmentalizedMetabolite {id: "${id}"})
+  RETURN ms { id: cm.id, .* } as data
+  
+  UNION
+  
+  MATCH (:CompartmentalizedMetabolite {id: "${id}"})-[:V${v}]-(c:Compartment)-[:V${v}]-(cs:CompartmentState)
+  RETURN { compartment: cs { id: c.id, .* } } as data
+  
+  UNION
+  
+  MATCH (:CompartmentalizedMetabolite {id: "${id}"})-[:V${v}]-(:Compartment)-[:V${v}]-(csvg:SvgMap)
+  RETURN { compartmentSVGs: COLLECT(DISTINCT(csvg {.*})) } as data
+  
+  UNION
+  
+  MATCH (:CompartmentalizedMetabolite {id: "${id}"})-[:V${v}]-(:Reaction)-[:V${v}]-(s:Subsystem)
+  WITH DISTINCT s
+  MATCH (s)-[:V${v}]-(ss:SubsystemState)
+  RETURN { subsystems: COLLECT(DISTINCT({id: s.id, name: ss.name})) } as data
+  
+  UNION
+  
+  MATCH (:CompartmentalizedMetabolite {id: "${id}"})-[:V${v}]-(r:Reaction)
+  WITH DISTINCT r
+  MATCH (r)-[:V${v}]-(e:ExternalDb)
+  RETURN { externalDbs: COLLECT(DISTINCT(e {.*})) } as data
+  
+  UNION
+  
+  MATCH (:CompartmentalizedMetabolite {id: "${id}"})-[:V${v}]-(:Reaction)-[:V${v}]-(s:Subsystem)
+  WITH DISTINCT s
+  MATCH (s)-[:V${v}]-(ssvg:SvgMap)
+  RETURN { subsystemSVGs: COLLECT(DISTINCT(ssvg {.*})) } as data
+', {}) yield value
+RETURN apoc.map.mergeList(COLLECT(value.data)) as metabolite
 `;
   const metabolite = await querySingleResult(statement);
   return { ...metabolite, externalDbs: reformatExternalDbs(metabolite.externalDbs) };
