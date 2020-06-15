@@ -238,6 +238,11 @@ RETURN apoc.map.mergeList(apoc.coll.flatten(
   return results;
 };
 
+/*
+ * The search consists of two steps
+ * 1. Do a fuzzy search over all nodes covered by full-text search index
+ * 2. Fetch results for each component type (parallelly) and return result
+ */
 const search = async ({ searchTerm, model, version, limit }) => {
   const v = version ? `V${version}` : '';
   const m = model ? `:${model}` : '';
@@ -264,11 +269,16 @@ LIMIT ${l}
   const start = new Date().getTime();
   const results = await queryListResult(statement);
 
-  const ids = results.reduce((o, r) => {
+  const uniqueIds = results.reduce((o, r) => {
     const c = intersect(componentTypes, r.labels);
-    o[c] = !o[c] ? [r.id] : [...o[c], r.id];
+    if (!o[c]) {
+      o[c] = new Set();
+    }
+    o[c].add(r.id);
     return o;
   }, {});
+
+  const ids = Object.assign({}, ...Object.keys(uniqueIds).map(c => ({[c]: Array.from(uniqueIds[c]) })));
 
   const [
     compartmentalizedMetabolites,
