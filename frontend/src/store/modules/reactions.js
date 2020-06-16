@@ -28,7 +28,7 @@ const actions = {
       '3d': { compartment: [], subsystem: [] },
     }, { root: true });
 
-    const pmids = pubmedIds.map(pm => pm.pubmedId);
+    const pmids = pubmedIds.map(pm => pm.id);
     commit('setReferenceList', pmids);
   },
   async getRelatedReactionsForReaction({ commit }, { model, id }) {
