@@ -12,7 +12,8 @@ import {
   getRelatedReactionsForSubsystem,
   getRelatedMetabolites,
   getRandomComponents,
-  search,
+  modelSearch,
+  globalSearch,
 } from '../neo4j/index';
 
 const neo4jRoutes = express.Router();
@@ -60,7 +61,12 @@ neo4jRoutes.get('/:version/search', async (req, res) => {
   const { model, searchTerm, limit } = req.query;
 
   try {
-    const result = await search({ searchTerm, model, version, limit });
+    let result;
+    if (model) {
+      result = await modelSearch({ searchTerm, model, version, limit });
+    } else {
+      result = await globalSearch({ searchTerm, version, limit });
+    }
     res.json(result);
   } catch (e) {
     res.status(400).send(e);

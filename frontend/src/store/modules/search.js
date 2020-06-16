@@ -58,7 +58,11 @@ const getters = {
 
 const actions = {
   async globalSearch({ commit }, searchTerm) {
-    const results = await searchApi.globalSearch(searchTerm);
+    const payload = {
+      version: '1_3_0',
+      searchTerm,
+    };
+    const results = await searchApi.search(payload);
     commit('setGlobalResults', results);
   },
   async search({ state, commit }, { model, metabolitesAndGenesOnly }) {

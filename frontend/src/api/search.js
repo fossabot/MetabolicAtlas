@@ -1,10 +1,5 @@
 import axios from 'axios';
 
-const globalSearch = async (searchTerm) => {
-  const { data } = await axios.get(`all/search/${searchTerm}`);
-  return data;
-};
-
 const search = async ({ version, searchTerm, model, limit }) => {
   let url = `${version}/search?searchTerm=${searchTerm}`;
   if (model) {
@@ -17,4 +12,4 @@ const search = async ({ version, searchTerm, model, limit }) => {
   return data;
 };
 
-export default { globalSearch, search };
+export default { search };
