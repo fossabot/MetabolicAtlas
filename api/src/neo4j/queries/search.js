@@ -254,8 +254,6 @@ const search = async ({ searchTerm, model, version, limit }) => {
 CALL db.index.fulltext.queryNodes("fulltext", "${searchTerm}~")
 YIELD node, score
 WITH node, score, LABELS(node) as labelList
-UNWIND labelList as labels
-WITH node, score, labelList, COUNT(labels) as labelsCount
 OPTIONAL MATCH (node)-[:${v}]-(parentNode${m})
 RETURN DISTINCT(
 	CASE
