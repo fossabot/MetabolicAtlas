@@ -298,13 +298,16 @@ LIMIT ${l}
 
   const elapsed = new Date().getTime() - start;
   console.log(`Time taken to perform search: ${elapsed}ms`);
+
+  // formatting for simple (gem browser) search
   return {
-    compartmentalizedMetabolites,
-    metabolites,
-    genes,
-    reactions,
-    subsystems,
-    compartments,
+    human1: {
+      metabolite: [...compartmentalizedMetabolites || [], ...metabolites || []].map(m => ({ ...m, compartment: m.compartment.name })),
+      gene: genes,
+      reaction: reactions,
+      subsystem: subsystems,
+      compartment: compartments,
+    }
   };
 };
 
