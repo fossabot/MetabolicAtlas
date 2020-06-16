@@ -1,16 +1,33 @@
 
+const fs = require('fs'), path = require('path');
 
 try {
-  yamlFile = process.argv[2]
+  inputDir = process.argv[2]
 } catch {
-  console.log("Usage: node importYAML.js yaml_file");
+  console.log("Usage: node importYAML.js input_dir");
   return;
 }
 
+const getFile = (dirPath, regexpOrString) => {
+  if (!fs.existsSync(dirPath)){
+    console.log("Error: no dir ", dirPath);
+    return;
+  }
+
+  var files = fs.readdirSync(dirPath);
+  for(var i = 0; i < files.length; i++) {
+    var filePath = path.join(dirPath, files[i]);
+    var stat = fs.lstatSync(filePath);
+    if (!stat.isDirectory() && (regexpOrString === files[i] || (regexpOrString.test && regexpOrString.test(files[i])))) {
+        return filePath;
+    }
+  };
+};
+
 const createCsvWriter = require("csv-writer").createObjectCsvWriter;
 
-const idfyString = s => s.toLowerCase().replace(/[^a-z0-9]/g, '_').replace(/_+/g, '_').replace(/^_|_$/, '');
-const idfyString2 = s => s.toLowerCase().replace(/[^a-z0-9]/g, '_').replace(/_+/g, '_');
+const idfyString = s => s.toLowerCase().replace(/[^a-z0-9]/g, '_').replace(/_+/g, '_').replace(/^_|_$/, ''); // for subsystems, compartments etc..
+const idfyString2 = s => s.toLowerCase().replace(/[^a-z0-9]/g, '_').replace(/_+/g, '_'); // to generate compartmentalizedMetabolite ID from their name
 
 const toLabelCase = (modelName) =>
   modelName.replace('-', ' ').split(/\s/g).map(word => `${word[0].toUpperCase()}${word.slice(1).toLowerCase()}`).join('');
@@ -81,11 +98,16 @@ const reformatReactionObjets = (data) => {
 };
 
 
-const fs = require('fs'),
-    yaml = require('js-yaml'),
-    filePath = yamlFile;
+// find the yaml in the folder
+yamlFile = getFile(inputDir, /.*[.](yaml|yml)$/);
+if (!yamlFile) {
+  console.log("Error: yaml file not found in path ", inputDir);
+  return;
+}
 
-const path = './data/';
+const yaml = require('js-yaml'),
+    filePath = yamlFile;
+const outputPath = './data/';
 
 try {
   const [ metadata, metabolites, reactions, genes, compartments ] = yaml.safeLoad(fs.readFileSync(filePath, 'utf8'));
@@ -122,8 +144,8 @@ try {
     };
   }, {});
 
-  let csvWriter = createCsvWriter({
-    path: `${path}compartmentalizedMetaboliteCompartments.csv`,
+  csvWriter = createCsvWriter({
+    path: `${outputPath}compartmentalizedMetaboliteCompartments.csv`,
     header: [{ id: 'compartmentalizedMetaboliteId', title: 'compartmentalizedMetaboliteId' }, { id: 'compartmentId', title: 'compartmentId' }],
   });
 
@@ -174,7 +196,7 @@ try {
 
   // create compartmentalizedMetabolite file
   csvWriter = createCsvWriter({
-    path: `${path}compartmentalizedMetabolites.csv`,
+    path: `${outputPath}compartmentalizedMetabolites.csv`,
     header: [{ id: 'id', title: 'id' }],
   });
 
@@ -186,7 +208,7 @@ try {
 
   // CM-M relationships
   csvWriter = createCsvWriter({
-    path: `${path}compartmentalizedMetaboliteMetabolites.csv`,
+    path: `${outputPath}compartmentalizedMetaboliteMetabolites.csv`,
     header: [{ id: 'compartmentalizedMetaboliteId', title: 'compartmentalizedMetaboliteId' }, { id: 'metaboliteId', title: 'metaboliteId' }],
   });
 
@@ -204,24 +226,24 @@ try {
 
   // write reactants-reaction, reaction-products, reaction-genes, reaction-susbsystems relationships files
   csvWriterRR = createCsvWriter({
-    path: `${path}compartmentalizedMetaboliteReactions.csv`,
+    path: `${outputPath}compartmentalizedMetaboliteReactions.csv`,
     header: [{ id: 'compartmentalizedMetaboliteId', title: 'compartmentalizedMetaboliteId' },
              { id: 'reactionId', title: 'reactionId' },
              { id: 'stoichiometry', title: 'stoichiometry' }],
   });
   csvWriterRP = createCsvWriter({
-    path: `${path}reactionCompartmentalizedMetabolites.csv`,
+    path: `${outputPath}reactionCompartmentalizedMetabolites.csv`,
     header: [{ id: 'reactionId', title: 'reactionId' },
              { id: 'compartmentalizedMetaboliteId', title: 'compartmentalizedMetaboliteId' },
              { id: 'stoichiometry', title: 'stoichiometry' }],
   });
   csvWriterRG = createCsvWriter({
-    path: `${path}reactionGenes.csv`,
+    path: `${outputPath}reactionGenes.csv`,
     header: [{ id: 'reactionId', title: 'reactionId' },
              { id: 'geneId', title: 'geneId' }],
   });
   csvWriterRS = createCsvWriter({
-    path: `${path}reactionSubsystems.csv`,
+    path: `${outputPath}reactionSubsystems.csv`,
     header: [{ id: 'reactionId', title: 'reactionId' },
              { id: 'subsystemId', title: 'subsystemId' }],
   });
@@ -264,14 +286,14 @@ try {
   Object.keys(content).forEach((k) => {
     const elements = content[k];
     csvWriter = createCsvWriter({
-      path: `${path}${k}s.csv`,
+      path: `${outputPath}${k}s.csv`,
       header: [Object({ id: 'id', title: 'id' })],
     });
     csvWriter.writeRecords(elements.map(e => Object({ id: e[`${k}Id`] }))).then(() => {
       console.log(`${k}s file generated.`);
     });
     csvWriter = createCsvWriter({
-      path: `${path}${k}States.csv`,
+      path: `${outputPath}${k}States.csv`,
       header: Object.keys(elements[0]).
         // ignore some keys 'metabolites', 'subsystems' are in reactions, 'compartment' is in metabolite
         filter(k => !['metabolites', 'subsystems', 'compartment'].includes(k)).
