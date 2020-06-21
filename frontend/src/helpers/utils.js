@@ -17,6 +17,8 @@ export function replaceUnderscores(value) {
   return `${value.replace('_', ' ')}`;
 }
 
+export const convertCamelCase = str => str.replace(/([a-z\xE0-\xFF])([A-Z\xC0\xDF])/g, '$1 $2').toLowerCase();
+
 export function reformatTableKey(value) {
   return replaceUnderscores(capitalize(value));
 }
@@ -66,13 +68,13 @@ export function getChemicalReaction(reaction) {
     return '';
   }
   const reactants = reaction.reactionreactant_set.map(
-    x => `${x.stoichiometry !== 1 ? `${x.stoichiometry} ` : ''}${x.full_name}`
+    x => `${x.stoichiometry !== 1 ? `${x.stoichiometry} ` : ''}${x.fullName}`
   ).join(' + ');
   const products = reaction.reactionproduct_set.map(
-    x => `${x.stoichiometry !== 1 ? `${x.stoichiometry} ` : ''}${x.full_name}`
+    x => `${x.stoichiometry !== 1 ? `${x.stoichiometry} ` : ''}${x.fullName}`
   ).join(' + ');
 
-  if (reaction.is_reversible) {
+  if (reaction.reversible) {
     return `${reactants} <=> ${products}`;
   }
   return `${reactants} => ${products}`;
@@ -92,14 +94,14 @@ export function reformatChemicalReactionHTML(reaction, noLink = false, model = '
       return `${Math.abs(x.stoichiometry) !== 1 ? x.stoichiometry : ''} ${noLink ? x.name : buildCustomLink({ model, type, id: x.id, cssClass: x.id === sourceMet ? 'cms' : undefined, title: x.name })}`;
     }
     const regex = /.+\[([a-z]{1,3})\]$/;
-    const match = regex.exec(x.full_name);
+    const match = regex.exec(x.fullName);
     return `${Math.abs(x.stoichiometry !== 1) ? x.stoichiometry : ''} ${noLink ? x.name : buildCustomLink({ model, type, id: x.id, cssClass: x.id === sourceMet ? 'cms' : undefined, title: x.name })}<span class="sc" title="${x.compartment}">${match[1]}</span>`;
   }
 
   const reactants = sortByName(reaction.reactionreactant_set).map(formatReactionElement).join(' + ');
   const products = sortByName(reaction.reactionproduct_set).map(formatReactionElement).join(' + ');
 
-  if (reaction.is_reversible) {
+  if (reaction.reversible) {
     return `${reactants} &#8660; ${products}`;
   }
   return `${reactants} &#8658; ${products}`;

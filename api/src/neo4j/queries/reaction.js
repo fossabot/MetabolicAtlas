@@ -28,7 +28,8 @@ CALL apoc.cypher.run("
   UNION
   
   MATCH (r:Reaction {id: '${id}'})-[cmE:V${v}]-(cm:CompartmentalizedMetabolite)-[:V${v}]-(:Metabolite)-[:V${v}]-(ms:MetaboliteState)
-  RETURN { metabolites: COLLECT(DISTINCT(ms {id: cm.id, stoichiometry: cmE.stoichiometry, outgoing: startnode(cmE)=cm, .*})) } as data
+  MATCH (cm)-[:V${v}]-(:Compartment)-[:V${v}]-(cs:CompartmentState)
+  RETURN { metabolites: COLLECT(DISTINCT(ms {id: cm.id, compartment: cs.name, fullName: COALESCE(ms.name, '') + ' [' + COALESCE(cs.letterCode, '') + ']', stoichiometry: cmE.stoichiometry, outgoing: startnode(cmE)=cm, .*})) } as data
   
   UNION
   
