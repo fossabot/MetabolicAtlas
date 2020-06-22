@@ -9,7 +9,7 @@ const NODE_TYPES = {
 };
 
 // TODO: add pagination and search
-const getRelatedReactions = async ({ nodeType, id, version }) => {
+const getRelatedReactions = async ({ nodeType, id, version, limit }) => {
   const v = version;
   let statement;
 
@@ -48,60 +48,73 @@ MATCH (:Compartment {id: '${id}'})-[:V${v}]-(:CompartmentalizedMetabolite)-[:V${
 
   statement += `
 WITH r.id as rid
-LIMIT 100
+`;
+
+  if (limit) {
+    statement += `
+LIMIT ${limit}
+`;
+  }
+
+  statement += `
 CALL apoc.cypher.run("
-  MATCH (rs:ReactionState)-[:V${v}]-(r:Reaction {id: $rid})
+  MATCH (rs:ReactionState)-[:V${v}]-(:Reaction {id: $rid})
   RETURN rs { id: $rid, .* } as data
  
   UNION
  
-  MATCH (r:Reaction {id: $rid})-[:V${v}]-(cm:CompartmentalizedMetabolite)
+  MATCH (:Reaction {id: $rid})-[:V${v}]-(cm:CompartmentalizedMetabolite)
   WITH DISTINCT cm
   MATCH (cm)-[:V${v}]-(c:Compartment)-[:V${v}]-(cs:CompartmentState)
   RETURN { id: $rid, compartments: COLLECT(DISTINCT(cs {id: c.id, .*})) } as data
  
   UNION
  
-  MATCH (r:Reaction {id: $rid})-[:V${v}]-(s:Subsystem)-[:V${v}]-(ss:SubsystemState)
+  MATCH (:Reaction {id: $rid})-[:V${v}]-(s:Subsystem)
+  WITH DISTINCT s
+  MATCH(s)-[:V${v}]-(ss:SubsystemState)
   RETURN { id: $rid, subsystems: COLLECT(DISTINCT(ss {id: s.id, .*})) } as data
  
   UNION
  
-  MATCH (r:Reaction {id: $rid})-[:V${v}]-(g:Gene)-[:V${v}]-(gs:GeneState)
+  MATCH (:Reaction {id: $rid})-[:V${v}]-(g:Gene)
+  WITH DISTINCT (g)
+  MATCH (g)-[:V${v}]-(gs:GeneState)
   RETURN { id: $rid, genes: COLLECT(DISTINCT(gs {id: g.id, .*})) } as data
  
   UNION
  
-  MATCH (r:Reaction {id: $rid})-[cmE:V${v}]-(cm:CompartmentalizedMetabolite)-[:V${v}]-(:Metabolite)-[:V${v}]-(ms:MetaboliteState)
+  MATCH (:Reaction {id: $rid})-[cmE:V${v}]-(cm:CompartmentalizedMetabolite)-[:V${v}]-(:Metabolite)-[:V${v}]-(ms:MetaboliteState)
   RETURN { id: $rid, metabolites: COLLECT(DISTINCT(ms {id: cm.id, stoichiometry: cmE.stoichiometry, outgoing: startnode(cmE)=cm, .*})) } as data
 ", {rid:rid}) yield value
 RETURN apoc.map.mergeList(apoc.coll.flatten(
     apoc.map.values(apoc.map.groupByMulti(COLLECT(value.data), "id"), [value.data.id])
 )) as reactions
+  ORDER BY reactions.id
 `;
 
   return queryListResult(statement);
 };
 
 
-const getRelatedReactionsForReaction = ({ id, version }) => getRelatedReactions({
-  id, version, nodeType: NODE_TYPES.reaction,
+const getRelatedReactionsForReaction = ({ id, version, limit }) => getRelatedReactions({
+  id, version, nodeType: NODE_TYPES.reaction, limit,
   });
 
-const getRelatedReactionsForGene = ({ id, version }) => getRelatedReactions({
-  id, version, nodeType: NODE_TYPES.gene,
+const getRelatedReactionsForGene = ({ id, version, limit }) => getRelatedReactions({
+  id, version, nodeType: NODE_TYPES.gene, limit,
   });
 
-const getRelatedReactionsForMetabolite = ({ id, version }) => getRelatedReactions({
-  id, version, nodeType: NODE_TYPES.metabolite,
+const getRelatedReactionsForMetabolite = ({ id, version, limit }) => getRelatedReactions({
+  id, version, nodeType: NODE_TYPES.metabolite, limit,
   });
 
-const getRelatedReactionsForSubsystem = ({ id, version }) => getRelatedReactions({
-  id, version, nodeType: NODE_TYPES.subsystem,
+const getRelatedReactionsForSubsystem = ({ id, version, limit }) => getRelatedReactions({
+  id, version, nodeType: NODE_TYPES.subsystem, limit,
   });
 
-const getRelatedReactionsForCompartment = ({ id, version }) => getRelatedReactions({
-  id, version, nodeType: NODE_TYPES.compartment,
+const getRelatedReactionsForCompartment = ({ id, version, limit }) => getRelatedReactions({
+  id, version, nodeType: NODE_TYPES.compartment, limit,
   });
 
 export {
