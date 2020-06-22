@@ -1,246 +1,370 @@
 import queryListResult from '../queryHandlers/list';
 
-const search = async ({ searchTerm, model, version, limit }) => {
-  const v = version ? `V${version}` : '';
-  const m = model ? `:${model}` : '';
-  const l = limit || 50;
+const componentTypes = [
+  "CompartmentalizedMetabolite",
+  "Metabolite",
+  "Gene",
+  "Reaction",
+  "Subsystem",
+  "Compartment",
+];
 
-  let statement = `
+const intersect = (a, b) => [...new Set(a)].filter(x => new Set(b).has(x));
+
+const fetchCompartmentalizedMetabolites = async ({ ids, version, limit, viaMetabolties }) => {
+  if (!ids) {
+    return null;
+  }
+
+  let statement = ``;
+
+  if (viaMetabolties) {
+    statement += `
+WITH ${JSON.stringify(ids)} as mids
+UNWIND mids as mid
+MATCH (:Metabolite {id:mid})-[:${version}]-(cm:CompartmentalizedMetabolite)
+WITH DISTINCT(cm.id) as cmid
+`;
+  } else {
+    statement += `
+WITH ${JSON.stringify(ids)} as cmids
+UNWIND cmids as cmid
+`;
+  }
+
+  statement +=`
 CALL apoc.cypher.run('
-  CALL db.index.fulltext.queryNodes("fulltext", "${searchTerm}~")
-  YIELD node
-  WITH node
-  
-  MATCH (node:MetaboliteState)-[:${v}]-(:Metabolite${m})-[:${v}]-(cm:CompartmentalizedMetabolite)
-  RETURN DISTINCT(cm.id) as cmid
-
-  UNION
-
-  MATCH (:MetaboliteState)-[:${v}]-(node:Metabolite${m})-[:${v}]-(cm:CompartmentalizedMetabolite)
-  RETURN DISTINCT(cm.id) as cmid
-', {}) yield value
-WITH DISTINCT(value.cmid) as cmid
-LIMIT ${l}
-
-CALL apoc.cypher.run('
-  MATCH (ms:MetaboliteState)-[:${v}]-(:Metabolite)-[:${v}]-(:CompartmentalizedMetabolite {id: $cmid})
+  MATCH (ms:MetaboliteState)-[:${version}]-(:Metabolite)-[:${version}]-(:CompartmentalizedMetabolite {id: $cmid})
   RETURN ms { id: $cmid, .* } as data
   
   UNION
   
-  MATCH (:CompartmentalizedMetabolite {id: $cmid})-[:${v}]-(c:Compartment)-[:${v}]-(cs:CompartmentState)
+  MATCH (:CompartmentalizedMetabolite {id: $cmid})-[:${version}]-(c:Compartment)-[:${version}]-(cs:CompartmentState)
   RETURN { id: $cmid, compartment: cs { id: c.id, .* } } as data
   
   UNION
   
-  MATCH (:CompartmentalizedMetabolite {id: $cmid})-[:${v}]-(:Reaction)-[:${v}]-(s:Subsystem)
+  MATCH (:CompartmentalizedMetabolite {id: $cmid})-[:${version}]-(:Reaction)-[:${version}]-(s:Subsystem)
   WITH DISTINCT s
-  MATCH (s)-[:${v}]-(ss:SubsystemState)
-  RETURN { id: $cmid, subsystems: COLLECT(DISTINCT({id: s.id, name: ss.name})) } as data
+  MATCH (s)-[:${version}]-(ss:SubsystemState)
+  RETURN { id: $cmid, subsystem: COLLECT(DISTINCT({id: s.id, name: ss.name})) } as data
 ', {cmid:cmid}) yield value
-RETURN { metabolite: apoc.map.mergeList(apoc.coll.flatten(
+RETURN apoc.map.mergeList(apoc.coll.flatten(
 	apoc.map.values(apoc.map.groupByMulti(COLLECT(value.data), "id"), [value.data.id])
-)) } as x
+)) as metabolites
+`;
 
-UNION
+  if (limit) {
+    statement += `
+LIMIT ${limit}
+`;
+  }
+  const start = new Date().getTime();
+  const results = await queryListResult(statement);
+  const elapsed = new Date().getTime() - start;
+  console.log(`Time taken to fetch compartmentalized metabolites${ viaMetabolties ? " via metabolites" : ""}: ${elapsed}ms`);
+  return results;
+};
 
-CALL apoc.cypher.run('
-  CALL db.index.fulltext.queryNodes("fulltext", "${searchTerm}~")
-  YIELD node
-  WITH node
-  
-  MATCH (node:GeneState)-[:${v}]-(g:Gene${m})
-  RETURN DISTINCT(g.id) as gid
 
-  UNION
+const fetchGenes = async ({ ids, version }) => {
+  if (!ids) {
+    return null;
+  }
 
-  MATCH (:GeneState)-[:${v}]-(node:Gene${m})
-  RETURN DISTINCT(node.id) as gid
-', {}) yield value
-WITH DISTINCT(value.gid) as gid
-LIMIT ${l}
-
+  const statement = `
+WITH ${JSON.stringify(ids)} as gids
+UNWIND gids as gid
 CALL apoc.cypher.run("
-  MATCH (gs:GeneState)-[:${v}]-(:Gene {id: $gid})
+  MATCH (gs:GeneState)-[:${version}]-(:Gene {id: $gid})
   RETURN { id: $gid, name: gs.name } as data
   
   UNION
   
-  MATCH (:Gene {id: $gid})-[:${v}]-(r:Reaction)
+  MATCH (:Gene {id: $gid})-[:${version}]-(r:Reaction)
   WITH DISTINCT r
-  MATCH (r)-[:${v}]-(s:Subsystem)
+  MATCH (r)-[:${version}]-(s:Subsystem)
   WITH DISTINCT s
-  MATCH (s)-[:${v}]-(ss:SubsystemState)
-  RETURN { id: $gid, subsystems: COLLECT(DISTINCT({ id: s.id, name: ss.name })) } as data
+  MATCH (s)-[:${version}]-(ss:SubsystemState)
+  RETURN { id: $gid, subsystem: COLLECT(DISTINCT({ id: s.id, name: ss.name })) } as data
   
   UNION
   
-  MATCH (:Gene {id: $gid})-[:${v}]-(:Reaction)-[:${v}]-(cm:CompartmentalizedMetabolite)
+  MATCH (:Gene {id: $gid})-[:${version}]-(:Reaction)-[:${version}]-(cm:CompartmentalizedMetabolite)
   WITH DISTINCT cm
-  MATCH (cm)-[:${v}]-(c:Compartment)-[:${v}]-(cs:CompartmentState)
-  RETURN { id: $gid, compartments: COLLECT(DISTINCT({ id: c.id, name: cs.name })) } as data
+  MATCH (cm)-[:${version}]-(c:Compartment)-[:${version}]-(cs:CompartmentState)
+  RETURN { id: $gid, compartment: COLLECT(DISTINCT({ id: c.id, name: cs.name })) } as data
 ", {gid:gid}) yield value
-RETURN { gene: apoc.map.mergeList(apoc.coll.flatten(
+RETURN apoc.map.mergeList(apoc.coll.flatten(
 	apoc.map.values(apoc.map.groupByMulti(COLLECT(value.data), "id"), [value.data.id])
-)) } as x
+)) as gene
+`;
 
-UNION
+  const start = new Date().getTime();
+  const results = await queryListResult(statement);
+  const elapsed = new Date().getTime() - start;
+  console.log(`Time taken to fetch genes: ${elapsed}ms`);
+  return results;
+};
 
-CALL apoc.cypher.run('
-  CALL db.index.fulltext.queryNodes("fulltext", "${searchTerm}~")
-  YIELD node
-  WITH node
-  
-  MATCH (node:ReactionState)-[:${v}]-(r:Reaction${m})
-  RETURN DISTINCT(r.id) as rid
 
-  UNION
+const fetchReactions = async ({ ids, version }) => {
+  if (!ids) {
+    return null;
+  }
 
-  MATCH (:ReactionState)-[:${v}]-(node:Reaction${m})
-  RETURN DISTINCT(node.id) as rid
-', {}) yield value
-WITH DISTINCT(value.rid) as rid
-LIMIT ${l}
-
+  const statement = `
+WITH ${JSON.stringify(ids)} as rids
+UNWIND rids as rid
 CALL apoc.cypher.run("
-  MATCH (rs:ReactionState)-[:${v}]-(:Reaction {id: $rid})
+  MATCH (rs:ReactionState)-[:${version}]-(:Reaction {id: $rid})
   RETURN rs { id: $rid, .* } as data
   
   UNION
   
-  MATCH (:Reaction {id: $rid})-[:${v}]-(s:Subsystem)-[:${v}]-(ss:SubsystemState)
-  RETURN { id: $rid, subsystems: COLLECT(DISTINCT({ id: s.id, name: ss.name })) } as data
+  MATCH (:Reaction {id: $rid})-[:${version}]-(s:Subsystem)-[:${version}]-(ss:SubsystemState)
+  RETURN { id: $rid, subsystem: COLLECT(DISTINCT({ id: s.id, name: ss.name })) } as data
   
   UNION
   
-  MATCH (:Reaction {id: $rid})-[:${v}]-(cm:CompartmentalizedMetabolite)
+  MATCH (:Reaction {id: $rid})-[:${version}]-(cm:CompartmentalizedMetabolite)
   WITH DISTINCT cm
-  MATCH (cm)-[:${v}]-(c:Compartment)-[:${v}]-(cs:CompartmentState)
-  RETURN { id: $rid, compartments: COLLECT(DISTINCT({ id: c.id, name: cs.name })) } as data
+  MATCH (cm)-[:${version}]-(c:Compartment)-[:${version}]-(cs:CompartmentState)
+  RETURN { id: $rid, compartment: COLLECT(DISTINCT({ id: c.id, name: cs.name })) } as data
 ", {rid:rid}) yield value
-RETURN { reaction: apoc.map.mergeList(apoc.coll.flatten(
+RETURN apoc.map.mergeList(apoc.coll.flatten(
 	apoc.map.values(apoc.map.groupByMulti(COLLECT(value.data), "id"), [value.data.id])
-)) } as x
+)) as reaction
+`;
 
-UNION
+  const start = new Date().getTime();
+  const results = await queryListResult(statement);
+  const elapsed = new Date().getTime() - start;
+  console.log(`Time taken to fetch reactions: ${elapsed}ms`);
+  return results;
+};
 
-CALL apoc.cypher.run('
-  CALL db.index.fulltext.queryNodes("fulltext", "${searchTerm}~")
-  YIELD node
-  WITH node
-  
-  MATCH (node:SubsystemState)-[:${v}]-(s:Subsystem${m})
-  RETURN DISTINCT(s.id) as sid
+const fetchSubsystems = async ({ ids, version, includeCounts }) => {
+  if (!ids) {
+    return null;
+  }
 
-  UNION
-
-  MATCH (:SubsystemState)-[:${v}]-(node:Subsystem${m})
-  RETURN DISTINCT(node.id) as sid
-', {}) yield value
-WITH DISTINCT(value.sid) as sid
-LIMIT ${l}
-
+  let statement = `
+WITH ${JSON.stringify(ids)} as sids
+UNWIND sids as sid
 CALL apoc.cypher.run("
-  MATCH (ss:SubsystemState)-[:${v}]-(:Subsystem {id: $sid})
+  MATCH (ss:SubsystemState)-[:${version}]-(:Subsystem {id: $sid})
   RETURN { id: $sid, name: ss.name } as data
-  
+`;
+
+  if (includeCounts) {
+    statement += ` 
   UNION
   
-  MATCH (:Subsystem {id: $sid})-[:${v}]-(r:Reaction)
+  MATCH (:Subsystem {id: $sid})-[:${version}]-(r:Reaction)
   RETURN { id: $sid, reactionCount: COUNT(DISTINCT(r)) } as data
   
   UNION
   
-  MATCH (:Subsystem {id: $sid})-[:${v}]-(r:Reaction)
+  MATCH (:Subsystem {id: $sid})-[:${version}]-(r:Reaction)
   WITH DISTINCT r
-  MATCH (r)-[:${v}]-(cm:CompartmentalizedMetabolite)
+  MATCH (r)-[:${version}]-(cm:CompartmentalizedMetabolite)
   RETURN { id: $sid, compartmentalizedMetaboliteCount: COUNT(DISTINCT cm) } as data
   
   UNION
   
-  MATCH (:Subsystem {id: $sid})-[:${v}]-(r:Reaction)
+  MATCH (:Subsystem {id: $sid})-[:${version}]-(r:Reaction)
   WITH DISTINCT r
-  MATCH (r)-[:${v}]-(g:Gene)
+  MATCH (r)-[:${version}]-(g:Gene)
   RETURN { id: $sid, geneCount: COUNT(DISTINCT g) } as data
+`;
+  }
   
+  statement += ` 
   UNION
   
-  MATCH (:Subsystem {id: $sid})-[:${v}]-(:Reaction)-[:${v}]-(cm:CompartmentalizedMetabolite)
+  MATCH (:Subsystem {id: $sid})-[:${version}]-(:Reaction)-[:${version}]-(cm:CompartmentalizedMetabolite)
   WITH DISTINCT cm
-  MATCH (cm)-[:${v}]-(c:Compartment)-[:${v}]-(cs:CompartmentState)
-  RETURN { id: $sid, compartments: COLLECT(DISTINCT({ id: c.id, name: cs.name })) } as data
+  MATCH (cm)-[:${version}]-(c:Compartment)-[:${version}]-(cs:CompartmentState)
+  RETURN { id: $sid, compartment: COLLECT(DISTINCT({ id: c.id, name: cs.name })) } as data
 ", {sid:sid}) yield value
-RETURN { subsystem: apoc.map.mergeList(apoc.coll.flatten(
+RETURN apoc.map.mergeList(apoc.coll.flatten(
 	apoc.map.values(apoc.map.groupByMulti(COLLECT(value.data), "id"), [value.data.id])
-)) } as x
+)) as subsystem
+`;
 
-UNION
+  const start = new Date().getTime();
+  const results = await queryListResult(statement);
+  const elapsed = new Date().getTime() - start;
+  console.log(`Time taken to fetch subsystem: ${elapsed}ms`);
+  return results;
+};
 
-CALL apoc.cypher.run('
-  CALL db.index.fulltext.queryNodes("fulltext", "${searchTerm}~")
-  YIELD node
-  WITH node
-  
-  MATCH (node:CompartmentState)-[:${v}]-(c:Compartment${m})
-  RETURN DISTINCT(c.id) as cid
+const fetchCompartments = async ({ ids, version, includeCounts }) => {
+  if (!ids) {
+    return null;
+  }
 
-  UNION
-
-  MATCH (:CompartmentState)-[:${v}]-(node:Compartment${m})
-  RETURN DISTINCT(node.id) as cid
-', {}) yield value
-WITH DISTINCT(value.cid) as cid
-LIMIT ${l}
-
+  let statement = `
+WITH ${JSON.stringify(ids)} as cids
+UNWIND cids as cid
 CALL apoc.cypher.run("
-  MATCH (cs:CompartmentState)-[:${v}]-(:Compartment {id: $cid})
+  MATCH (cs:CompartmentState)-[:${version}]-(:Compartment {id: $cid})
   RETURN cs { id: $cid, .* } as data
+`;
   
+  if (includeCounts) {
+    statement += ` 
   UNION
   
-  MATCH (:Compartment {id: $cid})-[:${v}]-(:CompartmentalizedMetabolite)-[:${v}]-(r:Reaction)
+  MATCH (:Compartment {id: $cid})-[:${version}]-(:CompartmentalizedMetabolite)-[:${version}]-(r:Reaction)
   RETURN { id: $cid, reactionCount: COUNT(DISTINCT(r)) } as data
   
   UNION
   
-  MATCH (:Compartment {id: $cid})-[:${v}]-(cm:CompartmentalizedMetabolite)
+  MATCH (:Compartment {id: $cid})-[:${version}]-(cm:CompartmentalizedMetabolite)
   RETURN { id: $cid, compartmentalizedMetaboliteCount: COUNT(DISTINCT cm) } as data
   
   UNION
   
-  MATCH (:Compartment {id: $cid})-[:${v}]-(:CompartmentalizedMetabolite)-[:${v}]-(r:Reaction)
+  MATCH (:Compartment {id: $cid})-[:${version}]-(:CompartmentalizedMetabolite)-[:${version}]-(r:Reaction)
   WITH DISTINCT r
-  MATCH (r)-[:${v}]-(g:Gene)
+  MATCH (r)-[:${version}]-(g:Gene)
   RETURN { id: $cid, geneCount: COUNT(DISTINCT g) } as data
   
   UNION
   
-  MATCH (:Compartment {id: $cid})-[:${v}]-(:CompartmentalizedMetabolite)-[:${v}]-(r:Reaction)
+  MATCH (:Compartment {id: $cid})-[:${version}]-(:CompartmentalizedMetabolite)-[:${version}]-(r:Reaction)
   WITH DISTINCT r
-  MATCH (r)-[:${v}]-(s:Subsystem)
+  MATCH (r)-[:${version}]-(s:Subsystem)
   RETURN { id: $cid, subsystemCount: COUNT(DISTINCT s) } as data
+`;
+  }
+  
+  statement += ` 
 ", {cid:cid}) yield value
-RETURN { compartment: apoc.map.mergeList(apoc.coll.flatten(
+RETURN apoc.map.mergeList(apoc.coll.flatten(
 	apoc.map.values(apoc.map.groupByMulti(COLLECT(value.data), "id"), [value.data.id])
-)) } as x
+)) as compartment
 `;
 
+  const start = new Date().getTime();
+  const results = await queryListResult(statement);
+  const elapsed = new Date().getTime() - start;
+  console.log(`Time taken to fetch compartment: ${elapsed}ms`);
+  return results;
+};
+
+const MODELS = [
+  { key: "human1", label: "HumanGem", name: "Human-GEM" },
+  { key: "yeast8", label: "YeastGem", name: "Yeast-GEM" },
+];
+
+const globalSearch = async({ searchTerm, version, limit }) => {
+  const results = await Promise.all(MODELS.map(m =>
+    search({ searchTerm, version, model: m.label, limit, includeCounts: true })
+  ));
+  return results.reduce((obj, r, i) => {
+    const m = MODELS[i];
+    obj[m.key] = {
+      ...r,
+      name: m.name,
+    };
+    return obj;
+  }, {});
+};
+
+const modelSearch = async({ searchTerm, model, version, limit }) => {
+  const match = MODELS.filter(m => m.label == model);
+  if (match.length === 0) {
+    throw new Error(`Invalid model: ${model}`);
+  }
+  
+  const results = await search({ searchTerm, model, version, limit: limit || 50 });
+
+  return {
+    [match[0].key]: {
+      ...results,
+      name: match[0].name,
+      metabolite: results.metabolite.map(m => ({ ...m, compartment: m.compartment.name })),
+    }
+  };
+};
+
+/*
+ * The search consists of two steps
+ * 1. Do a fuzzy search over all nodes covered by full-text search index
+ * 2. Fetch results for each component type (parallelly) and return result
+ */
+const search = async ({ searchTerm, model, version, limit, includeCounts }) => {
+  const v = version ? `V${version}` : '';
+
+  // Metabolites are not included as it would mess with the limit and
+  // relevant metabolites should be matched through CompartmentalizedMetabolites
+  let statement = `
+CALL db.index.fulltext.queryNodes("fulltext", "${searchTerm}~")
+YIELD node, score
+WITH node, score, LABELS(node) as labelList
+OPTIONAL MATCH (node)-[:${v}]-(parentNode:${model})
+WHERE node:${model} OR parentNode:${model}
+RETURN DISTINCT(
+	CASE
+		WHEN EXISTS(node.id) THEN { id: node.id, labels: labelList, score: score }
+		ELSE { id: parentNode.id, labels: LABELS(parentNode), score: score }
+	END
+)
+`;
+  if (limit) {
+    statement += `
+LIMIT ${limit}
+`;
+  }
+
+  const start = new Date().getTime();
   const results = await queryListResult(statement);
 
-  const formattedResults = results.reduce((r, c) => {
-    const [k, v] = Object.entries(c)[0];
-    r[k] = [...r[k], v];
-    return r;
-  }, {
-    metabolite: [],
-    gene: [],
-    reaction: [],
-    subsystem: [],
-    compartment: []
-  });
+  const uniqueIds = results.reduce((o, r) => {
+    const c = intersect(componentTypes, r.labels);
+    if (!o[c]) {
+      o[c] = new Set();
+    }
+    o[c].add(r.id);
+    return o;
+  }, {});
 
-  return formattedResults;
+  const ids = Object.assign({}, ...Object.keys(uniqueIds).map(c => ({[c]: Array.from(uniqueIds[c]) })));
+
+  const [
+    compartmentalizedMetabolites,
+    metabolites,
+    genes,
+    reactions,
+    subsystems,
+    compartments,
+  ] = await Promise.all([
+    fetchCompartmentalizedMetabolites({ ids: ids["CompartmentalizedMetabolite"], version: v, limit }),
+    fetchCompartmentalizedMetabolites({ ids: ids["Metabolite"], version: v, limit,  viaMetabolties: true }),
+    fetchGenes({ ids: ids["Gene"], version: v }),
+    fetchReactions({ ids: ids["Reaction"], version: v }),
+    fetchSubsystems({ ids: ids["Subsystem"], version: v, includeCounts: true }),
+    fetchCompartments({ ids: ids["Compartment"], version: v, includeCounts: true }),
+  ]);
+
+  const elapsed = new Date().getTime() - start;
+  console.log(`Time taken to perform search: ${elapsed}ms`);
+
+  // formatting for simple (gem browser) search
+  return {
+    metabolite: [...compartmentalizedMetabolites || [], ...metabolites || []],
+    gene: genes || [],
+    reaction: reactions || [],
+    subsystem: subsystems || [],
+    compartment: compartments || [],
+  };
 };
 
 
-export default search;
+export {
+  modelSearch,
+  globalSearch
+};

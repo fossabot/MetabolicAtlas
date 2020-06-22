@@ -3,7 +3,7 @@ import getGene from './queries/gene';
 import getReaction from './queries/reaction';
 import getSubsystem from './queries/subsystem';
 import getMetabolite from './queries/metabolite';
-import search from './queries/search';
+import { modelSearch, globalSearch } from './queries/search';
 import {
   getRelatedReactionsForReaction,
   getRelatedReactionsForGene,
@@ -20,7 +20,8 @@ export {
   getReaction,
   getSubsystem,
   getMetabolite,
-  search,
+  modelSearch,
+  globalSearch,
   getRelatedReactionsForReaction,
   getRelatedReactionsForGene,
   getRelatedReactionsForMetabolite,

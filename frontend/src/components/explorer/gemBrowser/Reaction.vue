@@ -91,7 +91,7 @@ import MapsAvailable from '@/components/explorer/gemBrowser/MapsAvailable';
 import ExtIdTable from '@/components/explorer/gemBrowser/ExtIdTable';
 import GemContact from '@/components/shared/GemContact';
 import References from '@/components/shared/References';
-import { buildCustomLink, reformatTableKey, addMassUnit, reformatChemicalReactionHTML, reformatEqSign } from '@/helpers/utils';
+import { buildCustomLink, reformatTableKey, capitalize, convertCamelCase, addMassUnit, reformatChemicalReactionHTML, reformatEqSign } from '@/helpers/utils';
 
 export default {
   name: 'Reaction',
@@ -199,7 +199,7 @@ export default {
       const data = [];
       ['lowerBound', 'upperBound', 'objective_coefficient'].forEach((key) => {
         if (this.reaction[key] != null) {
-          data.push(this.formatQuantFieldName(this.reformatTableKey(key)));
+          data.push(this.formatQuantFieldName(capitalize(convertCamelCase(key))));
           if (key === 'objective_coefficient') {
             data.push(addMassUnit(this.reaction[key]));
           } else {

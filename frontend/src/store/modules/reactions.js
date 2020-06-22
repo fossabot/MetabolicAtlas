@@ -4,7 +4,22 @@ const data = {
   reaction: {},
   referenceList: [],
   relatedReactions: [],
-  relatedReactionsLimit: 0,
+  relatedReactionsLimit: 200,
+};
+
+const constructCompartmentStr = (reaction) => {
+  const compartments = reaction.compartments.reduce((obj, { id, ...cs }) => ({
+    ...obj,
+    [id]: cs,
+  }), {});
+
+  const reactants = reaction.metabolites.filter(m => m.outgoing);
+  const products = reaction.metabolites.filter(m => !m.outgoing);
+  const reactantsCompartment = compartments[reactants[0].compartmentId].name;
+  const productsCompartment = compartments[products[0].compartmentId].name;
+  const sign = reaction.transport ? '⇔' : '⇒';
+
+  return `${reactantsCompartment} ${sign} ${productsCompartment}`;
 };
 
 const actions = {
@@ -15,7 +30,7 @@ const actions = {
 
     commit('setReaction', {
       ...reaction,
-      compartment_str: reaction.compartments.map(c => c.name).join(', '),
+      compartment_str: constructCompartmentStr(reaction),
       reactionreactant_set: reaction.metabolites.filter(m => m.outgoing),
       reactionproduct_set: reaction.metabolites.filter(m => !m.outgoing),
     });
@@ -28,32 +43,32 @@ const actions = {
       '3d': { compartment: [], subsystem: [] },
     }, { root: true });
 
-    const pmids = pubmedIds.map(pm => pm.pubmedId);
+    const pmids = pubmedIds.map(pm => pm.id);
     commit('setReferenceList', pmids);
   },
-  async getRelatedReactionsForReaction({ commit }, { model, id }) {
+  async getRelatedReactionsForReaction({ commit, state }, { model, id }) {
     console.warn(`TODO: use real model: ${model} and id: ${id}`);
 
-    const reactions = await reactionsApi.fetchRelatedReactionsForReaction({ id, version: '1_3_0' });
+    const reactions = await reactionsApi.fetchRelatedReactionsForReaction({ id, version: '1_3_0', limit: state.relatedReactionsLimit });
     commit(
       'setRelatedReactions',
       reactions.map(r => ({
         ...r,
-        compartment_str: r.compartments.map(c => c.name).join(', '),
+        compartment_str: constructCompartmentStr(r),
         reactionreactant_set: r.metabolites.filter(m => m.outgoing),
         reactionproduct_set: r.metabolites.filter(m => !m.outgoing),
       }))
     );
   },
-  async getRelatedReactionsForGene({ commit }, { model, id }) {
+  async getRelatedReactionsForGene({ commit, state }, { model, id }) {
     console.warn(`TODO: use real model: ${model} and id: ${id}`);
 
-    const reactions = await reactionsApi.fetchRelatedReactionsForGene({ id, version: '1_3_0' });
+    const reactions = await reactionsApi.fetchRelatedReactionsForGene({ id, version: '1_3_0', limit: state.relatedReactionsLimit });
     commit(
       'setRelatedReactions',
       reactions.map(r => ({
         ...r,
-        compartment_str: r.compartments.map(c => c.name).join(', '),
+        compartment_str: constructCompartmentStr(r),
         subsystem_str: r.subsystems.map(s => s.name).join(', '),
         reactionreactant_set: r.metabolites.filter(m => m.outgoing),
         reactionproduct_set: r.metabolites.filter(m => !m.outgoing),
@@ -61,16 +76,16 @@ const actions = {
     );
     // commit('setRelatedReactionsLimit', limit);
   },
-  async getRelatedReactionsForMetabolite({ commit }, { model, id }) {
+  async getRelatedReactionsForMetabolite({ commit, state }, { model, id }) {
     console.warn(`TODO: use real model: ${model} and id: ${id}`);
 
-    const reactions = await reactionsApi.fetchRelatedReactionsForMetabolite({ id, version: '1_3_0' });
+    const reactions = await reactionsApi.fetchRelatedReactionsForMetabolite({ id, version: '1_3_0', limit: state.relatedReactionsLimit });
 
     commit(
       'setRelatedReactions',
       reactions.map(r => ({
         ...r,
-        compartment_str: r.compartments.map(c => c.name).join(', '),
+        compartment_str: constructCompartmentStr(r),
         subsystem_str: r.subsystems.map(s => s.name).join(', '),
         reactionreactant_set: r.metabolites.filter(m => m.outgoing),
         reactionproduct_set: r.metabolites.filter(m => !m.outgoing),
@@ -78,16 +93,16 @@ const actions = {
     );
     // commit('setRelatedReactionsLimit', limit);
   },
-  async getRelatedReactionsForSubsystem({ commit }, { model, id }) {
+  async getRelatedReactionsForSubsystem({ commit, state }, { model, id }) {
     console.warn(`TODO: use real model: ${model}`);
 
-    const reactions = await reactionsApi.fetchRelatedReactionsForSubsystem({ id, version: '1_3_0' });
+    const reactions = await reactionsApi.fetchRelatedReactionsForSubsystem({ id, version: '1_3_0', limit: state.relatedReactionsLimit });
 
     commit(
       'setRelatedReactions',
       reactions.map(r => ({
         ...r,
-        compartment_str: r.compartments.map(c => c.name).join(', '),
+        compartment_str: constructCompartmentStr(r),
         subsystem_str: r.subsystems.map(s => s.name).join(', '),
         reactionreactant_set: r.metabolites.filter(m => m.outgoing),
         reactionproduct_set: r.metabolites.filter(m => !m.outgoing),
