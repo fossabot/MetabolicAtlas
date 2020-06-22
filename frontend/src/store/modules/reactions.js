@@ -17,9 +17,8 @@ const constructCompartmentStr = (reaction) => {
   const products = reaction.metabolites.filter(m => !m.outgoing);
   const reactantsCompartment = compartments[reactants[0].compartmentId].name;
   const productsCompartment = compartments[products[0].compartmentId].name;
-  const sign = reaction.transport ? '⇔' : '⇒';
 
-  return `${reactantsCompartment} ${sign} ${productsCompartment}`;
+  return `${reactantsCompartment} => ${productsCompartment}`;
 };
 
 const actions = {
@@ -30,7 +29,7 @@ const actions = {
 
     commit('setReaction', {
       ...reaction,
-      compartment_str: constructCompartmentStr(reaction),
+      compartment_str: reaction.compartments.map(c => c.name).join(', '),
       reactionreactant_set: reaction.metabolites.filter(m => m.outgoing),
       reactionproduct_set: reaction.metabolites.filter(m => !m.outgoing),
     });
