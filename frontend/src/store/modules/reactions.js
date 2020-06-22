@@ -15,10 +15,14 @@ const constructCompartmentStr = (reaction) => {
 
   const reactants = reaction.metabolites.filter(m => m.outgoing);
   const products = reaction.metabolites.filter(m => !m.outgoing);
-  const reactantsCompartment = compartments[reactants[0].compartmentId].name;
-  const productsCompartment = compartments[products[0].compartmentId].name;
+  const reactantsCompartments = Array.from(new Set(
+    reactants.map(r => compartments[r.compartmentId].name)
+  )).join(' + ');
+  const productsCompartments = Array.from(new Set(
+    products.map(r => compartments[r.compartmentId].name)
+  )).join(' + ');
 
-  return `${reactantsCompartment} => ${productsCompartment}`;
+  return `${reactantsCompartments} => ${productsCompartments}`;
 };
 
 const actions = {
