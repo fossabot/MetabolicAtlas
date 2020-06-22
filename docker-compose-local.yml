@@ -19,6 +19,8 @@ services:
       - "127.0.0.1:80:80"
     volumes:
       - ./nginx/svgs:/svgs
+    networks:
+      - frontend-network
 
   backend:
     command: bash -c "python manage.py collectstatic --noinput && python manage.py runserver 0.0.0.0:8000"
@@ -36,9 +38,13 @@ services:
       - ./frontend/src:/project/src
       - ./frontend/public:/project/public
     networks:
-      - net-tier
+      - frontend-network
     ports:
       - "127.0.0.1:81:81"
 
 volumes:
   voldb:
+
+networks:
+  frontend-network:
+    driver: bridge
