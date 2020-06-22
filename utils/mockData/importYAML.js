@@ -97,7 +97,6 @@ const reformatReactionObjets = (data) => {
   } );
 };
 
-
 // find the yaml in the folder
 yamlFile = getFile(inputDir, /.*[.](yaml|yml)$/);
 if (!yamlFile) {
@@ -124,9 +123,7 @@ try {
   const componentIdSets = {}; // store for each type of component the sets of existing Ids in the model, excluding compartment
   // use to filter out annotation/external ids for components not in the model
   Object.keys(content).forEach((k) => {
-    if (k !== 'compartment') {
-      componentIdSets[k] = new Set(content[k].map(e => e[`${k}Id`]));
-    }
+    componentIdSets[k] = new Set(content[k].map(e => e[`${k}Id`]));
   });
 
   // subsystems are not a section in the yaml file, they are extracted from the reactions info
@@ -161,7 +158,7 @@ try {
     if (lines[i][0] == '#' || lines[i][0] == '@' || lines[i][0] == '[') {
       continue;
     }
-    const [ reactionId, name, ECList, PMIDList ] = lines[i].split('\t');
+    const [ reactionId, name, ECList, PMIDList ] = lines[i].split('\t').map(e => e.trim());
     // EC are already provided by the YAML (without the 'EC:' prefix)
     if (componentIdSets.reaction.has(reactionId) && PMIDList) { //only keep the ones in the model
       PMIDList.split('; ').forEach((pubmedReferenceId) => {
@@ -217,7 +214,7 @@ try {
       if (lines[i][0] == '#' || lines[i][0] == '@' || lines[i][0] == '[') {
         continue;
       }
-      const [ id, dbName, externalId, url ] = lines[i].split('\t');
+      const [ id, dbName, externalId, url ] = lines[i].split('\t').map(e => e.trim());
       if (!componentIdSets[IdSetKey].has(id)) { //only keep the ones in the model
         continue;
       }
@@ -387,7 +384,7 @@ try {
     Object.entries(r.metabolites).forEach((e) => {
       const [ compartmentalizedMetaboliteId, stoichiometry ] = e;
       if (stoichiometry < 0) {
-        reactionReactantRecords.push({ compartmentalizedMetaboliteId, reactionId: r.reactionId, stoichiometry });
+        reactionReactantRecords.push({ compartmentalizedMetaboliteId, reactionId: r.reactionId, stoichiometry: -stoichiometry });
       } else {
         reactionProductRecords.push({ reactionId: r.reactionId, compartmentalizedMetaboliteId, stoichiometry });
       }
@@ -555,4 +552,5 @@ CREATE (n1)-[:${version}]->(n2);
 
 } catch (e) {
   console.log(e);
+  return;
 }
