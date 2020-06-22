@@ -25,6 +25,7 @@ const getFile = (dirPath, regexpOrString) => {
 };
 
 const createCsvWriter = require("csv-writer").createObjectCsvWriter;
+let csvWriter = null;
 
 const idfyString = s => s.toLowerCase().replace(/[^a-z0-9]/g, '_').replace(/_+/g, '_').replace(/^_|_$/, ''); // for subsystems, compartments etc..
 const idfyString2 = s => s.toLowerCase().replace(/[^a-z0-9]/g, '_').replace(/_+/g, '_'); // to generate compartmentalizedMetabolite ID from their name
@@ -140,17 +141,76 @@ try {
   });
   content.subsystem = subsystems;
 
+  // ===================================== SVG mapping file ==================================================
+  const svgNodes = [];
+  ['compartment', 'subsystem'].forEach((component) => {
+    const filename = `${component}SVG.tsv`;
+    const mappingFile = getFile(inputDir, filename);
+
+    if (!mappingFile) {
+      console.log(`Warning: cannot mappingfile ${filename} in path`, inputDir);
+      return;
+    }
+
+    let lines = fs.readFileSync(mappingFile, 
+          { encoding: 'utf8', flag: 'r' }).split('\n').filter(Boolean);
+    const filenameSet = new Set(); // check uniqness of values in the file
+    const svgRels = [];
+    for (let i = 0; i < lines.length; i++) {
+      if (lines[i][0] == '#' || lines[i][0] == '@' || lines[i][0] == '[') {
+        continue;
+      }
+      const [ componentName, mapName, mapFilename ] = lines[i].split('\t').map(e => e.trim());
+
+      if (!content[component].map(e => e.name).includes(componentName)) {
+        console.log(`Error: ${componentName} ${component} does not exist in the model`);
+        exit;
+      }
+
+      if (filenameSet.has(mapFilename)) {
+        console.log(`Error: map ${mapFilename} can only be linked to one ${component}`);
+        exit;
+      }
+      filenameSet.add(mapFilename)
+
+      if (!/^[a-z0-9_]+[.]svg$/.test(mapFilename)) {
+        console.log(`Error: map ${mapFilename} (${filename}) is invalid`);
+        exit;
+      }
+      svgNodes.push({ id: mapFilename.split('.')[0], filename: mapFilename, customName: mapName });
+      svgRels.push({ [`${component}Id`]: idfyString(componentName), svgMapId: mapFilename.split('.')[0]});
+    }
+    // write the association file
+    csvWriter = createCsvWriter({
+      path: `${outputPath}${component}SvgMaps.csv`,
+      header: [{ id: `${component}Id`, title: `${component}Id` },
+               { id: 'svgMapId', title: 'svgMapId' }],
+    });
+    csvWriter.writeRecords(svgRels).then(() => {
+      console.log(`${component}SvgMaps.csv file generated.`);
+    });
+  });
+
+  // write svgMaps file
+  csvWriter = createCsvWriter({
+    path: `${outputPath}svgMaps.csv`,
+    header: Object.keys(svgNodes[0]).map(k => Object({ id: k, title: k })),
+  });
+  csvWriter.writeRecords(svgNodes).then(() => {
+    console.log(`svgMaps.csv file generated.`);
+  });
+
   // ===================================== external IDs and annotation -==================================================
 
   // extract EC code and PMID from reaction annotation file
-  const reaction_anno_file = getFile(inputDir, /REACTIONS[.]tsv$/);
-  if (!reaction_anno_file) {
+  const reactionAnnoFile = getFile(inputDir, /REACTIONS[.]tsv$/);
+  if (!reactionAnnoFile) {
     console.log("Error: reaction annotation file not found in path", inputDir);
     return;
   }
 
   // TODO use one of the csv parsing lib (sync)
-  let lines = fs.readFileSync(reaction_anno_file, 
+  lines = fs.readFileSync(reactionAnnoFile, 
             { encoding: 'utf8', flag: 'r' }).split('\n').filter(Boolean);
   const reactionPMID = [];
   const PMIDS = new Set();
@@ -169,7 +229,7 @@ try {
   }
 
   // create pubmedReferences file
-  let csvWriter = createCsvWriter({
+  csvWriter = createCsvWriter({
     path: `${outputPath}pubmedReferences.csv`,
     header: [{ id: 'id', title: 'id' }],
   });
@@ -445,6 +505,7 @@ try {
   DROP INDEX ON :Reaction(id);
   DROP INDEX ON :Gene(id);
   DROP INDEX ON :Subsystem(id);
+  DROP INDEX ON :SvgMap(id);
   DROP INDEX ON :ExternalDb(id);
   DROP INDEX ON :PubmedReference(id);
   */
@@ -494,6 +555,10 @@ MATCH (n:Subsystem {id: csvLine.subsystemId})
 CREATE (ns:SubsystemState {name:csvLine.name})
 CREATE (n)-[:${version}]->(ns);
 
+CREATE INDEX FOR (n:SvgMap) ON (n.id);
+LOAD CSV WITH HEADERS FROM "file:///svgMaps.csv" AS csvLine
+CREATE (n:SvgMap:${model} {id:csvLine.id,filename:csvLine.filename,customName:csvLine.customName});
+
 CREATE INDEX FOR (n:ExternalDb) ON (n.id);
 LOAD CSV WITH HEADERS FROM "file:///externalDbs.csv" AS csvLine
 CREATE (n:ExternalDb {id:csvLine.id,dbName:csvLine.dbName,externalId:csvLine.externalId,url:csvLine.url});
@@ -528,6 +593,14 @@ CREATE (n1)-[:${version}]->(n2);
 
 LOAD CSV WITH HEADERS FROM "file:///reactionPubmedReferences.csv" AS csvLine
 MATCH (n1:Reaction {id: csvLine.reactionId}),(n2:PubmedReference {id: csvLine.pubmedReferenceId})
+CREATE (n1)-[:${version}]->(n2);
+
+LOAD CSV WITH HEADERS FROM "file:///compartmentSvgMaps.csv" AS csvLine
+MATCH (n1:Compartment {id: csvLine.compartmentId}),(n2:SvgMap {id: csvLine.svgMapId})
+CREATE (n1)-[:${version}]->(n2);
+
+LOAD CSV WITH HEADERS FROM "file:///subsystemSvgMaps.csv" AS csvLine
+MATCH (n1:Subsystem {id: csvLine.subsystemId}),(n2:SvgMap {id: csvLine.svgMapId})
 CREATE (n1)-[:${version}]->(n2);
 
 LOAD CSV WITH HEADERS FROM "file:///metaboliteExternalDbs.csv" AS csvLine
