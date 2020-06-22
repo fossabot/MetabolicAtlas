@@ -7,6 +7,21 @@ const data = {
   relatedReactionsLimit: 200,
 };
 
+const constructCompartmentStr = (reaction) => {
+  const compartments = reaction.compartments.reduce((obj, { id, ...cs }) => ({
+    ...obj,
+    [id]: cs,
+  }), {});
+
+  const reactants = reaction.metabolites.filter(m => m.outgoing);
+  const products = reaction.metabolites.filter(m => !m.outgoing);
+  const reactantsCompartment = compartments[reactants[0].compartmentId].name;
+  const productsCompartment = compartments[products[0].compartmentId].name;
+  const sign = reaction.transport ? '⇔' : '⇒';
+
+  return `${reactantsCompartment} ${sign} ${productsCompartment}`;
+};
+
 const actions = {
   async getReactionData({ commit }, { model, id }) {
     console.warn(`TODO: use real model: ${model} and id: ${id}`);
@@ -15,7 +30,7 @@ const actions = {
 
     commit('setReaction', {
       ...reaction,
-      compartment_str: reaction.compartments.map(c => c.name).join(', '),
+      compartment_str: constructCompartmentStr(reaction),
       reactionreactant_set: reaction.metabolites.filter(m => m.outgoing),
       reactionproduct_set: reaction.metabolites.filter(m => !m.outgoing),
     });
@@ -39,7 +54,7 @@ const actions = {
       'setRelatedReactions',
       reactions.map(r => ({
         ...r,
-        compartment_str: r.compartments.map(c => c.name).join(', '),
+        compartment_str: constructCompartmentStr(r),
         reactionreactant_set: r.metabolites.filter(m => m.outgoing),
         reactionproduct_set: r.metabolites.filter(m => !m.outgoing),
       }))
@@ -53,7 +68,7 @@ const actions = {
       'setRelatedReactions',
       reactions.map(r => ({
         ...r,
-        compartment_str: r.compartments.map(c => c.name).join(', '),
+        compartment_str: constructCompartmentStr(r),
         subsystem_str: r.subsystems.map(s => s.name).join(', '),
         reactionreactant_set: r.metabolites.filter(m => m.outgoing),
         reactionproduct_set: r.metabolites.filter(m => !m.outgoing),
@@ -70,7 +85,7 @@ const actions = {
       'setRelatedReactions',
       reactions.map(r => ({
         ...r,
-        compartment_str: r.compartments.map(c => c.name).join(', '),
+        compartment_str: constructCompartmentStr(r),
         subsystem_str: r.subsystems.map(s => s.name).join(', '),
         reactionreactant_set: r.metabolites.filter(m => m.outgoing),
         reactionproduct_set: r.metabolites.filter(m => !m.outgoing),
@@ -87,7 +102,7 @@ const actions = {
       'setRelatedReactions',
       reactions.map(r => ({
         ...r,
-        compartment_str: r.compartments.map(c => c.name).join(', '),
+        compartment_str: constructCompartmentStr(r),
         subsystem_str: r.subsystems.map(s => s.name).join(', '),
         reactionreactant_set: r.metabolites.filter(m => m.outgoing),
         reactionproduct_set: r.metabolites.filter(m => !m.outgoing),
