@@ -7,12 +7,12 @@
       </p>
     </header>
     <!-- eslint-disable-next-line max-len -->
-    <div v-if="mapAvailableLimited" class="card-content" style="padding: 0.5rem; overflow-y: auto; max-height: 400px">
-      <div v-for="mapKey in ['2d', '3d']" :key="mapKey"
-           class="content has-text-left is-paddingless" style="padding-bottom: 1rem">
-        <!-- eslint-disable-next-line max-len -->
-        <template v-if="mapAvailableLimited[mapKey]['compartment'].length !== 0 || mapAvailableLimited[mapKey]['subsystem'].length !== 0">{{ mapKey.toUpperCase() }} maps
-          <ul style="margin: 0 1rem">
+    <div v-if="mapAvailableLimited" class="card-content">
+      <div v-for="mapKey in mapKeys" :key="mapKey"
+           class="content has-text-left is-paddingless">
+        <template>
+          <div>{{ mapKey.toUpperCase() }} maps</div>
+          <ul>
             <template v-for="mapType in Object.keys(mapAvailableLimited[mapKey])">
               <template v-for="map in mapAvailableLimited[mapKey][mapType]">
                 <li :key="map.id">
@@ -87,8 +87,23 @@ export default {
       /* eslint-enable vue/no-side-effects-in-computed-properties */
       return limited;
     },
+    mapKeys() {
+      return ['2d', '3d'].filter(d => this.mapsAvailable[d].compartment.length > 0 || this.mapsAvailable[d].subsystem.length > 0);
+    },
   },
 };
 </script>
 
-<style lang="scss"></style>
+<style lang="scss">
+.card-content {
+  padding: 0.75em 0.5em 0.5em;
+  overflow-y: auto;
+  max-height: 400px;
+
+  .content {
+    ul {
+      margin: 0.1rem;
+    }
+  }
+}
+</style>
