@@ -1,28 +1,11 @@
 import reactionsApi from '@/api/reactions';
+import { constructCompartmentStr } from '@/helpers/utils';
 
 const data = {
   reaction: {},
   referenceList: [],
   relatedReactions: [],
   relatedReactionsLimit: 200,
-};
-
-const constructCompartmentStr = (reaction) => {
-  const compartments = reaction.compartments.reduce((obj, { id, ...cs }) => ({
-    ...obj,
-    [id]: cs,
-  }), {});
-
-  const reactants = reaction.metabolites.filter(m => m.outgoing);
-  const products = reaction.metabolites.filter(m => !m.outgoing);
-  const reactantsCompartments = Array.from(new Set(
-    reactants.map(r => compartments[r.compartmentId].name)
-  )).join(' + ');
-  const productsCompartments = Array.from(new Set(
-    products.map(r => compartments[r.compartmentId].name)
-  )).join(' + ');
-
-  return `${reactantsCompartments} => ${productsCompartments}`;
 };
 
 const actions = {

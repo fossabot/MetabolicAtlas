@@ -139,3 +139,28 @@ export function sortResults(a, b, searchTermString) {
   }
   return matchSizeDiffA < matchSizeDiffB ? -1 : 1;
 }
+
+export const constructCompartmentStr = (reaction) => {
+  const compartments = reaction.compartments.reduce((obj, { id, ...cs }) => ({
+    ...obj,
+    [id]: cs,
+  }), {});
+
+  const reactants = reaction.metabolites.filter(m => m.outgoing);
+  const products = reaction.metabolites.filter(m => !m.outgoing);
+  const reactantsCompartments = new Set(
+    reactants.map(r => compartments[r.compartmentId].name).sort()
+  );
+  const productsCompartments = new Set(
+    products.map(r => compartments[r.compartmentId].name).sort()
+  );
+
+  const reactantsCompartmentsStr = Array.from(reactantsCompartments).join(' + ');
+  if (JSON.stringify([...reactantsCompartments])
+    === JSON.stringify([...productsCompartments])) {
+    return reactantsCompartmentsStr;
+  }
+
+  const productsCompartmentsStr = Array.from(productsCompartments).join(' + ');
+  return `${reactantsCompartmentsStr} => ${productsCompartmentsStr}`;
+};

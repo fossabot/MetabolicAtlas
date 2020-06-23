@@ -2,6 +2,7 @@
 
 import interactionPartnersApi from '@/api/interactionPartners';
 import { chemicalName } from '@/helpers/chemical-formatters';
+import { constructCompartmentStr } from '@/helpers/utils';
 
 const data = {
   interactionPartners: {},
@@ -17,21 +18,32 @@ const getters = {
   componentName: (state, _getters) => _getters.component.name || _getters.component.id,
 };
 
+const formatInteractionPartners = ips => ({
+  ...ips,
+  reactions: ips.reactions.map(r => ({
+    ...r,
+    compartment: constructCompartmentStr(r),
+    reactants: r.metabolites.filter(m => m.outgoing),
+    products: r.metabolites.filter(m => !m.outgoing),
+  })),
+});
+
 const actions = {
   async getInteractionPartners({ commit }, { model, id }) {
-    const interactionPartners = await interactionPartnersApi.fetchInteractionPartners(model, id);
+    const interactionPartners = await interactionPartnersApi.fetchInteractionPartners({ id, version: '1_3_0', model: 'HumanGem' });
+
     commit('setTooLargeNetworkGraph', !interactionPartners.reactions);
-    commit('setInteractionPartners', interactionPartners);
+    commit('setInteractionPartners', formatInteractionPartners(interactionPartners));
   },
 
   async loadExpansion(args, { model, id }) {
     const { state, commit } = args;
     const _getters = args.getters; // eslint-disable-line no-underscore-dangle
 
-    const expansion = await interactionPartnersApi.fetchInteractionPartners(model, id);
+    const expansion = await interactionPartnersApi.fetchInteractionPartners({ id, version: '1_3_0', model: 'HumanGem' });
 
     commit('setTooLargeNetworkGraph', !expansion.reactions);
-    commit('setExpansion', expansion);
+    commit('setExpansion', formatInteractionPartners(expansion));
 
     const newReactions = expansion.reactions.filter(r => !_getters.reactionsSet.has(r.id));
     const updatedInteractionPartners = {
