@@ -38,13 +38,6 @@ CALL apoc.cypher.run("
   
   UNION
   
-  MATCH (:Subsystem {id: '${id}'})-[:V${v}]-(:Reaction)-[:V${v}]-(cm:CompartmentalizedMetabolite)
-  WITH DISTINCT cm
-  MATCH (cm)-[:V${v}]-(:Compartment)-[:V${v}]-(csvg:SvgMap)
-  RETURN { compartmentSVGs: COLLECT(DISTINCT(csvg {.*})) } as data
-  
-  UNION
-  
   MATCH (:Subsystem {id: '${id}'})-[:V${v}]-(ssvg:SvgMap)
   RETURN { subsystemSVGs: COLLECT(DISTINCT(ssvg {.*})) } as data
 ", {}) yield value

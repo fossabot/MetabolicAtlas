@@ -43,7 +43,10 @@ const actions = {
         compartment: reaction.compartmentSVGs,
         subsystem: reaction.subsystemSVGs,
       },
-      '3d': { compartment: [], subsystem: [] },
+      '3d': {
+        compartment: reaction.compartments.map(c => ({ id: c.id, customName: c.name })),
+        subsystem: reaction.subsystems.map(s => ({ id: s.id, customName: s.name })),
+      },
     }, { root: true });
 
     const pmids = pubmedIds.map(pm => pm.id);

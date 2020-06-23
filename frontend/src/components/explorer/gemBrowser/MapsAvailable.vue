@@ -15,14 +15,14 @@
           <ul style="margin: 0 1rem">
             <template v-for="mapType in Object.keys(mapAvailableLimited[mapKey])">
               <template v-for="map in mapAvailableLimited[mapKey][mapType]">
-                <li :key="map[0]">
+                <li :key="map.id">
                   <!-- eslint-disable-next-line max-len -->
-                  <router-link v-if="viewerSelectedID" :to="{ name: 'viewer', params: { model: model.database_name, type: mapType, map_id: map[0], reload: true }, query: { dim: mapKey, search: viewerSelectedID, sel: viewerSelectedID } }">
-                    {{ map.name }}
+                  <router-link v-if="viewerSelectedID" :to="{ name: 'viewer', params: { model: model.database_name, type: mapType, map_id: map.id, reload: true }, query: { dim: mapKey, search: viewerSelectedID, sel: viewerSelectedID } }">
+                    {{ map.customName }}
                   </router-link>
                   <!-- eslint-disable-next-line max-len -->
-                  <router-link v-else :to="{ name: 'viewer', params: { model: model.database_name, type: mapType, map_id: map[0]}, query: { dim: mapKey } }">
-                    {{ map.name }}
+                  <router-link v-else :to="{ name: 'viewer', params: { model: model.database_name, type: mapType, map_id: map.id}, query: { dim: mapKey } }">
+                    {{ map.customName }}
                   </router-link>
                 </li>
               </template>

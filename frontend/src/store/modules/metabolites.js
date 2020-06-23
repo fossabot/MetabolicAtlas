@@ -11,6 +11,17 @@ const actions = {
 
     const metabolite = await metabolitesApi.fetchMetaboliteData({ id, version: '1_3_0' });
     commit('setMetabolite', metabolite);
+
+    commit('maps/setAvailableMaps', {
+      '2d': {
+        compartment: metabolite.compartmentSVGs,
+        subsystem: metabolite.subsystemSVGs,
+      },
+      '3d': {
+        compartment: [{ id: metabolite.compartment.id, customName: metabolite.compartment.name }],
+        subsystem: metabolite.subsystems.map(s => ({ id: s.id, customName: s.name })),
+      },
+    }, { root: true });
   },
   async getRelatedMetabolites({ commit }, { model, id }) {
     console.warn(`TODO: use model: ${model}`);
