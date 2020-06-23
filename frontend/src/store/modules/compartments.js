@@ -15,6 +15,14 @@ const actions = {
 
     const compartmentSummary = await compartmentsApi.fetchCompartmentSummary({ id, version: '1_3_0' });
     commit('setCompartmentSummary', compartmentSummary);
+
+    commit('maps/setAvailableMaps', {
+      '2d': {
+        compartment: compartmentSummary.compartmentSVGs,
+        subsystem: [],
+      },
+      '3d': { compartment: [{ id: compartmentSummary.info.id, customName: compartmentSummary.info.name }], subsystem: [] },
+    }, { root: true });
   },
 };
 

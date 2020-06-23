@@ -14,16 +14,17 @@ import {
   getRandomComponents,
   modelSearch,
   globalSearch,
+  getInteractionPartners,
 } from '../neo4j/index';
 
 const neo4jRoutes = express.Router();
 
 const fetchWith = async (req, res, getter) => {
   const { id, version } = req.params;
-  const { limit } = req.query;
+  const { limit, model } = req.query;
 
   try {
-    const result = await getter({ id, version, limit });
+    const result = await getter({ id, version, limit, model });
     res.json(result);
   } catch (e) {
     res.status(400).send(e);
@@ -46,17 +47,8 @@ neo4jRoutes.get('/:version/reactions/:id/related-reactions', async (req, res) =>
 neo4jRoutes.get('/:version/subsystems/:id', async (req, res) => fetchWith(req, res, getSubsystem));
 neo4jRoutes.get('/:version/subsystems/:id/related-reactions', async (req, res) => fetchWith(req, res, getRelatedReactionsForSubsystem));
 
-neo4jRoutes.get('/:version/random-components', async (req, res) => {
-  const { version } = req.params;
-  const { model } = req.query;
-
-  try {
-    const result = await getRandomComponents({ model, version });
-    res.json(result);
-  } catch (e) {
-    res.status(400).send(e);
-  }
-});
+neo4jRoutes.get('/:version/random-components', async (req, res) => fetchWith(req, res, getRandomComponents));
+neo4jRoutes.get('/:version/interaction-partners/:id', async (req, res) => fetchWith(req, res, getInteractionPartners));
 
 neo4jRoutes.get('/:version/search', async (req, res) => {
   const { version } = req.params;
@@ -74,5 +66,6 @@ neo4jRoutes.get('/:version/search', async (req, res) => {
     res.status(400).send(e);
   }
 });
+
 
 export default neo4jRoutes;

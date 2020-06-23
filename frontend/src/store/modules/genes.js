@@ -19,7 +19,10 @@ const actions = {
         compartment: gene.compartmentSVGs,
         subsystem: gene.subsystemSVGs,
       },
-      '3d': { compartment: [], subsystem: [] },
+      '3d': {
+        compartment: gene.compartments.map(c => ({ id: c.id, customName: c.name })),
+        subsystem: gene.subsystems.map(s => ({ id: s.id, customName: s.name })),
+      },
     }, { root: true });
   },
 };

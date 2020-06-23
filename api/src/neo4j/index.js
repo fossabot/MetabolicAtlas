@@ -13,6 +13,7 @@ import {
 } from './queries/relatedReactions';
 import getRelatedMetabolites from './queries/relatedMetabolites';
 import getRandomComponents from './queries/randomComponents';
+import getInteractionPartners from './queries/interactionPartners';
 
 export {
   getCompartment,
@@ -29,4 +30,5 @@ export {
   getRelatedReactionsForCompartment,
   getRelatedMetabolites,
   getRandomComponents,
+  getInteractionPartners,
 };

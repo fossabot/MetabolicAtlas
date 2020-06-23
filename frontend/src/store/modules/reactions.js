@@ -1,25 +1,11 @@
 import reactionsApi from '@/api/reactions';
+import { constructCompartmentStr } from '@/helpers/utils';
 
 const data = {
   reaction: {},
   referenceList: [],
   relatedReactions: [],
   relatedReactionsLimit: 200,
-};
-
-const constructCompartmentStr = (reaction) => {
-  const compartments = reaction.compartments.reduce((obj, { id, ...cs }) => ({
-    ...obj,
-    [id]: cs,
-  }), {});
-
-  const reactants = reaction.metabolites.filter(m => m.outgoing);
-  const products = reaction.metabolites.filter(m => !m.outgoing);
-  const reactantsCompartment = compartments[reactants[0].compartmentId].name;
-  const productsCompartment = compartments[products[0].compartmentId].name;
-  const sign = reaction.transport ? '⇔' : '⇒';
-
-  return `${reactantsCompartment} ${sign} ${productsCompartment}`;
 };
 
 const actions = {
@@ -30,7 +16,7 @@ const actions = {
 
     commit('setReaction', {
       ...reaction,
-      compartment_str: constructCompartmentStr(reaction),
+      compartment_str: reaction.compartments.map(c => c.name).join(', '),
       reactionreactant_set: reaction.metabolites.filter(m => m.outgoing),
       reactionproduct_set: reaction.metabolites.filter(m => !m.outgoing),
     });
@@ -40,7 +26,10 @@ const actions = {
         compartment: reaction.compartmentSVGs,
         subsystem: reaction.subsystemSVGs,
       },
-      '3d': { compartment: [], subsystem: [] },
+      '3d': {
+        compartment: reaction.compartments.map(c => ({ id: c.id, customName: c.name })),
+        subsystem: reaction.subsystems.map(s => ({ id: s.id, customName: s.name })),
+      },
     }, { root: true });
 
     const pmids = pubmedIds.map(pm => pm.id);

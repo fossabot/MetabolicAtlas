@@ -18,6 +18,14 @@ const actions = {
 
     const subsystemSummary = await subsystemsApi.fetchSubsystemSummary({ id, version: '1_3_0' });
     commit('setSubsystemSummary', subsystemSummary);
+
+    commit('maps/setAvailableMaps', {
+      '2d': {
+        compartment: [],
+        subsystem: subsystemSummary.subsystemSVGs,
+      },
+      '3d': { compartment: [], subsystem: [{ id: subsystemSummary.id, customName: subsystemSummary.name }] },
+    }, { root: true });
   },
 };
 
