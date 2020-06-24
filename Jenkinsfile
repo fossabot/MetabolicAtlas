@@ -23,7 +23,7 @@ pipeline {
       steps {
         sh '''
           . proj.sh production
-          build-stack --build-arg SERVER_NAME=icsb.chalmers.se --build-arg USE_IP_FILTER=true
+          build-stack --build-arg SERVER_NAME=csbi.chalmers.se --build-arg USE_IP_FILTER=true
         '''
         echo 'Built new Docker images.'
       }

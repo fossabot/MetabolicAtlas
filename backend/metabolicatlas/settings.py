@@ -22,7 +22,7 @@ DEBUG = os.getenv('DJANGO_IS_DEBUG') == 'True'
 
 ALLOWED_HOSTS = [
     'localhost',
-    'icsb.chalmers.se',
+    'csbi.chalmers.se',
     'metabolicatlas.sysbio.chalmers.se',
     'metabolicatlas.org',
     'www.metabolicatlas.org',
@@ -115,7 +115,7 @@ DATABASE_ROUTERS = [
 # CORS https://github.com/ottoyiu/django-cors-headers
 CORS_ORIGIN_WHITELIST = (
     'http://localhost',
-    'https://icsb.chalmers.se',
+    'https://csbi.chalmers.se',
     'https://metabolicatlas.org',
     'https://www.metabolicatlas.org',
 )
