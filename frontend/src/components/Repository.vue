@@ -261,7 +261,7 @@ export default {
         ofLabel: 'of',
       },
       messages,
-      filesURL: 'https://ftp.metabolicatlas.org/',
+      filesURL: 'https://ftp.metabolicatlas.org/', // TODO change ME
     };
   },
   computed: {
