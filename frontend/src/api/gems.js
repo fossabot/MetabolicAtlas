@@ -1,12 +1,10 @@
 import axios from 'axios';
 
-const gemsDict = {};
-
 const fetchGems = async () => {
   const { data } = await axios({ url: 'models/', baseURL: '/new_api/repository/' });
   // TODO consider moving this mapping logic into store
 
-  return data.map((g) => {
+  return data.reduce((dict, g) => {
     const gem = {
       ...g,
       ...g.sample,
@@ -19,13 +17,14 @@ const fetchGems = async () => {
       condition: g.condition || '-',
       ref: g.ref.length > 0 ? g.ref : g.gemodelset.reference,
     };
+
     // eslint-disable-next-line
     const { gemodelset, sample, cell_type, reference, ...strippedGem } = gem;
-    gemsDict[strippedGem.id] = strippedGem;
-    return strippedGem;
-  });
+    return {
+      ...dict,
+      [strippedGem.id]: strippedGem,
+    };
+  }, {});
 };
 
-const fetchGemData = gemId => gemsDict[gemId];
-
-export default { fetchGems, fetchGemData };
+export default { fetchGems };
