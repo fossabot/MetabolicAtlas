@@ -89,7 +89,7 @@
                 </template>
               </h4>
               {{ selectedModel.description }}<br><br>
-              <table class="table main-table is-fullwidth">
+              <table class="table main-table is-fullwidth is-marginless">
                 <tbody>
                   <tr v-for="field in model_fields" :key="field.name">
                     <template v-if="['reaction_count', 'metabolite_count', 'gene_count'].includes(field.name)">
@@ -119,6 +119,7 @@
                   </tr>
                 </tbody>
               </table>
+              <br>
               <references :reference-list="referenceList" />
               <br>
               <template v-if="selectedModel.files">
