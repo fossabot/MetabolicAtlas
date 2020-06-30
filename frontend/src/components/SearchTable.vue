@@ -568,7 +568,6 @@ export default {
           } else if (componentType === 'subsystem') {
             Object.keys(filterTypeDropdown[componentType]).forEach((field) => {
               if (field === 'compartments') {
-                console.log(el);
                 el[field]
                   .filter(compartment => !(compartment.id in filterTypeDropdown[componentType][field]))
                   .forEach((compartment) => {

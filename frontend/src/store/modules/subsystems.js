@@ -14,9 +14,7 @@ const getters = {
 
 const actions = {
   async getSubsystemSummary({ commit }, { model, id }) {
-    console.warn(`TODO: use model: ${model}`);
-
-    const subsystemSummary = await subsystemsApi.fetchSubsystemSummary({ id, version: '1_3_0' });
+    const subsystemSummary = await subsystemsApi.fetchSubsystemSummary({ id, model, version: '1_3_0' });
     commit('setSubsystemSummary', subsystemSummary);
 
     commit('maps/setAvailableMaps', {

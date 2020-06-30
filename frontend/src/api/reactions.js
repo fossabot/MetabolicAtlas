@@ -1,19 +1,17 @@
 import axios from 'axios';
 
 const fetchReactionData = async ({ id, version }) => {
-  const { data } = await axios({ url: `${version}/reactions/${id}/`, baseURL: '/new_api/integrated' });
+  const { data } = await axios.get(`${version}/reactions/${id}/`);
   return data;
 };
 
 const fetchRelatedReactionsForReaction = async ({ id, version, limit }) => {
-  const { data } = await axios({ url: `${version}/reactions/${id}/related-reactions?limit=${limit}`, baseURL: '/new_api/integrated' });
+  const { data } = await axios.get(`${version}/reactions/${id}/related-reactions?limit=${limit}`);
   return data.sort((a, b) => (a.compartment_str < b.compartment_str ? -1 : 1));
 };
 
-const fetchRelatedReactions = async (resourceType, id, version, limit, allCompartments = false) => {
-  console.warn(`handle allCompartments: ${allCompartments}`);
-
-  const { data } = await axios({ url: `${version}/${resourceType}s/${id}/related-reactions?limit=${limit}`, baseURL: '/new_api/integrated' });
+const fetchRelatedReactions = async (resourceType, id, version, limit) => {
+  const { data } = await axios.get(`${version}/${resourceType}s/${id}/related-reactions?limit=${limit}`);
   return data;
 };
 

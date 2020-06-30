@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const fetchModels = async () => {
-  const { data } = await axios({ url: 'integrated_models/', baseURL: '/new_api/repository/' });
+  const { data } = await axios.get('repository/integrated_models/');
   return data;
 };
 

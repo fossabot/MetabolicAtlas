@@ -8,7 +8,7 @@ const search = async ({ version, searchTerm, model, limit }) => {
   if (limit) {
     url += `&limit=${limit}`;
   }
-  const { data } = await axios({ url, baseURL: '/new_api/integrated' });
+  const { data } = await axios.get(url);
   return data;
 };
 
