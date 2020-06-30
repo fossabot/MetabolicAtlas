@@ -220,7 +220,7 @@ try {
     if (lines[i][0] == '#' || lines[i][0] == '@') {
       continue;
     }
-    const [ reactionId, name, ECList, PMIDList ] = lines[i].split('\t').map(e => e.trim());
+    const [ reactionId, ECList, PMIDList ] = lines[i].split('\t').map(e => e.trim());
     // EC are already provided by the YAML (without the 'EC:' prefix), TODO remove from annotation file?
     if (reactionId in componentIdDict.reaction && PMIDList) { //only keep the ones in the model
       PMIDList.split('; ').forEach((pubmedReferenceId) => {

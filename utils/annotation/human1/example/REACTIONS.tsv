@@ -4,17 +4,16 @@
 #
 # some rules:
 # this is a TAB separated file, thus TABs are not allowed in any field values
-# each line added must have exactly 4 columns to be parsed properly
+# each line added must have exactly 3 columns to be parsed properly
 # do not modify the @ line
 # column 'id' is mandatory, other columns are optional
 # follow the max size limits
 #
 # columns description:
-# column name    | max size | description
+# column name    | description
 # -----------------------------------------
-# name           | 255      | name of the reaction
-# ec             | 255      | EC code, semicolon separated values
-# pmid           | 255      | PMID, semicolon separated values
+# ec             | EC code, semicolon separated values
+# pmid           | PMID, semicolon separated values
 #
-@id	name	ec	pmid
-[start here]
+@id	ec	pmid
+# start here
