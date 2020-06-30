@@ -66,12 +66,12 @@ const actions = {
     commit('setGlobalResults', results);
   },
   async search({ state, commit }, { model, metabolitesAndGenesOnly }) {
-    console.warn(`TODO: use real model: ${model} and metabolitesAndGenesOnly: ${metabolitesAndGenesOnly}`);
     const payload = {
       version: '1_3_0',
       searchTerm: state.searchTermString,
       model: 'HumanGem',
       limit: 50,
+      a: { model, metabolitesAndGenesOnly },
     };
     const results = await searchApi.search(payload);
     commit('setResults', results);

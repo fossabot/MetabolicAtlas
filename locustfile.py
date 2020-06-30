@@ -1,5 +1,5 @@
 ## pip install locustio
-## locust --host=https://icsb.chalmers.se
+## locust --host=https://csbi.chalmers.se
 
 from locust import HttpLocust, TaskSet, task
 

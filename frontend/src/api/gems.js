@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const fetchGems = async () => {
-  const { data } = await axios({ url: 'models/', baseURL: '/new_api/repository/' });
+  const { data } = await axios.get('repository/models/');
   // TODO consider moving this mapping logic into store
 
   return data.reduce((dict, g) => {

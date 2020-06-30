@@ -71,7 +71,7 @@ def read_map_subsystem(database, filePath):
     return res
 
 
-def write_subsystem_summary_file(database, rme_compt_svg, sub_compt_svg, pathway_compt_coverage):
+def write_subsystem_summary_file(database, sub_compt_svg, pathway_compt_coverage):
     # read the subsystem from db to get the system and keep the same order
     subsystems = Subsystem.objects.using(database).all()
     subsystems = sorted(subsystems, key=operator.attrgetter('name'))
@@ -108,27 +108,61 @@ def write_subsystem_summary_file(database, rme_compt_svg, sub_compt_svg, pathway
             fw.write(line)
 
 
-def write_ssub_connection_files(database, v):
+def write_ssub_reaction_svg_connection_file(database, map_directory):
+    svg_dict = {}
+    for f in os.listdir(map_directory):
+        if not f.endswith('.svg'):
+            continue
+        rme_svg, sub_svg = parse_svg(database, map_directory, f)
+        svg_dict[f] = rme_svg
+
+    subsystems = Subsystem.objects.using(database).all()
+    matched_map = set()
+    low_match = {}
+    with open('database_generation/%s/output/subs_svg_connect_rea.txt' % database, 'w') as fw:
+        for s in subsystems:
+            sub_reaction_set = {e for e in SubsystemReaction.objects.using(database).filter(subsystem=s).values_list('reaction_id', flat=True)}
+            # sub_metabolite_set = {e for e in SubsystemMetabolite.objects.using(database).filter(subsystem=s).values_list('rc_id', flat=True)}
+            # sub_gene_set = {e for e in SubsystemGene.objects.using(database).filter(subsystem=s).values_list('rc_id', flat=True)}
+
+            for map_svg in svg_dict:
+                new_set = set(svg_dict[map_svg]['reaction'])
+                overlap = new_set.intersection(sub_reaction_set)
+                if len(overlap) != 0:
+                    if map_svg not in low_match:
+                        low_match[map_svg] = []
+                    matched_map.add(map_svg)
+                    perc = (len(overlap) / len(svg_dict[map_svg]['reaction'])) * 100
+                    fw.write("%s\t%s\t%d\t%0.2f\t%0.2f\t%s\n" % (
+                        s.name,
+                        map_svg,
+                        len(overlap),
+                        (len(overlap) / len(sub_reaction_set)) * 100,
+                        perc,
+                        "; ".join(overlap)
+                    ))
+                    low_match[map_svg].append(perc)
+
+        for map_svg in svg_dict:
+            if map_svg not in matched_map:
+                fw.write("Map not matchting any subsystem\t%s\t0\t0\t0\t%s\n" % (map_svg, ";".join(svg_dict[map_svg]['reaction'])));
+
+        for map_svg in low_match:
+            if max(low_match[map_svg]) < 15:
+                fw.write("Map with very low coverage\t%s\t0\t0\t0\t%s\n" % (map_svg, ";".join(svg_dict[map_svg]['reaction'])));
+
+
+
+def write_ssub_connection_files(database, subsystem_connection_rea, subsystem_connection_met):
     try:
         os.makedirs('database_generation/%s/output/' % database)
     except:
         pass
-    with open('database_generation/%s/output/subs_connect_mat.txt' % database, 'w') as fw:
-        ssubs = list(v.keys())
-        fw.write("#\t" + "\t".join(ssubs) + "\n")
-        for ssub1 in ssubs:
-            fw.write("%s\t" % ssub1)
-            for ssub2 in ssubs:
-                if ssub1 in v and ssub2 in v[ssub1]:
-                    fw.write(";".join(v[ssub1][ssub2]) + "\t")
-                else:
-                    fw.write("\t")
-            fw.write("\n")
 
     connection_count = []
-    setk = set(v.keys())
-    with open('database_generation/%s/output/subs_connect_table.txt' % database, 'w') as fw:
-        ssubs = list(v.keys())
+    setk = set(subsystem_connection_rea.keys())
+    with open('database_generation/%s/output/subs_connect_table_rea.txt' % database, 'w') as fw:
+        ssubs = list(subsystem_connection_rea.keys())
         s = set()
         for ssub1 in ssubs:
             for ssub2 in ssubs:
@@ -140,12 +174,48 @@ def write_ssub_connection_files(database, v):
                 if k2 in s:
                     continue
                 s.add(k2)
-                if ssub1 != ssub2 and ssub1 in v and ssub2 in v[ssub1]:
+                if ssub1 != ssub2 and ssub1 in subsystem_connection_rea and ssub2 in subsystem_connection_rea[ssub1]:
+                    fw.write("%s\t%s\t%d\t%0.2f\t%0.2f\t%s\n" % (
+                        ssub1, ssub2, 
+                        len(subsystem_connection_rea[ssub1][ssub2][0]),
+                        ((len(subsystem_connection_rea[ssub1][ssub2][0]) / subsystem_connection_rea[ssub1][ssub2][1]) * 100),
+                        ((len(subsystem_connection_rea[ssub1][ssub2][0]) / subsystem_connection_rea[ssub1][ssub2][2]) * 100),
+                        ";".join(subsystem_connection_rea[ssub1][ssub2][0])))
+
+    with open('database_generation/%s/output/subs_connect_mat_met.txt' % database, 'w') as fw:
+        ssubs = list(subsystem_connection_met.keys())
+        fw.write("#\t" + "\t".join(ssubs) + "\n")
+        for ssub1 in ssubs:
+            fw.write("%s\t" % ssub1)
+            for ssub2 in ssubs:
+                if ssub1 in subsystem_connection_met and ssub2 in subsystem_connection_met[ssub1]:
+                    fw.write(";".join(subsystem_connection_met[ssub1][ssub2]) + "\t")
+                else:
+                    fw.write("\t")
+            fw.write("\n")
+
+    connection_count = []
+    setk = set(subsystem_connection_met.keys())
+    with open('database_generation/%s/output/subs_connect_table_met.txt' % database, 'w') as fw:
+        ssubs = list(subsystem_connection_met.keys())
+        s = set()
+        for ssub1 in ssubs:
+            for ssub2 in ssubs:
+                k = ssub1+ssub2
+                if k in s:
+                    continue
+                s.add(k)
+                k2 = ssub2+ssub1
+                if k2 in s:
+                    continue
+                s.add(k2)
+                if ssub1 != ssub2 and ssub1 in subsystem_connection_met and ssub2 in subsystem_connection_met[ssub1]:
                     connection_count.append(ssub1)
                     connection_count.append(ssub2)
-                    fw.write("%s\t%s\t%s\t%s\n" % (ssub1, ssub2, len(v[ssub1][ssub2]), ";".join(v[ssub1][ssub2])))
+                    fw.write("%s\t%s\t%s\t%s\n" % (ssub1, ssub2, len(subsystem_connection_met[ssub1][ssub2]), ";".join(subsystem_connection_met[ssub1][ssub2])))
+
     import collections
-    with open('database_generation/%s/output/subs_connect_count.txt' % database, 'w') as fw:
+    with open('database_generation/%s/output/subs_connect_met_count.txt' % database, 'w') as fw:
         for sub, count in collections.Counter(connection_count).items():
              fw.write("%s\t%s\n" % (sub, count))
 
@@ -215,7 +285,8 @@ def get_compt_subsystem_connectivity(database, map_directory, compt_rme, rme_com
     # metabolites to draw multiple time at compartment or subsystem level
     mm = {'compartment': {}, 'subsystem': {}}
     mm_compt_sub = {}
-    subsystem_connection = {}
+    subsystem_connection_rea = {}
+    subsystem_connection_met = {}
     unique_meta_ssub = {}
 
     result = {}
@@ -234,18 +305,19 @@ def get_compt_subsystem_connectivity(database, map_directory, compt_rme, rme_com
                     result[meta]['compartment'][cpmt][r_reaction] = {'reactant': True, 'product': False}
                 result[meta]['compartment'][cpmt]['reactant'] += 1
 
-            for ssub in rme_sub[r_reaction]:
-                if ssub not in result[meta]['subsystem']:
-                    result[meta]['subsystem'][ssub] = {'reactant': 0, 'product': 0}
-                if r_reaction not in result[meta]['subsystem'][ssub]:
-                    result[meta]['subsystem'][ssub][r_reaction] = {'reactant': True, 'product': False}
-                result[meta]['subsystem'][ssub]['reactant'] += 1
-                if ssub[:10] == "Transport," or ssub == "Transport" or ssub == "Exchange/demand reactions":
-                    pass
-                    # do not count any transport reaction, is the reaction in transport ssub
-                    '''for cpmt in rme_compt[r_reaction]:
-                        if ssub in compt_sub[cpmt]:
-                            result[meta]['compartment'][cpmt]['reactant'] -= 1'''
+            if r_reaction in rme_sub:
+                for ssub in rme_sub[r_reaction]:
+                    if ssub not in result[meta]['subsystem']:
+                        result[meta]['subsystem'][ssub] = {'reactant': 0, 'product': 0}
+                    if r_reaction not in result[meta]['subsystem'][ssub]:
+                        result[meta]['subsystem'][ssub][r_reaction] = {'reactant': True, 'product': False}
+                    result[meta]['subsystem'][ssub]['reactant'] += 1
+                    if ssub[:10] == "Transport," or ssub == "Transport" or ssub == "Exchange/demand reactions":
+                        pass
+                        # do not count any transport reaction, is the reaction in transport ssub
+                        '''for cpmt in rme_compt[r_reaction]:
+                            if ssub in compt_sub[cpmt]:
+                                result[meta]['compartment'][cpmt]['reactant'] -= 1'''
 
         reaction_as_product = {e for e in ReactionProduct.objects.using(database).filter(product_id=meta).values_list('reaction_id', flat=True)}
         for p_reaction in reaction_as_product:
@@ -258,20 +330,21 @@ def get_compt_subsystem_connectivity(database, map_directory, compt_rme, rme_com
                     result[meta]['compartment'][cpmt][p_reaction]['product'] = True
                 result[meta]['compartment'][cpmt]['product'] += 1
 
-            for ssub in rme_sub[p_reaction]:
-                if ssub not in result[meta]['subsystem']:
-                    result[meta]['subsystem'][ssub] = {'reactant': 0, 'product': 0}
-                if p_reaction not in result[meta]['subsystem'][ssub]:
-                    result[meta]['subsystem'][ssub][p_reaction] = {'reactant': False, 'product': True}
-                else:
-                    result[meta]['subsystem'][ssub][p_reaction]['product'] = True
-                result[meta]['subsystem'][ssub]['product'] += 1
-                if ssub[:10] == "Transport," or ssub == "Transport" or ssub == "Exchange/demand reactions":
-                    pass
-                    # do not count any transport reaction, is the reaction in transport ssub
-                    '''for cpmt in rme_compt[p_reaction]:
-                        if ssub in compt_sub[cpmt]:
-                            result[meta]['compartment'][cpmt]['product'] -= 1'''
+            if p_reaction in rme_sub:
+                for ssub in rme_sub[p_reaction]:
+                    if ssub not in result[meta]['subsystem']:
+                        result[meta]['subsystem'][ssub] = {'reactant': 0, 'product': 0}
+                    if p_reaction not in result[meta]['subsystem'][ssub]:
+                        result[meta]['subsystem'][ssub][p_reaction] = {'reactant': False, 'product': True}
+                    else:
+                        result[meta]['subsystem'][ssub][p_reaction]['product'] = True
+                    result[meta]['subsystem'][ssub]['product'] += 1
+                    if ssub[:10] == "Transport," or ssub == "Transport" or ssub == "Exchange/demand reactions":
+                        pass
+                        # do not count any transport reaction, is the reaction in transport ssub
+                        '''for cpmt in rme_compt[p_reaction]:
+                            if ssub in compt_sub[cpmt]:
+                                result[meta]['compartment'][cpmt]['product'] -= 1'''
 
         if len(reactions_as_reactant) + len(reaction_as_product) == 0:
             # skip genes
@@ -359,17 +432,17 @@ def get_compt_subsystem_connectivity(database, map_directory, compt_rme, rme_com
                         for j in range(len(keys)):
                             if i == j:
                                 continue
-                            if keys[i] not in subsystem_connection:
-                                subsystem_connection[keys[i]] = {}
-                            if keys[j] not in subsystem_connection[keys[i]]:
-                                subsystem_connection[keys[i]][keys[j]] = set()
-                            subsystem_connection[keys[i]][keys[j]].add(meta)
+                            if keys[i] not in subsystem_connection_met:
+                                subsystem_connection_met[keys[i]] = {}
+                            if keys[j] not in subsystem_connection_met[keys[i]]:
+                                subsystem_connection_met[keys[i]][keys[j]] = set()
+                            subsystem_connection_met[keys[i]][keys[j]].add(meta)
 
-                            if keys[j] not in subsystem_connection:
-                                subsystem_connection[keys[j]] = {}
-                            if keys[i] not in subsystem_connection[keys[j]]:
-                                subsystem_connection[keys[j]][keys[i]] = set()
-                            subsystem_connection[keys[j]][keys[i]].add(meta)
+                            if keys[j] not in subsystem_connection_met:
+                                subsystem_connection_met[keys[j]] = {}
+                            if keys[i] not in subsystem_connection_met[keys[j]]:
+                                subsystem_connection_met[keys[j]][keys[i]] = set()
+                            subsystem_connection_met[keys[j]][keys[i]].add(meta)
 
                     '''if is_multiple_in_one_subsystem:
                         if cpmt not in mm['compartment']:
@@ -412,7 +485,6 @@ def get_compt_subsystem_connectivity(database, map_directory, compt_rme, rme_com
                     if ssub not in mm['subsystem']:
                         mm['subsystem'][ssub] = set()
                     mm['subsystem'][ssub].add(meta)
-
                 else:
                     if ssub not in unique_meta_ssub:
                         unique_meta_ssub[ssub] = set()
@@ -420,7 +492,21 @@ def get_compt_subsystem_connectivity(database, map_directory, compt_rme, rme_com
 
         # FIX ME? not M_m02012l is not multiple but get 2-2 reactant product in total 3 subsystems
 
-    write_ssub_connection_files(database, subsystem_connection)
+    # get reaction <-> reaction correspondance on subsystem
+    keys = list(sub_rme.keys())
+    for i in range(len(keys)):
+        for j in range(len(keys)):
+            if i == j:
+                continue
+            new_set = set(sub_rme[keys[i]]['reaction'])
+            overlap = new_set.intersection(sub_rme[keys[j]]['reaction'])
+            if len(overlap) != 0:
+                if keys[i] not in subsystem_connection_rea:
+                    subsystem_connection_rea[keys[i]] = {}
+                if keys[j] not in subsystem_connection_rea[keys[i]]:
+                    subsystem_connection_rea[keys[i]][keys[j]] = [overlap, len(sub_rme[keys[i]]['reaction']), len(sub_rme[keys[j]]['reaction'])]
+
+    write_ssub_connection_files(database, subsystem_connection_rea, subsystem_connection_met)
 
     write_meta_freq_files(database, result)
 
@@ -580,14 +666,16 @@ def get_components_interconnection(database):
     print ("not e in s: ", len(gene_not_sub), len(set(gene_not_sub)))
 
     if len(reaction_not_compt) or \
-        len(reaction_not_sub) or \
         len(metabolite_not_compt) or \
-        len(metabolite_not_sub) or \
-        len(gene_not_compt) or \
-        len(gene_not_sub):
+        len(gene_not_compt):
         print (gene_not_sub[:10])
-        print ("Error")
+        print ("Error: some components are not on compartment")
         exit(1)
+
+    if len(reaction_not_sub) or \
+        len(metabolite_not_sub) or \
+        len(gene_not_sub):
+        print ("Warning: some components are not on subsystems")
 
     # get subsystem compartment coverage
     compt_sub_reaction = {}
@@ -611,10 +699,10 @@ def get_components_interconnection(database):
                 compt_sub_reaction[c.name][s.name].update(r_overlap)
 
                 if len(r_overlap) != 0:
-                    res_string = "Cmp %s - Reactions found in '%s': %s | overlap: %s (%s)" % \
+                    res_string = "Cmp %s - Reactions found in '%s': %s | overlap: %s (%0.2f)" % \
                         (c.name, s.name, len(sub_reaction), len(r_overlap), float(len(r_overlap))/len(sub_reaction) * 100.0)
                     print (res_string)
-                    fw.write("%s\t%s\t%s\t%s\t%s\n" % \
+                    fw.write("%s\t%s\t%s\t%s\t%0.2f\n" % \
                         (c.name, s.name, len(sub_reaction), len(r_overlap), float(len(r_overlap))/len(sub_reaction) * 100.0))
                     pathway_compt_coverage[s.name][1][c.name] = len(r_overlap) # store the overlap with the current compartment
     '''
@@ -696,34 +784,34 @@ def get_subsystem_compt_element_svg_global(database, map_directory):
     return compt_rme_svg, rme_compt_svg, compt_sub_svg, sub_compt_svg
 
 
-def parse_svg(database, component, map_directory):
+def parse_svg(database, map_directory,  map_name, component=None):
     # store compartment / subsystem relationship in the svg file
     # and compartment / gene-metabolite-reaction
     # note: there is no information about subsystem / gene-metabolite-reaction that
     # can be extracted from the svg
 
-    reaction_component = read_map_reaction(os.path.join(map_directory, component.filename))
-    metabolite_component = read_map_metabolite(os.path.join(map_directory, component.filename))
-    gene_component = read_map_gene(os.path.join(map_directory, component.filename))
-    subsystem_component = read_map_subsystem(database, os.path.join(map_directory, component.filename))
+    reaction_component = read_map_reaction(os.path.join(map_directory, map_name))
+    metabolite_component = read_map_metabolite(os.path.join(map_directory, map_name))
+    gene_component = read_map_gene(os.path.join(map_directory, map_name))
+    subsystem_component = read_map_subsystem(database, os.path.join(map_directory, map_name))
 
-    print ("Reactions found in the SVG file '%s': %s" % (component.name, len(reaction_component)))
-    print ("Metabolites found in the SVG file '%s': %s" % (component.name, len(metabolite_component)))
-    print ("Genes found in the SVG file '%s': %s" % (component.name, len(gene_component)))
-    print ("Subsystem found in the SVG file '%s': %s" % (component.name, len(subsystem_component)))
+    if component:
+        print ("Reactions found in the SVG file '%s': %s" % (component.name, len(reaction_component)))
+        print ("Metabolites found in the SVG file '%s': %s" % (component.name, len(metabolite_component)))
+        print ("Genes found in the SVG file '%s': %s" % (component.name, len(gene_component)))
+        print ("Subsystem found in the SVG file '%s': %s" % (component.name, len(subsystem_component)))
 
-    compt_rme_svg = {
+    rme_svg = {
         'reaction': {e for e in reaction_component},
         'metabolite': {e for e in metabolite_component},
         'gene': {e for e in gene_component}
     }
-    compt_sub_svg = None
-    if isinstance(component, CompartmentSvg):
-        compt_sub_svg = set()
-        for s in subsystem_component:
-            compt_sub_svg.add(s)
 
-    return compt_rme_svg, compt_sub_svg
+    sub_svg = set()
+    for s in subsystem_component:
+        sub_svg.add(s)
+
+    return rme_svg, sub_svg
 
 
 def insert_compartment_svg_connectivity_and_stats(database, compartment, map_directory):
@@ -731,9 +819,9 @@ def insert_compartment_svg_connectivity_and_stats(database, compartment, map_dir
     # so:
     # 1) make sure the maps are valid using validation files provided with the Omix plugin
     # 2) whenever svg files change, run this again
-    compt_rme_svg, compt_sub_svg = parse_svg(database, compartment, map_directory)
+    rme_svg, compt_sub_svg = parse_svg(database, map_directory, compartment.filename, component=compartment)
 
-    rcs = ReactionComponent.objects.using(database).filter(id__in=compt_rme_svg['metabolite'])
+    rcs = ReactionComponent.objects.using(database).filter(id__in=rme_svg['metabolite'])
     for rc in rcs:
         add = ReactionComponentCompartmentSvg(rc=rc, compartmentsvg=compartment)
         add.save(using=database)
@@ -744,13 +832,13 @@ def insert_compartment_svg_connectivity_and_stats(database, compartment, map_dir
     unique_meta_count = len(unique_meta)
 
     # add the connection to the reactions
-    rs = Reaction.objects.using(database).filter(id__in=compt_rme_svg['reaction'])
+    rs = Reaction.objects.using(database).filter(id__in=rme_svg['reaction'])
     for r in rs:
         add = ReactionCompartmentSvg(reaction=r, compartmentsvg=compartment)
         add.save(using=database)
     reaction_count = rs.count()
 
-    rcs = ReactionComponent.objects.using(database).filter(id__in=compt_rme_svg['gene'])
+    rcs = ReactionComponent.objects.using(database).filter(id__in=rme_svg['gene'])
     for rc in rcs:
         add = CompartmentSvgGene(rc=rc, compartmentsvg=compartment)
         add.save(using=database)
@@ -777,9 +865,9 @@ def insert_compartment_svg_connectivity_and_stats(database, compartment, map_dir
 
 def insert_subsystem_svg_connectivity_and_stats(database, subsystem, map_directory):
     # subsystem svg stats, values correspond to what is inside the svg files and might difer from the model
-    sub_rme_svg, sub_sub_svg = parse_svg(database, subsystem, map_directory)
+    rme_svg, sub_svg = parse_svg(database, map_directory, subsystem.filename, component=subsystem)
 
-    rcs = ReactionComponent.objects.using(database).filter(id__in=sub_rme_svg['metabolite'])
+    rcs = ReactionComponent.objects.using(database).filter(id__in=rme_svg['metabolite'])
     for rc in rcs:
         add = ReactionComponentSubsystemSvg(rc=rc, subsystemsvg=subsystem)
         add.save(using=database)
@@ -790,13 +878,13 @@ def insert_subsystem_svg_connectivity_and_stats(database, subsystem, map_directo
     unique_meta_count = len(unique_meta)
 
     # add the connection to the reactions
-    rs = Reaction.objects.using(database).filter(id__in=sub_rme_svg['reaction'])
+    rs = Reaction.objects.using(database).filter(id__in=rme_svg['reaction'])
     for r in rs:
         add = ReactionSubsystemSvg(reaction=r, subsystemsvg=subsystem)
         add.save(using=database)
     reaction_count = rs.count()
 
-    rcs = ReactionComponent.objects.using(database).filter(id__in=sub_rme_svg['gene'])
+    rcs = ReactionComponent.objects.using(database).filter(id__in=rme_svg['gene'])
     for rc in rcs:
         add = SubsystemSvgGene(rc=rc, subsystemsvg=subsystem)
         add.save(using=database)
@@ -814,11 +902,11 @@ def insert_subsystem_svg_connectivity_and_stats(database, subsystem, map_directo
          metabolite_count=metabolite_count, unique_metabolite_count=unique_meta_count, gene_count=gene_count)
 
 
-def compare_database_and_svg(compt_rme_svg, compt_rme, compt_sub_svg):
+def compare_database_and_svg(rme_svg, compt_rme, compt_sub_svg):
     # compare M, R, E localization between SVG and database
-    for compt in compt_rme_svg:
+    for compt in rme_svg:
         print ("====", compt)
-        d_svg = compt_rme_svg[compt]
+        d_svg = rme_svg[compt]
         if compt.startswith("Cytosol"):
             cyto = True
             compt_db = "Cytosol"
@@ -869,9 +957,9 @@ def compare_database_and_svg(compt_rme_svg, compt_rme, compt_sub_svg):
 
     # compare subsystem
     s_svg_cyto_tot = set()
-    for compt in compt_rme_svg:
+    for compt in rme_svg:
         print ("====", compt)
-        d_svg = compt_rme_svg[compt]
+        d_svg = rme_svg[compt]
         if compt.startswith("Cytosol"):
             cyto = True
             compt_db = "Cytosol"
@@ -925,7 +1013,7 @@ def processData(database, map_type, map_directory, svg_map_metadata_file):
                     exit(1)
 
                 if not re.match('[0-9a-zA-Z_]+[.]svg$', ci[3]):
-                    print("invalid file name %s, expected to match [0-9a-zA-Z_]+[.]svg$")
+                    print("invalid file name '%s', expected to match [0-9a-zA-Z_]+[.]svg$" % ci[3])
                     exit(1)
 
                 inDB = False
@@ -969,7 +1057,7 @@ def processData(database, map_type, map_directory, svg_map_metadata_file):
                     exit(1)
 
                 if not re.match('[0-9a-zA-Z_]+[.]svg$', si[3]):
-                    print("invalid file name %s, expected to match [0-9a-zA-Z_]+[.]svg$")
+                    print("invalid file name '%s', expected to match [0-9a-zA-Z_]+[.]svg$" % si[3])
                     exit(1)
 
                 inDB = False
@@ -1040,7 +1128,9 @@ class Command(BaseCommand):
 
             # get element in subsystem / compt from svg
             compt_rme_svg, rme_compt_svg, compt_sub_svg, sub_compt_svg = get_subsystem_compt_element_svg_global(options['database'], options['map directory'])
-            write_subsystem_summary_file(options['database'], rme_compt_svg, sub_compt_svg, pathway_compt_coverage)
+            write_subsystem_summary_file(options['database'], sub_compt_svg, pathway_compt_coverage)
+
+            write_ssub_reaction_svg_connection_file(options['database'], options['map directory']);
             return
 
         processData(options['database'], options['map type'], options['map directory'], options['map metadata file'])

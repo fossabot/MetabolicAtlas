@@ -10,9 +10,7 @@ const getters = {
 
 const actions = {
   async getGeneData({ commit }, { model, id }) {
-    console.warn(`TODO: use model: ${model}`);
-
-    const gene = await genesApi.fetchGeneData({ id, version: '1_3_0' });
+    const gene = await genesApi.fetchGeneData({ id, model, version: '1_3_0' });
     commit('setGene', gene);
     commit('maps/setAvailableMaps', {
       '2d': {

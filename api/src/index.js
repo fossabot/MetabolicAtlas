@@ -3,6 +3,6 @@ import router from './endpoints/index';
 
 const app = express();
 
-app.use('/new_api', router);
+app.use('/api/v2', router);
 
 app.listen(8081);
