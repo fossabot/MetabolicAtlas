@@ -121,25 +121,26 @@ try {
     compartment: reformatCompartmentObjets(compartments.compartments),
   }
 
-  const componentIdSets = {}; // store for each type of component the sets of existing Ids in the model, excluding compartment
-  // use to filter out annotation/external ids for components not in the model
+  const componentIdDict = {}; // store for each type of component the key  Id <-> element
+  // use to filter out annotation/external ids for components not in the model and to add missing information
+  // extracted from these annotation files such as description, etc...
   Object.keys(content).forEach((k) => {
-    componentIdSets[k] = new Set(content[k].map(e => e[`${k}Id`]));
+    componentIdDict[k] = Object.fromEntries(content[k].map(e => [e[`${k}Id`], e]));
   });
 
-  // subsystems are not a section in the yaml file, they are extracted from the reactions info
-  const subsystems = []
-  componentIdSets.subsystem = new Set();
+  // subsystems are not a section in the yaml file, but are extracted from the reactions info
+  content.subsystem = [];
+  componentIdDict.subsystem = {};
   content.reaction.forEach((r) => {
     r.subsystems.forEach((name) => {
       const id = idfyString(name);
-      if (!(componentIdSets.subsystem.has(id))) {
-        subsystems.push({ subsystemId: id, name });
-        componentIdSets.subsystem.add(id);
+      const subsystemObject = { id, name }; // TODO add 'description' key
+      if (!(id in componentIdDict.subsystem)) {
+        content.subsystem.push(subsystemObject);
+        componentIdDict.subsystem[id] = subsystemObject;
       };
     });
   });
-  content.subsystem = subsystems;
 
   // ===================================== SVG mapping file ==================================================
   const svgNodes = [];
@@ -157,7 +158,7 @@ try {
     const filenameSet = new Set(); // check uniqness of values in the file
     const svgRels = [];
     for (let i = 0; i < lines.length; i++) {
-      if (lines[i][0] == '#' || lines[i][0] == '@' || lines[i][0] == '[') {
+      if (lines[i][0] == '#' || lines[i][0] == '@') {
         continue;
       }
       const [ componentName, mapName, mapFilename ] = lines[i].split('\t').map(e => e.trim());
@@ -203,6 +204,7 @@ try {
   // ===================================== external IDs and annotation -==================================================
 
   // extract EC code and PMID from reaction annotation file
+
   const reactionAnnoFile = getFile(inputDir, /REACTIONS[.]tsv$/);
   if (!reactionAnnoFile) {
     console.log("Error: reaction annotation file not found in path", inputDir);
@@ -215,12 +217,12 @@ try {
   const reactionPMID = [];
   const PMIDS = new Set();
   for (let i = 0; i < lines.length; i++) {
-    if (lines[i][0] == '#' || lines[i][0] == '@' || lines[i][0] == '[') {
+    if (lines[i][0] == '#' || lines[i][0] == '@') {
       continue;
     }
     const [ reactionId, name, ECList, PMIDList ] = lines[i].split('\t').map(e => e.trim());
-    // EC are already provided by the YAML (without the 'EC:' prefix)
-    if (componentIdSets.reaction.has(reactionId) && PMIDList) { //only keep the ones in the model
+    // EC are already provided by the YAML (without the 'EC:' prefix), TODO remove from annotation file?
+    if (reactionId in componentIdDict.reaction && PMIDList) { //only keep the ones in the model
       PMIDList.split('; ').forEach((pubmedReferenceId) => {
         reactionPMID.push({ reactionId, pubmedReferenceId });
         PMIDS.add(pubmedReferenceId);
@@ -271,11 +273,11 @@ try {
               { encoding: 'utf8', flag: 'r' }).split('\n').filter(Boolean);
 
     for (let i = 0; i < lines.length; i++) {
-      if (lines[i][0] == '#' || lines[i][0] == '@' || lines[i][0] == '[') {
+      if (lines[i][0] == '#' || lines[i][0] == '@') {
         continue;
       }
       const [ id, dbName, externalId, url ] = lines[i].split('\t').map(e => e.trim());
-      if (!componentIdSets[IdSetKey].has(id)) { //only keep the ones in the model
+      if (!(id in componentIdDict[IdSetKey])) { //only keep the ones in the model
         continue;
       }
 
