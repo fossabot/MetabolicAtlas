@@ -94,7 +94,7 @@ export default {
 };
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .card-content {
   padding: 0.75em 0.5em 0.5em;
   overflow-y: auto;
