@@ -361,21 +361,21 @@ export default {
             sortable: true,
           }, {
             label: 'Metabolites',
-            field: 'metabolite_count',
+            field: 'compartmentalizedMetaboliteCount',
             filterOptions: {
               enabled: false,
             },
             sortable: true,
           }, {
             label: 'Genes',
-            field: 'gene_count',
+            field: 'geneCount',
             filterOptions: {
               enabled: false,
             },
             sortable: true,
           }, {
             label: 'Reactions',
-            field: 'reaction_count',
+            field: 'reactionCount',
             filterOptions: {
               enabled: false,
             },
@@ -404,7 +404,7 @@ export default {
           },
           {
             label: 'Metabolites',
-            field: 'metabolite_count',
+            field: 'compartmentalizedMetaboliteCount',
             filterOptions: {
               enabled: false,
             },
@@ -412,7 +412,7 @@ export default {
           },
           {
             label: 'Genes',
-            field: 'gene_count',
+            field: 'geneCount',
             filterOptions: {
               enabled: false,
             },
@@ -420,7 +420,7 @@ export default {
           },
           {
             label: 'Reactions',
-            field: 'reaction_count',
+            field: 'reactionCount',
             filterOptions: {
               enabled: false,
             },
@@ -428,7 +428,7 @@ export default {
           },
           {
             label: 'Subsystems',
-            field: 'subsystem_count',
+            field: 'subsystemCount',
             filterOptions: {
               enabled: false,
             },
@@ -500,7 +500,7 @@ export default {
         },
         subsystem: {
           model: {},
-          compartments: {},
+          compartment: {},
         },
         compartment: {
           model: {},

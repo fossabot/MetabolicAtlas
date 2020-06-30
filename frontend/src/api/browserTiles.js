@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-const fetchBrowserTiles = async (model) => {
-  const { data } = await axios.get(`${model}/gem_browser_tiles/`);
+const fetchBrowserTiles = async ({ model, version }) => {
+  const { data } = await axios.get(`${version}/random-components?model=${model}`);
   return data;
 };
 

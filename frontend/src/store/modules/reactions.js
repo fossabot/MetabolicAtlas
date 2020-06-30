@@ -1,36 +1,93 @@
 import reactionsApi from '@/api/reactions';
+import { constructCompartmentStr } from '@/helpers/utils';
 
 const data = {
   reaction: {},
   referenceList: [],
   relatedReactions: [],
-  relatedReactionsLimit: 0,
+  relatedReactionsLimit: 200,
 };
 
 const actions = {
   async getReactionData({ commit }, { model, id }) {
-    const { reaction, pmids } = await reactionsApi.fetchReactionData(model, id);
-    commit('setReaction', reaction);
+    const { pubmedIds, ...reaction } = await reactionsApi.fetchReactionData({ id, model, version: '1_3_0' });
+
+    commit('setReaction', {
+      ...reaction,
+      compartment_str: reaction.compartments.map(c => c.name).join(', '),
+      reactionreactant_set: reaction.metabolites.filter(m => m.outgoing),
+      reactionproduct_set: reaction.metabolites.filter(m => !m.outgoing),
+    });
+
+    commit('maps/setAvailableMaps', {
+      '2d': {
+        compartment: reaction.compartmentSVGs,
+        subsystem: reaction.subsystemSVGs,
+      },
+      '3d': {
+        compartment: reaction.compartments.map(c => ({ id: c.id, customName: c.name })),
+        subsystem: reaction.subsystems.map(s => ({ id: s.id, customName: s.name })),
+      },
+    }, { root: true });
+
+    const pmids = pubmedIds.map(pm => pm.id);
     commit('setReferenceList', pmids);
   },
-  async getRelatedReactionsForReaction({ commit }, { model, id }) {
-    const reactions = await reactionsApi.fetchRelatedReactionsForReaction(model, id);
-    commit('setRelatedReactions', reactions);
+  async getRelatedReactionsForReaction({ commit, state }, { model, id }) {
+    const reactions = await reactionsApi.fetchRelatedReactionsForReaction({ id, model, version: '1_3_0', limit: state.relatedReactionsLimit });
+    commit(
+      'setRelatedReactions',
+      reactions.map(r => ({
+        ...r,
+        compartment_str: constructCompartmentStr(r),
+        reactionreactant_set: r.metabolites.filter(m => m.outgoing),
+        reactionproduct_set: r.metabolites.filter(m => !m.outgoing),
+      }))
+    );
   },
-  async getRelatedReactionsForGene({ commit }, { model, id }) {
-    const { reactions, limit } = await reactionsApi.fetchRelatedReactionsForGene(model, id);
-    commit('setRelatedReactions', reactions);
-    commit('setRelatedReactionsLimit', limit);
+  async getRelatedReactionsForGene({ commit, state }, { model, id }) {
+    const reactions = await reactionsApi.fetchRelatedReactionsForGene({ id, model, version: '1_3_0', limit: state.relatedReactionsLimit });
+    commit(
+      'setRelatedReactions',
+      reactions.map(r => ({
+        ...r,
+        compartment_str: constructCompartmentStr(r),
+        subsystem_str: r.subsystems.map(s => s.name).join(', '),
+        reactionreactant_set: r.metabolites.filter(m => m.outgoing),
+        reactionproduct_set: r.metabolites.filter(m => !m.outgoing),
+      }))
+    );
+    // commit('setRelatedReactionsLimit', limit);
   },
-  async getRelatedReactionsForMetabolite({ commit }, { model, id, allCompartments }) {
-    const { reactions, limit } = await reactionsApi.fetchRelatedReactionsForMetabolite(model, id, allCompartments);
-    commit('setRelatedReactions', reactions);
-    commit('setRelatedReactionsLimit', limit);
+  async getRelatedReactionsForMetabolite({ commit, state }, { model, id }) {
+    const reactions = await reactionsApi.fetchRelatedReactionsForMetabolite({ id, model, version: '1_3_0', limit: state.relatedReactionsLimit });
+
+    commit(
+      'setRelatedReactions',
+      reactions.map(r => ({
+        ...r,
+        compartment_str: constructCompartmentStr(r),
+        subsystem_str: r.subsystems.map(s => s.name).join(', '),
+        reactionreactant_set: r.metabolites.filter(m => m.outgoing),
+        reactionproduct_set: r.metabolites.filter(m => !m.outgoing),
+      }))
+    );
+    // commit('setRelatedReactionsLimit', limit);
   },
-  async getRelatedReactionsForSubsystem({ commit }, { model, id }) {
-    const { reactions, limit } = await reactionsApi.fetchRelatedReactionsForSubsystem(model, id);
-    commit('setRelatedReactions', reactions);
-    commit('setRelatedReactionsLimit', limit);
+  async getRelatedReactionsForSubsystem({ commit, state }, { model, id }) {
+    const reactions = await reactionsApi.fetchRelatedReactionsForSubsystem({ id, model, version: '1_3_0', limit: state.relatedReactionsLimit });
+
+    commit(
+      'setRelatedReactions',
+      reactions.map(r => ({
+        ...r,
+        compartment_str: constructCompartmentStr(r),
+        subsystem_str: r.subsystems.map(s => s.name).join(', '),
+        reactionreactant_set: r.metabolites.filter(m => m.outgoing),
+        reactionproduct_set: r.metabolites.filter(m => !m.outgoing),
+      }))
+    );
+    // commit('setRelatedReactionsLimit', limit);
   },
   clearRelatedReactions({ commit }) {
     commit('setRelatedReactions', []);

@@ -5,9 +5,12 @@ const data = {
 };
 
 const actions = {
-  async getBrowserTiles({ commit, rootState }) {
-    const model = rootState.models.model.database_name;
-    const tileComponents = await browserTilesApi.fetchBrowserTiles(model);
+  async getBrowserTiles({ commit }, model) {
+    const payload = {
+      model: model.short_name.split('-').map(s => s[0] + s.slice(1).toLowerCase()).join(''),
+      version: model.version.split('.').join('_'),
+    };
+    const tileComponents = await browserTilesApi.fetchBrowserTiles(payload);
     commit('setTileComponents', tileComponents);
   },
 };

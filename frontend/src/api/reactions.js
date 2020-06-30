@@ -1,29 +1,25 @@
 import axios from 'axios';
 
-const fetchReactionData = async (model, id) => {
-  const { data } = await axios.get(`${model}/get_reaction/${id}/`);
+const fetchReactionData = async ({ id, version }) => {
+  const { data } = await axios.get(`${version}/reactions/${id}/`);
   return data;
 };
 
-const fetchRelatedReactionsForReaction = async (model, id) => {
-  const { data } = await axios.get(`${model}/get_reaction/${id}/related`);
+const fetchRelatedReactionsForReaction = async ({ id, version, limit }) => {
+  const { data } = await axios.get(`${version}/reactions/${id}/related-reactions?limit=${limit}`);
   return data.sort((a, b) => (a.compartment_str < b.compartment_str ? -1 : 1));
 };
 
-const fetchRelatedReactions = async (model, resourceType, id, allCompartments = false) => {
-  let url = `${model}/${resourceType}/${id}/get_reactions/`;
-  if (allCompartments) {
-    url += 'all_compartments/';
-  }
-  const { data } = await axios.get(url);
+const fetchRelatedReactions = async (resourceType, id, version, limit) => {
+  const { data } = await axios.get(`${version}/${resourceType}s/${id}/related-reactions?limit=${limit}`);
   return data;
 };
 
-const fetchRelatedReactionsForGene = async (model, id) => fetchRelatedReactions(model, 'gene', id);
+const fetchRelatedReactionsForGene = async ({ id, version, limit }) => fetchRelatedReactions('gene', id, version, limit);
 
-const fetchRelatedReactionsForMetabolite = async (model, id, allCompartments) => fetchRelatedReactions(model, 'metabolite', id, allCompartments);
+const fetchRelatedReactionsForMetabolite = async ({ id, version, limit }, allCompartments) => fetchRelatedReactions('metabolite', id, version, limit, allCompartments);
 
-const fetchRelatedReactionsForSubsystem = async (model, id) => fetchRelatedReactions(model, 'subsystem', id);
+const fetchRelatedReactionsForSubsystem = async ({ id, version, limit }) => fetchRelatedReactions('subsystem', id, version, limit);
 
 export default {
   fetchReactionData,

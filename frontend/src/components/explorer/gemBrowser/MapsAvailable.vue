@@ -7,22 +7,22 @@
       </p>
     </header>
     <!-- eslint-disable-next-line max-len -->
-    <div v-if="mapAvailableLimited" class="card-content" style="padding: 0.5rem; overflow-y: auto; max-height: 400px">
-      <div v-for="mapKey in ['2d', '3d']" :key="mapKey"
-           class="content has-text-left is-paddingless" style="padding-bottom: 1rem">
-        <!-- eslint-disable-next-line max-len -->
-        <template v-if="mapAvailableLimited[mapKey]['compartment'].length !== 0 || mapAvailableLimited[mapKey]['subsystem'].length !== 0">{{ mapKey.toUpperCase() }} maps
-          <ul style="margin: 0 1rem">
+    <div v-if="mapAvailableLimited" class="card-content">
+      <div v-for="mapKey in mapKeys" :key="mapKey"
+           class="content has-text-left is-paddingless">
+        <template>
+          <div>{{ mapKey.toUpperCase() }} maps</div>
+          <ul>
             <template v-for="mapType in Object.keys(mapAvailableLimited[mapKey])">
               <template v-for="map in mapAvailableLimited[mapKey][mapType]">
-                <li :key="map[0]">
+                <li :key="map.id">
                   <!-- eslint-disable-next-line max-len -->
-                  <router-link v-if="viewerSelectedID" :to="{ name: 'viewer', params: { model: model.database_name, type: mapType, map_id: map[0], reload: true }, query: { dim: mapKey, search: viewerSelectedID, sel: viewerSelectedID } }">
-                    {{ map[1] }}
+                  <router-link v-if="viewerSelectedID" :to="{ name: 'viewer', params: { model: model.database_name, type: mapType, map_id: map.id, reload: true }, query: { dim: mapKey, search: viewerSelectedID, sel: viewerSelectedID } }">
+                    {{ map.customName }}
                   </router-link>
                   <!-- eslint-disable-next-line max-len -->
-                  <router-link v-else :to="{ name: 'viewer', params: { model: model.database_name, type: mapType, map_id: map[0]}, query: { dim: mapKey } }">
-                    {{ map[1] }}
+                  <router-link v-else :to="{ name: 'viewer', params: { model: model.database_name, type: mapType, map_id: map.id}, query: { dim: mapKey } }">
+                    {{ map.customName }}
                   </router-link>
                 </li>
               </template>
@@ -87,16 +87,23 @@ export default {
       /* eslint-enable vue/no-side-effects-in-computed-properties */
       return limited;
     },
-  },
-  async beforeMount() {
-    try {
-      const payload = { model: this.model.database_name, mapType: this.type, id: this.id };
-      await this.$store.dispatch('maps/getAvailableMaps', payload);
-    } catch {
-      // TODO: handle exception
-    }
+    mapKeys() {
+      return ['2d', '3d'].filter(d => this.mapsAvailable[d].compartment.length > 0 || this.mapsAvailable[d].subsystem.length > 0);
+    },
   },
 };
 </script>
 
-<style lang="scss"></style>
+<style lang="scss" scoped>
+.card-content {
+  padding: 0.75em 0.5em 0.5em;
+  overflow-y: auto;
+  max-height: 400px;
+
+  .content {
+    ul {
+      margin: 0 1rem;
+    }
+  }
+}
+</style>

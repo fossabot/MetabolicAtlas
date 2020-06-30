@@ -37,7 +37,7 @@
                   </tr>
                 </table>
               </div>
-              <ExtIdTable :type="type" :external-dbs="gene.external_databases"></ExtIdTable>
+              <ExtIdTable :type="type" :external-dbs="gene.externalDbs"></ExtIdTable>
             </div>
             <div class="column is-2-widescreen is-3-desktop is-full-tablet has-text-centered">
               <router-link class="button is-info is-fullwidth is-outlined"
@@ -86,8 +86,8 @@ export default {
       type: 'gene',
       mainTableKey: [
         { name: 'id' },
-        { name: 'geneName', display: 'Gene&nbsp;name' },
-        { name: 'alternate_name', display: 'Alternate&nbsp;name' },
+        { name: 'name', display: 'Gene&nbsp;name' },
+        { name: 'alternateName', display: 'Alternate&nbsp;name' },
         { name: 'synonyms' },
         { name: 'function' },
       ],

@@ -1,12 +1,12 @@
 import axios from 'axios';
 
-const fetchMetaboliteData = async (model, id) => {
-  const { data } = await axios.get(`${model}/metabolite/${id}/`);
+const fetchMetaboliteData = async ({ id, version }) => {
+  const { data } = await axios.get(`${version}/metabolites/${id}/`);
   return data;
 };
 
-const fetchRelatedMetabolites = async (model, id) => {
-  const { data } = await axios.get(`${model}/metabolite/${id}/related`);
+const fetchRelatedMetabolites = async ({ id, version }) => {
+  const { data } = await axios.get(`${version}/metabolites/${id}/related-metabolites`);
   return data.sort((a, b) => (a.compartment_str < b.compartment_str ? -1 : 1));
 };
 

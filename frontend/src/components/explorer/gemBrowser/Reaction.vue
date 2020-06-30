@@ -23,14 +23,14 @@
               <td v-else class="td-key has-background-primary has-text-white-bis">{{ reformatTableKey(el.name) }}</td>
               <td v-if="reaction[el.name]">
                 <template v-if="'modifier' in el"><span v-html="el.modifier()"></span></template>
-                <template v-else-if="el.name === 'subsystem'">
+                <template v-else-if="el.name === 'subsystems'">
                   <template v-for="(v, i) in reaction[el.name]">
                     <template v-if="i !== 0">; </template>
                     <!-- eslint-disable-next-line vue/valid-v-for vue/require-v-for-key max-len -->
                     <router-link :to="{ name: 'browser', params: { model: model.database_name, type: 'subsystem', id: v.id } }"> {{ v.name }}</router-link>
                   </template>
                 </template>
-                <template v-else-if="el.name === 'compartment'">
+                <template v-else-if="el.name === 'compartments'">
                   <div class="tags">
                     <template v-for="c in reaction[el.name]">
                       <span :key="c.id" class="tag">
@@ -64,7 +64,7 @@
                   </router-link>
                   <div style="margin-left: 30px">
                     <span v-html="reformatChemicalReactionHTML(rr, true, model.database_name)"></span>
-                    (<span v-html="reformatEqSign(rr.compartment_str, rr.is_reversible)">
+                    (<span v-html="reformatEqSign(rr.compartment_str, rr.reversible)">
                     </span>)
                   </div>
                 </span>
@@ -72,7 +72,7 @@
             </tr>
           </table>
         </div>
-        <ExtIdTable :type="type" :external-dbs="reaction.external_databases"></ExtIdTable>
+        <ExtIdTable :type="type" :external-dbs="reaction.externalDbs"></ExtIdTable>
         <br>
         <references :reference-list="referenceList" />
       </div>
@@ -92,7 +92,7 @@ import MapsAvailable from '@/components/explorer/gemBrowser/MapsAvailable';
 import ExtIdTable from '@/components/explorer/gemBrowser/ExtIdTable';
 import GemContact from '@/components/shared/GemContact';
 import References from '@/components/shared/References';
-import { buildCustomLink, reformatTableKey, addMassUnit, reformatChemicalReactionHTML, reformatEqSign } from '@/helpers/utils';
+import { buildCustomLink, reformatTableKey, capitalize, convertCamelCase, addMassUnit, reformatChemicalReactionHTML, reformatEqSign } from '@/helpers/utils';
 
 export default {
   name: 'Reaction',
@@ -104,6 +104,7 @@ export default {
     ExtIdTable,
     References,
   },
+
   data() {
     return {
       rId: this.$route.params.id,
@@ -111,12 +112,12 @@ export default {
       mainTableKey: [
         { name: 'id' },
         { name: 'equation', modifier: this.reformatEquation },
-        { name: 'is_reversible', display: 'Reversible', modifier: this.reformatReversible },
+        { name: 'isReversible', display: 'Reversible', modifier: this.reformatReversible },
         { name: 'quantitative', modifier: this.reformatQuant },
-        { name: 'gene_rule', display: 'Gene rule', modifier: this.reformatGenes },
+        { name: 'geneRule', display: 'Gene rule', modifier: this.reformatGenes },
         { name: 'ec', display: 'EC' },
-        { name: 'compartment', display: 'Compartment(s)' },
-        { name: 'subsystem', display: 'Subsystem(s)' },
+        { name: 'compartments', display: 'Compartment(s)' },
+        { name: 'subsystems', display: 'Subsystem(s)' },
       ],
       errorMessage: '',
       showLoaderMessage: '',
@@ -165,16 +166,16 @@ export default {
     },
     reformatEquation() { return reformatChemicalReactionHTML(this.reaction, false, this.model.database_name); },
     reformatGenes() {
-      if (!this.reaction.gene_rule) {
+      if (!this.reaction.geneRule) {
         return '-';
       }
       let newGRnameArr = null;
-      if (this.reaction.gene_rule_wname) {
-        newGRnameArr = this.reaction.gene_rule_wname.split(/ +/).map(
+      if (this.reaction.geneRule_wname) {
+        newGRnameArr = this.reaction.geneRule_wname.split(/ +/).map(
           e => e.replace(/^\(+|\)+$/g, '')
         );
       }
-      let newGR = this.reaction.gene_rule;
+      let newGR = this.reaction.geneRule;
       if (newGR) {
         let i = -1;
         const newGRArr = newGR.split(/ +/).map(
@@ -197,9 +198,9 @@ export default {
     formatQuantFieldName(name) { return `${name}:&nbsp;`; },
     reformatQuant() {
       const data = [];
-      ['lower_bound', 'upper_bound', 'objective_coefficient'].forEach((key) => {
+      ['lowerBound', 'upperBound', 'objective_coefficient'].forEach((key) => {
         if (this.reaction[key] != null) {
-          data.push(this.formatQuantFieldName(this.reformatTableKey(key)));
+          data.push(this.formatQuantFieldName(capitalize(convertCamelCase(key))));
           if (key === 'objective_coefficient') {
             data.push(addMassUnit(this.reaction[key]));
           } else {
@@ -214,7 +215,7 @@ export default {
       }
       return s;
     },
-    reformatReversible() { return this.reaction.is_reversible ? 'Yes' : 'No'; },
+    reformatReversible() { return this.reaction.reversible ? 'Yes' : 'No'; },
     reformatTableKey,
     reformatChemicalReactionHTML,
     reformatEqSign,

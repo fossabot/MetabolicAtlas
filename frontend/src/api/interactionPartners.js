@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-const fetchInteractionPartners = async (model, id) => {
-  const { data } = await axios.get(`${model}/reaction_components/${id}/with_interaction_partners`);
+const fetchInteractionPartners = async ({ id, version, model }) => {
+  const { data } = await axios.get(`${version}/interaction-partners/${id}?model=${model}`);
   return data;
 };
 

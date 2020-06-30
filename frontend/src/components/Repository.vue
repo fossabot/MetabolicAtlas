@@ -262,12 +262,11 @@ export default {
         ofLabel: 'of',
       },
       messages,
-      filesURL: 'https://ftp.metabolicatlas.org/',
+      filesURL: 'https://ftp.metabolicatlas.org/', // TODO change ME
     };
   },
   computed: {
     ...mapState({
-      gems: state => state.gems.gemList,
       gem: state => state.gems.gem,
     }),
     ...mapGetters({
@@ -275,6 +274,7 @@ export default {
       setFilterOptions: 'gems/setFilterOptions',
       systemFilterOptions: 'gems/systemFilterOptions',
       conditionFilterOptions: 'gems/conditionFilterOptions',
+      gems: 'gems/gemList',
     }),
   },
   watch: {
@@ -302,16 +302,16 @@ export default {
             this.showIntegratedModelData(urlIntegrateModel);
           } else {
             // concurrence getModels api query
-            await this.getModelData(urlId);
+            this.getModelData(urlId);
           }
         }
       } catch {
         this.errorMessage = messages.unknownError;
       }
     },
-    async getModelData(id) {
+    getModelData(id) {
       try {
-        await this.$store.dispatch('gems/getGemData', id);
+        this.$store.dispatch('gems/getGemData', id);
         this.selectedModel = this.gem;
         this.referenceList = this.selectedModel.ref;
         this.showModelId = id;

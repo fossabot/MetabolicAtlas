@@ -1,0 +1,21 @@
+{
+  "name": "metabolic-atlas-api",
+  "version": "1.0.0",
+  "main": "src/index.js",
+  "scripts": {
+    "develop": "nodemon -L -r esm",
+    "lint": "eslint ./src --fix"
+  },
+  "dependencies": {
+    "esm": "^3.2.25",
+    "express": "^4.17.1",
+    "neo4j-driver": "^4.0.2"
+  },
+  "devDependencies": {
+    "eslint": "^6.8.0",
+    "eslint-config-airbnb-base": "^14.1.0",
+    "eslint-plugin-import": "^2.20.2",
+    "nodemon": "^2.0.3"
+  }
+}
+

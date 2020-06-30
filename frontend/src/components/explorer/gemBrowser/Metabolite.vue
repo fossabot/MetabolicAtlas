@@ -54,14 +54,14 @@
                       <br v-if="i !== 0">
                       <!-- eslint-disable-next-line max-len -->
                       <router-link :to="{ name: 'browser', params: { model: model.database_name, type: 'metabolite', id: rm.id } }">
-                        {{ rm.full_name }}
-                      </router-link> in {{ rm.compartment_str }}
+                        {{ rm.fullName }}
+                      </router-link> in {{ rm.compartment.name }}
                     </span>
                   </td>
                 </tr>
               </table>
             </div>
-            <ExtIdTable :type="type" :external-dbs="metabolite.external_databases"></ExtIdTable>
+            <ExtIdTable :type="type" :external-dbs="metabolite.externalDbs"></ExtIdTable>
           </div>
           <div class="column is-2-widescreen is-3-desktop is-full-tablet has-text-centered">
             <router-link class="button is-info is-fullwidth is-outlined"
@@ -112,7 +112,7 @@ export default {
       mainTableKey: [
         { name: 'id' },
         { name: 'name' },
-        { name: 'alternate_name', display: 'Alternate name' },
+        { name: 'alternateName', display: 'Alternate name' },
         { name: 'synonyms' },
         { name: 'description' },
         { name: 'formula' },

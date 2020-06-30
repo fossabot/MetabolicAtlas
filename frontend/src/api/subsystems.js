@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-const fetchSubsystemSummary = async (model, subsystemId) => {
-  const { data } = await axios.get(`${model}/subsystem/${subsystemId}/summary/`);
+const fetchSubsystemSummary = async ({ id, version }) => {
+  const { data } = await axios.get(`${version}/subsystems/${id}/`);
   return data;
 };
 

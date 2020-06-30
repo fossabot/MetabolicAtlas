@@ -32,15 +32,15 @@
             </tr>
             <tr>
               <td class="td-key has-background-primary has-text-white-bis">Reactions</td>
-              <td> {{ compartment.reaction_count }}</td>
+              <td> {{ compartment.reactionsCount }}</td>
             </tr>
             <tr>
               <td class="td-key has-background-primary has-text-white-bis">Metabolites</td>
-              <td> {{ compartment.metabolite_count }}</td>
+              <td> {{ compartment.metabolitesCount }}</td>
             </tr>
             <tr>
               <td class="td-key has-background-primary has-text-white-bis">Genes</td>
-              <td> {{ compartment.gene_count }}</td>
+              <td> {{ compartment.genesCount }}</td>
             </tr>
           </table>
         </div>
