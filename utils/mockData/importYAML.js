@@ -251,6 +251,31 @@ try {
     console.log('reactionPubmedReferences file generated.');
   });
 
+  // extract information from gene annotation file
+
+  const geneAnnoFile = getFile(inputDir, /GENES[.]tsv$/);
+  if (!geneAnnoFile) {
+    console.log("Error: gene annotation file not found in path", inputDir);
+    return;
+  }
+
+  // TODO use one of the csv parsing lib (sync)
+  lines = fs.readFileSync(geneAnnoFile, 
+            { encoding: 'utf8', flag: 'r' }).split('\n').filter(Boolean);
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i][0] == '#' || lines[i][0] == '@') {
+      continue;
+    }
+    const [ geneId, name, alternateName, synonyms, thefunction, ec, catalytic_activity ] = lines[i].split('\t').map(e => e.trim());
+    if (geneId in componentIdDict.gene) { //only keep the ones in the model
+      const gene = componentIdDict.gene[geneId];
+      Object.assign(gene, { name, alternateName, synonyms, function: thefunction }); // other props are not in the db design, TODO remove them?
+    }
+  }
+
+  // extract description subsystem annotation file
+  // TODO or remove annotation file
+
   // ============== parse External IDs files
   let extNodeIdTracker = 1
   const externalIdNodes = [];
