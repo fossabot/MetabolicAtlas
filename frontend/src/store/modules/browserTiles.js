@@ -5,11 +5,12 @@ const data = {
 };
 
 const actions = {
-  async getBrowserTiles({ commit }) {
-    const tileComponents = await browserTilesApi.fetchBrowserTiles({
-      model: 'HumanGem',
-      version: '1_3_0',
-    });
+  async getBrowserTiles({ commit }, model) {
+    const payload = {
+      model: model.short_name.split('-').map(s => s[0] + s.slice(1).toLowerCase()).join(''),
+      version: model.version.split('.').join('_'),
+    };
+    const tileComponents = await browserTilesApi.fetchBrowserTiles(payload);
     commit('setTileComponents', tileComponents);
   },
 };
