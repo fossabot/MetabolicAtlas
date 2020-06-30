@@ -365,12 +365,12 @@ try {
     }
   })
 
-  const nameSet = new Set();
+  const uniqueMetDict = {};
   const uniqueMetabolites = [];
   content.compartmentalizedMetabolite.forEach((m) => {
     const newID = uniqueCompartmentalizedMap[m.compartmentalizedMetaboliteId];
-    if (!(nameSet.has(m.name))) {
-      uniqueMetabolites.push({
+    if (!(m.name in uniqueMetDict)) {
+      const uMet = {
         metaboliteId: newID,
         name: m.name,
         alternateName: m.alternateName,
@@ -379,8 +379,9 @@ try {
         formula: m.formula,
         charge: m.charge,
         isCurrency: m.isCurrency,
-      });
-      nameSet.add(m.name);
+      };
+      uniqueMetabolites.push(uMet);
+      uniqueMetDict[uMet.name] = uMet;
     }
   })
 
@@ -395,6 +396,32 @@ try {
   )).then(() => {
     console.log('compartmentalizedMetabolites file generated.');
   });
+
+  // ========================================================================
+  // extract information from metabolite annotation file
+
+  const metaboliteAnnoFile = getFile(inputDir, /METABOLITES[.]tsv$/);
+  if (!metaboliteAnnoFile) {
+    console.log("Error: metabolite annotation file not found in path", inputDir);
+    return;
+  }
+
+  // TODO use one of the csv parsing lib (sync)
+  lines = fs.readFileSync(metaboliteAnnoFile, 
+            { encoding: 'utf8', flag: 'r' }).split('\n').filter(Boolean);
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i][0] == '#' || lines[i][0] == '@') {
+      continue;
+    }
+    const [ metaboliteId, alternateName, synonyms, description, mass, inchi ] = lines[i].split('\t').map(e => e.trim());
+    if (metaboliteId in componentIdDict.compartmentalizedMetabolite) { //only keep the ones in the model
+      // find the unique met associated
+      const umet = uniqueMetDict[componentIdDict.compartmentalizedMetabolite[metaboliteId].name];
+      Object.assign(umet, { alternateName, synonyms, description }); // other props are not in the db design, TODO remove them?
+    }
+  }
+
+  // ========================================================================
 
   // CM-M relationships
   csvWriter = createCsvWriter({
