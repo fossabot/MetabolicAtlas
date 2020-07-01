@@ -57,7 +57,7 @@ services:
       - ./utils/mockData/data:/var/lib/neo4j/import/
       - ./neo4j/plugins:/plugins
     networks:
-      - net-tier
+      - db-network
     ports:
       - "127.0.0.1:7474:7474"
       - "127.0.0.1:7687:7687"
@@ -72,7 +72,8 @@ services:
       - ./api/src:/project/src
     command: npm run develop
     networks:
-      - net-tier
+      - backend-network
+      - db-network
 
 volumes:
   voldb:

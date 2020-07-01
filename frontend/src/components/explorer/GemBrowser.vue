@@ -157,7 +157,7 @@ export default {
     },
     async getTilesData() {
       try {
-        await this.$store.dispatch('browserTiles/getBrowserTiles');
+        await this.$store.dispatch('browserTiles/getBrowserTiles', this.model);
         this.showTiles = true;
       } catch {
         this.errorMessage = messages.unknownError;
