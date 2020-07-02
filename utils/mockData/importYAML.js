@@ -112,6 +112,7 @@ const parseModelFiles = (modelDir) => {
   const [ metadata, metabolites, reactions, genes, compartments ] = yaml.safeLoad(fs.readFileSync(yamlFile, 'utf8'));
   const model = toLabelCase(metadata.metaData.short_name);
   const version = `V${metadata.metaData.version.replace(/\./g, '_')}`;
+  const isHuman = metadata.metaData.organism === 'Homo sapiens';
 
   const prefix = `${model}${version}`;
   const outputPath = `./data/${prefix}.`;
@@ -129,6 +130,12 @@ const parseModelFiles = (modelDir) => {
   Object.keys(content).forEach((k) => {
     componentIdDict[k] = Object.fromEntries(content[k].map(e => [e[`${k}Id`], e]));
   });
+
+  if (isHuman) {
+    Object.keys(componentIdDict.gene).forEach((geneId) => {
+      humanGeneIdSet.add(geneId);
+    });
+  }
 
   // subsystems are not a section in the yaml file, but are extracted from the reactions info
   content.subsystem = [];
@@ -686,8 +693,29 @@ try {
     if (stat.isDirectory()) {
       parseModelFiles(filePath);
     }
+    break;
   }
 } catch (e) {
   console.log(e);
   return;
 }
+
+// ====================================================
+// write a smaller version of the hpa rna levels file, to send to the frontend
+// remove expressions of genes not in any human models parsed
+if (!fs.existsSync(`${inputDir}hpaRnaFull.json`)) {
+    console.log("Error: HPA rna JSON file not found");
+    return;
+} else {
+  const hpaRnaExpressionJson = require(`${inputDir}hpaRnaFull.json`);
+
+  Object.keys(hpaRnaExpressionJson.levels).forEach((geneId) => {
+    if (!humanGeneIdSet.has(geneId)) {
+      delete hpaRnaExpressionJson.levels[geneId];
+    }
+  });
+
+  const json_rna = JSON.stringify(hpaRnaExpressionJson);
+  fs.writeFileSync(`${inputDir}hpaRna.json`, json_rna);
+}
+
