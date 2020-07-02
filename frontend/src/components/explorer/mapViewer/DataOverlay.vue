@@ -96,8 +96,8 @@
     <RNAexpression class="card-margin"
                    :map-type="mapType"
                    :map-name="mapName"
-                   @loadedHPARNAtissue="setHPATissues($event)"
-                   @loadedCustomTissues="setCustomTissues($event)"
+                   @loadedHPARNALevels="setHPATissues($event)"
+                   @loadedCustomLevels="setCustomTissues($event)"
                    @errorCustomFile="handleErrorCustomFile($event)">
     </RNAexpression>
   </div>
