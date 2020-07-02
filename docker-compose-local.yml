@@ -1,8 +1,11 @@
 version: '3.7'
 
 services:
-
   db:
+    container_name: db
+    image: postgres:alpine
+    networks:
+      - db-network
     volumes:
       - voldb:/var/lib/postgresql/data
     ports:
@@ -22,8 +25,18 @@ services:
       - ./nginx/svgs:/svgs
     networks:
       - frontend-network
+      - backend-network
 
   backend:
+    container_name: backend
+    depends_on:
+      - db
+    env_file:
+      - postgres.env
+    build: ./backend
+    networks:
+      - backend-network
+      - db-network
     command: bash -c "python manage.py collectstatic --noinput && python manage.py runserver 0.0.0.0:8000"
     volumes:
       - ./backend:/project
@@ -46,7 +59,7 @@ services:
 
   neo4j:
     container_name: neo4j
-    image: neo4j:latest
+    image: neo4j:4.1.0
     environment:
       - NEO4J_AUTH=neo4j/password
       - NEO4J_apoc_export_file_enabled=true
@@ -55,6 +68,7 @@ services:
       - NEO4JLABS_PLUGINS=["apoc"] 
     volumes:
       - ./utils/mockData/data:/var/lib/neo4j/import/
+      - ./neo4j/data:/var/lib/neo4j/data/
       - ./neo4j/plugins:/plugins
     networks:
       - db-network
@@ -80,4 +94,6 @@ volumes:
 
 networks:
   frontend-network:
+    driver: bridge
+  backend-network:
     driver: bridge

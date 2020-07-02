@@ -1,5 +1,5 @@
-import queryListResult from '../queryHandlers/list';
-import reformatExternalDbs from '../shared/formatter';
+import queryListResult from '../queryHandlers/list.js';
+import reformatExternalDbs from '../shared/formatter.js';
 
 const getRandomComponents = async ({ model, version }) => {
   const m = model || 'HumanGem';

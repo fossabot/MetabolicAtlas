@@ -1,19 +1,19 @@
-import getCompartment from './queries/compartment';
-import getGene from './queries/gene';
-import getReaction from './queries/reaction';
-import getSubsystem from './queries/subsystem';
-import getMetabolite from './queries/metabolite';
-import { modelSearch, globalSearch } from './queries/search';
+import getCompartment from './queries/compartment.js';
+import getGene from './queries/gene.js';
+import getReaction from './queries/reaction.js';
+import getSubsystem from './queries/subsystem.js';
+import getMetabolite from './queries/metabolite.js';
+import { modelSearch, globalSearch } from './queries/search.js';
 import {
   getRelatedReactionsForReaction,
   getRelatedReactionsForGene,
   getRelatedReactionsForMetabolite,
   getRelatedReactionsForSubsystem,
   getRelatedReactionsForCompartment,
-} from './queries/relatedReactions';
-import getRelatedMetabolites from './queries/relatedMetabolites';
-import getRandomComponents from './queries/randomComponents';
-import getInteractionPartners from './queries/interactionPartners';
+} from './queries/relatedReactions.js';
+import getRelatedMetabolites from './queries/relatedMetabolites.js';
+import getRandomComponents from './queries/randomComponents.js';
+import getInteractionPartners from './queries/interactionPartners.js';
 
 export {
   getCompartment,

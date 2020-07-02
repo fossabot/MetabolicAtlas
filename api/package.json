@@ -1,8 +1,10 @@
 {
   "name": "metabolic-atlas-api",
   "version": "1.0.0",
+  "type": "module",
   "main": "src/index.js",
   "scripts": {
+    "start": "pm2 start src/index.js",
     "develop": "nodemon -L -r esm",
     "lint": "eslint ./src --fix"
   },

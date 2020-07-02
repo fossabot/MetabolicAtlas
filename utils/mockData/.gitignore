@@ -6,3 +6,7 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 # Mock data
 data/
+
+# temp import data
+**/*.tsv
+**/*.yml

@@ -1,0 +1,7 @@
+FROM node:current-slim
+RUN yarn global add pm2
+
+WORKDIR /project
+COPY . .
+
+RUN yarn

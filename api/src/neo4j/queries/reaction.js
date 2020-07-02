@@ -1,5 +1,5 @@
-import querySingleResult from '../queryHandlers/single';
-import reformatExternalDbs from '../shared/formatter';
+import querySingleResult from '../queryHandlers/single.js';
+import reformatExternalDbs from '../shared/formatter.js';
 
 const getReaction = async ({ id, version }) => {
   const v = version;

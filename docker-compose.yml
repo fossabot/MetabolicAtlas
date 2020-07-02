@@ -1,32 +1,13 @@
 version: '3.7'
 
 services:
-  db:
-    container_name: db
-    image: postgres:alpine
-    networks:
-      - db-network
-
   nginx:
     container_name: nginx
-    depends_on:
-      - backend
     networks:
-      - backend-network
-
-  backend:
-    container_name: backend
-    depends_on:
-      - db
-    env_file:
-      - postgres.env
-    build: ./backend
-    networks:
-      - backend-network
-      - db-network
+      - nginx-network
 
 networks:
   db-network:
     driver: bridge
-  backend-network:
+  nginx-network:
     driver: bridge

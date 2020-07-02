@@ -1,29 +1,56 @@
 version: '3.7'
 
 services:
-  db:
-    restart: always
-
-  backend:
-    command: bash -c "python manage.py runserver 0.0.0.0:8000"
-    restart: always
-
   nginx:
-    restart: always
+    restart: unless-stopped
     build:
       context: .
       dockerfile: nginx/Dockerfile.prod
+    depends_on:
+      - api
+    networks:
+      - db-network
     ports:
-      - "80:80"
-      - "443:443"
+      - "80:80/tcp"
+      - "443:443/tcp"
+    environment:
+      CERTBOT_EMAIL: shan@chalmers.se
+      ENVSUBST_VARS: SERVER_NAME
+      SERVER_NAME: metatlas.csbi.chalmers.se
+    command: ["nginx", "-g", "daemon off;"]
     volumes:
-      - /var/ssl:/ssl:ro
+      - letsencrypt:/etc/letsencrypt
 
   neo4j:
-    image: neo4j:latest
+    restart: unless-stopped
+    container_name: neo4j
+    build: ./neo4j
     environment:
-      - NEO4J_AUTH=none
-      - NEO4J_dbms_read__only=true
+      - NEO4J_AUTH=neo4j/password
+      - NEO4J_apoc_export_file_enabled=true
+      - NEO4J_apoc_import_file_enabled=true
+      - NEO4J_apoc_import_file_use__neo4j__config=true
+      - NEO4JLABS_PLUGINS=["apoc"] 
+    command: neo4j
+    networks:
+      - db-network
     ports:
-      - "7474:7474"
+      - "7687:7687"
+
+  api:
+    restart: unless-stopped
+    container_name: api
+    build:
+      context: ./api
+      dockerfile: ./Dockerfile.prod
+    environment:
+      - ENVIRONMENT=production
+      - NEO4J_USERNAME=neo4j
+      - NEO4J_PASSWORD=password
+    command: ["node", "--experimental-json-modules", "src/index.js"]
+    networks:
+      - db-network
+
+volumes:
+    letsencrypt:
 
