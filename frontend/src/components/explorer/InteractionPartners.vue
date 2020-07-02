@@ -861,14 +861,15 @@ export default {
             }
           } else if (this.nodeDisplayParams.geneExpType !== expType) {
             this.nodeDisplayParams.geneExpType = expType;
+            this.nodeDisplayParams.geneExpSample = expSample;
             if (!this.overlay.expSource.expType) {
               // sources that load only one specific exp type
               this.redrawGraph();
             }
           } else if (this.nodeDisplayParams.geneExpSample !== expSample) {
+            this.nodeDisplayParams.geneExpSample = expSample;
             this.redrawGraph();
           }
-          this.nodeDisplayParams.geneExpSample = expSample;
         } else {
           // disable expression lvl for gene
           this.nodeDisplayParams.geneExpSource = false;
