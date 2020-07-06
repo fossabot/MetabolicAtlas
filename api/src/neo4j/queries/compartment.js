@@ -1,4 +1,4 @@
-import querySingleResult from '../queryHandlers/single.js';
+import querySingleResult from '../queryHandlers/single';
 
 const getCompartment = async ({ id, version }) => {
   const v = version;

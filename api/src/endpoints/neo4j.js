@@ -15,7 +15,7 @@ import {
   modelSearch,
   globalSearch,
   getInteractionPartners,
-} from '../neo4j/index.js';
+} from '../neo4j/index';
 
 const neo4jRoutes = express.Router();
 

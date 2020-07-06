@@ -1,4 +1,4 @@
-import queryListResult from '../queryHandlers/list.js';
+import queryListResult from '../queryHandlers/list';
 
 const componentTypes = [
   "CompartmentalizedMetabolite",

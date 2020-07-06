@@ -1,5 +1,5 @@
 import express from 'express';
-import router from './endpoints/index.js';
+import router from './endpoints/index';
 
 const app = express();
 

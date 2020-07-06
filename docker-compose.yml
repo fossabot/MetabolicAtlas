@@ -6,6 +6,19 @@ services:
     networks:
       - nginx-network
 
+  neo4j:
+    container_name: neo4j
+    environment:
+      - NEO4JLABS_PLUGINS=["apoc"] 
+    networks:
+      - db-network
+
+  api:
+    container_name: api
+    networks:
+      - nginx-network
+      - db-network
+
 networks:
   db-network:
     driver: bridge

@@ -1,4 +1,4 @@
-import queryListResult from '../queryHandlers/list.js';
+import queryListResult from '../queryHandlers/list';
 
 const NODE_TYPES = {
   reaction: 'Reaction',

@@ -27,10 +27,6 @@ services:
     build: ./neo4j
     environment:
       - NEO4J_AUTH=neo4j/password
-      - NEO4J_apoc_export_file_enabled=true
-      - NEO4J_apoc_import_file_enabled=true
-      - NEO4J_apoc_import_file_use__neo4j__config=true
-      - NEO4JLABS_PLUGINS=["apoc"] 
     command: neo4j
     networks:
       - db-network
@@ -47,7 +43,8 @@ services:
       - ENVIRONMENT=production
       - NEO4J_USERNAME=neo4j
       - NEO4J_PASSWORD=password
-    command: ["node", "--experimental-json-modules", "src/index.js"]
+      - NODE_ENV=production
+    command: yarn start
     networks:
       - db-network
 

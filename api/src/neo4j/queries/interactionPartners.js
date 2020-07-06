@@ -1,4 +1,4 @@
-import querySingleResult from '../queryHandlers/single.js';
+import querySingleResult from '../queryHandlers/single';
 
 const getInteractionPartners = async ({ id, model, version }) => {
   const v = version;

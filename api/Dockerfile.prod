@@ -1,5 +1,4 @@
-FROM node:current-slim
-RUN yarn global add pm2
+FROM node:lts-alpine
 
 WORKDIR /project
 COPY . .

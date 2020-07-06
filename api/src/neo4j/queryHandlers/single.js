@@ -1,4 +1,4 @@
-import driver from '../driver.js';
+import driver from '../driver';
 
 const querySingleResult = async (statement) => {
   const session = driver.session();
