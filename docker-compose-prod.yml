@@ -5,19 +5,14 @@ services:
     restart: unless-stopped
     build:
       context: .
-      dockerfile: nginx/Dockerfile.prod
-    depends_on:
-      - api
-    networks:
-      - db-network
+      dockerfile: ./nginx/Dockerfile.prod
     ports:
-      - "80:80/tcp"
-      - "443:443/tcp"
+      - "80:80"
+      - "443:443"
     environment:
       CERTBOT_EMAIL: shan@chalmers.se
       ENVSUBST_VARS: SERVER_NAME
       SERVER_NAME: metatlas.csbi.chalmers.se
-    command: ["nginx", "-g", "daemon off;"]
     volumes:
       - letsencrypt:/etc/letsencrypt
 
@@ -28,8 +23,6 @@ services:
     environment:
       - NEO4J_AUTH=neo4j/password
     command: neo4j
-    networks:
-      - db-network
     ports:
       - "7687:7687"
 
@@ -45,8 +38,6 @@ services:
       - NEO4J_PASSWORD=password
       - NODE_ENV=production
     command: yarn start
-    networks:
-      - db-network
 
 volumes:
     letsencrypt:
