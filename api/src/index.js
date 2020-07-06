@@ -1,7 +1,7 @@
 import express from 'express';
 import router from './endpoints/index';
+import compression from 'compression';
 
-const compression = require('compression');
 const app = express();
 
 app.use(compression());

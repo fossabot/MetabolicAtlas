@@ -1,11 +1,15 @@
 import express from 'express';
-import hpaJson from '../data/hpaRna.json';
 
 const routes = express.Router();
+let HPA_JSON = null;
 
 routes.get('/all', async (req, res) => {
   try {
-    res.json(hpaJson);
+    if (!HPA_JSON) {
+      HPA_JSON = require('../data/hpaRna.json');
+    }
+
+    res.json(HPA_JSON);
   } catch (e) {
     res.status(400).send(e);
   }
