@@ -32,7 +32,6 @@ services:
   neo4j:
     image: neo4j:4.1.0
     environment:
-      - NEO4J_AUTH=neo4j/password
       - NEO4J_apoc_export_file_enabled=true
       - NEO4J_apoc_import_file_enabled=true
       - NEO4J_apoc_import_file_use__neo4j__config=true
@@ -50,8 +49,6 @@ services:
     container_name: api
     build: ./api
     environment:
-      - NEO4J_USERNAME=neo4j
-      - NEO4J_PASSWORD=password
       - NODE_ENV=develop
     volumes:
       - ./api/src:/project/src

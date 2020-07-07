@@ -10,9 +10,9 @@ services:
       - "80:80"
       - "443:443"
     environment:
-      CERTBOT_EMAIL: shan@chalmers.se
+      CERTBOT_EMAIL: ${CERTBOT_EMAIL}
       ENVSUBST_VARS: SERVER_NAME
-      SERVER_NAME: metatlas.csbi.chalmers.se
+      SERVER_NAME: ${SERVER_NAME}
     volumes:
       - letsencrypt:/etc/letsencrypt
 
@@ -20,8 +20,6 @@ services:
     restart: unless-stopped
     container_name: neo4j
     build: ./neo4j
-    environment:
-      - NEO4J_AUTH=neo4j/password
     command: neo4j
     ports:
       - "7687:7687"
@@ -33,9 +31,6 @@ services:
       context: ./api
       dockerfile: ./Dockerfile.prod
     environment:
-      - ENVIRONMENT=production
-      - NEO4J_USERNAME=neo4j
-      - NEO4J_PASSWORD=password
       - NODE_ENV=production
     command: yarn start
 

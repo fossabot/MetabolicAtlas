@@ -9,12 +9,16 @@ services:
   neo4j:
     container_name: neo4j
     environment:
+      - NEO4J_AUTH=${NEO4J_USERNAME}/${NEO4J_PASSWORD}
       - NEO4JLABS_PLUGINS=["apoc"] 
     networks:
       - db-network
 
   api:
     container_name: api
+    environment:
+      - NEO4J_USERNAME=${NEO4J_USERNAME}
+      - NEO4J_PASSWORD=${NEO4J_PASSWORD}
     networks:
       - nginx-network
       - db-network
