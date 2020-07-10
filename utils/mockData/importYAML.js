@@ -162,40 +162,40 @@ const parseModelFiles = (modelDir) => {
     const filename = `${component}SVG.tsv`;
     const mappingFile = getFile(modelDir, filename);
 
-    if (!mappingFile) {
+    let svgRels = [];
+    if (mappingFile) {
+      let lines = fs.readFileSync(mappingFile, 
+            { encoding: 'utf8', flag: 'r' }).split('\n').filter(Boolean);
+      const filenameSet = new Set(); // check uniqness of values in the file
+      for (let i = 0; i < lines.length; i++) {
+        if (lines[i][0] == '#' || lines[i][0] == '@') {
+          continue;
+        }
+        const [ componentName, mapName, mapFilename ] = lines[i].split('\t').map(e => e.trim());
+
+        if (!content[component].map(e => e.name).includes(componentName)) {
+          console.log(`Error: ${componentName} ${component} does not exist in the model`);
+          exit;
+        }
+
+        if (filenameSet.has(mapFilename)) {
+          console.log(`Error: map ${mapFilename} can only be linked to one ${component}`);
+          exit;
+        }
+        filenameSet.add(mapFilename)
+
+        if (!/^[a-z0-9_]+[.]svg$/.test(mapFilename)) {
+          console.log(`Error: map ${mapFilename} (${filename}) is invalid`);
+          exit;
+        }
+        svgNodes.push({ id: mapFilename.split('.')[0], filename: mapFilename, customName: mapName });
+        svgRels.push({ [`${component}Id`]: idfyString(componentName), svgMapId: mapFilename.split('.')[0]});
+      }
+    } else {
       console.log(`Warning: cannot mappingfile ${filename} in path`, modelDir);
-      return;
     }
 
-    let lines = fs.readFileSync(mappingFile, 
-          { encoding: 'utf8', flag: 'r' }).split('\n').filter(Boolean);
-    const filenameSet = new Set(); // check uniqness of values in the file
-    const svgRels = [];
-    for (let i = 0; i < lines.length; i++) {
-      if (lines[i][0] == '#' || lines[i][0] == '@') {
-        continue;
-      }
-      const [ componentName, mapName, mapFilename ] = lines[i].split('\t').map(e => e.trim());
-
-      if (!content[component].map(e => e.name).includes(componentName)) {
-        console.log(`Error: ${componentName} ${component} does not exist in the model`);
-        exit;
-      }
-
-      if (filenameSet.has(mapFilename)) {
-        console.log(`Error: map ${mapFilename} can only be linked to one ${component}`);
-        exit;
-      }
-      filenameSet.add(mapFilename)
-
-      if (!/^[a-z0-9_]+[.]svg$/.test(mapFilename)) {
-        console.log(`Error: map ${mapFilename} (${filename}) is invalid`);
-        exit;
-      }
-      svgNodes.push({ id: mapFilename.split('.')[0], filename: mapFilename, customName: mapName });
-      svgRels.push({ [`${component}Id`]: idfyString(componentName), svgMapId: mapFilename.split('.')[0]});
-    }
-    // write the association file
+    // write the associated file
     csvWriter = createCsvWriter({
       path: `${outputPath}${component}SvgMaps.csv`,
       header: [{ id: `${component}Id`, title: `${component}Id` },
@@ -209,7 +209,7 @@ const parseModelFiles = (modelDir) => {
   // write svgMaps file
   csvWriter = createCsvWriter({
     path: `${outputPath}svgMaps.csv`,
-    header: Object.keys(svgNodes[0]).map(k => Object({ id: k, title: k })),
+    header: svgNodes.length ? Object.keys(svgNodes[0]).map(k => Object({ id: k, title: k })) : '',
   });
   csvWriter.writeRecords(svgNodes).then(() => {
     console.log(`svgMaps.csv file generated.`);
