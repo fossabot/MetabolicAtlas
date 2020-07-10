@@ -330,14 +330,14 @@ const parseModelFiles = (modelDir) => {
           externalIdNodes.push(node);
         }
 
-        // save the association between the node and the current component ID (reaction, gene, etc)
+        // save the relationships between the node and the current component ID (reaction, gene, etc)
         externalIdDBComponentRel.push({ id, externalDbId: node.id }); // e.g. geneId, externalDbId
       }
     } else {
       console.log(`Warning: cannot find external ID file ${filename} in path`, modelDir);
     }
 
-    // write the association file
+    // write the associated file
     csvWriter = createCsvWriter({
       path: `${outputPath}${component}ExternalDbs.csv`,
       header: [{ id: `${component}Id`, title: `${component}Id` },
@@ -561,25 +561,34 @@ const parseModelFiles = (modelDir) => {
     });
   });
 
-  // TODO generate instructions more auto
-  /*
-  To use if nodes/indexes exist and cause errors
-
-  MATCH (n)
-  DETACH DELETE n;
-  DROP INDEX ON :Metabolite(id);
-  DROP INDEX ON :CompartmentalizedMetabolite(id);
-  DROP INDEX ON :Compartment(id);
-  DROP INDEX ON :Reaction(id);
-  DROP INDEX ON :Gene(id);
-  DROP INDEX ON :Subsystem(id);
-  DROP INDEX ON :SvgMap(id);
-  DROP INDEX ON :ExternalDb(id);
-  DROP INDEX ON :PubmedReference(id);
-  */
+  // TODO generate instructions more dynamically
+  if (instructions.length === 0) {
+    instructions = [
+      'MATCH (n) DETACH DELETE n;',
+      'DROP INDEX ON :Metabolite(id);',
+      'DROP INDEX ON :CompartmentalizedMetabolite(id);',
+      'DROP INDEX ON :Compartment(id);',
+      'DROP INDEX ON :Reaction(id);',
+      'DROP INDEX ON :Gene(id);',
+      'DROP INDEX ON :Subsystem(id);',
+      'DROP INDEX ON :SvgMap(id);',
+      'DROP INDEX ON :ExternalDb(id);',
+      'DROP INDEX ON :PubmedReference(id);',
+      '',
+      'CREATE INDEX FOR (n:Metabolite) ON (n.id);',
+      'CREATE INDEX FOR (n:CompartmentalizedMetabolite) ON (n.id);',
+      'CREATE INDEX FOR (n:Compartment) ON (n.id);',
+      'CREATE INDEX FOR (n:Reaction) ON (n.id);',
+      'CREATE INDEX FOR (n:Gene) ON (n.id);',
+      'CREATE INDEX FOR (n:Subsystem) ON (n.id);',
+      'CREATE INDEX FOR (n:SvgMap) ON (n.id);',
+      'CREATE INDEX FOR (n:ExternalDb) ON (n.id);',
+      'CREATE INDEX FOR (n:PubmedReference) ON (n.id);',
+      '',
+    ]
+  }
 
   const cypherInstructions = `
-CREATE INDEX FOR (n:Metabolite) ON (n.id);
 LOAD CSV WITH HEADERS FROM "file:///${prefix}.metabolites.csv" AS csvLine
 CREATE (n:Metabolite:${model} {id:csvLine.id});
 LOAD CSV WITH HEADERS FROM "file:///${prefix}.metaboliteStates.csv" AS csvLine
@@ -587,11 +596,9 @@ MATCH (n:Metabolite {id: csvLine.metaboliteId})
 CREATE (ns:MetaboliteState {name:csvLine.name,alternateName:csvLine.alternateName,synonyms:csvLine.synonyms,description:csvLine.description,formula:csvLine.formula,charge:toInteger(csvLine.charge),isCurrency:toBoolean(csvLine.isCurrency)})
 CREATE (n)-[:${version}]->(ns);
 
-CREATE INDEX FOR (n:CompartmentalizedMetabolite) ON (n.id);
 LOAD CSV WITH HEADERS FROM "file:///${prefix}.compartmentalizedMetabolites.csv" AS csvLine
 CREATE (n:CompartmentalizedMetabolite:${model} {id:csvLine.id});
 
-CREATE INDEX FOR (n:Compartment) ON (n.id);
 LOAD CSV WITH HEADERS FROM "file:///${prefix}.compartments.csv" AS csvLine
 CREATE (n:Compartment:${model} {id:csvLine.id});
 LOAD CSV WITH HEADERS FROM "file:///${prefix}.compartmentStates.csv" AS csvLine
@@ -599,7 +606,6 @@ MATCH (n:Compartment {id: csvLine.compartmentId})
 CREATE (ns:CompartmentState {name:csvLine.name,letterCode:csvLine.letterCode})
 CREATE (n)-[:${version}]->(ns);
 
-CREATE INDEX FOR (n:Reaction) ON (n.id);
 LOAD CSV WITH HEADERS FROM "file:///${prefix}.reactions.csv" AS csvLine
 CREATE (n:Reaction:${model} {id:csvLine.id});
 LOAD CSV WITH HEADERS FROM "file:///${prefix}.reactionStates.csv" AS csvLine
@@ -607,7 +613,6 @@ MATCH (n:Reaction {id: csvLine.reactionId})
 CREATE (ns:ReactionState {name:csvLine.name,reversible:toBoolean(csvLine.reversible),lowerBound:toInteger(csvLine.lowerBound),upperBound:toInteger(csvLine.upperBound),geneRule:csvLine.geneRule,ec:csvLine.ec})
 CREATE (n)-[:${version}]->(ns);
 
-CREATE INDEX FOR (n:Gene) ON (n.id);
 LOAD CSV WITH HEADERS FROM "file:///${prefix}.genes.csv" AS csvLine
 CREATE (n:Gene:${model} {id:csvLine.id});
 LOAD CSV WITH HEADERS FROM "file:///${prefix}.geneStates.csv" AS csvLine
@@ -615,7 +620,6 @@ MATCH (n:Gene {id: csvLine.geneId})
 CREATE (ns:GeneState {name:csvLine.name,alternateName:csvLine.alternateName,synonyms:csvLine.synonyms,function:csvLine.function})
 CREATE (n)-[:${version}]->(ns);
 
-CREATE INDEX FOR (n:Subsystem) ON (n.id);
 LOAD CSV WITH HEADERS FROM "file:///${prefix}.subsystems.csv" AS csvLine
 CREATE (n:Subsystem:${model} {id:csvLine.id});
 LOAD CSV WITH HEADERS FROM "file:///${prefix}.subsystemStates.csv" AS csvLine
@@ -623,15 +627,12 @@ MATCH (n:Subsystem {id: csvLine.subsystemId})
 CREATE (ns:SubsystemState {name:csvLine.name})
 CREATE (n)-[:${version}]->(ns);
 
-CREATE INDEX FOR (n:SvgMap) ON (n.id);
 LOAD CSV WITH HEADERS FROM "file:///${prefix}.svgMaps.csv" AS csvLine
 CREATE (n:SvgMap:${model} {id:csvLine.id,filename:csvLine.filename,customName:csvLine.customName});
 
-CREATE INDEX FOR (n:ExternalDb) ON (n.id);
 LOAD CSV WITH HEADERS FROM "file:///${prefix}.externalDbs.csv" AS csvLine
 CREATE (n:ExternalDb {id:csvLine.id,dbName:csvLine.dbName,externalId:csvLine.externalId,url:csvLine.url});
 
-CREATE INDEX FOR (n:PubmedReference) ON (n.id);
 LOAD CSV WITH HEADERS FROM "file:///${prefix}.pubmedReferences.csv" AS csvLine
 CREATE (n:PubmedReference {id:csvLine.id,pubmedId:csvLine.pubmedId});
 
@@ -672,7 +673,7 @@ MATCH (n1:Subsystem {id: csvLine.subsystemId}),(n2:SvgMap {id: csvLine.svgMapId}
 CREATE (n1)-[:${version}]->(n2);
 
 LOAD CSV WITH HEADERS FROM "file:///${prefix}.metaboliteExternalDbs.csv" AS csvLine
-MATCH (n1:Metabolite {id: csvLine.metaboliteId}),(n2:ExternalDb {id: csvLine.externalDbId})
+MATCH (n1:CompartmentalizedMetabolite {id: csvLine.metaboliteId}),(n2:ExternalDb {id: csvLine.externalDbId})
 CREATE (n1)-[:${version}]->(n2);
 
 LOAD CSV WITH HEADERS FROM "file:///${prefix}.subsystemExternalDbs.csv" AS csvLine
@@ -686,8 +687,11 @@ CREATE (n1)-[:${version}]->(n2);
 LOAD CSV WITH HEADERS FROM "file:///${prefix}.geneExternalDbs.csv" AS csvLine
 MATCH (n1:Gene {id: csvLine.geneId}),(n2:ExternalDb {id: csvLine.externalDbId})
 CREATE (n1)-[:${version}]->(n2);
+
 `
-  console.log(cypherInstructions);
+  cypherInstructions.split('\n').forEach(i => {
+    instructions.push(i);
+  });
 };
 
 
@@ -699,12 +703,15 @@ try {
     if (stat.isDirectory()) {
       parseModelFiles(filePath);
     }
-    break;
   }
 } catch (e) {
   console.log(e);
   return;
 }
+
+// write cyper intructions to file
+fs.writeFileSync(`${inputDir}neo4j_instructions.txt`, instructions.join('\n'), 'utf8');
+
 
 // ====================================================
 // write a smaller version of the hpa rna levels file, to send to the frontend
