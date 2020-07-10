@@ -99,7 +99,11 @@ const reformatReactionObjets = (data) => {
   } );
 };
 
+let extNodeIdTracker = 1
 const humanGeneIdSet = new Set();
+const externalIdDBMap = {};
+const PMIDSset = new Set();
+let instructions = [];
 
 const parseModelFiles = (modelDir) => {
   // find the yaml in the folder
@@ -225,7 +229,7 @@ const parseModelFiles = (modelDir) => {
   lines = fs.readFileSync(reactionAnnoFile, 
             { encoding: 'utf8', flag: 'r' }).split('\n').filter(Boolean);
   const reactionPMID = [];
-  const PMIDS = new Set();
+  const PMIDs = [];
   for (let i = 0; i < lines.length; i++) {
     if (lines[i][0] == '#' || lines[i][0] == '@') {
       continue;
@@ -235,7 +239,10 @@ const parseModelFiles = (modelDir) => {
     if (reactionId in componentIdDict.reaction && PMIDList) { //only keep the ones in the model
       PMIDList.split('; ').forEach((pubmedReferenceId) => {
         reactionPMID.push({ reactionId, pubmedReferenceId });
-        PMIDS.add(pubmedReferenceId);
+        if (!PMIDSset.has(pubmedReferenceId)) {
+          PMIDs.push(pubmedReferenceId);
+          PMIDSset.add(pubmedReferenceId);
+        }
       });
     }
   }
@@ -245,7 +252,7 @@ const parseModelFiles = (modelDir) => {
     path: `${outputPath}pubmedReferences.csv`,
     header: [{ id: 'id', title: 'id' }],
   });
-  csvWriter.writeRecords(Array.from(PMIDS).map(
+  csvWriter.writeRecords(PMIDs.map(
     (id) => { return { id }; }
   )).then(() => {
     console.log('pubmedReferences file generated.');
@@ -287,9 +294,7 @@ const parseModelFiles = (modelDir) => {
   // TODO or remove annotation file
 
   // ============== parse External IDs files
-  let extNodeIdTracker = 1
   const externalIdNodes = [];
-  const externalIdDBMap = {};
 
   ['reaction', 'metabolite', 'gene', 'subsystem'].forEach((component) => {
     const externalIdDBComponentRel = [];
