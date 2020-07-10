@@ -94,7 +94,7 @@ const reformatReactionObjets = (data) => {
       upperBound: r.upper_bound,
       geneRule: r.gene_reaction_rule,
       ec: r.eccodes,
-      subsystems: r.subsystem,
+      subsystems: r.subsystem ? Array.isArray(r.subsystem) ? r.subsystem : [r.subsystem] : [],
     };
   } );
 };
@@ -110,9 +110,10 @@ const parseModelFiles = (modelDir) => {
   }
 
   const [ metadata, metabolites, reactions, genes, compartments ] = yaml.safeLoad(fs.readFileSync(yamlFile, 'utf8'));
-  const model = toLabelCase(metadata.metaData.short_name);
-  const version = `V${metadata.metaData.version.replace(/\./g, '_')}`;
-  const isHuman = metadata.metaData.organism === 'Homo sapiens';
+  const metadataSection = metadata.metaData || metadata.metadata;
+  const model = toLabelCase(metadataSection.short_name);
+  const version = `V${metadataSection.version.replace(/\./g, '_')}`;
+  const isHuman = metadataSection.organism === 'Homo sapiens';
 
   const prefix = `${model}${version}`;
   const outputPath = `./data/${prefix}.`;
