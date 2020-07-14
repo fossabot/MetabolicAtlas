@@ -1,6 +1,6 @@
 import express from 'express';
-import router from './endpoints/index';
-import { initializeSearchIndex } from './neo4j';
+import router from 'endpoints/index';
+import { initializeSearchIndex } from 'neo4j';
 import compression from 'compression';
 
 const app = express();

@@ -1,4 +1,4 @@
-import querySingleResult from '../queryHandlers/single';
+import querySingleResult from 'neo4j/queryHandlers/single';
 
 const getInteractionPartners = async ({ id, model, version }) => {
   const v = version;

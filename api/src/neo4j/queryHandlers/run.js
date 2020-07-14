@@ -1,4 +1,4 @@
-import driver from '../driver';
+import driver from 'neo4j/driver';
 
 const runStatement = async (statement) => {
   const session = driver.session();

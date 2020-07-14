@@ -1,5 +1,5 @@
-import queryListResult from '../queryHandlers/list';
-import runStatement from '../queryHandlers/run';
+import queryListResult from 'neo4j/queryHandlers/list';
+import runStatement from 'neo4j/queryHandlers/run';
 
 const componentTypes = [
   "CompartmentalizedMetabolite",
