@@ -1,4 +1,4 @@
-import queryListResult from '../queryHandlers/list';
+import queryListResult from 'neo4j/queryHandlers/list';
 
 const NODE_TYPES = {
   reaction: 'Reaction',

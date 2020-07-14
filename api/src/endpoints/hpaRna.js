@@ -6,7 +6,7 @@ let HPA_JSON = null;
 routes.get('/all', async (req, res) => {
   try {
     if (!HPA_JSON) {
-      HPA_JSON = require('../data/hpaRna.json');
+      HPA_JSON = require('data/hpaRna.json');
     }
 
     res.json(HPA_JSON);

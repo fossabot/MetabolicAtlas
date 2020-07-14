@@ -1,7 +1,7 @@
 import express from 'express';
-import neo4jRoutes from './neo4j';
-import repoRoutes from './repository';
-import hpaRoutes from './hpaRna';
+import neo4jRoutes from 'endpoints/neo4j';
+import repoRoutes from 'endpoints/repository';
+import hpaRoutes from 'endpoints/hpaRna';
 
 const router = express.Router();
 

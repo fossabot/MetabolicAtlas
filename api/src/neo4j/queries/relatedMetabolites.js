@@ -1,4 +1,4 @@
-import queryListResult from '../queryHandlers/list';
+import queryListResult from 'neo4j/queryHandlers/list';
 
 const getRelatedMetabolites = async ({ id, version }) => {
   const v = version;

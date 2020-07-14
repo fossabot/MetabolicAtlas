@@ -1,5 +1,5 @@
-import queryListResult from '../queryHandlers/list';
-import reformatExternalDbs from '../shared/formatter';
+import queryListResult from 'neo4j/queryHandlers/list';
+import reformatExternalDbs from 'neo4j/shared/formatter';
 
 const getRandomComponents = async ({ model, version }) => {
   const m = model || 'HumanGem';

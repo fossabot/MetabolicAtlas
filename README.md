@@ -11,11 +11,11 @@ Docker, along with docker-compose, is used to manage the dependencies of this pr
 
 ## Get started
 
-Add a `postgres.env` file based on the `postgres.env.sample` file:
+Add a `.env` file based on the `.env.sample` file:
 ```bash
-cp postgres.env.sample postgres.env
+cp .env.sample .env
 ```
-and modify the `postgres.env`. To load the list of helper commands:
+and modify the `.env` file. To load the list of helper commands:
 ```bash
 source proj.sh
 ```

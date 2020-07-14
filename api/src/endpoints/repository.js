@@ -1,6 +1,6 @@
 import express from 'express';
-import gemsRepoJson from '../data/gemsRepository.json';
-import integratedGemsRepoJson from '../data/integratedModels.json';
+import gemsRepoJson from 'data/gemsRepository.json';
+import integratedGemsRepoJson from 'data/integratedModels.json';
 
 const routes = express.Router();
 

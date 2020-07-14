@@ -1,14 +1,12 @@
 import driver from 'neo4j/driver';
 
-const querySingleResult = async (statement) => {
+const runStatement = async (statement) => {
   const session = driver.session();
 
-  let result;
   let error;
 
   try {
-    const response = await session.run(statement);
-    result = response.records[0].get(0);
+    await session.run(statement);
   } catch (e) {
     error = e;
   } finally {
@@ -18,8 +16,6 @@ const querySingleResult = async (statement) => {
   if (error) {
     throw error;
   }
-
-  return result;
 };
 
-export default querySingleResult;
+export default runStatement;

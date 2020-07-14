@@ -1,5 +1,5 @@
-import querySingleResult from '../queryHandlers/single';
-import reformatExternalDbs from '../shared/formatter';
+import querySingleResult from 'neo4j/queryHandlers/single';
+import reformatExternalDbs from 'neo4j/shared/formatter';
 
 const getGene = async ({ id, version }) => {
   const v = version;

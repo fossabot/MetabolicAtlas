@@ -1,29 +1,39 @@
 version: '3.7'
 
 services:
-  db:
-    restart: always
-
-  backend:
-    command: bash -c "python manage.py runserver 0.0.0.0:8000"
-    restart: always
-
   nginx:
-    restart: always
+    restart: unless-stopped
     build:
       context: .
-      dockerfile: nginx/Dockerfile.prod
+      dockerfile: ./nginx/Dockerfile.prod
     ports:
       - "80:80"
       - "443:443"
+    environment:
+      CERTBOT_EMAIL: ${CERTBOT_EMAIL}
+      ENVSUBST_VARS: SERVER_NAME
+      SERVER_NAME: ${SERVER_NAME}
     volumes:
-      - /var/ssl:/ssl:ro
+      - letsencrypt:/etc/letsencrypt
 
   neo4j:
-    image: neo4j:latest
-    environment:
-      - NEO4J_AUTH=none
-      - NEO4J_dbms_read__only=true
+    restart: unless-stopped
+    container_name: neo4j
+    build: ./neo4j
+    command: neo4j
     ports:
-      - "7474:7474"
+      - "7687:7687"
+
+  api:
+    restart: unless-stopped
+    container_name: api
+    build:
+      context: ./api
+      dockerfile: ./Dockerfile.prod
+    environment:
+      - NODE_ENV=production
+    command: yarn start
+
+volumes:
+    letsencrypt:
 
