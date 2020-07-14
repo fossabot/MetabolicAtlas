@@ -46,7 +46,6 @@ services:
       - "127.0.0.1:7687:7687"
 
   api:
-    container_name: api
     build: ./api
     environment:
       - NODE_ENV=develop

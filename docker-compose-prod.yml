@@ -18,15 +18,16 @@ services:
 
   neo4j:
     restart: unless-stopped
-    container_name: neo4j
-    build: ./neo4j
+    build:
+      context: ./neo4j
+      dockerfile: ./Dockerfile
+      args:
+        NEO4J_USERNAME: ${NEO4J_USERNAME}
+        NEO4J_PASSWORD: ${NEO4J_PASSWORD}
     command: neo4j
-    ports:
-      - "7687:7687"
 
   api:
     restart: unless-stopped
-    container_name: api
     build:
       context: ./api
       dockerfile: ./Dockerfile.prod

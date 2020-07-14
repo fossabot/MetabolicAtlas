@@ -38,11 +38,17 @@ function db-migrate {
   docker exec backend python manage.py migrate --database=$@
 }
 
+function deploy-stack {
+  sh -ac ' . ./.env; cp -r $NEO4J_IMPORT_DATA_PATH ./neo4j/import'
+  docker-compose -f docker-compose.yml -f docker-compose-prod.yml --context met-prod up -d --build
+}
+
 echo -e "Available commands:
 \tbuild-stack [options for dev instance only]
 \tstart-stack
 \tstop-stack
 \tclean-stack
+\tdeploy-stack [options for prod instance only]
 \tlogs [container]
 \tdb-import [database]
 \tdb-make-migrations
