@@ -45,7 +45,7 @@
           </table>
         </div>
         <p>The
-          <a :href="`/api/${model.database_name}/compartment/${cName}/`"
+          <a :href="`/api/v2/${model.database_name}/compartment/${cName}/`"
              target="_blank">complete list in JSON format</a>
           of reactions / metabolites / genes is available using our
           <a href="/api/" target="_blank">API</a></p>
