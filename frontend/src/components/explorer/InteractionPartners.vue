@@ -195,11 +195,11 @@
                   <br>
                   <div class="select is-fullwidth"
                        :class="{ 'is-loading' : loadingHPA }">
-                    <select v-if="tissues.HPA" id="enz-select" ref="enzHPAselect"
+                    <select v-if="tissues" id="enz-select" ref="enzHPAselect"
                             v-model="selectedSample" title="Select a tissue type"
                             @change.prevent="applyLevels('HPA', 'RNA', selectedSample)">
                       <option value="">None</option>
-                      <option v-for="tissue in tissues['HPA']" :key="tissue" :value="tissue">
+                      <option v-for="tissue in tissues" :key="tissue" :value="tissue">
                         {{ tissue }}
                       </option>
                     </select>
@@ -390,7 +390,7 @@ export default {
     ...mapState({
       model: state => state.models.model,
       tissues: state => state.humanProteinAtlas.tissues,
-      matLevels: state => state.humanProteinAtlas.matLevels,
+      levels: state => state.humanProteinAtlas.levels,
       tooLargeNetworkGraph: state => state.interactionPartners.tooLargeNetworkGraph,
       expansion: state => state.interactionPartners.expansion,
     }),
@@ -450,12 +450,14 @@ export default {
       this.subsystemHL = '';
       this.$router.push({ name: 'interPartner', params: { model: this.model.database_name, id: this.clickedElmId } });
     },
-    async loadHPATissue() {
+    async loadHPALevels() {
+      if (this.model.sample.organism !== 'Homo sapiens') {
+        this.disableExpLvlMessage = `Unavailable for ${this.model.short_name}`;
+        return;
+      }
+
       try {
-        await this.$store.dispatch('humanProteinAtlas/getTissues', this.model.database_name);
-        if (this.tissues.HPA.length === 0) {
-          this.disableExpLvlMessage = `Unavailable for ${this.model.short_name}`;
-        }
+        await this.$store.dispatch('humanProteinAtlas/getLevels');
       } catch {
         this.disableExpLvlMessage = 'Sorry, currently unavailable ';
       }
@@ -492,7 +494,7 @@ export default {
 
         this.disableExpLvlMessage = '';
         this.resetGeneExpression();
-        await this.loadHPATissue();
+        await this.loadHPALevels();
 
         this.nodeCount = Object.keys(this.rawElms).length;
         if (this.nodeCount > this.warnNodeCount) {
@@ -839,8 +841,8 @@ export default {
       a.click();
       document.body.removeChild(a);
     },
-    async applyLevels(expSource, expType, expSample) {
-      setTimeout(async () => {
+    applyLevels(expSource, expType, expSample) {
+      setTimeout(() => {
         if (this.disableExpLvlMessage) {
           return;
         }
@@ -848,11 +850,12 @@ export default {
           if (this.nodeDisplayParams.geneExpSource !== expSource) {
             this.nodeDisplayParams.geneExpSource = expSource;
             this.nodeDisplayParams.geneExpType = expType;
+            this.nodeDisplayParams.geneExpSample = expSample;
             // if this source for this type of component have been already loaded
             if (!this.overlay[expSource]) {
               // sources that load all exp type
               if (expSource === 'HPA') {
-                await this.getHPAexpression(this.rawElms, expSample);
+                this.getHPAexpression(this.rawElms);
               } else {
                 // load expression data from another source here
               }
@@ -861,14 +864,15 @@ export default {
             }
           } else if (this.nodeDisplayParams.geneExpType !== expType) {
             this.nodeDisplayParams.geneExpType = expType;
+            this.nodeDisplayParams.geneExpSample = expSample;
             if (!this.overlay.expSource.expType) {
               // sources that load only one specific exp type
               this.redrawGraph();
             }
           } else if (this.nodeDisplayParams.geneExpSample !== expSample) {
+            this.nodeDisplayParams.geneExpSample = expSample;
             this.redrawGraph();
           }
-          this.nodeDisplayParams.geneExpSample = expSample;
         } else {
           // disable expression lvl for gene
           this.nodeDisplayParams.geneExpSource = false;
@@ -923,37 +927,31 @@ export default {
       const geneIds = genes.map(k => rawElms[k].id);
 
       try {
-        const payload = { model: this.model.database_name, geneIds };
-        await this.$store.dispatch('humanProteinAtlas/getMatLevels', payload);
-
-        if (this.matLevels.length === 0) {
+        if (geneIds.length === 0) {
           this.disableExpLvlMessage = 'Unavailable, no genes on the graph';
           return;
         }
 
-        for (let i = 0; i < this.matLevels.length; i += 1) {
-          const array = this.matLevels[i];
-          const enzID = array[0];
+        for (let i = 0; i < geneIds.length; i += 1) {
+          const geneID = geneIds[i];
+          const levelsArray = this.levels[geneID];
 
-          if (!(enzID in this.rawElms)) {
-            continue; // eslint-disable-line no-continue
+          if (!this.rawElms[geneID].expressionLvl) {
+            this.rawElms[geneID].expressionLvl = {};
           }
-
-          if (!this.rawElms[enzID].expressionLvl) {
-            this.rawElms[enzID].expressionLvl = {};
+          if (!this.rawElms[geneID].expressionLvl.HPA) {
+            this.rawElms[geneID].expressionLvl.HPA = {};
           }
-          if (!this.rawElms[enzID].expressionLvl.HPA) {
-            this.rawElms[enzID].expressionLvl.HPA = {};
-          }
-          if (!this.rawElms[enzID].expressionLvl.HPA.RNA) {
-            this.rawElms[enzID].expressionLvl.HPA.RNA = {};
+          if (!this.rawElms[geneID].expressionLvl.HPA.RNA) {
+            this.rawElms[geneID].expressionLvl.HPA.RNA = {};
           }
 
-          for (let j = 0; j < this.tissues.HPA.length; j += 1) {
-            const tissue = this.tissues.HPA[j];
-            let level = Math.log2(parseFloat(array[1].split(',')[j]) + 1);
+          // set the levels for all the tissues at once
+          for (let j = 0; j < this.tissues.length; j += 1) {
+            const tissue = this.tissues[j];
+            let level = Math.log2(levelsArray[j] + 1);
             level = Math.round((level + 0.00001) * 100) / 100;
-            this.rawElms[enzID].expressionLvl.HPA.RNA[tissue] = getSingleRNAExpressionColor(level);
+            this.rawElms[geneID].expressionLvl.HPA.RNA[tissue] = getSingleRNAExpressionColor(level);
           }
         }
         this.overlay.HPA = {};

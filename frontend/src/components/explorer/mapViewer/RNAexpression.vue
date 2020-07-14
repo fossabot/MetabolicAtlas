@@ -37,10 +37,7 @@ export default {
       dim: null,
 
       customTissues: [],
-
-      HPARNAlevelsHistory: {},
       customRNALevels: {},
-
       firstRNAlevels: {},
       secondRNAlevels: {},
 
@@ -51,7 +48,7 @@ export default {
   computed: {
     ...mapState({
       model: state => state.models.model,
-      mapRnaLevels: state => state.humanProteinAtlas.mapRnaLevels,
+      rnaLevels: state => state.humanProteinAtlas.levels,
     }),
     ...mapGetters({
       HPATissues: 'humanProteinAtlas/HPATissues',
@@ -119,70 +116,46 @@ export default {
     EventBus.$on('loadCustomGeneExpData', (file) => {
       this.loadCustomRNAlevels(file);
     });
-    await this.getHPATissues();
+    await this.getRnaLevels();
   },
   methods: {
-    async selectFirstTissue(tissue, tissueSource, dim, skipCompute = false) {
+    selectFirstTissue(tissue, tissueSource, dim, skipCompute = false) {
       this.dim = dim;
       this.tissue1 = tissue;
       this.tissue1Source = tissueSource;
       if (tissueSource === 'HPA') {
-        await this.loadHPAlevels(tissue, dim, 0, skipCompute ? null : this.computeRNAlevels);
+        this.parseHPARNAlevels(tissue, 0, skipCompute ? null : this.computeRNAlevels);
       } else {
         this.parseCustomRNAlevels(tissue, 0, skipCompute ? null : this.computeRNAlevels);
       }
       this.$emit('firstTissueSelected', tissue);
     },
-    async selectSecondTissue(tissue, tissueSource, dim, skipCompute = false) {
+    selectSecondTissue(tissue, tissueSource, dim, skipCompute = false) {
       this.dim = dim;
       this.tissue2 = tissue;
       this.tissue2Dource = tissueSource;
       if (tissueSource === 'HPA') {
-        await this.loadHPAlevels(tissue, dim, 1, skipCompute ? null : this.computeRNAlevels);
+        this.parseHPARNAlevels(tissue, 1, skipCompute ? null : this.computeRNAlevels);
       } else {
         this.parseCustomRNAlevels(tissue, 1, skipCompute ? null : this.computeRNAlevels);
       }
       this.$emit('secondTissueSelected', tissue);
     },
-    async getHPATissues() {
+    async getRnaLevels() {
       try {
-        await this.$store.dispatch('humanProteinAtlas/getTissues', this.model.database_name);
-        this.$emit('loadedHPARNAtissue', this.HPATissues);
+        await this.$store.dispatch('humanProteinAtlas/getLevels');
+        this.$emit('loadedHPARNALevels', this.HPATissues);
       } catch {
         this.loadErrorMesssage = messages.unknownError;
       }
     },
-    async loadHPAlevels(tissue, dim, index, callback) {
-      if (this.mapName in this.HPARNAlevelsHistory && dim in this.HPARNAlevelsHistory[this.mapName]) {
-        this.parseHPARNAlevels(tissue, dim, index, callback);
-        return;
-      }
-
-      try {
-        const payload = { model: this.model.database_name, mapType: this.mapType, dim, mapName: this.mapName };
-        await this.$store.dispatch('humanProteinAtlas/getRnaLevelsForMap', payload);
-
-        if (!(this.mapName in this.HPARNAlevelsHistory)) {
-          this.HPARNAlevelsHistory[this.mapName] = {};
-        }
-        this.HPARNAlevelsHistory[this.mapName][dim] = this.mapRnaLevels;
-        setTimeout(() => {
-          this.parseHPARNAlevels(tissue, dim, index, callback);
-        }, 0);
-      } catch {
-        EventBus.$emit('loadRNAComplete', false, '');
-      }
-    },
-    parseHPARNAlevels(tissue, dim, index, callback) {
+    parseHPARNAlevels(tissue, index, callback) {
       const RNAlevels = {};
-      const tissueIndex = this.HPARNAlevelsHistory[this.mapName][dim].tissues.indexOf(tissue);
+      const tissueIndex = this.HPATissues.indexOf(tissue);
       this.$store.dispatch(`maps/setTissue${index + 1}`, tissue);
 
-      const { levels } = this.HPARNAlevelsHistory[this.mapName][dim];
-      levels.forEach((array) => {
-        const enzID = array[0];
-        const level = parseFloat(array[1].split(',')[tissueIndex]);
-        RNAlevels[enzID] = level;
+      Object.keys(this.rnaLevels).forEach((enzID) => {
+        RNAlevels[enzID] = this.rnaLevels[enzID][tissueIndex];
       });
       RNAlevels['n/a'] = 'n/a';
       if (index === 0) {
@@ -260,7 +233,7 @@ export default {
         this.customRNALevels = data;
         // return the columns loaded
         const info = { tissues: this.customTissues, entries: entriesCount, series: this.customTissues.length };
-        this.$emit('loadedCustomTissues', info);
+        this.$emit('loadedCustomLevels', info);
       };
 
       // start reading
