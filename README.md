@@ -1,4 +1,6 @@
 # Metabolic Atlas
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FMetabolicAtlas%2FMetabolicAtlas.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2FMetabolicAtlas%2FMetabolicAtlas?ref=badge_shield)
+
 Welcome to the codebase for the Metabolic Atlas project.
 
 The front-end uses [Vue.js](https://vuejs.org), with help of [Vue CLI](https://cli.vuejs.org/). The backend uses [Django REST framework](http://www.django-rest-framework.org) with [PostgreSQL](https://www.postgresql.org) as the database.  
@@ -35,3 +37,7 @@ The frontend should be available at: `http://localhost/` and the backend should 
 * To import a database: `db-import [database-file.db]`
 * To create new migration files: `db-make-migrations`
 * To run a database migration: `db-migrate [database]`
+
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2FMetabolicAtlas%2FMetabolicAtlas.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2FMetabolicAtlas%2FMetabolicAtlas?ref=badge_large)
